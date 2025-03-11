@@ -34,9 +34,10 @@ function displayEvents(events, targetDivId) {
         const eventDiv = document.createElement('div');
         const startTime = event.start ? (event.start.dateTime ? new Date(event.start.dateTime) : new Date(event.start.date)) : null;
         const endTime = event.end ? (event.end.dateTime ? new Date(event.end.dateTime) : new Date(event.end.date)) : null;
-        if (startTime && endTime) {
+        
+		if (startTime && endTime) {
           updateEventDisplay(eventDiv, event, startTime, endTime);
-          setInterval(() => updateEventDisplay(eventDiv, event, startTime, endTime), 1000); // Update every second
+          setInterval(() => updateEventDisplay(startTime, endTime), 1000); // Update every second
         } else {
             eventDiv.innerHTML = `<strong>${event.summary}</strong><br>Time information unavailable`;
         }
