@@ -29,14 +29,14 @@ function getCalendarEvents() {
 function displayEvents(events, targetDivId) {
       const eventsDiv = document.getElementById(targetDivId);
       eventsDiv.innerHTML = ``;
-      events.forEach(event => {
+      events.forEach((event, index) => {		  
         const eventDiv = document.createElement('div');
         const startTime = event.start ? (event.start.dateTime ? new Date(event.start.dateTime) : new Date(event.start.date)) : null;
         const endTime = event.end ? (event.end.dateTime ? new Date(event.end.dateTime) : new Date(event.end.date)) : null;
-        
+        eventDiv.id = `event-${index}`;
 		if (startTime && endTime) {
           updateEventDisplay(eventDiv, event, startTime, endTime);
-		  setInterval(() => updateEventDisplay(startTime, endTime), 1000); // Update every second
+		  setInterval(() => updateEventDisplay(eventDiv, event, startTime, endTime), 1000); // Update every second
         } else {
             eventDiv.innerHTML = `<strong>${event.summary}</strong><br>Time information unavailable`;
         }
@@ -45,156 +45,170 @@ function displayEvents(events, targetDivId) {
     }
 function updateEventDisplay(eventDiv, event, startTime, endTime) {
         const now = new Date();
+		const timeElement = eventDiv.querySelector('.event-time'); // Assumes you add a class "event-time" to the time div
+			if (timeElement) {
+				if (now < startTime) {
+					timeElement.textContent = formatComingUp(now, startTime);
+				} else if (now >= startTime && now <= endTime) {
+					timeElement.textContent = formatRunning(now, endTime);
+				} else {
+					timeElement.textContent = formatTimeAgo(endTime);
+				}
+			}
 		if (event && event.summary) { // Check if both event and event.summary exist            
-			if (event && event.summary) {
 			imgSummary = event.summary.toLowerCase().replace(/\s+/g, '_');
 			// Coming
 			if (now < startTime) {
-			if (event.description == 'Arms Race'){
-				eventDiv.innerHTML = `
-				<div class="event-blip-border-inactive">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.ar.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatComingUp(now, startTime)}</div>
+				if (event.description == 'Arms Race'){
+					eventDiv.innerHTML = `
+					<div class="event-blip-border-inactive">
+						  <div class="event-blip" style="margin: 4px;">
+							  <img src="img/blip/blip.ar.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
+							  <div class="event-details">
+								<div class="event-title bebas-neue-regular">${event.summary}</div>
+								<div class="event-time bebas-neue-regular">${formatComingUp(now, startTime)}</div>
+							  </div>
 						  </div>
 					  </div>
-				  </div>
-				`;
-			}
-			else if (event.description == 'Alliance Event'){
-				eventDiv.innerHTML = `
-				<div class="event-blip-border-inactive">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.ae.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatComingUp(now, startTime)}</div>
+					`;
+				}
+				else if (event.description == 'Alliance Event'){
+					eventDiv.innerHTML = `
+					<div class="event-blip-border-inactive">
+						  <div class="event-blip" style="margin: 4px;">
+							  <img src="img/blip/blip.ae.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
+							  <div class="event-details">
+								<div class="event-title bebas-neue-regular">${event.summary}</div>
+								<div class="event-time bebas-neue-regular">${formatComingUp(now, startTime)}</div>
+							  </div>
 						  </div>
 					  </div>
-				  </div>
-				`;}
-			else if (event.description == 'Server Event'){
-				eventDiv.innerHTML = `
-				<div class="event-blip-border-inactive">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.se.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatComingUp(now, startTime)}</div>
+					`;
+				}
+				else if (event.description == 'Server Event'){
+					eventDiv.innerHTML = `
+					<div class="event-blip-border-inactive">
+						  <div class="event-blip" style="margin: 4px;">
+							  <img src="img/blip/blip.se.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
+							  <div class="event-details">
+								<div class="event-title bebas-neue-regular">${event.summary}</div>
+								<div class="event-time bebas-neue-regular">${formatComingUp(now, startTime)}</div>
+							  </div>
 						  </div>
 					  </div>
-				  </div>
-				`;}
-			else if (event.description == 'Season Event'){
-				eventDiv.innerHTML = `
-				<div class="event-blip-border-inactive">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.sn.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatComingUp(now, startTime)}</div>
+					`;
+				}
+				else if (event.description == 'Season Event'){
+					eventDiv.innerHTML = `
+					<div class="event-blip-border-inactive">
+						  <div class="event-blip" style="margin: 4px;">
+							  <img src="img/blip/blip.sn.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
+							  <div class="event-details">
+								<div class="event-title bebas-neue-regular">${event.summary}</div>
+								<div class="event-time bebas-neue-regular">${formatComingUp(now, startTime)}</div>
+							  </div>
 						  </div>
 					  </div>
-				  </div>
-				`;}
-		} 
+					`;
+				}
+			} 
 			// Running
 			else if (now >= startTime && now <= endTime) {
-			if (event.description == 'Arms Race'){
-            eventDiv.innerHTML = `
-			<div class="event-blip-border-arms">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.ar.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatRunning(now, endTime)}</div>
-						  </div>
-					  </div>
-				  </div>
-			`;
-			}
-			else if (event.description == 'Alliance Event'){
-            eventDiv.innerHTML = `
-			<div class="event-blip-border-alliance">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.ae.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatRunning(now, endTime)}</div>
-						  </div>
-					  </div>
-				  </div>
-			`;}
-			else if (event.description == 'Server Event'){
-			// style="max-width: 50%;"	
-            eventDiv.innerHTML = `
-			<div class="event-blip-border-server">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.se.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatRunning(now, endTime)}</div>
-						  </div>
-					  </div>
-				  </div>
-			`;}
-			else if (event.description == 'Season Event'){
-            eventDiv.innerHTML = `
-			<div class="event-blip-border-season">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.sn.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatRunning(now, endTime)}</div>
-						  </div>
-					  </div>
-				  </div>
-			`;}		
-		} 
+				if (event.description == 'Arms Race'){
+					eventDiv.innerHTML = `
+						<div class="event-blip-border-arms">
+								  <div class="event-blip" style="margin: 4px;">
+									  <img src="img/blip/blip.ar.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+									  <div class="event-details">
+										<div class="event-title bebas-neue-regular">${event.summary}</div>
+										<div class="event-time bebas-neue-regular">${formatRunning(now, endTime)}</div>
+									  </div>
+								  </div>
+							  </div>
+					`;
+				}
+				else if (event.description == 'Alliance Event'){
+					eventDiv.innerHTML = `
+						<div class="event-blip-border-alliance">
+								  <div class="event-blip" style="margin: 4px;">
+									  <img src="img/blip/blip.ae.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+									  <div class="event-details">
+										<div class="event-title bebas-neue-regular">${event.summary}</div>
+										<div class="event-time bebas-neue-regular">${formatRunning(now, endTime)}</div>
+									  </div>
+								  </div>
+							  </div>
+					`;
+				}
+				else if (event.description == 'Server Event'){
+				// style="max-width: 50%;"	
+					eventDiv.innerHTML = `
+						<div class="event-blip-border-server">
+								  <div class="event-blip" style="margin: 4px;">
+									  <img src="img/blip/blip.se.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+									  <div class="event-details">
+										<div class="event-title bebas-neue-regular">${event.summary}</div>
+										<div class="event-time bebas-neue-regular">${formatRunning(now, endTime)}</div>
+									  </div>
+								  </div>
+							  </div>
+					`;
+				}
+				else if (event.description == 'Season Event'){
+				eventDiv.innerHTML = `
+						<div class="event-blip-border-season">
+								  <div class="event-blip" style="margin: 4px;">
+									  <img src="img/blip/blip.sn.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+									  <div class="event-details">
+										<div class="event-title bebas-neue-regular">${event.summary}</div>
+										<div class="event-time bebas-neue-regular">${formatRunning(now, endTime)}</div>
+									  </div>
+								  </div>
+							  </div>
+					`;}		
+				} 
 			// Ended
 			else if (now-endTime < 14400000){
-			if (event.description == 'Arms Race'){
-            eventDiv.innerHTML = `
-			<div class="event-blip-border-inactive">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.ar.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatTimeAgo(endTime)}</div>
-						  </div>
-					  </div>
-				  </div>
-			`;
-			}
-			else if (event.description == 'Alliance Event'){
-            eventDiv.innerHTML = `
-			<div class="event-blip-border-inactive">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.ae.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatTimeAgo(endTime)}</div>
-						  </div>
-					  </div>
-				  </div>
-			`;
-			}
-			else if (event.description == 'Server Event' && event.summary != 'Reset'){
-            eventDiv.innerHTML = `
-			<div class="event-blip-border-inactive">
-					  <div class="event-blip" style="margin: 4px;">
-						  <img src="img/blip/blip.se.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
-						  <div class="event-details">
-							<div class="event-title bebas-neue-regular">${event.summary}</div>
-							<div class="event-time bebas-neue-regular">${formatTimeAgo(endTime)}</div>
-						  </div>
-					  </div>
-				  </div>			
-			`;
-			}
-			else if (event.description == 'Season Event'){
+				if (event.description == 'Arms Race'){
+					eventDiv.innerHTML = `
+						<div class="event-blip-border-inactive">
+								  <div class="event-blip" style="margin: 4px;">
+									  <img src="img/blip/blip.ar.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
+									  <div class="event-details">
+										<div class="event-title bebas-neue-regular">${event.summary}</div>
+										<div class="event-time bebas-neue-regular">${formatTimeAgo(endTime)}</div>
+									  </div>
+								  </div>
+							  </div>
+					`;
+				}
+				else if (event.description == 'Alliance Event'){
+					eventDiv.innerHTML = `
+						<div class="event-blip-border-inactive">
+								  <div class="event-blip" style="margin: 4px;">
+									  <img src="img/blip/blip.ae.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
+									  <div class="event-details">
+										<div class="event-title bebas-neue-regular">${event.summary}</div>
+										<div class="event-time bebas-neue-regular">${formatTimeAgo(endTime)}</div>
+									  </div>
+								  </div>
+							  </div>
+					`;
+				}
+				else if (event.description == 'Server Event' && event.summary != 'Reset'){
+					eventDiv.innerHTML = `
+						<div class="event-blip-border-inactive">
+								  <div class="event-blip" style="margin: 4px;">
+									  <img src="img/blip/blip.se.${imgSummary}.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
+									  <div class="event-details">
+										<div class="event-title bebas-neue-regular">${event.summary}</div>
+										<div class="event-time bebas-neue-regular">${formatTimeAgo(endTime)}</div>
+									  </div>
+								  </div>
+							  </div>			
+					`;
+				}
+				else if (event.description == 'Season Event'){
             eventDiv.innerHTML = `
 			<div class="event-blip-border-inactive">
 					  <div class="event-blip" style="margin: 4px;">
@@ -208,9 +222,7 @@ function updateEventDisplay(eventDiv, event, startTime, endTime) {
 			`;
 			}
 		}
-		}
-            console.log(imgSummary)
-        }      
+		}   
 }
 function formatComingUp(start, end) {
         const diff = Math.abs(end - start);
@@ -252,22 +264,25 @@ function formatRunning(start, end) {
         
     }
 function formatTimeAgo(date) {
-        const now = new Date();
-        const diff = Math.abs(now - date);
-        const seconds = Math.floor(diff / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        const days = Math.floor(hours / 24);
+    const now = new Date();
+    const diff = Math.abs(now - date);
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
 
-        if (days > 0) {
-            return `Ended ${days}D ago`;
-        } else if (hours > 0) {
-            return `Ended ${hours}H ago`;
-        } else if (minutes > 0) {
-            return `Ended ${minutes}M ago`;
-        } else {
-            return `Ended ${seconds}S ago`;
-        }
+    if (days > 0) {
+        return `Ended ${days}D ago`;
+    } 
+	else if (hours > 0) {
+        return `Ended ${hours}H ago`;
+    } 
+	else if (minutes > 0) {
+        return `Ended ${minutes}M ago`;
+    } 
+	else {
+        return `Ended ${seconds}S ago`;
     }
+}
 getCalendarEvents();
 setInterval(getCalendarEvents, 60000); // Refresh event list every minute
