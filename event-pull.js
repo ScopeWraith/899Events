@@ -29,7 +29,6 @@ function getCalendarEvents() {
 function displayEvents(events, targetDivId) {
       const eventsDiv = document.getElementById(targetDivId);
       eventsDiv.innerHTML = ``;
-
       events.forEach(event => {
         const eventDiv = document.createElement('div');
         const startTime = event.start ? (event.start.dateTime ? new Date(event.start.dateTime) : new Date(event.start.date)) : null;
@@ -37,7 +36,7 @@ function displayEvents(events, targetDivId) {
         
 		if (startTime && endTime) {
           updateEventDisplay(eventDiv, event, startTime, endTime);
-          setInterval(() => updateEventDisplay(startTime, endTime), 1000); // Update every second
+		  setInterval(() => updateEventDisplay(startTime, endTime), 1000); // Update every second
         } else {
             eventDiv.innerHTML = `<strong>${event.summary}</strong><br>Time information unavailable`;
         }
@@ -46,9 +45,11 @@ function displayEvents(events, targetDivId) {
     }
 function updateEventDisplay(eventDiv, event, startTime, endTime) {
         const now = new Date();
-		const imgSummary = event.summary.toLowerCase().replace(/\s+/g, '_');
-		// Coming
-        if (now < startTime) {
+		if (event && event.summary) { // Check if both event and event.summary exist            
+			if (event && event.summary) {
+			imgSummary = event.summary.toLowerCase().replace(/\s+/g, '_');
+			// Coming
+			if (now < startTime) {
 			if (event.description == 'Arms Race'){
 				eventDiv.innerHTML = `
 				<div class="event-blip-border-inactive">
@@ -99,8 +100,8 @@ function updateEventDisplay(eventDiv, event, startTime, endTime) {
 				  </div>
 				`;}
 		} 
-		// Running
-		else if (now >= startTime && now <= endTime) {
+			// Running
+			else if (now >= startTime && now <= endTime) {
 			if (event.description == 'Arms Race'){
             eventDiv.innerHTML = `
 			<div class="event-blip-border-arms">
@@ -152,8 +153,8 @@ function updateEventDisplay(eventDiv, event, startTime, endTime) {
 				  </div>
 			`;}		
 		} 
-		// Ended
-		else if (now-endTime < 14400000){
+			// Ended
+			else if (now-endTime < 14400000){
 			if (event.description == 'Arms Race'){
             eventDiv.innerHTML = `
 			<div class="event-blip-border-inactive">
@@ -207,7 +208,10 @@ function updateEventDisplay(eventDiv, event, startTime, endTime) {
 			`;
 			}
 		}
-    }
+		}
+            console.log(imgSummary)
+        }      
+}
 function formatComingUp(start, end) {
         const diff = Math.abs(end - start);
         const minutes = Math.floor(diff / (1000 * 60)) % 60;
