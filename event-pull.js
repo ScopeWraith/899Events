@@ -29,11 +29,11 @@ function getCalendarEvents() {
 function displayEvents(events, targetDivId) {
       const eventsDiv = document.getElementById(targetDivId);
       eventsDiv.innerHTML = ``;
-      events.forEach((event, index) => {		  
+      events.forEach(event => {
         const eventDiv = document.createElement('div');
         const startTime = event.start ? (event.start.dateTime ? new Date(event.start.dateTime) : new Date(event.start.date)) : null;
         const endTime = event.end ? (event.end.dateTime ? new Date(event.end.dateTime) : new Date(event.end.date)) : null;
-        eventDiv.id = `event-${index}`;
+        
 		if (startTime && endTime) {
           updateEventDisplay(eventDiv, event, startTime, endTime);
 		  setInterval(() => updateEventDisplay(eventDiv, event, startTime, endTime), 1000); // Update every second
@@ -45,16 +45,6 @@ function displayEvents(events, targetDivId) {
     }
 function updateEventDisplay(eventDiv, event, startTime, endTime) {
         const now = new Date();
-		const timeElement = eventDiv.querySelector('.event-time'); // Assumes you add a class "event-time" to the time div
-			if (timeElement) {
-				if (now < startTime) {
-					timeElement.textContent = formatComingUp(now, startTime);
-				} else if (now >= startTime && now <= endTime) {
-					timeElement.textContent = formatRunning(now, endTime);
-				} else {
-					timeElement.textContent = formatTimeAgo(endTime);
-				}
-			}
 		if (event && event.summary) { // Check if both event and event.summary exist            
 			imgSummary = event.summary.toLowerCase().replace(/\s+/g, '_');
 			// Coming
