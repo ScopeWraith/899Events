@@ -36,7 +36,7 @@ function displayEvents(events, targetDivId) {
         
 		if (startTime && endTime) {
           updateEventDisplay(eventDiv, event, startTime, endTime);
-		  setInterval(() => updateEventDisplay(event, startTime, endTime), 1000); // Update every second
+		  setInterval(() => updateEventDisplay(eventDiv, event, startTime, endTime), 30000); // Update every second
         } else {
             eventDiv.innerHTML = `<strong>${event.summary}</strong><br>Time information unavailable`;
         }
