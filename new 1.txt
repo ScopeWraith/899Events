@@ -1,0 +1,30 @@
+if (imgSummary = "city_building") {
+
+					}
+					else if (imgSummary = "unit_progression") {
+					
+					}
+					else if (imgSummary = "tech_research") {
+				
+					}
+					else if (imgSummary = "drone_boost") {
+				
+					}
+					else if (imgSummary = "hero_advancement") {
+				
+					}
+					else if (imgSummary = "city_building_-_vs_overlap") {
+				
+					}
+					else if (imgSummary = "unit_progression_-_vs_overlap") {
+					
+					}
+					else if (imgSummary = "tech_research_-_vs_overlap") {
+				
+					}
+					else if (imgSummary = "drone_boost_-_vs_overlap") {
+				
+					}
+					else if (imgSummary = "hero_advancement_-_vs_overlap") {
+				
+					}

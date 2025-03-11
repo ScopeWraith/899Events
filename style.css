@@ -1,0 +1,110 @@
+.event-blip {
+  display: flex;
+  align-items: flex-start; /* Align items to the top */
+  background-color: #2B3035;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  padding: 2px;
+  margin: 10px 20px 10px 20px;
+  font-family: sans-serif;
+}
+.event-blip img {
+  width: 80px; /* Adjust image size */
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.event-blip .event-details {
+  flex-grow: 1; /* Allow details to take up remaining space */
+  display: flex;
+  flex-direction: column; /* Stack title and time vertically */
+}
+.event-blip-border-alliance{
+  border-radius: 8px; 
+  background-color:#9CE2F0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
+  margin: 2px 2px 8px 2px;
+}
+.event-blip-border-server{
+  border-radius: 8px; 
+  background-color:#ff3300;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
+  margin: 2px 2px 8px 2px;
+}
+.event-blip-border-arms{
+  border-radius: 8px; 
+  background-color:#F6BF26;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
+  margin: 2px 2px 8px 2px;
+}
+.event-blip-border-inactive{
+  opacity:.4;
+  border-radius: 8px; 
+  background-color:#808c99;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
+  margin: 2px 2px 8px 2px;
+}
+.event-blip .event-title {
+  text-align: center;
+  font-weight: 0;
+  margin-bottom: 0px;
+  margin-top: 0px;
+  color:#d5d9dd;
+  font-size:22px;
+  margin-top:5px;
+  margin-bottom: 2px;
+}
+.event-blip .event-time {
+  text-align: center;
+  font-weight: 0;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  font-size:20px;
+  color:#808c99;
+}
+.bebas-neue-regular {
+  font-family: "Bebas Neue", serif;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 20px
+}
+.archivo-black-regular {
+  font-family: "Archivo Black", serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size:28px;
+  color:#b8bfc6;
+}
+.event-frame {
+background-color: #171a1c; 
+border-radius: 14px; 
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
+padding: 2px 5px 1px 5px; 
+margin-bottom:5px; 
+margin-top:10px;
+}
+.event-header {
+text-align: center; 
+height:24px; 
+font-size:26px;
+padding-top:3px;
+margin:5px;
+color:#8e99a4;
+}
+.event-shard-bg {
+	font-size:18px; 
+	color:#8e99a4;
+	background-image: linear-gradient(rgba(212,222,234,.1), rgba(0,0,0,0));
+	padding:6px 10px 10px 5px;
+}
+.menu-link {
+	text-decoration: none;
+	text-align: center;
+	font-size:20px; 
+	color:#8e99a4;
+	padding-top:4px;
+}
+.menu-link:hover {
+	color:#FFF;
+	transition: color .5s;
+}
