@@ -37,7 +37,7 @@ function displayEvents(events, targetDivId) {
         
 		if (startTime && endTime) {
           updateEventDisplay(eventDiv, event, startTime, endTime);
-		  setInterval(() => updateEventDisplay(eventDiv, event, startTime, endTime), 30000); // Update every second
+		  setInterval(() => updateEventDisplay(eventDiv, event, startTime, endTime), 60000); // Update every second
         } else {
             eventDiv.innerHTML = `<strong>${event.summary}</strong><br>Time information unavailable`;
         }
@@ -237,14 +237,20 @@ function formatRunning(start, end) {
         const hours = Math.floor(diff / (1000 * 60 * 60));
 		const days = Math.floor(hours / 24);
 		
-		if (hours < 1) {
+		if (diff < 3600000) {
 			return `${String(minutes)}M remaining`;
 		}
-		else if (hours < 3){
+		else if (diff < 10800000){
 			return `${String(hours)}H ${String(minutes)}M remaining`;
 		}
-		else {
+		else if (diff < 10800000){
 			return `${String(hours)}H remaining`;
+		}
+		else if (diff > 86400000){
+			return `${String(days)}D remaining`;
+		}
+		else {
+			return `${String(diff)}D`;
 		}
         
     }
@@ -256,11 +262,8 @@ function formatTimeAgo(date) {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-	if (hours < 1) {
+	if (diff < 3600000) {
 		return `Ended ${String(minutes)}M ago`;
-	}
-	else if (hours < 3){
-		return `Ended ${String(hours)}H ${String(minutes)}M ago`;
 	}
 	else {
 		return `Ended ${String(hours)}H ago`;
