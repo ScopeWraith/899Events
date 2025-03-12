@@ -1,6 +1,7 @@
 const calendarId = 'scopewraith.lastwar@gmail.com'; // Replace with your calendar ID
 const apiKey = 'AIzaSyCKW_UfnhCFOrc-7a5nia4f7FHujQCEX2E'; // Replace with your API key
 const maxEvents = 6; // Maximum number of events to display per category
+const maxArmsEvents = 5;
 function getCalendarEvents() {
       const now = new Date();
       const timeMin = new Date(now.getTime() - 8 * 60 * 60 * 1000).toISOString(); // 8 hours ago
@@ -11,7 +12,7 @@ function getCalendarEvents() {
       fetch(url)
         .then(response => response.json())
         .then(data => {
-          const armsRaceEvents = data.items.filter(event => event.description && event.description.includes('Arms Race')).slice(0, maxEvents);
+          const armsRaceEvents = data.items.filter(event => event.description && event.description.includes('Arms Race')).slice(0, maxArmsEvents);
           const serverEvents = data.items.filter(event => event.description && event.description.includes('Server Event')).slice(0, maxEvents);
           const seasonEvents = data.items.filter(event => event.description && event.description.includes('Season Event')).slice(0, maxEvents);
           const allianceEvents = data.items.filter(event => event.description && event.description.includes('Alliance Event')).slice(0, maxEvents);
@@ -219,14 +220,14 @@ function formatComingUp(start, end) {
         const minutes = Math.floor(diff / (1000 * 60)) % 60;
         const hours = Math.floor(diff / (1000 * 60 * 60));
 
-		if (hours > 12) {
-			return `Starts in ${String(hours).padStart(2)}H`;
+		if (hours < 1) {
+			return `Starts in ${String(minutes)}M`;
 		}
-		else if (hours < 1){
-			return `Starts in ${String(minutes).padStart(2,)}M`;
+		else if (hours < 3){
+			return `Starts in ${String(hours)}H ${String(minutes)}M`;
 		}
 		else {
-			return `Starts in ${String(hours).padStart(2)}H ${String(minutes).padStart(2)}M`;
+			return `Starts in ${String(hours)}H`;
 		}
     }
 function formatRunning(start, end) {
@@ -236,20 +237,14 @@ function formatRunning(start, end) {
         const hours = Math.floor(diff / (1000 * 60 * 60));
 		const days = Math.floor(hours / 24);
 		
-		if (diff > 86400000) {
-			return `${String(days)}D remaining`;
+		if (hours < 1) {
+			return `${String(minutes)}M remaining`;
 		}
-		else if (diff > 43200000) {
+		else if (hours < 3){
+			return `${String(hours)}H ${String(minutes)}M remaining`;
+		}
+		else {
 			return `${String(hours)}H remaining`;
-		}
-		else if (diff > 3600000){
-			return `${String(hours)}H ${String(minutes)}M remaining`;
-		}
-		else if (diff < 60000) {
-			return `${String(hours)}H ${String(minutes)}M remaining`;
-		}
-		else if (diff > 1000) {
-			return `${String(minutes)}M ${String(seconds)}S remaining`;
 		}
         
     }
@@ -261,18 +256,15 @@ function formatTimeAgo(date) {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) {
-        return `Ended ${days}D ago`;
-    } 
-	else if (hours > 0) {
-        return `Ended ${hours}H ago`;
-    } 
-	else if (minutes > 0) {
-        return `Ended ${minutes}M ago`;
-    } 
+	if (hours < 1) {
+		return `Ended ${String(minutes)}M ago`;
+	}
+	else if (hours < 3){
+		return `Ended ${String(hours)}H ${String(minutes)}M ago`;
+	}
 	else {
-        return `Ended ${seconds}S ago`;
-    }
+		return `Ended ${String(hours)}H ago`;
+	}
 }
 getCalendarEvents();
 setInterval(getCalendarEvents, 60000); // Refresh event list every minute
