@@ -237,22 +237,25 @@ function formatRunning(start, end) {
         const hours = Math.floor(diff / (1000 * 60 * 60));
 		const days = Math.floor(hours / 24);
 		
-		if (diff < 3600000) {
-			return `${String(minutes)}M remaining`;
-		}
-		else if (diff < 10800000){
-			return `${String(hours)}H ${String(minutes)}M remaining`;
-		}
-		else if (diff < 10800000){
-			return `${String(hours)}H remaining`;
-		}
-		else if (diff > 86400000){
+		if (diff > 86400000) {
 			return `${String(days)}D remaining`;
+			console.log(diff)
 		}
-		else {
-			return `${String(diff)}D`;
+		else if (86400000 > diff && diff > 10800000){
+			return `${String(hours)}H remaining`;
+			console.log(diff)
 		}
-        
+		else if (10800000 > diff && diff > 3600000){
+			return `${String(hours)}H ${String(minutes)}M remaining`;
+			console.log(diff)
+		}
+		else if (diff < 3600000){
+			return `${String(minutes)}M remaining`;
+			console.log(diff)
+		}    
+		else{
+		console.log(diff);
+		}			
     }
 function formatTimeAgo(date) {
     const now = new Date();
