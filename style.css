@@ -114,6 +114,7 @@ color:#8e99a4;
 .accordion-button:selected{
 	background-color:red;
 }
+
 .oswald-light {
   font-family: "Oswald", sans-serif;
   font-optical-sizing: auto;
@@ -165,4 +166,21 @@ color:#8e99a4;
 }
 .card-header:first-child {
     border-radius: 14px 14px 0 0;
+}
+.r4nametag1{
+  margin-left:20px;
+  height:33%;
+  padding:10px;
+  background-color:#25292e;
+}
+.r4nametag2{
+  margin-left:20px;
+  height:33%;
+  padding:10px;
+  background-color:#212529;
+}
+.r4list{
+  padding:0px;
+  font-size:12px;
+  text-align:center;
 }
