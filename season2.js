@@ -1,7 +1,7 @@
 function displayDaysUntilMarch30th(elementId) {
   const targetDate = new Date();
-  targetDate.setMonth(2); // March is month 2 (zero-based)
-  targetDate.setDate(30);
+  targetDate.setMonth(3); // March is month 2 (zero-based)
+  targetDate.setDate(13);
   targetDate.setHours(0, 0, 0, 0);
 
   const currentDate = new Date();
