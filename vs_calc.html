@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VS Points Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="calc_style.css">
+</head>
+<body>
+    <div class="container mt-4 mb-5">
+        <h1 class="mb-4 text-center">VS Points Calculator</h1>
+
+        <ul class="nav nav-tabs nav-fill mb-3" id="vsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="day1-tab" data-bs-toggle="tab" data-bs-target="#day1-tab-pane" type="button" role="tab" aria-controls="day1-tab-pane" aria-selected="true">Day 1: Radar Training</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="day2-tab" data-bs-toggle="tab" data-bs-target="#day2-tab-pane" type="button" role="tab" aria-controls="day2-tab-pane" aria-selected="false">Day 2: Base Expansion</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="day3-tab" data-bs-toggle="tab" data-bs-target="#day3-tab-pane" type="button" role="tab" aria-controls="day3-tab-pane" aria-selected="false">Day 3: Age of Science</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="day4-tab" data-bs-toggle="tab" data-bs-target="#day4-tab-pane" type="button" role="tab" aria-controls="day4-tab-pane" aria-selected="false">Day 4: Train Heroes</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="day5-tab" data-bs-toggle="tab" data-bs-target="#day5-tab-pane" type="button" role="tab" aria-controls="day5-tab-pane" aria-selected="false">Day 5: Total Mobilization</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="day6-tab" data-bs-toggle="tab" data-bs-target="#day6-tab-pane" type="button" role="tab" aria-controls="day6-tab-pane" aria-selected="false">Day 6: Enemy Buster</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="vsTabsContent">
+
+            <div class="tab-pane fade show active p-3 border border-top-0 rounded-bottom" id="day1-tab-pane" role="tabpanel" aria-labelledby="day1-tab" tabindex="0">
+                <h3 class="mb-3">Day 1: Radar Training</h3>
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day1-radar-tasks" class="form-label">Radar Tasks Completed</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-crosshairs fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day1-radar-tasks" min="0" value="0" oninput="calculatePoints('day1')">
+                        </div>
+                        <div class="form-text">+30,000 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day1-hero-xp" class="form-label">Hero XP Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-star fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day1-hero-xp" min="0" value="0" step="660" oninput="calculatePoints('day1')">
+                        </div>
+                         <div class="form-text">+2.5 Points per 660 XP</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day1-drone-data" class="form-label">Drone Battle Data Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-database fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day1-drone-data" min="0" value="0" oninput="calculatePoints('day1')">
+                        </div>
+                        <div class="form-text">+7.5 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day1-drone-parts" class="form-label">Drone Parts Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-cogs fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day1-drone-parts" min="0" value="0" oninput="calculatePoints('day1')">
+                        </div>
+                        <div class="form-text">+6,250 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day1-chip-chests" class="form-label">Chip Chests Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-box fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day1-chip-chests" min="0" value="0" oninput="calculatePoints('day1')">
+                        </div>
+                        <div class="form-text">+2,812.5 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day1-stamina" class="form-label">Stamina Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-bolt fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day1-stamina" min="0" value="0" oninput="calculatePoints('day1')">
+                        </div>
+                        <div class="form-text">+375 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day1-diamonds" class="form-label">Diamonds Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-gem fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day1-diamonds" min="0" value="0" oninput="calculatePoints('day1')">
+                        </div>
+                        <div class="form-text">+30 Points each</div>
+                    </div>
+                </div>
+                <hr class="my-4">
+                <h4 class="text-center">Total VS Points: <span id="total-points-day1" class="text-warning fw-bold">0</span></h4>
+                 <div class="text-center mt-3">
+                    <button class="btn btn-secondary btn-sm" onclick="resetForm('day1')">Reset Day 1</button>
+                 </div>
+            </div>
+
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="day2-tab-pane" role="tabpanel" aria-labelledby="day2-tab" tabindex="0">
+                <h3 class="mb-3">Day 2: Base Expansion</h3>
+                 <div class="row g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day2-ur-truck" class="form-label">UR Trade Trucks Dispatched</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-truck fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day2-ur-truck" min="0" value="0" oninput="calculatePoints('day2')">
+                        </div>
+                        <div class="form-text">+300,000 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day2-legendary-task" class="form-label">Legendary Secret Tasks</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-scroll fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day2-legendary-task" min="0" value="0" oninput="calculatePoints('day2')">
+                        </div>
+                        <div class="form-text">+225,000 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day2-building-power" class="form-label">Building Power Points Gained</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-building fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day2-building-power" min="0" value="0" oninput="calculatePoints('day2')">
+                        </div>
+                        <div class="form-text">+30 Points each</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day2-construction-speedup" class="form-label">Construction Speed-ups (minutes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-stopwatch fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day2-construction-speedup" min="0" value="0" oninput="calculatePoints('day2')">
+                        </div>
+                        <div class="form-text">+150 Points per minute</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day2-survivor-recruits" class="form-label">Survivor Recruits Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-users fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day2-survivor-recruits" min="0" value="0" oninput="calculatePoints('day2')">
+                        </div>
+                        <div class="form-text">+4,500 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day2-diamonds" class="form-label">Diamonds Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-gem fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day2-diamonds" min="0" value="0" oninput="calculatePoints('day2')">
+                        </div>
+                        <div class="form-text">+30 Points each</div>
+                    </div>
+                    </div>
+                <hr class="my-4">
+                <h4 class="text-center">Total VS Points: <span id="total-points-day2" class="text-warning fw-bold">0</span></h4>
+                <div class="text-center mt-3">
+                    <button class="btn btn-secondary btn-sm" onclick="resetForm('day2')">Reset Day 2</button>
+                 </div>
+            </div>
+
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="day3-tab-pane" role="tabpanel" aria-labelledby="day3-tab" tabindex="0">
+                 <h3 class="mb-3">Day 3: Age of Science</h3>
+                 <div class="row g-3">
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day3-radar-tasks" class="form-label">Radar Tasks Completed</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-crosshairs fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day3-radar-tasks" min="0" value="0" oninput="calculatePoints('day3')">
+                        </div>
+                        <div class="form-text">+30,000 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day3-research-speedup" class="form-label">Research Speed-ups (minutes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-flask fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day3-research-speedup" min="0" value="0" oninput="calculatePoints('day3')">
+                        </div>
+                        <div class="form-text">+150 Points per minute</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day3-tech-power" class="form-label">Tech Power Points Gained</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-atom fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day3-tech-power" min="0" value="0" oninput="calculatePoints('day3')">
+                        </div>
+                        <div class="form-text">+30 Points each</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day3-valor-badges" class="form-label">Valor Badges Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-medal fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day3-valor-badges" min="0" value="0" oninput="calculatePoints('day3')">
+                        </div>
+                        <div class="form-text">+750 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 1 Drone Chest</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-box-open fa-fw"></i>1</span> <input type="number" class="form-control" id="day3-drone-chest-1" min="0" value="0" oninput="calculatePoints('day3')"> </div> <div class="form-text">+2,750 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 2 Drone Chest</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-box-open fa-fw"></i>2</span> <input type="number" class="form-control" id="day3-drone-chest-2" min="0" value="0" oninput="calculatePoints('day3')"> </div> <div class="form-text">+8,250 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 3 Drone Chest</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-box-open fa-fw"></i>3</span> <input type="number" class="form-control" id="day3-drone-chest-3" min="0" value="0" oninput="calculatePoints('day3')"> </div> <div class="form-text">+25,000 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 4 Drone Chest</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-box-open fa-fw"></i>4</span> <input type="number" class="form-control" id="day3-drone-chest-4" min="0" value="0" oninput="calculatePoints('day3')"> </div> <div class="form-text">+75,000 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 5 Drone Chest</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-box-open fa-fw"></i>5</span> <input type="number" class="form-control" id="day3-drone-chest-5" min="0" value="0" oninput="calculatePoints('day3')"> </div> <div class="form-text">+225,000 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 6 Drone Chest</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-box-open fa-fw"></i>6</span> <input type="number" class="form-control" id="day3-drone-chest-6" min="0" value="0" oninput="calculatePoints('day3')"> </div> <div class="form-text">+675,000 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 7 Drone Chest</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-box-open fa-fw"></i>7</span> <input type="number" class="form-control" id="day3-drone-chest-7" min="0" value="0" oninput="calculatePoints('day3')"> </div> <div class="form-text">+2,025,000 Pts</div> </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day3-diamonds" class="form-label">Diamonds Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-gem fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day3-diamonds" min="0" value="0" oninput="calculatePoints('day3')">
+                        </div>
+                        <div class="form-text">+30 Points each</div>
+                    </div>
+                 </div>
+                <hr class="my-4">
+                <h4 class="text-center">Total VS Points: <span id="total-points-day3" class="text-warning fw-bold">0</span></h4>
+                 <div class="text-center mt-3">
+                    <button class="btn btn-secondary btn-sm" onclick="resetForm('day3')">Reset Day 3</button>
+                 </div>
+            </div>
+
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="day4-tab-pane" role="tabpanel" aria-labelledby="day4-tab" tabindex="0">
+                <h3 class="mb-3">Day 4: Train Heroes</h3>
+                 <div class="row g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day4-elite-recruit" class="form-label">Elite Recruits Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user-plus fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day4-elite-recruit" min="0" value="0" oninput="calculatePoints('day4')">
+                        </div>
+                        <div class="form-text">+4,500 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day4-hero-xp" class="form-label">Hero XP Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-star fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day4-hero-xp" min="0" value="0" step="660" oninput="calculatePoints('day4')">
+                        </div>
+                         <div class="form-text">+2.5 Points per 660 XP</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day4-legendary-shard" class="form-label">Legendary Hero Shards Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-puzzle-piece text-warning fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day4-legendary-shard" min="0" value="0" oninput="calculatePoints('day4')">
+                        </div>
+                        <div class="form-text">+25,000 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day4-epic-shard" class="form-label">Epic Hero Shards Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-puzzle-piece text-primary fa-fw"></i></span> <input type="number" class="form-control" id="day4-epic-shard" min="0" value="0" oninput="calculatePoints('day4')">
+                        </div>
+                        <div class="form-text">+8,750 Points each</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day4-rare-shard" class="form-label">Rare Hero Shards Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-puzzle-piece text-info fa-fw"></i></span> <input type="number" class="form-control" id="day4-rare-shard" min="0" value="0" oninput="calculatePoints('day4')">
+                        </div>
+                         <div class="form-text">+2,500 Points each</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day4-skill-medal" class="form-label">Skill Medals Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-award fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day4-skill-medal" min="0" value="0" oninput="calculatePoints('day4')">
+                        </div>
+                        <div class="form-text">+25 Points each</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day4-weapon-shard" class="form-label">Exclusive Weapon Shards Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-shield-alt fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day4-weapon-shard" min="0" value="0" oninput="calculatePoints('day4')">
+                        </div>
+                        <div class="form-text">+25,000 Points each</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day4-diamonds" class="form-label">Diamonds Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-gem fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day4-diamonds" min="0" value="0" oninput="calculatePoints('day4')">
+                        </div>
+                        <div class="form-text">+30 Points each</div>
+                    </div>
+                 </div>
+                <hr class="my-4">
+                <h4 class="text-center">Total VS Points: <span id="total-points-day4" class="text-warning fw-bold">0</span></h4>
+                 <div class="text-center mt-3">
+                    <button class="btn btn-secondary btn-sm" onclick="resetForm('day4')">Reset Day 4</button>
+                 </div>
+            </div>
+
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="day5-tab-pane" role="tabpanel" aria-labelledby="day5-tab" tabindex="0">
+                <h3 class="mb-3">Day 5: Total Mobilization</h3>
+                 <div class="row g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day5-radar-tasks" class="form-label">Radar Tasks Completed</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-crosshairs fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day5-radar-tasks" min="0" value="0" oninput="calculatePoints('day5')">
+                        </div>
+                        <div class="form-text">+30,000 Points each</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day5-construction-speedup" class="form-label">Construction Speed-ups (minutes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-stopwatch fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day5-construction-speedup" min="0" value="0" oninput="calculatePoints('day5')">
+                        </div>
+                        <div class="form-text">+150 Points per minute</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day5-building-power" class="form-label">Building Power Points Gained</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-building fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day5-building-power" min="0" value="0" oninput="calculatePoints('day5')">
+                        </div>
+                         <div class="form-text">+30 Points each</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day5-research-speedup" class="form-label">Research Speed-ups (minutes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-flask fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day5-research-speedup" min="0" value="0" oninput="calculatePoints('day5')">
+                        </div>
+                        <div class="form-text">+150 Points per minute</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day5-training-speedup" class="form-label">Training Speed-ups (minutes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-forward fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day5-training-speedup" min="0" value="0" oninput="calculatePoints('day5')">
+                        </div>
+                        <div class="form-text">+150 Points per minute</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 1 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>1</span> <input type="number" class="form-control" id="day5-unit-1" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+60 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 2 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>2</span> <input type="number" class="form-control" id="day5-unit-2" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+90 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 3 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>3</span> <input type="number" class="form-control" id="day5-unit-3" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+120 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 4 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>4</span> <input type="number" class="form-control" id="day5-unit-4" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+150 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 5 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>5</span> <input type="number" class="form-control" id="day5-unit-5" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+180 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 6 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>6</span> <input type="number" class="form-control" id="day5-unit-6" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+210 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 7 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>7</span> <input type="number" class="form-control" id="day5-unit-7" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+240 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 8 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>8</span> <input type="number" class="form-control" id="day5-unit-8" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+270 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 9 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>9</span> <input type="number" class="form-control" id="day5-unit-9" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+300 Pts</div> </div>
+                    <div class="col-md-6 col-lg-4"> <label class="form-label">Level 10 Units Trained</label> <div class="input-group"> <span class="input-group-text"><i class="fas fa-users fa-fw"></i>10</span> <input type="number" class="form-control" id="day5-unit-10" min="0" value="0" oninput="calculatePoints('day5')"> </div> <div class="form-text">+330 Pts</div> </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day5-diamonds" class="form-label">Diamonds Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-gem fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day5-diamonds" min="0" value="0" oninput="calculatePoints('day5')">
+                        </div>
+                        <div class="form-text">+30 Points each</div>
+                    </div>
+                 </div>
+                <hr class="my-4">
+                <h4 class="text-center">Total VS Points: <span id="total-points-day5" class="text-warning fw-bold">0</span></h4>
+                 <div class="text-center mt-3">
+                    <button class="btn btn-secondary btn-sm" onclick="resetForm('day5')">Reset Day 5</button>
+                 </div>
+            </div>
+
+             <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="day6-tab-pane" role="tabpanel" aria-labelledby="day6-tab" tabindex="0">
+                <h3 class="mb-3">Day 6: Enemy Buster</h3>
+                 <div class="row g-3">
+                      <div class="col-md-6 col-lg-4">
+                        <label for="day6-ur-truck" class="form-label">UR Trade Trucks Dispatched</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-truck fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day6-ur-truck" min="0" value="0" oninput="calculatePoints('day6')">
+                        </div>
+                        <div class="form-text">+300,000 Points each</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day6-legendary-task" class="form-label">Legendary Secret Tasks</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-scroll fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day6-legendary-task" min="0" value="0" oninput="calculatePoints('day6')">
+                        </div>
+                        <div class="form-text">+225,000 Points each</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day6-construction-speedup" class="form-label">Construction Speed-ups (minutes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-stopwatch fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day6-construction-speedup" min="0" value="0" oninput="calculatePoints('day6')">
+                        </div>
+                        <div class="form-text">+150 Points per minute</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day6-research-speedup" class="form-label">Research Speed-ups (minutes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-flask fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day6-research-speedup" min="0" value="0" oninput="calculatePoints('day6')">
+                        </div>
+                        <div class="form-text">+150 Points per minute</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day6-training-speedup" class="form-label">Training Speed-ups (minutes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-forward fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day6-training-speedup" min="0" value="0" oninput="calculatePoints('day6')">
+                        </div>
+                        <div class="form-text">+150 Points per minute</div>
+                    </div>
+                     <div class="col-md-6 col-lg-4">
+                        <label for="day6-healing-speedup" class="form-label">Healing Speed-ups (minutes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-briefcase-medical fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day6-healing-speedup" min="0" value="0" oninput="calculatePoints('day6')">
+                        </div>
+                        <div class="form-text">+150 Points per minute</div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <label for="day6-diamonds" class="form-label">Diamonds Used</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-gem fa-fw"></i></span>
+                            <input type="number" class="form-control" id="day6-diamonds" min="0" value="0" oninput="calculatePoints('day6')">
+                        </div>
+                        <div class="form-text">+30 Points each</div>
+                    </div>
+                 </div>
+                <hr class="my-4">
+                <h4 class="text-center">Total VS Points: <span id="total-points-day6" class="text-warning fw-bold">0</span></h4>
+                 <div class="text-center mt-3">
+                    <button class="btn btn-secondary btn-sm" onclick="resetForm('day6')">Reset Day 6</button>
+                 </div>
+            </div>
+
+        </div> </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="calc_script.js"></script>
+</body>
+</html>
