@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Alliance Map</title>
+    <title>899 S2 Interactive Map</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="S2mapstyle.css">
 </head>
-<body>
+<body class="sidebar-active">
     <div id="map-container">
         <div id="map-grid">
             </div>
@@ -18,18 +18,22 @@
         Loading summary...
     </div>
 
+    <button class="btn btn-secondary" id="sidebar-toggle" type="button" title="Toggle Alliance Summary">
+        <i class="fa-solid fa-bars"></i> <span class="toggle-text">Hide</span>
+    </button>
+
+    <button class="btn btn-danger" id="clear-all-button" type="button" title="Clear All User Assignments">
+        <i class="fa-solid fa-trash"></i> Clear All
+    </button>
     <div class="modal fade" id="allianceSelectModal" tabindex="-1" aria-labelledby="allianceSelectModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="allianceSelectModalLabel">Assign Alliance to <span id="modalSegmentId"></span></h5>
+                    <h5 class="modal-title" id="allianceSelectModalLabel"><span id="modalSegmentId"></span> - Level <span id="modalSegmentLevel"></span> <span id="modalSegmentName"></span> - <span id="modalSegmentBuff"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>Name:</strong> <span id="modalSegmentName"></span></p>
-                    <p><strong>Type:</strong> <span id="modalSegmentType"></span></p>
-                    <p><strong>Level:</strong> <span id="modalSegmentLevel"></span></p>
-                    <p><strong>Buff:</strong> <span id="modalSegmentBuff"></span> <i id="modalSegmentIcon"></i></p>
+                    <p><strong>Production:</strong> <span id="modalSegmentProd"></span></p>
                     <hr>
                     <p>Select alliance to occupy this segment:</p>
                     <div id="alliance-buttons" class="d-grid gap-2">

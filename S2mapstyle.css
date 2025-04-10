@@ -9,23 +9,29 @@ html, body {
 
 /* --- Define Sidebar Width Variable --- */
 :root {
-    --sidebar-width: 260px; /* Adjust as needed */
+    --sidebar-width: 300px; /* Adjust as needed */
     --base-bg-lightness: 15%; /* Adjust base lightness for HSL calculation */
+    --mobile-bottom-buffer: 60px; /* NEW: Buffer for mobile nav bars */
 }
 
 #map-container {
-    /* Take up full height, width minus sidebar */
-    width: calc(100% - var(--sidebar-width));
     height: 100vh;
     overflow: hidden; /* Crucial for panzoom */
-    cursor: grab;
     position: fixed; /* Use fixed to keep it static */
     top: 0;
     left: 0; /* Position map container on the left */
+    width: 100%;
+    transition: width 0.3s ease-in-out; /* Smooth transition for width change */
+    user-select: none; /* Prevent text selection during drag */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    /* NEW: Add padding-bottom for mobile buffer */
+    padding-bottom: 0; /* Default no padding */
 }
-
-#map-container:active {
-    cursor: grabbing;
+/* When sidebar is active, shrink map container */
+body.sidebar-active #map-container {
+    width: calc(100% - var(--sidebar-width));
 }
 
 #map-grid {
@@ -40,7 +46,6 @@ html, body {
 
 .map-segment {
     border: 1px solid var(--bs-border-color-translucent);
-    padding: 5px;
     position: relative; /* For absolute positioning of label/level */
     display: flex;
     flex-direction: column;
@@ -48,13 +53,22 @@ html, body {
     align-items: center; /* Center content horizontally */
     text-align: center;
     font-size: 0.8rem; /* Base size, scales with zoom */
-    cursor: pointer;
+    cursor: pointer; /* Cursor indicates clickable */
     transition: background-color 0.3s ease;
     overflow: hidden; /* Prevent content overflow */
     background-color: var(--bs-body-bg); /* Default background */
+    touch-action: none; /* Prevent default touch actions like scrolling when interacting with segments */
+}
+/* Style fixed segments */
+.map-segment.fixed-assignment {
+    cursor: not-allowed; /* Indicate it cannot be changed */
+}
+.map-segment.fixed-assignment:hover {
+     background-color: inherit; /* Prevent hover effect on fixed segments */
 }
 
-.map-segment:hover {
+/* Standard hover effect for non-fixed segments */
+.map-segment:not(.fixed-assignment):hover {
     background-color: var(--bs-secondary-bg-subtle);
 }
 
@@ -64,6 +78,7 @@ html, body {
     left: 4px;
     font-size: 0.7rem;
     opacity: 0.8;
+    pointer-events: none; /* Prevent label from interfering with clicks */
 }
 
 .segment-level {
@@ -72,25 +87,27 @@ html, body {
     right: 4px;
     font-size: 0.7rem;
     opacity: 0.8;
+    pointer-events: none; /* Prevent level from interfering */
 }
 
 .segment-content {
-    margin-top: 15px; /* Space below label/level */
+
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
+    pointer-events: none; /* Prevent content from interfering */
 }
 
 .segment-name {
     font-weight: bold;
-    font-size: 0.85rem;
-    line-height: 1.1;
+    font-size: 0.90rem;
+    line-height: 2;
+    margin-bottom:12px;
 }
 
 .segment-icon {
-    font-size: 1.5rem; /* Make icon prominent */
-    margin: 5px 0;
+    font-size: 1.6rem; /* Make icon prominent */
 }
 
 .segment-buff {
@@ -98,7 +115,7 @@ html, body {
     opacity: 0.9;
 }
 
-/* City emphasis */
+/* City emphasis (default) */
 .city .segment-name {
     color: #ffd700; /* Golden color */
     font-weight: bolder;
@@ -114,172 +131,116 @@ html, body {
 .alliance-valt { background-color: rgba(108, 117, 125, 0.7) !important; } /* Grey */
 .alliance-hpce { background-color: rgba(102, 16, 242, 0.7) !important; } /* Purple/Indigo */
 
-/* Ensure text is readable on colored backgrounds */
+/* Ensure text is readable on colored backgrounds (General) */
 .map-segment[class*="alliance-"] {
     color: #fff; /* White text for better contrast on dark backgrounds */
 }
-.map-segment[class*="alliance-"] .segment-name,
 .map-segment[class*="alliance-"] .segment-label,
 .map-segment[class*="alliance-"] .segment-level,
 .map-segment[class*="alliance-"] .segment-buff {
-     color: #fff !important; /* Force white text, override city color if needed */
+     color: #fff !important; /* Force white text */
      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Add shadow for readability */
+}
+/* Keep City names gold when occupied */
+.map-segment.city[class*="alliance-"] .segment-name {
+    color: #ffd700 !important; /* Golden color */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Ensure shadow remains */
+}
+/* Add rule to ensure non-city names are white when occupied */
+ .map-segment:not(.city)[class*="alliance-"] .segment-name {
+     color: #fff !important;
+     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 
 /* Ring Background Variations (MORE DRASTIC) */
-/* Using HSL to drastically decrease lightness */
-/* Assuming base bg is ~ HSL(210, 10%, 15%) */
-.ring-1 { background-color: hsl(210, 10%, 13%); }  /* -2% L */
-.ring-2 { background-color: hsl(210, 10%, 10%); }  /* -5% L */
-.ring-3 { background-color: hsl(210, 10%, 7%); }   /* -8% L */
-.ring-4 { background-color: hsl(210, 10%, 4%); }   /* -11% L */
-.ring-5 { background-color: hsl(210, 10%, 2%); }   /* -13% L */
-.ring-6 { background-color: hsl(210, 10%, 0%); }   /* Black - Darkest */
-/* Center 3x3 (Ring 0) uses default var(--bs-body-bg) */
+.ring-1 { background-color: hsl(0, 0%, 12%); }
+.ring-2 { background-color: hsl(0, 0%, 6%); }
+.ring-3 { background-color: hsl(0, 0%, 12%); }
+.ring-4 { background-color: hsl(0, 0%, 6%); }
+.ring-5 { background-color: hsl(0, 0%, 12%); }
+.ring-6 { background-color: hsl(0, 0%, 6%); }
 
 
 /* --- Alliance Summary Sidebar Styling --- */
 #alliance-summary {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: var(--sidebar-width);
-    height: 100vh; /* Full viewport height */
-    background-color: var(--bs-body-tertiary); /* Slightly different background */
-    padding: 15px 10px; /* Padding inside the sidebar */
-    border-left: 1px solid var(--bs-border-color);
-    overflow-y: auto; /* Add scroll if content overflows */
-    display: flex;
-    flex-direction: column; /* Stack items vertically */
-    gap: 15px; /* Space between alliance blips */
-    z-index: 1050; /* Ensure it's above map */
+    position: fixed; top: 0; right: 0; width: var(--sidebar-width); height: 100vh;
+    background-color: var(--bs-body-tertiary); padding: 15px 10px; border-left: 1px solid var(--bs-border-color);
+    overflow-y: auto; display: flex; flex-direction: column; gap: 15px; z-index: 1050;
+    transform: translateX(0); transition: transform 0.3s ease-in-out;
+    /* NEW: Add padding-bottom for mobile buffer */
+    padding-bottom: var(--mobile-bottom-buffer);
+    box-sizing: border-box; /* Ensure padding is included in height */
 }
+#alliance-summary.sidebar-collapsed { transform: translateX(100%); }
 
 .summary-item {
-    padding: 10px;
-    border-radius: 6px;
-    background-color: var(--bs-body-bg); /* Background for each blip */
-    border: 1px solid var(--bs-border-color-translucent);
-    width: 100%; /* Make items fill sidebar width */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Add subtle shadow */
-    flex-shrink: 0; /* Prevent items from shrinking */
+    padding: 10px; border-radius: 6px; background-color: var(--bs-body-bg); border: 1px solid var(--bs-border-color-translucent);
+    width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-shrink: 0;
+}
+.summary-header { display: flex; align-items: center; margin-bottom: 8px; border-bottom: 1px solid var(--bs-border-color-translucent); padding-bottom: 5px; }
+.summary-color-dot { display: inline-block; width: 15px; height: 15px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.3); }
+.summary-alliance-name { font-weight: bold; font-size: 1rem; flex-grow: 1; color: var(--bs-emphasis-color); }
+.summary-resources { font-size: 0.8rem; text-align: center; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--bs-border-color-translucent); opacity: 0.9; }
+.summary-resources span { margin: 0 5px; }
+.summary-resources .resource-label { cursor: help; font-weight: bold; border-bottom: 1px dotted; }
+.summary-resources .resource-value { margin-left: 3px; }
+.summary-counts { font-size: 0.8rem; opacity: 0.9; margin-bottom: 8px; text-align: center; }
+.summary-buffs-list { list-style: none; padding: 0; margin: 0; font-size: 0.8rem; }
+.summary-buffs-list li { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; opacity: 0.9; border-bottom: 1px solid var(--bs-border-color-translucent); }
+.summary-buffs-list li:last-child { border-bottom: none; }
+.summary-buffs-list:empty::after { content: "No active buffs"; display: block; text-align: center; font-style: italic; opacity: 0.6; padding: 5px 0; }
+.summary-buffs-list li i { margin-right: 6px; width: 16px; text-align: center; color: var(--bs-secondary-color); }
+.summary-buffs-list li .buff-name { flex-grow: 1; text-align: left; margin-right: 5px; }
+.summary-buffs-list li .buff-value { font-weight: bold; min-width: 40px; text-align: right; color: var(--bs-emphasis-color); }
+
+/* --- Sidebar Toggle Button --- */
+#sidebar-toggle {
+    position: fixed; top: 10px; left: 10px; z-index: 1055; /* Above sidebar */
+    padding: 0.25rem 0.5rem; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
-.summary-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    border-bottom: 1px solid var(--bs-border-color-translucent);
-    padding-bottom: 5px;
+/* --- NEW: Clear All Button Styling --- */
+#clear-all-button {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    z-index: 1055; /* Ensure it's above map but could be below sidebar if open */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
-
-.summary-color-dot {
-    display: inline-block;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    margin-right: 8px;
-    flex-shrink: 0; /* Prevent shrinking */
-    border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border on dot */
-}
-
-.summary-alliance-name {
-    font-weight: bold;
-    font-size: 1rem;
-    flex-grow: 1; /* Take remaining space */
-    color: var(--bs-emphasis-color); /* Use emphasis color for name */
-}
-
-.summary-counts {
-    font-size: 0.8rem;
-    opacity: 0.9;
-    margin-bottom: 8px;
-    text-align: center;
-}
-
-.summary-buffs-list {
-    list-style: none; /* Remove bullet points */
-    padding: 0;
-    margin: 0;
-    font-size: 0.8rem;
-}
-
-.summary-buffs-list li {
-    display: flex; /* Align icon, name, and value */
-    justify-content: space-between; /* Space out elements */
-    align-items: center; /* Vertically align items */
-    padding: 3px 0; /* Add vertical padding for spacing */
-    opacity: 0.9;
-    border-bottom: 1px solid var(--bs-border-color-translucent); /* Separator line */
-}
-.summary-buffs-list li:last-child {
-    border-bottom: none; /* Remove border for last item */
-}
-.summary-buffs-list:empty::after {
-    content: "No active buffs"; /* Show message if list is empty */
-    display: block;
-    text-align: center;
-    font-style: italic;
-    opacity: 0.6;
-    padding: 5px 0;
+/* Adjust clear button position when sidebar is active */
+body.sidebar-active #clear-all-button {
+    /* Optional: Move it if sidebar overlaps */
+    /* left: calc(100% - var(--sidebar-width) - 100px); */ /* Example */
 }
 
 
-.summary-buffs-list li i {
-    margin-right: 6px; /* Space after icon */
-    width: 16px; /* Fixed width for alignment */
-    text-align: center;
-    color: var(--bs-secondary-color); /* Color the icon */
-}
+/* --- Mobile Adjustments --- */
+@media (max-width: 992px) {
+    :root { --sidebar-width: 250px; }
+    body:not(.sidebar-force-active) { }
+    body:not(.sidebar-force-active) #alliance-summary { transform: translateX(100%); }
+    body.sidebar-active #map-container { width: calc(100% - var(--sidebar-width)); }
+    .summary-alliance-name { font-size: 0.9rem;} .summary-resources { font-size: 0.75rem; } .summary-buffs-list { font-size: 0.75rem; }
 
-.summary-buffs-list li .buff-name {
-    flex-grow: 1; /* Allow name to take space */
-    text-align: left;
-    margin-right: 5px; /* Space before value */
-}
-
-.summary-buffs-list li .buff-value {
-    font-weight: bold;
-    min-width: 40px; /* Ensure consistent space for value */
-    text-align: right;
-    color: var(--bs-emphasis-color); /* Make value stand out */
-}
-
-
-/* Mobile adjustments */
-@media (max-width: 992px) { /* Adjust breakpoint as needed */
-    :root {
-        --sidebar-width: 200px;
+    /* NEW: Apply bottom buffer on mobile */
+    #map-container {
+       padding-bottom: var(--mobile-bottom-buffer);
+       height: calc(100vh - var(--mobile-bottom-buffer)); /* Adjust height */
     }
-     #map-container {
-        width: calc(100% - var(--sidebar-width));
-    }
-    .summary-alliance-name { font-size: 0.9rem;}
-    .summary-buffs-list { font-size: 0.75rem; }
+    /* Ensure grid fits within the adjusted map container */
+     #map-grid {
+        /* No change needed unless specific conflict arises */
+     }
+     /* Adjust clear button position slightly higher on mobile */
+     #clear-all-button {
+        bottom: calc(var(--mobile-bottom-buffer) + 10px);
+     }
 }
-
 @media (max-width: 768px) {
-     :root {
-        --sidebar-width: 160px;
-    }
-     #map-container {
-        width: calc(100% - var(--sidebar-width));
-    }
-    #map-grid {
-        grid-template-columns: repeat(13, minmax(80px, 1fr));
-        grid-template-rows: repeat(13, minmax(80px, 1fr));
-        width: 1300px; /* Adjust initial size */
-        height: 1300px;
-    }
-    .map-segment { font-size: 0.80rem; }
-    .segment-name { font-size: 0.88rem; }
-    .segment-icon { font-size: 1.25rem; }
-    .segment-buff { font-size: 0.65rem; }
-
-    .summary-alliance-name { font-size: 0.85rem;}
-    .summary-counts { font-size: 0.75rem; }
-    .summary-buffs-list { font-size: 0.7rem; }
-     .summary-buffs-list li i { width: 14px; margin-right: 4px; }
-     .summary-buffs-list li .buff-value { min-width: 35px; }
+     :root { --sidebar-width: 250px; }
+    #map-grid { grid-template-columns: repeat(13, minmax(80px, 1fr)); grid-template-rows: repeat(13, minmax(80px, 1fr)); width: 1300px; height: 1300px; }
+    .map-segment { font-size: 0.7rem; } .segment-name { font-size: 0.75rem; } .segment-icon { font-size: 1.2rem; } .segment-buff { font-size: 0.65rem; }
+    .summary-alliance-name { font-size: 0.85rem;} .summary-resources { font-size: 0.7rem; } .summary-counts { font-size: 0.75rem; } .summary-buffs-list { font-size: 0.7rem; }
+    .summary-buffs-list li i { width: 14px; margin-right: 4px; } .summary-buffs-list li .buff-value { min-width: 35px; }
 }
