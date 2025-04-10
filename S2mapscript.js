@@ -185,39 +185,61 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSegmentId = null;
     }
 
-    // --- NEW: Clear All Assignments Function ---
+    // --- MODIFIED: Clear All Assignments Function ---
     function clearAllAssignments() {
         if (!confirm("Are you sure you want to clear ALL user-assigned segments? Fixed assignments will remain.")) {
             return; // Abort if user cancels confirmation
         }
 
-        for (const segmentId in landData) {
-            const segmentData = landData[segmentId];
-            // Only clear if it has an owner AND is NOT a fixed assignment
-            if (segmentData.owner && !segmentData.isFixed) {
-                const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
-                const previousOwner = segmentData.owner;
-                const alliance = alliances[previousOwner];
-
-                // Decrement count for the owner
-                if (alliance) {
-                     if (segmentData.type === 'City') alliance.cityCount--;
-                     else if (segmentData.type === 'Dig Site') alliance.digSiteCount--;
-                     if(segmentElement) segmentElement.classList.remove(alliance.cssClass);
-                }
-
-                // Clear the owner
-                segmentData.owner = null;
-            }
+        // --- MODIFICATION START ---
+        // 1. Reset ALL alliance counts (city and dig site) to zero initially.
+        for (const code in alliances) {
+            alliances[code].cityCount = 0;
+            alliances[code].digSiteCount = 0;
         }
 
-        updateAllianceSummary(); // Recalculate counts and buffs
-        saveState(); // Save the cleared state
-        console.log("All non-fixed assignments cleared.");
+        // 2. Iterate through all land segments
+        for (const segmentId in landData) {
+            const segmentData = landData[segmentId];
+            const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
+
+            // If the segment has an owner AND is NOT fixed, clear it.
+            if (segmentData.owner && !segmentData.isFixed) {
+                const alliance = alliances[segmentData.owner];
+                if(alliance && segmentElement) {
+                     segmentElement.classList.remove(alliance.cssClass);
+                }
+                segmentData.owner = null; // Clear the owner
+            }
+            // --- This part handles RE-COUNTING fixed assignments ---
+            // If the segment IS fixed and has an owner (it should always have one based on FIXED_ASSIGNMENTS)
+            else if (segmentData.isFixed && segmentData.owner) {
+                 const alliance = alliances[segmentData.owner];
+                 if (alliance) {
+                     // Increment the count for the fixed assignment's owner
+                     if (segmentData.type === 'City') {
+                         alliance.cityCount++;
+                     } else if (segmentData.type === 'Dig Site') {
+                         // Although current fixed assignments are cities, handle dig sites just in case
+                         alliance.digSiteCount++;
+                     }
+                     // Ensure CSS class is present (it should be, but double-check)
+                     if(segmentElement && !segmentElement.classList.contains(alliance.cssClass)) {
+                          segmentElement.classList.add(alliance.cssClass);
+                     }
+                 }
+            }
+            // --- END OF RE-COUNTING fixed assignments ---
+        }
+        // --- MODIFICATION END ---
+
+        updateAllianceSummary(); // Recalculate buffs and update display based on new counts
+        saveState(); // Save the cleared state (fixed assignments remain, others are gone)
+        console.log("All non-fixed assignments cleared. Fixed assignment counts reset.");
     }
     // Add event listener to the new button
     clearAllButton.addEventListener('click', clearAllAssignments);
-    // --- END NEW ---
+    // --- END MODIFIED ---
 
     function calculateAllianceBuffs() {
         for (const code in alliances) { alliances[code].buffs = {}; }
@@ -307,15 +329,25 @@ document.addEventListener('DOMContentLoaded', () => {
             alliances[code].totalRSPH = 0;
         }
 
-        // 2. Apply fixed assignments (these don't affect counts initially)
+        // 2. Apply fixed assignments AND increment their counts
         for (const segmentId in FIXED_ASSIGNMENTS) {
              if (landData[segmentId]) {
-                 landData[segmentId].owner = FIXED_ASSIGNMENTS[segmentId];
-                 // Apply CSS class immediately for fixed assignments
+                 const segmentData = landData[segmentId];
+                 const allianceCode = FIXED_ASSIGNMENTS[segmentId];
+                 const alliance = alliances[allianceCode];
                  const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
-                 const alliance = alliances[FIXED_ASSIGNMENTS[segmentId]];
-                 if(segmentElement && alliance) {
+
+                 segmentData.owner = allianceCode; // Assign owner
+                 if(segmentElement && alliance) { // Apply CSS
                       segmentElement.classList.add(alliance.cssClass);
+                 }
+                 // Increment count for fixed assignments
+                 if (alliance) {
+                     if (segmentData.type === 'City') {
+                         alliance.cityCount++;
+                     } else if (segmentData.type === 'Dig Site') {
+                         alliance.digSiteCount++;
+                     }
                  }
              }
         }
@@ -359,25 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 4. Recalculate counts/summary for fixed assignments now
-        // (They were assigned in step 2, but counts weren't updated there)
-        for (const segmentId in FIXED_ASSIGNMENTS) {
-             if (landData[segmentId] && landData[segmentId].owner) { // Ensure it was assigned
-                 const segmentData = landData[segmentId];
-                 const alliance = alliances[segmentData.owner];
-                 if (alliance) {
-                     if (segmentData.type === 'City') {
-                          // Check if count needs incrementing (it shouldn't if logic is correct, but safety check)
-                          // This part might be redundant if counts are only handled for saved/manual assignments
-                     } else if (segmentData.type === 'Dig Site') {
-                          // Similar check
-                     }
-                 }
-             }
-        }
-
-
-        // 5. Final summary update reflects all assignments
+        // 4. Final summary update reflects all assignments (fixed and loaded)
         updateAllianceSummary();
     }
 
