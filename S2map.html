@@ -15,20 +15,78 @@
     </div>
 
     <div id="alliance-summary">
-        <div class="fixed-toggle-container p-2 mb-2 border-bottom">
+        <div class="fixed-toggle-container p-1 border-bottom">
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="fixed-alliance-toggle" checked>
-                <label class="form-check-label small" for="fixed-alliance-toggle">Designated Level 6 Cities</label>
+                <input class="form-check-input mt-1" type="checkbox" role="switch" id="fixed-alliance-toggle" checked>
+                <label class="form-check-label small mt-0" for="fixed-alliance-toggle"> Designated War Palace</label>
+            </div>
+        </div>
+        <div class="fixed-toggle-container p-1 border-bottom">
+            <div class="form-check form-switch">
+                <input class="form-check-input mt-1" type="checkbox" role="switch" id="slider" disabled>
+                <label class="form-check-label small mt-0" for="slider"> Starting Path (coming soon)</label>
+            </div>
+        </div>
+        <div class="mt-2">
+            <div class="row" id="checkboxGroup" style="font-size:.85rem;">
+                <div class="col-md-4 d-flex justify-content-center align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="option" id="thor" value="THOR" disabled>
+                        <label class="form-check-label" for="thor">THOR</label>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-center align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="option" id="adhd" value="ADHD" disabled>
+                        <label class="form-check-label" for="adhd">ADHD</label>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-center align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="option" id="fafo" value="FAFO" disabled>
+                        <label class="form-check-label" for="fafo">FAFO</label>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-center align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="option" id="newj" value="NEWJ" disabled>
+                        <label class="form-check-label" for="newj">NEWJ</label>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-center align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="option" id="cold" value="COLD" disabled>
+                        <label class="form-check-label" for="cold">COLD</label>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-center align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="option" id="brsl" value="BRSL" disabled>
+                        <label class="form-check-label" for="brsl">BRSL</label>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-center align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="option" id="valt" value="VALT" disabled>
+                        <label class="form-check-label" for="valt">VALT</label>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-center align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="option" id="hpce" value="HPCE" disabled>
+                        <label class="form-check-label" for="hpce">HPCE</label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <button class="btn btn-secondary" id="sidebar-toggle" type="button" title="Toggle Alliance Summary">
-        <i class="fa-solid fa-bars"></i> <span class="toggle-text">Hide</span>
+        <i class="fa-solid fa-bars"></i>
     </button>
 
     <button class="btn btn-danger" id="clear-all-button" type="button" title="Clear All User Assignments">
-        <i class="fa-solid fa-trash"></i> Clear All
+        <i class="fa-solid fa-trash"></i>
     </button>
 
     <div class="modal fade" id="allianceSelectModal" tabindex="-1" aria-labelledby="allianceSelectModalLabel" aria-hidden="true">
@@ -49,7 +107,31 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        const slider = document.getElementById('slider');
+        const checkboxes = document.querySelectorAll('input[name="option"]');
+        const checkboxGroup = document.getElementById('checkboxGroup');
 
+        slider.addEventListener('change', function() {
+            checkboxes.forEach(checkbox => {
+                checkbox.disabled = !this.checked;
+                if (!this.checked) {
+                    checkbox.checked = false; // Uncheck all when disabled
+                }
+            });
+        });
+
+        checkboxGroup.addEventListener('change', function(event) {
+            if (slider.checked && event.target.type === 'checkbox' && event.target.name === 'option') {
+                checkboxes.forEach(checkbox => {
+                    if (checkbox !== event.target) {
+                        checkbox.checked = false;
+                    }
+                });
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src='https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js'></script>
     <script src="S2mapscript.js"></script>

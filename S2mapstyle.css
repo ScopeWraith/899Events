@@ -176,13 +176,14 @@ body.sidebar-active #map-container {
 
 /* --- Styling for New Toggle Switch Container --- */
 .fixed-toggle-container {
+    max-height: 30px;
     background-color: var(--bs-tertiary-bg);
     flex-shrink: 0; /* Prevent shrinking */
     /* border-bottom: 1px solid var(--bs-border-color); */ /* Already added in HTML */
 }
 .fixed-toggle-container .form-check {
     display: flex; /* Align switch and label */
-    align-items: center;
+    justify-content: center;
 }
 .fixed-toggle-container .form-check-label {
     margin-left: 0.5rem; /* Space between switch and label */

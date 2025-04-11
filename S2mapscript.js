@@ -482,12 +482,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if(isActive) {
             bodyElement.classList.add('sidebar-active');
             allianceSummaryDiv.classList.remove('sidebar-collapsed');
-            sidebarToggleText.textContent = "Hide";
             sidebarToggleBtn.title = "Hide Alliance Summary";
         } else {
             bodyElement.classList.remove('sidebar-active');
             allianceSummaryDiv.classList.add('sidebar-collapsed');
-            sidebarToggleText.textContent = "Show";
             sidebarToggleBtn.title = "Show Alliance Summary";
         }
         requestAnimationFrame(() => {
