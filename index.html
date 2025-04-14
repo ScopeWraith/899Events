@@ -777,8 +777,28 @@
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-body" style="padding:3px;">	
-				<div class="card" style="padding:5px;width:100%;">					
-					<div style="font-size:12px;padding:12px;">
+				<div class="card" style="padding:20px;width:100%;">					
+					<div style="font-size:12px;padding:12px;" class="text-center">
+						<p class="lead">Buy Scope a coffee!</p>
+						<div id="donate-button-container">
+							<div id="donate-button"></div>
+							<script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+							<script>
+							PayPal.Donation.Button({
+							env:'production',
+							hosted_button_id:'W7FS5UKKY5LPY',
+							image: {
+							src:'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
+							alt:'Donate with PayPal button',
+							title:'PayPal - The safer, easier way to pay online!',
+							}
+							}).render('#donate-button');
+							</script>
+							</div>
+							
+            			</div>
+						
+						<br><br>	
 						<span class="text-decoration-underline" style="font-size: 14px;">Updated 04/13/25</span><br>
 						<strong>S2 Map is available with all buffs!</strong><br>
 						Plan your route more accurately!<br><br>
@@ -846,7 +866,7 @@
 							<li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#FAFOModal">fAfO</a></li>
 						</ul>
 						<a type="button" class="col bebas-neue-regular menu-link" data-bs-toggle="modal" data-bs-target="#VSModal">VS Help</a>
-						<a type="button" class="col bebas-neue-regular menu-link" data-bs-toggle="modal" data-bs-target="#UpdatesModal">Updates</a>
+						<a type="button" class="col bebas-neue-regular menu-link" data-bs-toggle="modal" data-bs-target="#UpdatesModal">Donate</a>
 						<a type="button" class="col bebas-neue-regular nav-link dropdown-toggle menu-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Season 2</a>
 						<ul class="dropdown-menu bebas-neue-regular" style="width:40%;font-size:20px;width:auto;">
 							<li><a class="dropdown-item" href="S2Guide">Guide</a></li>
