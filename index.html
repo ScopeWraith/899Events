@@ -4,849 +4,22 @@
   <title>899Events</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script> 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="event-pull.js"></script>
   <script src="reset-script.js"></script>
   <script src="vs_day.js"></script>
   <script src="season2.js"></script>
-  
+  <script src="titanium_calculator.js"></script>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Space+Mono|Muli">
   <style>@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&display=swap');</style>
   <style>@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Oswald:wght@301&display=swap');</style>
-  
+
 </head>
 <body>
-<!------------------>
-<!-- THORModal-->
-<div class="modal fade" id="THORModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-body" style="padding:3px;">			
-				<div class="row" style="padding:0px 4px 4px 9px;margin:auto;float: right;">		
-					<button type="button" class="btn-close col-1" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<img src="img/alliance/thor.logo.png" style="width:100%;padding:0px 5px 0px 5px;border-radius:10px;">
-				<div style="padding-top:5px;" class="container-fluid">
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Description</div>
-							<div class="row" style="margin-left:0px;padding:4px;width:100%;">
-								<div style="font-size:12px;">Competitive team driven alliance. If you're looking for a place to grow and compete, THOR is the place to be! Looking for communicative, active, team driven players.</div>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-5 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;">
-							<div class="card" style="width: 100%;">
-								<div class="card-header" style="font-size:13px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Alliance Info:
-								</div>
-								<ul class="list-group list-group-flush">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Name: Thunder Jarls</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Language: English</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Leader: Ratatoui11e</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiting: Yes</li>
-								</ul>
-								</div>
-						</div>	
-						<div class="col-7 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;max-width:95%;">
-							<div class="card" style="width: 100%">
-								<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Core Members:
-								</div>
-								<ul class="list-group list-group-flush" style="color:#95b3d0;">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Warlord: </li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiter: BLANK</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Muse: BlitzenJedi</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Butler: MsRatatoui11e</li>
-								</ul>
-								</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Leadership</div>
-							<div class="row">
-								<div class="col-3">
-									<div>
-										<img src="img/alliance/leader/THOR.leader.png" style="border-radius:10px;max-width:130%;">
-									</div>
-								</div>
-								<div class="col-4" style="padding:0px;font-size:12px;text-align:center;">
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">CummyBear69</div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;">KBL50</div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">atalon</div>							
-								</div>
-								<div class="col-5" style="padding:0px;font-size:12px;text-align:center;">							
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">Drewstroyer</div>
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;">Cindell</div>
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">ScopeWraith</div>							
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Allies</div>
-							<div class="row" style="margin-left:0px;padding:1px;width:100%;">
-								<div style="padding:5px;">
-									<div class="card d-flex" style="padding:5px;font-size:12px;">
-										Server: 899, 893, 897,885<br>
-										Alliance: COLD, AOWS, PMB, FuCh and R1ZE<br>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>      
-			</div>
-		</div>
-	</div>
-</div>
-<!------------------>
-<!------------------>
-
-
-<!------------------>
-<!-- NEWJModal-->
-<div class="modal fade" id="NEWJModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-body" style="padding:3px;">			
-				<div class="row" style="padding:0px 4px 4px 9px;margin:auto;float: right;">		
-					<button type="button" class="btn-close col-1" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<img src="img/alliance/NEWJ.logo.png" style="width:100%;padding:0px 5px 0px 5px;border-radius:10px;">
-				<div style="padding-top:5px;" class="container-fluid">
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Description</div>
-							<div class="row" style="margin-left:0px;padding:4px;width:100%;">
-								<div style="font-size:12px;">VS minimum daily score of 2 million points or more. Headquarters level 27 or higher. After applying for membership, please whisper to the recruiter or R4. Default nickname cannot join.</div>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-5 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;">
-							<div class="card" style="width: 100%;">
-								<div class="card-header" style="font-size:13px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Alliance Info:
-								</div>
-								<ul class="list-group list-group-flush">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Name: NewJeanS</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Language: Korean</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Leader: 다죽여12345</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiting: Yes</li>
-								</ul>
-								</div>
-						</div>	
-						<div class="col-7 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;max-width:95%;">
-							<div class="card" style="width: 100%">
-								<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Core Members:
-								</div>
-								<ul class="list-group list-group-flush" style="color:#95b3d0;">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Warlord: 떠기부기</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiter: 말파환도상어</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Muse: 고사리솔 </li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Butler: 슈슈가 온다</li>
-								</ul>
-								</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Leadership</div>
-							<div class="row">
-								<div class="col-3">
-									<div>
-										<img src="img/alliance/leader/NEWJ.leader.png" style="border-radius:10px;max-width:130%;">
-									</div>
-								</div>
-								<div class="col-4" style="padding:0px;font-size:12px;text-align:center;">
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;"></div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;"></div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;"></div>							
-								</div>
-								<div class="col-5" style="padding:0px;font-size:12px;text-align:center;">
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;"></div>
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;"></div>
-									<div class="blocktext"  style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;"></div>							
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Allies</div>
-							<div class="row" style="margin-left:0px;padding:1px;width:100%;">
-								<div style="padding:5px;">
-									<div class="card d-flex" style="padding:5px;font-size:12px;">
-										Season 1 Friends: #885 PMB<br>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>      
-			</div>
-		</div>
-	</div>
-</div>
-<!------------------>
-<!------------------>
-
-
-
-<!------------------>
-<!-- COLDModal-->
-<div class="modal fade" id="COLDModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-body" style="padding:3px;">			
-				<div class="row" style="padding:0px 4px 4px 9px;margin:auto;float: right;">		
-					<button type="button" class="btn-close col-1" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<img src="img/alliance/COLD.logo.png" style="width:100%;padding:0px 5px 0px 5px;border-radius:10px;">
-				<div style="padding-top:5px;" class="container-fluid">
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Description</div>
-							<div class="row" style="margin-left:0px;padding:4px;width:100%;">
-								<div style="font-size:12px;">Good Vibes Only~We operate on respect and communication~Join if you are like minded, competitive, while also having a good time and sharing a few laughs.</div>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-5 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;">
-							<div class="card" style="width: 100%;">
-								<div class="card-header" style="font-size:13px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Alliance Info:
-								</div>
-								<ul class="list-group list-group-flush">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Name: Cold World Order</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Language: English</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Leader: MattCat 맷 더 캣</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiting: Yes</li>
-								</ul>
-								</div>
-						</div>	
-						<div class="col-7 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;max-width:95%;">
-							<div class="card" style="width: 100%">
-								<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Core Members:
-								</div>
-								<ul class="list-group list-group-flush" style="color:#95b3d0;">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Warlord: Arghonut 모험가</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiter: Zerrrro</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Muse: NoShtSherlock 셜록</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Butler: BeardedHVAC</li>
-								</ul>
-								</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Leadership</div>
-							<div class="row">
-								<div class="col-3">
-									<div>
-										<img src="img/alliance/leader/COLD.leader.png" style="border-radius:10px;max-width:130%;">
-									</div>
-								</div>
-								<div class="col-4" style="padding:0px;font-size:12px;text-align:center;">
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">SuperElectron Bioman</div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;">Squeeze1</div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">bobo1987 보보</div>							
-								</div>
-								<div class="col-5" style="padding:0px;font-size:12px;text-align:center;">
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">turtletime 거북이</div>
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;">Melly123</div>
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">Smack Daddy Flyboy</div>							
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Allies</div>
-							<div class="row" style="margin-left:0px;padding:1px;width:100%;">
-								<div style="padding:5px;">
-									<div class="card d-flex" style="padding:5px;font-size:12px;">
-										Server: 899, 893, 897,885<br>
-										Alliance: THOR, PMB, CKNC, FuCh and R1ZE<br>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>      
-			</div>
-		</div>
-	</div>
-</div>
-<!------------------>
-<!------------------>
-
-
-
-<!------------------>
-<!-- ADHDModal-->
-<div class="modal fade" id="ADHDModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-body" style="padding:3px;">			
-				<div class="row" style="padding:0px 4px 4px 9px;margin:auto;float: right;">		
-					<button type="button" class="btn-close col-1" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<img src="img/alliance/ADHD.logo.png" style="width:100%;padding:0px 5px 0px 5px;border-radius:10px;">
-				<div style="padding-top:5px;" class="container-fluid">
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Description</div>
-							<div class="row" style="margin-left:0px;padding:4px;width:100%;">
-								<div style="font-size:12px;">If we are full, please apply to one of our family alliances: fAfO - Yeet, adHD - Troopers.</div>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-5 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;">
-							<div class="card" style="width: 100%;">
-								<div class="card-header" style="font-size:13px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Alliance Info:
-								</div>
-								<ul class="list-group list-group-flush">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Name: Squirrel</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Language: English</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Leader: KittyDragon4Ever</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiting: Yes</li>
-								</ul>
-								</div>
-						</div>	
-						<div class="col-7 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;max-width:95%;">
-							<div class="card" style="width: 100%">
-								<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Core Members:
-								</div>
-								<ul class="list-group list-group-flush" style="color:#95b3d0;">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Warlord: Saɱђaiη</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiter: SUPREMEEE</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Muse: TotalingCandy40</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Butler: ---</li>
-								</ul>
-								</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Leadership</div>
-							<div class="row">
-								<div class="col-3">
-									<div>
-										<img src="img/alliance/leader/ADHD.leader.png" style="border-radius:10px;max-width:130%;">
-									</div>
-								</div>
-								<div class="col-4" style="padding:0px;font-size:12px;text-align:center;">
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">Stained Sweater</div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;">dta2</div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">Lt DanG</div>							
-								</div>
-								<div class="col-5" style="padding:0px;font-size:12px;text-align:center;">
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">Colossus1</div>
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;">Lake Superior</div>
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">---</div>							
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Allies</div>
-							<div class="row" style="margin-left:0px;padding:1px;width:100%;">
-								<div style="padding:5px;">
-									<div class="card d-flex" style="padding:5px;font-size:12px;">
-										Server: 893, 897, 885, 898<br>
-										Alliance: CKNC<br>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>      
-			</div>
-		</div>
-	</div>
-</div>
-<!------------------>
-<!------------------>
-
-
-
-<!------------------>
-<!-- FAFOModal-->
-<div class="modal fade" id="FAFOModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-body" style="padding:3px;">			
-				<div class="row" style="padding:0px 4px 4px 9px;margin:auto;float: right;">		
-					<button type="button" class="btn-close col-1" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<img src="img/alliance/FAFO.logo.png" style="width:100%;padding:0px 5px 0px 5px;border-radius:10px;">
-				<div style="padding-top:5px;" class="container-fluid">
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Description</div>
-							<div class="row" style="margin-left:0px;padding:4px;width:100%;">
-								<div style="font-size:12px;">If you fa you will fo!</div>
-							</div>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-5 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;">
-							<div class="card" style="width: 100%;">
-								<div class="card-header" style="font-size:13px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Alliance Info:
-								</div>
-								<ul class="list-group list-group-flush">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Name: YeeT</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Language: English</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Leader: Nowhëre</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiting: Yes</li>
-								</ul>
-								</div>
-						</div>	
-						<div class="col-7 muli-lite" style="font-size:12px;color:#afc5db;padding:5px;max-width:95%;">
-							<div class="card" style="width: 100%">
-								<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">
-									Core Members:
-								</div>
-								<ul class="list-group list-group-flush" style="color:#95b3d0;">
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Warlord: AudiFanBoy</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Recruiter: Sterv</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Muse: Mike Oxbrown</li>
-									<li class="list-group-item blocktext" style="padding:3px 10px 3px 10px;">Butler: Carnage1683</li>
-								</ul>
-								</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Leadership</div>
-							<div class="row">
-								<div class="col-3">
-									<div>
-										<img src="img/alliance/leader/FAFO.leader.png" style="border-radius:10px;max-width:130%;">
-									</div>
-								</div>
-								<div class="col-4" style="padding:0px;font-size:12px;text-align:center;">
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">EveryDayJay</div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;">SKATE Board</div>
-									<div class="blocktext" style="margin-left:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">cheenie</div>							
-								</div>
-								<div class="col-5" style="padding:0px;font-size:12px;text-align:center;">
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">lala</div>
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#212529;">Bobsyu</div>
-									<div class="blocktext" style="margin-right:20px;height:33%;padding-top:10px;padding-bottom:10px;background-color:#25292e;">shietler</div>							
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="row muli-lite" style="padding:5px;">
-						<div class="card" style="width: 100%;padding:0px;">
-							<div class="card-header" style="font-size:12px;color:#afc5db;padding:5px 10px 5px 10px;">Allies</div>
-							<div class="row" style="margin-left:0px;padding:1px;width:100%;">
-								<div style="padding:5px;">
-									<div class="card d-flex" style="padding:5px;font-size:12px;">
-										Server: UNKNOWN<br>
-										Alliance: UNKNOWN<br>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>      
-			</div>
-		</div>
-	</div>
-</div>
-<!------------------>
-<!------------------>
-
-
-<!------------------>
-<!----- VsModal----->
-<div class="modal fade" id="VSModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content ">
-			<div class="modal-body" style="padding:3px;">			
-				<div class="row">
-				<div class="accordion bebas-neue-regular" id="accordionExample">
-					<!--DAY1-->
-					<div class="accordion-item">
-						<h2 class="accordion-header"  id="headingOne">
-							<button class="accordion-button collapsed VSheader-helper" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-								Day 1 - Radar Training
-							</button>
-						</h2>
-						<div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-							<div style="padding:10px;">
-								<div style="padding:0px 80px 0px 80px;">
-									<img src="img/vshelp/day1.header.png" style="width:100%">
-								</div>
-								<div class="accordion-body muli-lite" style="font-size:12px;padding:5px;">
-									<div class="cap VStasklist-helper">
-										Use Stamina <br>
-										Radar Tasks <br>
-										Drone Battle Data <br>
-										Drone Part <br>
-										Drone Chip Chests <br>
-										Resource Gathering <br>
-									</div>
-									<div class="card" style="margin-top:8px;border-radius:14px;">
-										<div class="card-header bebas-neue-regular VSstratHeader-helper"><strong>STRATEGY</strong></div>
-										<div class="card-body VSstratBody-helper">
-											<div>
-												Try to save your Radar Tasks at least 18 hours before Day 1 begins.
-												<br><br>
-												Plan your resource gathering to complete shortly after Day 1 starts. Typically dispatching gathering squads more than 9 hours before the reset, depending on your research. 
-												<br><br>
-												Drone Chip Chests and Radar Tasks can be used at any time today for VS points. You could also save Radar Tasks for the Arms Race Overlap and get credit for the Stamina used completing them.
-												<br><br>
-												The crucial Drone Boost Arms Race Overlap occurs at 10:00 AM EST. Save your Drone Parts and Battle Data for this event.
-												<br><br>
-												To maximize VS points, use Hero XP during the Hero Advancement Arms Race Overlap which begins at 2:00 PM EST. It's highly recommended to save your hero XP until Day 4 or for a last-minute VS push on Day 1.
-												<br><br>
-												Regularly refresh your gathering squads throughout the day to accumulate passive VS points.
-												<br>
-											</div>
-										</div>
-									</div>								
-								</div>
-							</div>
-						</div>
-					</div>		  
-					<!--DAY2-->
-					<div class="accordion-item">
-						<h2 class="accordion-header" id="headingTwo">
-							<button class="accordion-button collapsed VSheader-helper" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-								Day 2 - Base Expansion
-							</button>
-						</h2>
-						<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-							<div style="padding:10px;">
-								<div style="padding:0px 80px 0px 80px;">
-									<img src="img/vshelp/day2.header.png" style="width:100%">
-								</div>
-								<div class="accordion-body muli-lite" style="font-size:12px;padding:5px;">
-									<div class="cap VStasklist-helper">
-										Construction Speed-ups <br>
-										Building Power <br>
-										Dispatch UR Trucks <br>
-										Legendary Secret Tasks <br>
-										Recruit Survivors <br>
-									</div>
-									<div class="card" style="margin-top:8px;border-radius:14px;">
-										<div class="card-header bebas-neue-regular VSstratHeader-helper"><strong>STRATEGY</strong></div>
-										<div class="card-body VSstratBody-helper">
-											<div>
-												Time to save up Radar Tasks for DAY 3. Your HQ should have a bunch of unopened constructions ready to pop! Best time to open them is during the 2:00PM EST City Building Arms Race VS Overlap.
-												<br><br>
-												You will get VS points for launching UR Trucks and Legendary Secret Tasks. No specific timing on those.
-												<br><br>
-												Survivor Recruits should be saved for a last-minute VS push. You can pick up more Survivor Recruits and Survivor Tokens from the Alliance Store.
-												<br><br>
-												Don't forget! The Alliance Store has plenty of freshly stocked Construction Speed-Ups!
-												<br>
-											</div>
-										</div>
-									</div>								
-								</div>
-							</div>			
-						</div>
-					</div>
-					<!--DAY3-->
-					<div class="accordion-item">
-						<h2 class="accordion-header" id="headingThree">
-						  <button class="accordion-button collapsed VSheader-helper" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-							Day 3 - Age of Science
-						  </button>
-						</h2>
-						<div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
-							<div style="padding:10px;">
-								<div style="padding:0px 80px 0px 80px;">
-									<img src="img/vshelp/day3.header.png" style="width:100%">
-								</div>
-								<div class="accordion-body muli-lite" style="font-size:12px;padding:5px;">
-									<div class="cap VStasklist-helper">
-										Radar Tasks <br>
-										Research Speed-ups <br>
-										Tech Power <br>
-										Use Valor Badges <br>							
-										Drone Component Chest <br>
-									</div>
-									<div class="card" style="margin-top:8px;border-radius:14px;">
-										<div class="card-header bebas-neue-regular VSstratHeader-helper"><strong>STRATEGY</strong></div>
-										<div class="card-body VSstratBody-helper">
-											<div>
-												Day 3 demands careful resource management, especially after Day 2's Base Expansion. Fortunately, there are two Arms Race Overlaps that offer a prime opportunity to spend your reserves. 
-												<br><br>
-												Prioritize continuous Secretary of Strategy buffs to enable frequent research and accommodate the delay between Alliance Helps. Use Valor Badges to boost research points significantly. 
-												<br><br>
-												You can also align Radar Tasks with the 2:00 AM EST Drone Boost Arms Race to convert stamina into Arms Race points. 
-												<br><br>
-												You can use accumulated Drone Component Chests as a last-minute VS push. If not, pop them open!
-												<br><br>
-												Remember to grab the Research Speed-Ups from the Alliance Store today!
-												<br>
-												<!--
-												DAY 3 can prove to be very taxing on resources, especially after BASE EXPANSION. With 2x TECH RESEARCH ARMS OVERLAP today you'll have plenty of time to spend what you have left!
-												<br><br>
-												The day mainly consists of SECRETARY OF STRATEGY lines. Constantly looping the buff allows you to research multiple times a day while giving ALLAINCE HELPS time to come through.
-												<br><br>
-												While doing research, using VALOR BADGES give a substantial amount of points. 
-												<br><br>
-												The RADAR TASKS overlap with DRONE BOOST ARMS RACE at 2:00AM EST. The stamina used to complete the RADAR TASKS give credits during then.
-												<br><br>
-												DRONE COMPONENT CHESTS that have been building up in your inventory can be used at any time today.
-												-->
-											</div>
-										</div>
-									</div>								
-								</div>
-							</div>
-						</div>
-					</div>
-					<!--DAY4-->
-					<div class="accordion-item">
-						<h2 class="accordion-header" id="headingFour">
-						  <button class="accordion-button collapsed VSheader-helper" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-							Day 4 - Train Heroes
-						  </button>
-						</h2>
-						<div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionExample">
-							<div style="padding:10px;">
-								<div style="padding:0px 80px 0px 80px;">
-									<img src="img/vshelp/day4.header.png" style="width:100%">
-								</div>
-								<div class="accordion-body muli-lite" style="font-size:12px;padding:5px;">
-									<div class="cap VStasklist-helper">
-										RECRUIT HEROS <br>
-										HERO XP <br>
-										HERO SHARDS <br>
-										SKILL MEDALS <br>
-										EXCLUSIVE WEAPON SHARDS <br>
-									</div>
-									<div class="card" style="margin-top:8px;border-radius:14px;">
-										<div class="card-header bebas-neue-regular VSstratHeader-helper"><strong>STRATEGY</strong></div>
-										<div class="card-body VSstratBody-helper">
-											<div>
-												Day 4, "Hero Day", is a highly anticipated event! This day features an Arms Race VS Overlap at 2:00 AM EST. Save those Hero Recruitments and Hero XP until then.
-												<br><br>
-												Exclusive Weapon Shards and Hero Shards can be used today to give a large amount of VS points.
-												<br><br>
-												A tactical last-minute VS push involves saving Skill Medals and spending them immediately prior Reset. They give a HUGE boost when used collaboratively. 
-												<br><br>
-												The Alliance Store, VIP Store and Campaign Store have HERO SHARDS. With the Campaign Store and VIP Store also offering a large amount of HERO XP. 
-											</div>
-										</div>
-									</div>								
-								</div>
-							</div>
-						</div>
-					</div>
-					<!--DAY5-->
-					<div class="accordion-item">
-						<h2 class="accordion-header" id="headingFive">
-						  <button class="accordion-button collapsed VSheader-helper" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-							Day 5 - Total Mobilization
-						  </button>
-						</h2>
-						<div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#accordionExample">
-							<div style="padding:10px;">
-								<div style="padding:0px 80px 0px 80px;">
-									<img src="img/vshelp/day5.header.png" style="width:100%">
-								</div>
-								<div class="accordion-body muli-lite" style="font-size:12px;padding:5px;">
-									<div class="cap VStasklist-helper">
-										Train Troops <br>
-										Radar Tasks <br>
-										Construction Speed-ups <br>
-										Building Power <br>
-										Research Speed-ups <br>
-										Tech Power <br>
-										Training Speed-ups <br>				
-									</div>
-									<div class="card" style="margin-top:8px;border-radius:14px;">
-										<div class="card-header bebas-neue-regular VSstratHeader-helper"><strong>STRATEGY</strong></div>
-										<div class="card-body VSstratBody-helper">
-											<div>
-												With all the newly introduced power you have gained this week, it is time to prepare for Enemy Buster Day!
-												<br><br>
-												There is a Unit Progression Arms Race VS Overlap that occurs at 6:00 AM EST. Preserving Radar Tasks for the 2:00 PM EST Drone Boost Arms Race rewards extra Arms Race points from Stamina consumption.
-												<br><br>
-												Today is the last day of the week where completing a building/research gives points. However, Construction and Research Speed-Ups give VS points today and tomorrow.
-												<br><br>
-												There is an efficient trick to squeeze more VS points out of Troop creation and upgrades. Ideally, you can structure your Barracks so that each one upgrades troops to the next tier. For instance, after a level 23 Barracks produces a batch of T7 Troops, the level 26 Barracks would upgrade those troops to T8. A level 29 Barracks would then upgrade that same batch from T8 to T9. Lastly, the level 30 Barracks would bring them to T10.
-												<br><br>
-												Doing this allows you to produce troops for each tier, and essentially double, triple, or quadruple the points, depending on how many upgrade levels you have structured with your Barracks.
-												<br>
-												Alliance Store has Training Speed-Ups! Don't forget to grab them.
-											</div>
-										</div>
-									</div>								
-								</div>
-							</div>
-						</div>
-					</div>
-					<!--DAY6-->
-					<div class="accordion-item">
-						<h2 class="accordion-header" id="headingSix">
-						  <button class="accordion-button collapsed VSheader-helper" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
-							Day 6 - Enemy Buster
-						  </button>
-						</h2>
-						<div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#accordionExample">
-							<div style="padding:10px;">
-								<div style="padding:0px 80px 0px 80px;">
-									<img src="img/vshelp/day6.header.png" style="width:100%">
-								</div>
-								<div class="accordion-body muli-lite" style="font-size:12px;padding:5px;">
-									<div class="cap VStasklist-helper">
-										Kill Enemy Troops! <br>
-										Dispatch UR Trucks <br>
-										Legendary Secret Tasks <br>
-										Construction Speed-ups <br>
-										Research Speed-ups <br>
-										Training Speed-ups <br>
-										Healing Speed-ups <br>
-									</div>
-									<div class="card" style="margin-top:8px;border-radius:14px;">
-										<div class="card-header bebas-neue-regular VSstratHeader-helper"><strong>STRATEGY</strong></div>
-										<div class="card-body VSstratBody-helper">
-											<div style="text-align:center;">
-												Be sure to activate a shield and remove the squads stationed on your Wall. Otherwise, catastrophic troop loss WILL occur.
-												<br><br>
-												Winning battles is critical today to ensure you do not overflow your hospital buildings. Taking hits while its full means more fatalities and an empty Drill Grounds.
-												<br><br>
-												Healing Speed-Ups are available from the Alliance Store and give a fair amount of points when instantly recovering troops. Training, Healing, Research, and Construction Speed-Ups all give points today and should be used within their respective Arms Races.
-												<br><br>
-												"Rally Dropping" or "Death Rallies" allow kills to be shared with up to four other people in the rally. Rally fights can quickly build up VS points with low risk and high reward. 
-											</div>
-										</div>
-									</div>								
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-<!------------------>
-<!------------------>
-
-
-<!------------------>
-<!-- DiscordModal-->
-<div class="modal fade" id="DiscordModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-body" style="padding:3px;">
-				<div style="padding:5px;text-align:center;width:100%;">The 899 Events discord will be coming soon!</div>
-			</div>
-		</div>
-	</div>
-</div>
-<!------------------>
-<!------------------>
-
-
-<!----------------->
-<!-- UpdatesModal-->
-<div class="modal fade" id="UpdatesModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-body" style="padding:3px;">	
-				<div class="card" style="padding:20px;width:100%;">					
-					<div style="font-size:12px;padding:12px;" class="text-center">
-						<p class="lead">Buy Scope a coffee!</p>
-						<div id="donate-button-container">
-							<div id="donate-button"></div>
-							<script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
-							<script>
-							PayPal.Donation.Button({
-							env:'production',
-							hosted_button_id:'W7FS5UKKY5LPY',
-							image: {
-							src:'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
-							alt:'Donate with PayPal button',
-							title:'PayPal - The safer, easier way to pay online!',
-							}
-							}).render('#donate-button');
-							</script>
-							</div>
-							
-            			</div>
-						
-						<br><br>	
-						<span class="text-decoration-underline" style="font-size: 14px;">Updated 04/13/25</span><br>
-						<strong>S2 Map is available with all buffs!</strong><br>
-						Plan your route more accurately!<br><br>
-
-						<strong>S2 Guide is here!</strong><br>
-						Added a full guide/calendar on S2.<br>
-<br><br>
-						<span class="text-decoration-underline" style="font-size: 14px;">Updated 04/03/25</span><br>
-						<strong>S2 Map Information</strong><br>
-						We have created two high resolution maps for planning of S2! These are hot off the press and may have typos. If you find a mistake please reach out to ScopeWraith<br><br>
-
-						<strong>Alliance Infomation</strong><br>
-						We have updated the alliance information section. It has details about leadership, recruitment and core members.<br>
-<br><br>
-						<span class="text-decoration-underline" style="font-size: 14px;">Updated 03/20/25</span><br>
-						<strong>VS HELP is now live!</strong><br>
-						Gain vs points more efficiently!<br><br>
-
-						<strong>The UPDATES is live.</strong><br>
-						Check here for latest info on added features to 899events.com.<br>
-
-
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-<!------------------>
-<!------------------>
-
-
-<!----------------->
-<!-- SupportModal-->
-<div class="modal fade" id="SupportModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-body" style="padding:3px;">	
-				<div style="padding:5px;text-align:center;width:100%;">Support page coming soon. Thank you for visiting!</div>
-			</div>
-		</div>
-	</div>
-</div>
-<!------------------>
-<!------------------>
-
-
-<!--Body Start-->
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-xl-1"></div>
@@ -856,7 +29,7 @@
 					<div class="row" style="padding: 10px;background-image:linear-gradient(rgba(0,0,0,0),rgba(212,222,234,.1));">
 						<img src="img/logo.png" style="display: block; margin-left: auto; margin-right: auto;height: 70px;width:263px;">
 					</div>
-					<div class="row" style="height:27px;border-bottom: 1px solid rgba(118, 128, 138, 0.5);border-top: 1px solid rgba(118, 128, 138, 0.5);">						
+					<div class="row" style="height:27px;border-bottom: 1px solid rgba(118, 128, 138, 0.5);border-top: 1px solid rgba(118, 128, 138, 0.5);">
 						<a type="button" class="col bebas-neue-regular nav-link dropdown-toggle menu-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="margin-left:5px;">Alliances</a>
 						<ul class="dropdown-menu bebas-neue-regular" style="width:40%;font-size:20px;width:auto;">
 							<li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#THORModal">THOR</a></li>
@@ -869,11 +42,12 @@
 						<a type="button" class="col bebas-neue-regular menu-link" data-bs-toggle="modal" data-bs-target="#UpdatesModal">Donate</a>
 						<a type="button" class="col bebas-neue-regular nav-link dropdown-toggle menu-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Season 2</a>
 						<ul class="dropdown-menu bebas-neue-regular" style="width:40%;font-size:20px;width:auto;">
-							<li><a class="dropdown-item" href="S2Guide">Guide</a></li>
-							<li><a class="dropdown-item" href="S2Map.EMPTY.png">Map</a></li>
+							<li><a class="dropdown-item" href="S2Guide.html">Guide</a></li> <li><a class="dropdown-item" href="S2Map.EMPTY.png">Map</a></li>
 							<li><a class="dropdown-item" href="S2map.html">Interactive Map</a></li>
+							<li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#titaniumCalculatorModal">Titanium Calculator</a></li>
 						</ul>
-						
+
 					</div>
 					<div class="row" style="height:50px">
 						<div class="col bebas-neue-regular" style="color:#8e99a4;background-image: linear-gradient(rgba(212,222,234,.1), rgba(0,0,0,0));padding:6px 5px 10px 10px;padding:4px 4px 4px 8px;">
@@ -905,21 +79,21 @@
 			</div>
 			<div class="event-frame">
 			  <div class="event-header bebas-neue-regular" style="color:#808c99">Alliance Events</div>
-			  <div id="alliance-events"></div>			  
+			  <div id="alliance-events"></div>
 			</div>
 			<div class="event-frame">
 				<div class="event-header bebas-neue-regular"style="color:#808c99">Server Events</div>
-				<div id="server-events"></div>	
+				<div id="server-events"></div>
 			</div>
 		</div>
 		<div class="col-xl-6">
 			<div class="event-frame">
-				<div class="event-header bebas-neue-regular" style="color:#808c99">Arms Race</div>	
-				<div id="arms-race-events"></div>			  
-			</div>	
+				<div class="event-header bebas-neue-regular" style="color:#808c99">Arms Race</div>
+				<div id="arms-race-events"></div>
+			</div>
 			<div class="event-frame">
 				<div class="event-header bebas-neue-regular" style="color:#808c99">Season Events</div>
-				<div id="season-events"></div>	
+				<div id="season-events"></div>
 				<div class="event-blip-border-inactive">
 					<div class="event-blip" style="margin: 4px;">
 						<img src="img/blip/blip.sn.season_2.png" alt="Event Image" style="box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);filter: grayscale(100%);">
@@ -930,16 +104,77 @@
 					</div>
 				</div>
 			</div>
-		</div>			
+		</div>
 		<div class="col-xl-1"></div>
 		<div class="container">
 	</div>
 </div>
+<div class="modal fade" id="titaniumCalculatorModal" tabindex="-1" aria-labelledby="titaniumCalculatorModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+	  <div class="modal-content">
+		<div class="modal-header">
+		  <h5 class="modal-title" id="titaniumCalculatorModalLabel">Titanium Alloy Calculator</h5>
+		  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		</div>
+		<div class="modal-body">
+		  <p class="text-muted mb-4">Set the level for each Titanium Alloy Factory to calculate total production and time needed.</p>
+  
+		  <h6>Factory Levels:</h6>
+		  <div class="row g-3 mb-4">
+			<div class="col-sm">
+			  <label for="factoryLevel1" class="form-label form-label-sm">Factory 1</label>
+			  <select class="form-select form-select-sm factory-level" id="factoryLevel1" data-factory-id="1">
+				</select>
+			</div>
+			<div class="col-sm">
+			  <label for="factoryLevel2" class="form-label form-label-sm">Factory 2</label>
+			  <select class="form-select form-select-sm factory-level" id="factoryLevel2" data-factory-id="2">
+				</select>
+			</div>
+			<div class="col-sm">
+			  <label for="factoryLevel3" class="form-label form-label-sm">Factory 3</label>
+			  <select class="form-select form-select-sm factory-level" id="factoryLevel3" data-factory-id="3">
+				</select>
+			</div>
+			<div class="col-sm">
+			  <label for="factoryLevel4" class="form-label form-label-sm">Factory 4</label>
+			  <select class="form-select form-select-sm factory-level" id="factoryLevel4" data-factory-id="4">
+				</select>
+			</div>
+			<div class="col-sm">
+			  <label for="factoryLevel5" class="form-label form-label-sm">Factory 5</label>
+			  <select class="form-select form-select-sm factory-level" id="factoryLevel5" data-factory-id="5">
+				</select>
+			</div>
+		  </div>
+  
+		  <div class="row g-3 mb-3">
+			   <div class="col-md-6">
+				   <label for="titaniumNeededForLevel" class="form-label">Titanium Needed for Next Level:</label>
+				   <input type="number" class="form-control" id="titaniumNeededForLevel" min="0" placeholder="Enter amount needed">
+			   </div>
+			   <div class="col-md-6">
+				   <label for="titaniumCurrentlyHave" class="form-label">Titanium Currently Have:</label>
+				   <input type="number" class="form-control" id="titaniumCurrentlyHave" min="0" value="0" placeholder="Enter current amount">
+			   </div>
+		  </div>
+		  <hr>
+  
+		  <h6>Results:</h6>
+		  <div class="alert alert-secondary" role="alert">
+			  <p class="mb-1"><strong>Total Production:</strong> <span id="totalProductionPerHour" class="fw-bold">0</span> Titanium Alloy per hour</p>
+			  <p class="mb-1"><strong>Actual Amount Required:</strong> <span id="actualAmountRequiredDisplay" class="fw-bold">0</span> Titanium Alloy</p>
+			  <p class="mb-0"><strong>Time Required:</strong> <span id="timeRequired" class="fw-bold">--</span></p>
+		  </div>
+		</div>
+		<div class="modal-footer">
+		  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+		</div>
+	  </div>
+	</div>
+  </div>
 <script>
 	displayDaysUntilMarch30th("s2");
-</script>
-<script>
-	displayTimeUntilMidnightUTCMinus2("countdown");
 </script>
 </body>
 </html>
