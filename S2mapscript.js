@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="segment-name">${segmentData.name}</span>
                     <i class="segment-icon ${segmentData.iconClass}"></i>
                     <span class="segment-buff">${segmentData.buffValue > 0 ? segmentData.buffValue + '% ' + segmentData.buffType : ''}</span>
-                    <span class="segment-assignment-order" style="font-size:3rem; margin-top:-4px;margin-bottom:3px;"></span>
+                    <span class="segment-assignment-order"></span>
                     ${resistanceHTML}
                 </div>
             `;

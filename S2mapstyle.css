@@ -124,10 +124,10 @@ body.sidebar-active #map-container {
 
 /* Assignment Order Styling */
 .segment-assignment-order {
-    font-size: 1.8rem; /* Make number prominent */
+    font-size: 3rem; /* Make number prominent */
     font-weight: bold;
     line-height: 1;
-    margin-top: 5px; /* Adjust margin */
+    margin-top:-5px;
     color: var(--bs-warning); /* Use a distinct color */
     display: none; /* Hidden by default */
     z-index: 5; /* Position relative to other elements */
@@ -302,8 +302,8 @@ body.assignment-order-active .map-segment:not(:has(.segment-boss-icon)) .segment
 @media (max-width: 768px) {
     :root { --sidebar-width: 250px; }
     #map-grid { grid-template-columns: repeat(13, minmax(80px, 1fr)); grid-template-rows: repeat(13, minmax(80px, 1fr)); width: 1300px; height: 1300px; }
-    .map-segment { font-size: 0.7rem; } .segment-name { font-size: 0.75rem; } .segment-icon { font-size: 1.2rem; } .segment-buff, .segment-resistance { font-size: 0.65rem; }
-    .segment-assignment-order { font-size: 1.5rem; margin-top: 1px; } /* Adjust order number size/pos */
+    .map-segment { font-size: 0.7rem; } .segment-name { font-size: 0.75rem;margin-bottom:0px; } .segment-icon { font-size: 1.2rem; } .segment-buff, .segment-resistance { font-size: 0.65rem; }
+    .segment-assignment-order { font-size: 2rem; } /* Adjust order number size/pos */
     .segment-boss-icon { width: 16px; height: 16px; bottom: 2px; right: 2px; } /* Adjust boss icon size/pos for mobile */
     .summary-alliance-name { font-size: 0.85rem;} .summary-resources { font-size: 0.7rem; } .summary-counts { font-size: 0.75rem; } .summary-buffs-list { font-size: 0.7rem; }
     .summary-buffs-list li i { width: 14px; margin-right: 4px; } .summary-buffs-list li .buff-value { min-width: 35px; }
