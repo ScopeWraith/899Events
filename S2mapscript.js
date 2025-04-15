@@ -1,19 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration & Data ---
+    // Add per-alliance counters and assignment lists
     const alliances = {
-        THOR: { name: 'THOR', color: 'rgba(0, 123, 255, 0.7)', cssClass: 'alliance-thor', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0 },
-        COLD: { name: 'COLD', color: 'rgba(23, 162, 184, 0.7)', cssClass: 'alliance-cold', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0 },
-        ADHD: { name: 'ADHD', color: 'rgba(232, 62, 140, 0.7)', cssClass: 'alliance-adhd', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0 },
-        FAFO: { name: 'FAFO', color: 'rgba(220, 53, 69, 0.7)', cssClass: 'alliance-fafo', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0 },
-        NEWJ: { name: 'NEWJ', color: 'rgba(255, 193, 7, 0.7)', cssClass: 'alliance-newj', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0 },
-        BRSL: { name: 'BRSL', color: 'rgba(40, 167, 69, 0.7)', cssClass: 'alliance-brsl', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0 },
-        VALT: { name: 'VALT', color: 'rgba(108, 117, 125, 0.7)', cssClass: 'alliance-valt', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0 },
-        HPCE: { name: 'HPCE', color: 'rgba(102, 16, 242, 0.7)', cssClass: 'alliance-hpce', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0 },
+        THOR: { name: 'THOR', color: 'rgba(0, 123, 255, 0.7)', cssClass: 'alliance-thor', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
+        COLD: { name: 'COLD', color: 'rgba(23, 162, 184, 0.7)', cssClass: 'alliance-cold', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
+        ADHD: { name: 'ADHD', color: 'rgba(232, 62, 140, 0.7)', cssClass: 'alliance-adhd', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
+        FAFO: { name: 'FAFO', color: 'rgba(220, 53, 69, 0.7)', cssClass: 'alliance-fafo', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
+        NEWJ: { name: 'NEWJ', color: 'rgba(255, 193, 7, 0.7)', cssClass: 'alliance-newj', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
+        BRSL: { name: 'BRSL', color: 'rgba(40, 167, 69, 0.7)', cssClass: 'alliance-brsl', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
+        VALT: { name: 'VALT', color: 'rgba(108, 117, 125, 0.7)', cssClass: 'alliance-valt', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
+        HPCE: { name: 'HPCE', color: 'rgba(102, 16, 242, 0.7)', cssClass: 'alliance-hpce', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
     };
     const digSiteProduction = { 1: { coal: 2736, soil: 100 }, 2: { coal: 2880, soil: 110 }, 3: { coal: 3024, soil: 120 }, 4: { coal: 3168, soil: 130 }, 5: { coal: 3312, soil: 140 }, 6: { coal: 3456, soil: 150 } };
     const citySoilProduction = 350;
+    const digSiteResistance = { 1: 3500, 2: 6000, 3: 8000, 4: 9500, 5: 10000, 6: 10500 };
     const ALL_BUFF_TYPES = ['Coin', 'Food', 'Iron', 'Gathering', 'March Speed', 'Construction', 'Research', 'Training', 'Healing'];
-    const FIXED_ASSIGNMENTS = { 'G6': 'THOR', 'F7': 'COLD', 'G8': 'FAFO', 'H7': 'ADHD' }; // Keep this constant
+    const FIXED_ASSIGNMENTS = { 'G6': 'THOR', 'F7': 'COLD', 'G8': 'FAFO', 'H7': 'ADHD' };
     const landDataInput = [ /* ... Same land data input array ... */
         "A1: Level 1 Dig Site 2% Coin", "A2: Level 1 Village 5% Iron", "A3: Level 1 Dig Site 2% Food", "A4: Level 1 Village 5% Food", "A5: Level 1 Dig Site 2% Iron", "A6: Level 1 Village 5% Iron", "A7: Level 1 Dig Site 2% Coin", "A8: Level 1 Village 5% Food", "A9: Level 1 Dig Site 2% Food", "A10: Level 1 Village 5% Iron", "A11: Level 1 Dig Site 2% Iron", "A12: Level 1 Village 5% Food", "A13: Level 1 Dig Site 2% Coin",
         "B1: Level 1 Village 5% Iron", "B2: Level 2 Dig Site 3% Coin", "B3: Level 2 Town 5% Gathering", "B4: Level 2 Dig Site 3% Food", "B5: Level 2 Town 5% Coin", "B6: Level 2 Dig Site 3% Iron", "B7: Level 2 Town 5% Gathering", "B8: Level 2 Dig Site 3% Coin", "B9: Level 2 Town 5% Coin", "B10: Level 2 Dig Site 3% Food", "B11: Level 2 Town 5% Gathering", "B12: Level 2 Dig Site 3% Iron", "B13: Level 1 Village 5% Food",
@@ -31,43 +33,35 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     const landData = {};
     const cityTypes = ['Village', 'Town', 'Factory', 'Train Station', 'Launch Site', 'War Palace', 'Capitol'];
-    let fixedAlliancesActive = true; // **** NEW: State variable for the toggle ****
+    const SAVE_KEY = 'allianceMapState_v5'; // Increment save key version
 
-    function getIconClass(buffType) {
+    // --- State Variables ---
+    let fixedAlliancesActive = true;
+    let assignmentOrderActive = false;
+    // Global assignment counter removed
+
+    function getIconClass(buffType) { /* ... no changes ... */
         switch (buffType.toLowerCase()) {
-            case 'coin': return 'fa-solid fa-coins';
-            case 'iron': return 'fa-solid fa-mound';
-            case 'food': return 'fa-solid fa-bread-slice';
-            case 'gathering': return 'fa-solid fa-tractor';
-            case 'healing': return 'fa-solid fa-bandage';
-            case 'construction': return 'fa-solid fa-hammer';
-            case 'march speed': return 'fa-solid fa-truck-fast';
-            case 'training': return 'fa-solid fa-shield-halved';
-            case 'research': return 'fa-solid fa-flask-vial';
-            default: return 'fa-solid fa-question-circle';
+            case 'coin': return 'fa-solid fa-coins'; case 'iron': return 'fa-solid fa-mound'; case 'food': return 'fa-solid fa-bread-slice'; case 'gathering': return 'fa-solid fa-tractor'; case 'healing': return 'fa-solid fa-bandage'; case 'construction': return 'fa-solid fa-hammer'; case 'march speed': return 'fa-solid fa-truck-fast'; case 'training': return 'fa-solid fa-shield-halved'; case 'research': return 'fa-solid fa-flask-vial'; default: return 'fa-solid fa-question-circle';
         }
     }
 
     // Parse data
-    landDataInput.forEach(item => {
+    landDataInput.forEach(item => { /* ... no changes needed in parsing logic ... */
         const parts = item.split(': '); const id = parts[0]; const details = parts[1];
-        let level = 0, name = '', buffValue = 0, buffType = '', type = 'Dig Site'; let coalPerHour = 0, rareSoilPerHour = 0;
+        let level = 0, name = '', buffValue = 0, buffType = '', type = 'Other'; let coalPerHour = 0, rareSoilPerHour = 0, resistance = null;
         if (id === 'G7') { level = 'N/A'; name = 'Capitol'; type = 'City'; const bm = details.match(/(\d+)% (.*)/); if (bm) { buffValue = parseInt(bm[1], 10); buffType = bm[2]; } rareSoilPerHour = citySoilProduction; }
-        else { const lm = details.match(/Level (\d+)/); if (lm) level = parseInt(lm[1], 10); const nm = details.match(/Level \d+ ([\w\s]+?) (\d+%|\d+$)/) || details.match(/Level \d+ ([\w\s]+)/); if (nm) name = nm[1].trim(); const bm = details.match(/(\d+)% (.*)/); if (bm) { buffValue = parseInt(bm[1], 10); buffType = bm[2]; } if (cityTypes.some(city => name.includes(city))) type = 'City';
-            if (type === 'Dig Site' && digSiteProduction[level]) { coalPerHour = digSiteProduction[level].coal; rareSoilPerHour = digSiteProduction[level].soil; } else if (type === 'City' && level >= 1 && level <= 6) { rareSoilPerHour = citySoilProduction; }
-        }
-        // *** isFixed is determined ONLY by the constant FIXED_ASSIGNMENTS ***
+        else { const lm = details.match(/Level (\d+)/); if (lm) level = parseInt(lm[1], 10); const nameMatch = details.match(/Level \d+ ([\w\s]+?)(?: \d+%|\s*$)/); if (nameMatch) name = nameMatch[1].trim(); else name = 'Unknown'; const bm = details.match(/(\d+)% (.*)/); if (bm) { buffValue = parseInt(bm[1], 10); buffType = bm[2]; } if (name.includes('Dig Site')) type = 'Dig Site'; else if (cityTypes.some(city => name.includes(city))) type = 'City'; else type = 'Other'; if (type === 'Dig Site' && digSiteProduction[level]) { coalPerHour = digSiteProduction[level].coal; rareSoilPerHour = digSiteProduction[level].soil; resistance = digSiteResistance[level] || null; } else if (type === 'City' && level >= 1 && level <= 6) { rareSoilPerHour = citySoilProduction; } }
         const isFixed = FIXED_ASSIGNMENTS.hasOwnProperty(id);
-        // *** owner is initialized later based on fixedAlliancesActive state ***
-        landData[id] = { id, level, name, type, buffValue, buffType, iconClass: getIconClass(buffType), owner: null, isFixed, coalPerHour, rareSoilPerHour };
+        landData[id] = { id, level, name, type, buffValue, buffType, iconClass: getIconClass(buffType), owner: null, isFixed, coalPerHour, rareSoilPerHour, resistance, assignmentOrder: null };
     });
+
 
     // --- DOM Elements ---
     const mapGrid = document.getElementById('map-grid');
     const mapContainer = document.getElementById('map-container');
     const allianceSummaryDiv = document.getElementById('alliance-summary');
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
-    const sidebarToggleText = sidebarToggleBtn.querySelector('.toggle-text');
     const bodyElement = document.body;
     const modalElement = document.getElementById('allianceSelectModal');
     const allianceSelectModal = new bootstrap.Modal(modalElement);
@@ -76,13 +70,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalSegmentLevelSpan = document.getElementById('modalSegmentLevel');
     const modalSegmentBuffSpan = document.getElementById('modalSegmentBuff');
     const modalSegmentProdSpan = document.getElementById('modalSegmentProd');
+    const modalSegmentResistanceSpan = document.getElementById('modalSegmentResistance');
     const allianceButtonsDiv = document.getElementById('alliance-buttons');
     const clearAllianceButton = document.getElementById('clear-alliance-button');
     const clearAllButton = document.getElementById('clear-all-button');
-    const fixedAllianceToggle = document.getElementById('fixed-alliance-toggle'); // **** NEW: Toggle Switch Element ****
-    const summaryItemContainer = document.createElement('div'); // **** NEW: Container for actual summary items ****
-    summaryItemContainer.classList.add('summary-item-container'); // **** NEW ****
-    allianceSummaryDiv.appendChild(summaryItemContainer); // **** NEW ****
+    const fixedAllianceToggle = document.getElementById('fixed-alliance-toggle');
+    const assignmentOrderToggle = document.getElementById('assignment-order-toggle');
+    const summaryItemContainer = allianceSummaryDiv.querySelector('.summary-item-container') || document.createElement('div');
+    if (!summaryItemContainer.classList.contains('summary-item-container')) {
+         summaryItemContainer.classList.add('summary-item-container');
+         const lastToggle = allianceSummaryDiv.querySelector('.fixed-toggle-container:last-of-type');
+         if (lastToggle) lastToggle.parentNode.insertBefore(summaryItemContainer, lastToggle.nextSibling);
+         else allianceSummaryDiv.appendChild(summaryItemContainer);
+    }
 
     let currentSegmentId = null;
     let popoverTriggerList = [];
@@ -90,438 +90,396 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Map Generation ---
     const rows = 'ABCDEFGHIJKLM';
     for (let r = 0; r < 13; r++) {
-        for (let c = 1; c <= 13; c++) {
+        for (let c = 1; c <= 13; c++) { /* ... no changes needed in map generation loop ... */
             const segmentId = rows[r] + c; const segmentData = landData[segmentId]; if (!segmentData) continue;
-            const segmentDiv = document.createElement('div'); segmentDiv.classList.add('map-segment'); segmentDiv.dataset.id = segmentId;
-            const centerRow = 6, centerCol = 6; const ringLevel = Math.max(Math.abs(r - centerRow), Math.abs(c - 1 - centerCol));
-            if (ringLevel > 0) segmentDiv.classList.add(`ring-${ringLevel}`);
-            if (segmentData.type === 'City') segmentDiv.classList.add('city');
-            // Add fixed-assignment class based on the constant, regardless of toggle state
-            if (segmentData.isFixed) segmentDiv.classList.add('fixed-assignment');
-            segmentDiv.innerHTML = `<span class="segment-label">${segmentId}</span><span class="segment-level">Level ${segmentData.level}</span><div class="segment-content"><span class="segment-name">${segmentData.name}</span><i class="segment-icon ${segmentData.iconClass}"></i><span class="segment-buff">${segmentData.buffValue > 0 ? segmentData.buffValue + '% ' + segmentData.buffType : ''}</span></div>`;
-            segmentDiv.addEventListener('click', () => handleSegmentClick(segmentId));
-            mapGrid.appendChild(segmentDiv);
+            const segmentDiv = document.createElement('div'); segmentDiv.classList.add('map-segment'); segmentDiv.dataset.id = segmentId; const centerRow = 6, centerCol = 6; const ringLevel = Math.max(Math.abs(r - centerRow), Math.abs(c - 1 - centerCol)); if (ringLevel > 0) segmentDiv.classList.add(`ring-${ringLevel}`); if (segmentData.type === 'City') segmentDiv.classList.add('city'); if (segmentData.isFixed) segmentDiv.classList.add('fixed-assignment'); let resistanceHTML = ''; if (segmentData.type === 'Dig Site' && segmentData.resistance) { resistanceHTML = `<span class="segment-resistance">Res: ${segmentData.resistance.toLocaleString()}</span>`; }
+            segmentDiv.innerHTML = `<span class="segment-label">${segmentId}</span><span class="segment-level">Level ${segmentData.level}</span><div class="segment-content"><span class="segment-name">${segmentData.name}</span><i class="segment-icon ${segmentData.iconClass}"></i><span class="segment-buff">${segmentData.buffValue > 0 ? segmentData.buffValue + '% ' + segmentData.buffType : ''}</span><span class="segment-assignment-order" style="font-size:3rem;margin-top:-6px;margin-bottom:5px;"></span>${resistanceHTML}</div>`; segmentDiv.addEventListener('click', () => handleSegmentClick(segmentId)); mapGrid.appendChild(segmentDiv);
         }
     }
 
     // --- Panzoom Initialization ---
     const panzoom = Panzoom(mapGrid, { maxScale: 5, minScale: 0.3, contain: 'outside', canvas: true, cursor: 'grab', step: 0.3 });
     mapContainer.addEventListener('wheel', panzoom.zoomWithWheel);
-
-    function centerOnG7() {
+    function centerOnG7() { /* ... no changes ... */
         const g7Element = mapGrid.querySelector('[data-id="G7"]'); if (!g7Element) return; const mapRect = mapContainer.getBoundingClientRect(); const elementWidth = g7Element.offsetWidth; const elementHeight = g7Element.offsetHeight; const initialZoom = 0.8; panzoom.zoom(initialZoom, { animate: false }); const zoomedElementWidth = elementWidth * initialZoom; const zoomedElementHeight = elementHeight * initialZoom; const zoomedG7CenterX = (g7Element.offsetLeft * initialZoom) + zoomedElementWidth / 2; const zoomedG7CenterY = (g7Element.offsetTop * initialZoom) + zoomedElementHeight / 2; const finalPanX = (mapRect.width / 2) - zoomedG7CenterX; const finalPanY = (mapRect.height / 2) - zoomedG7CenterY; panzoom.pan(finalPanX, finalPanY, { animate: false, force: true });
     }
     setTimeout(centerOnG7, 150);
 
     // --- Event Handlers & Logic ---
 
-    function handleSegmentClick(segmentId) {
-        const segmentData = landData[segmentId];
-        // Prevent clicking fixed segments EVEN IF the toggle is off (they are definitionally fixed)
-        if (segmentData.isFixed) return;
+    function updateSegmentOrderDisplay(segmentId, orderNumber) { /* ... no changes ... */
+        const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"] .segment-assignment-order`);
+        if (segmentElement) segmentElement.textContent = orderNumber !== null ? orderNumber : '';
+    }
 
-        currentSegmentId = segmentId;
-        modalSegmentIdSpan.textContent = segmentId; modalSegmentNameSpan.textContent = segmentData.name; modalSegmentLevelSpan.textContent = segmentData.level; modalSegmentBuffSpan.textContent = `${segmentData.buffValue > 0 ? segmentData.buffValue + '% ' + segmentData.buffType : 'None'}`;
-        let prodText = '';
-        if (segmentData.coalPerHour > 0) prodText += `<span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Coal Per Hour" data-bs-content="${segmentData.coalPerHour}"><br>Coal Per Hour: </span><span class="resource-value">${segmentData.coalPerHour}</span> `;
-        if (segmentData.rareSoilPerHour > 0) prodText += `<span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Rare Soil Per Hour" data-bs-content="${segmentData.rareSoilPerHour}"><br>Rare Soil Per Hour: </span><span class="resource-value">${segmentData.rareSoilPerHour}</span>`;
-        if (prodText === '') prodText = 'None';
-        modalSegmentProdSpan.innerHTML = prodText;
+    // Helper to recalculate an alliance's counter based on its orderedAssignments list
+    function recalculateAllianceCounter(allianceCode) {
+        if (!alliances[allianceCode]) return;
+        const alliance = alliances[allianceCode];
+        if (alliance.orderedAssignments.length === 0) {
+            alliance.assignmentCounter = 0;
+        } else {
+            // Find the maximum order number currently in the list
+            const maxOrder = Math.max(...alliance.orderedAssignments.map(item => item.order));
+            alliance.assignmentCounter = maxOrder;
+        }
+    }
 
-        const modalPopoverTriggerList = modalElement.querySelectorAll('[data-bs-toggle="popover"]');
-        modalPopoverTriggerList.forEach(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
-
-        allianceButtonsDiv.innerHTML = '';
-        Object.entries(alliances).forEach(([code, data]) => {
-            const button = document.createElement('button'); button.type = 'button'; button.classList.add('btn', 'btn-sm', 'w-100'); button.style.backgroundColor = data.color; button.style.color = '#fff'; button.textContent = `Assign to ${data.name}`; button.dataset.allianceCode = code;
-            let disabledReason = null;
-            if (segmentData.owner === code) disabledReason = ` (Already Owned)`;
-            else if (segmentData.type === 'City' && data.cityCount >= data.cityLimit) disabledReason = ` (Limit: ${data.cityCount}/${data.cityLimit} Cities)`;
-            else if (segmentData.type === 'Dig Site' && data.digSiteCount >= data.digSiteLimit) disabledReason = ` (Limit: ${data.digSiteCount}/${data.digSiteLimit} Digs)`;
-            if (disabledReason) { button.disabled = true; button.textContent += disabledReason; button.style.opacity = '0.65'; button.style.cursor = 'not-allowed'; }
-            else { button.addEventListener('click', () => handleAllianceSelection(code)); }
-            allianceButtonsDiv.appendChild(button);
-        });
-
-        clearAllianceButton.onclick = () => handleAllianceSelection(null);
-        allianceSelectModal.show();
+    function handleSegmentClick(segmentId) { /* ... no changes needed in modal setup ... */
+        const segmentData = landData[segmentId]; if (segmentData.isFixed) return; currentSegmentId = segmentId; modalSegmentIdSpan.textContent = segmentId; modalSegmentNameSpan.textContent = segmentData.name; modalSegmentLevelSpan.textContent = segmentData.level; modalSegmentBuffSpan.textContent = `${segmentData.buffValue > 0 ? segmentData.buffValue + '% ' + segmentData.buffType : 'None'}`; let prodText = ''; if (segmentData.coalPerHour > 0) prodText += `<span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Coal Per Hour">CPH: </span><span class="resource-value">${segmentData.coalPerHour.toLocaleString()}</span> `; if (segmentData.rareSoilPerHour > 0) prodText += `<span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Rare Soil Per Hour">RSPH: </span><span class="resource-value">${segmentData.rareSoilPerHour.toLocaleString()}</span>`; modalSegmentProdSpan.innerHTML = prodText || 'None'; if (segmentData.type === 'Dig Site' && segmentData.resistance) { modalSegmentResistanceSpan.textContent = segmentData.resistance.toLocaleString(); modalSegmentResistanceSpan.closest('p').style.display = 'block'; } else { modalSegmentResistanceSpan.textContent = 'N/A'; modalSegmentResistanceSpan.closest('p').style.display = 'none'; } const modalPopoverTriggerList = modalElement.querySelectorAll('[data-bs-toggle="popover"]'); modalPopoverTriggerList.forEach(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl)); allianceButtonsDiv.innerHTML = ''; Object.entries(alliances).forEach(([code, data]) => { const button = document.createElement('button'); button.type = 'button'; button.classList.add('btn', 'btn-sm', 'w-100'); button.style.backgroundColor = data.color; button.style.color = '#fff'; button.textContent = `Assign to ${data.name}`; button.dataset.allianceCode = code; let disabledReason = null; if (segmentData.owner === code) disabledReason = ` (Already Owned)`; else if (segmentData.type === 'City' && data.cityCount >= data.cityLimit) disabledReason = ` (Limit: ${data.cityCount}/${data.cityLimit} Cities)`; else if (segmentData.type === 'Dig Site' && data.digSiteCount >= data.digSiteLimit) disabledReason = ` (Limit: ${data.digSiteCount}/${data.digSiteLimit} Digs)`; if (disabledReason) { button.disabled = true; button.textContent += disabledReason; button.style.opacity = '0.65'; button.style.cursor = 'not-allowed'; } else { button.addEventListener('click', () => handleAllianceSelection(code)); } allianceButtonsDiv.appendChild(button); }); clearAllianceButton.onclick = () => handleAllianceSelection(null); allianceSelectModal.show();
     }
 
     function handleAllianceSelection(allianceCode) {
-        // No change needed here - it already prevents assigning to fixed, and correctly updates counts/owner for non-fixed.
         if (!currentSegmentId || landData[currentSegmentId].isFixed) return;
         const segmentData = landData[currentSegmentId];
         const segmentElement = mapGrid.querySelector(`[data-id="${currentSegmentId}"]`);
         const previousOwner = segmentData.owner;
+        const previousOrder = segmentData.assignmentOrder; // Store previous order
+        let assignmentChanged = false;
 
+        // Check limits if assigning a new alliance
         if (allianceCode && allianceCode !== previousOwner) {
              const alliance = alliances[allianceCode];
-             if (segmentData.type === 'City' && alliance.cityCount >= alliance.cityLimit) {
-                 alert(`${alliance.name} City limit reached.`); return;
-             }
-             if (segmentData.type === 'Dig Site' && alliance.digSiteCount >= alliance.digSiteLimit) {
-                 alert(`${alliance.name} Dig Site limit reached.`); return;
-             }
+             if (segmentData.type === 'City' && alliance.cityCount >= alliance.cityLimit) { alert(`${alliance.name} City limit reached.`); return; }
+             if (segmentData.type === 'Dig Site' && alliance.digSiteCount >= alliance.digSiteLimit) { alert(`${alliance.name} Dig Site limit reached.`); return; }
         }
 
+        // --- Handle Previous Owner ---
         if (previousOwner && previousOwner !== allianceCode) {
-            if (segmentData.type === 'City') alliances[previousOwner].cityCount--;
-            else if (segmentData.type === 'Dig Site') alliances[previousOwner].digSiteCount--;
-            if (segmentElement) segmentElement.classList.remove(alliances[previousOwner].cssClass);
+            const prevAlliance = alliances[previousOwner];
+            // Decrement building counts
+            if (segmentData.type === 'City') prevAlliance.cityCount--;
+            else if (segmentData.type === 'Dig Site') prevAlliance.digSiteCount--;
+            // Remove CSS class
+            if (segmentElement) segmentElement.classList.remove(prevAlliance.cssClass);
+
+            // Remove from previous alliance's ordered list and update its counter
+            if (previousOrder !== null) {
+                 const assignmentIndex = prevAlliance.orderedAssignments.findIndex(item => item.segmentId === currentSegmentId);
+                 if (assignmentIndex > -1) {
+                     prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
+                 }
+                 recalculateAllianceCounter(previousOwner); // Recalculate counter for previous owner
+            }
+            assignmentChanged = true;
         }
 
+        // --- Handle New Owner ---
         if (allianceCode && allianceCode !== previousOwner) {
+            const newAlliance = alliances[allianceCode];
             segmentData.owner = allianceCode;
-            if (segmentData.type === 'City') alliances[allianceCode].cityCount++;
-            else if (segmentData.type === 'Dig Site') alliances[allianceCode].digSiteCount++;
-            if (segmentElement) segmentElement.classList.add(alliances[allianceCode].cssClass);
+            // Increment building counts
+            if (segmentData.type === 'City') newAlliance.cityCount++;
+            else if (segmentData.type === 'Dig Site') newAlliance.digSiteCount++;
+            // Add CSS class
+            if (segmentElement) segmentElement.classList.add(newAlliance.cssClass);
+
+            // Assign new sequence number from the specific alliance's counter
+            newAlliance.assignmentCounter++;
+            const newOrder = newAlliance.assignmentCounter;
+            segmentData.assignmentOrder = newOrder;
+            // Add to new alliance's ordered list
+            newAlliance.orderedAssignments.push({ segmentId: currentSegmentId, order: newOrder });
+            // Sort the list (optional, but helps if needed later)
+            // newAlliance.orderedAssignments.sort((a, b) => a.order - b.order);
+
+            updateSegmentOrderDisplay(currentSegmentId, newOrder);
+            assignmentChanged = true;
+
         } else if (allianceCode === null && previousOwner !== null) {
-            segmentData.owner = null; // owner already cleared and count decremented above
-        } else {
-            allianceSelectModal.hide();
-            return;
+            // Clearing assignment
+            segmentData.owner = null;
+            segmentData.assignmentOrder = null; // Order already removed during previous owner handling
+            updateSegmentOrderDisplay(currentSegmentId, null);
+            // assignmentChanged is already true
         }
 
-        updateAllianceSummary();
+        // Only update summary and save state if an actual change occurred
+        if (assignmentChanged) {
+            updateAllianceSummary();
+            saveState();
+        }
+
         allianceSelectModal.hide();
-        saveState();
         currentSegmentId = null;
     }
 
     // --- Clear All Assignments Function ---
-    // No change needed here - previous logic correctly resets counts and re-evaluates fixed assignments based on their *current* owner status (which is handled by the new toggle function).
     function clearAllAssignments() {
         if (!confirm("Are you sure you want to clear ALL user-assigned segments? Fixed assignments might be cleared if the toggle is off.")) {
              return;
         }
 
+        // Reset ALL per-alliance counters and lists
         for (const code in alliances) {
             alliances[code].cityCount = 0;
             alliances[code].digSiteCount = 0;
+            alliances[code].assignmentCounter = 0; // Reset counter
+            alliances[code].orderedAssignments = []; // Clear list
         }
 
+        // Iterate through segments
         for (const segmentId in landData) {
             const segmentData = landData[segmentId];
             const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
 
-            if (segmentData.owner && !segmentData.isFixed) { // Clear non-fixed
+            // Clear assignment order display and data
+            segmentData.assignmentOrder = null;
+            updateSegmentOrderDisplay(segmentId, null);
+
+            // Handle non-fixed segments: clear owner and class
+            if (segmentData.owner && !segmentData.isFixed) {
                 const alliance = alliances[segmentData.owner];
-                if(alliance && segmentElement) {
-                     segmentElement.classList.remove(alliance.cssClass);
-                }
+                if(alliance && segmentElement) segmentElement.classList.remove(alliance.cssClass);
                 segmentData.owner = null;
             }
-            else if (segmentData.isFixed && segmentData.owner) { // Recount fixed IF they have an owner
-                 const alliance = alliances[segmentData.owner];
-                 if (alliance) {
-                     if (segmentData.type === 'City') alliance.cityCount++;
-                     else if (segmentData.type === 'Dig Site') alliance.digSiteCount++;
-
-                     if(segmentElement && !segmentElement.classList.contains(alliance.cssClass)) {
-                          segmentElement.classList.add(alliance.cssClass);
+            // Handle fixed segments
+            else if (segmentData.isFixed) {
+                 if (fixedAlliancesActive && FIXED_ASSIGNMENTS[segmentId]) {
+                     const fixedOwnerCode = FIXED_ASSIGNMENTS[segmentId];
+                     const alliance = alliances[fixedOwnerCode];
+                     if (alliance) {
+                         segmentData.owner = fixedOwnerCode;
+                         if (segmentData.type === 'City') alliance.cityCount++;
+                         else if (segmentData.type === 'Dig Site') alliance.digSiteCount++;
+                         if(segmentElement && !segmentElement.classList.contains(alliance.cssClass)) segmentElement.classList.add(alliance.cssClass);
                      }
+                 } else {
+                     if (segmentData.owner && segmentElement) Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass));
+                     segmentData.owner = null;
                  }
             }
-             else if (segmentData.isFixed && !segmentData.owner) { // Ensure fixed segments without owner have no alliance class
-                 if (segmentElement) {
-                      Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass));
-                 }
+             else { // Segment has no owner and is not fixed
+                   if(segmentElement) Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass));
+                   segmentData.owner = null;
              }
         }
 
         updateAllianceSummary();
         saveState();
-        console.log("User assignments cleared. Fixed assignments recounted based on toggle state.");
+        console.log("All assignments cleared. Per-alliance order reset.");
     }
     clearAllButton.addEventListener('click', clearAllAssignments);
 
-    // --- **** NEW: Toggle Fixed Alliances Function **** ---
+
+    // --- Toggle Fixed Alliances Function ---
     function toggleFixedAlliances(isActive) {
-        fixedAlliancesActive = isActive; // Update global state
+        fixedAlliancesActive = isActive;
 
         for (const segmentId in FIXED_ASSIGNMENTS) {
             if (landData[segmentId]) {
                 const segmentData = landData[segmentId];
-                const allianceCode = FIXED_ASSIGNMENTS[segmentId];
+                const allianceCode = FIXED_ASSIGNMENTS[segmentId]; // The intended fixed owner
                 const alliance = alliances[allianceCode];
                 const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
+                const previousOwner = segmentData.owner; // Current owner before toggle
+                const previousOrder = segmentData.assignmentOrder;
 
                 if (isActive) {
-                    // Activate: Assign owner, add class, increment count (if not already maxed - unlikely for fixed)
-                    if (segmentData.owner !== allianceCode) { // Prevent double counting if already active somehow
-                         segmentData.owner = allianceCode;
-                         if (alliance) {
-                              if (segmentData.type === 'City' && alliance.cityCount < alliance.cityLimit) {
-                                   alliance.cityCount++;
-                              } else if (segmentData.type === 'Dig Site' && alliance.digSiteCount < alliance.digSiteLimit) {
-                                  alliance.digSiteCount++;
-                              }
-                              if (segmentElement) segmentElement.classList.add(alliance.cssClass);
-                         }
+                    // If activating fixed and segment is unowned OR owned by someone else
+                    if (previousOwner !== allianceCode) {
+                        // If previously owned by a user alliance, remove that assignment properly
+                        if(previousOwner && alliances[previousOwner] && !segmentData.isFixed) { // Check it wasn't already fixed
+                             const prevAlliance = alliances[previousOwner];
+                             if (segmentData.type === 'City') prevAlliance.cityCount--;
+                             else if (segmentData.type === 'Dig Site') prevAlliance.digSiteCount--;
+                             if (segmentElement) segmentElement.classList.remove(prevAlliance.cssClass);
+
+                             // Remove from previous alliance's ordered list and update its counter
+                             if (previousOrder !== null) {
+                                  const assignmentIndex = prevAlliance.orderedAssignments.findIndex(item => item.segmentId === segmentId);
+                                  if (assignmentIndex > -1) prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
+                                  recalculateAllianceCounter(previousOwner);
+                             }
+                             segmentData.assignmentOrder = null; // Clear order data
+                             updateSegmentOrderDisplay(segmentId, null); // Clear order display
+                        }
+                        // Assign fixed owner
+                        segmentData.owner = allianceCode;
+                        if (alliance) {
+                             if (segmentData.type === 'City') alliance.cityCount++;
+                             else if (segmentData.type === 'Dig Site') alliance.digSiteCount++;
+                             if (segmentElement) segmentElement.classList.add(alliance.cssClass);
+                        }
                     }
                 } else {
-                    // Deactivate: Remove owner, remove class, decrement count
-                     if (segmentData.owner === allianceCode) { // Only decrement if it was the owner
+                    // Deactivating fixed: Only remove if it IS the fixed owner
+                     if (previousOwner === allianceCode) {
                          segmentData.owner = null;
                          if (alliance) {
-                             if (segmentData.type === 'City') {
-                                 alliance.cityCount--;
-                             } else if (segmentData.type === 'Dig Site') {
-                                 alliance.digSiteCount--;
-                             }
+                             if (segmentData.type === 'City') alliance.cityCount--;
+                             else if (segmentData.type === 'Dig Site') alliance.digSiteCount--;
                              if (segmentElement) segmentElement.classList.remove(alliance.cssClass);
                          }
                      }
                  }
             }
         }
-
-        updateAllianceSummary(); // Update sidebar
-        saveState(); // Save the new toggle state
+        updateAllianceSummary();
+        saveState();
     }
-    // Add event listener to the toggle
-    fixedAllianceToggle.addEventListener('change', (event) => {
-        toggleFixedAlliances(event.target.checked);
-    });
-    // --- **** END NEW TOGGLE FUNCTION **** ---
+    fixedAllianceToggle.addEventListener('change', (event) => toggleFixedAlliances(event.target.checked));
+
+    // --- Toggle Assignment Order View Function ---
+    function toggleAssignmentOrderView(isActive) { /* ... no changes ... */
+        assignmentOrderActive = isActive;
+        if (isActive) bodyElement.classList.add('assignment-order-active');
+        else bodyElement.classList.remove('assignment-order-active');
+        saveState();
+    }
+    assignmentOrderToggle.addEventListener('change', (event) => toggleAssignmentOrderView(event.target.checked));
 
 
-    function calculateAllianceBuffs() {
-        // No change needed: It calculates based on current segment.owner
+    function calculateAllianceBuffs() { /* ... no changes ... */
         for (const code in alliances) { alliances[code].buffs = {}; }
-        for (const segmentId in landData) {
-            const segment = landData[segmentId];
-            if (segment.owner && alliances[segment.owner]) {
-                const alliance = alliances[segment.owner];
-                const buffType = segment.buffType;
-                const buffValue = segment.buffValue;
-                if (buffValue > 0 && buffType) { // Ensure buffType is valid
-                    if (!alliance.buffs[buffType]) alliance.buffs[buffType] = 0;
-                    alliance.buffs[buffType] += buffValue;
-                }
-            }
-        }
+        for (const segmentId in landData) { const segment = landData[segmentId]; if (segment.owner && alliances[segment.owner]) { const alliance = alliances[segment.owner]; const buffType = segment.buffType; const buffValue = segment.buffValue; if (buffValue > 0 && buffType) { if (!alliance.buffs[buffType]) alliance.buffs[buffType] = 0; alliance.buffs[buffType] += buffValue; } } }
     }
-    function calculateAllianceResources() {
-        // No change needed: It calculates based on current segment.owner
+    function calculateAllianceResources() { /* ... no changes ... */
         for (const code in alliances) { alliances[code].totalCPH = 0; alliances[code].totalRSPH = 0; }
-        for (const segmentId in landData) {
-            const segment = landData[segmentId];
-            if (segment.owner && alliances[segment.owner]) {
-                alliances[segment.owner].totalCPH += segment.coalPerHour || 0;
-                alliances[segment.owner].totalRSPH += segment.rareSoilPerHour || 0;
-            }
-        }
+        for (const segmentId in landData) { const segment = landData[segmentId]; if (segment.owner && alliances[segment.owner]) { alliances[segment.owner].totalCPH += segment.coalPerHour || 0; alliances[segment.owner].totalRSPH += segment.rareSoilPerHour || 0; } }
+    }
+    function initializePopovers() { /* ... no changes ... */
+        popoverTriggerList.forEach(p => p.dispose()); const newPopoverTriggerList = summaryItemContainer.querySelectorAll('[data-bs-toggle="popover"]'); popoverTriggerList = [...newPopoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+    }
+    function updateAllianceSummary() { /* ... no changes ... */
+        calculateAllianceBuffs(); calculateAllianceResources(); summaryItemContainer.innerHTML = ''; Object.entries(alliances).forEach(([code, data]) => { const itemDiv = document.createElement('div'); itemDiv.classList.add('summary-item'); const headerDiv = document.createElement('div'); headerDiv.classList.add('summary-header'); headerDiv.innerHTML = `<span class="summary-color-dot" style="background-color: ${data.color};"></span><span class="summary-alliance-name">${data.name}</span>`; const resourcesDiv = document.createElement('div'); resourcesDiv.classList.add('summary-resources'); resourcesDiv.innerHTML = `<span><span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Coal Per Hour">Cph</span><span class="resource-value">${data.totalCPH.toLocaleString() || 0}</span></span> | <span><span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Rare Soil Per Hour">RSph</span><span class="resource-value">${data.totalRSPH.toLocaleString() || 0}</span></span>`; const countsDiv = document.createElement('div'); countsDiv.classList.add('summary-counts'); countsDiv.innerHTML = `Cities: ${data.cityCount}/${data.cityLimit} | Digs: ${data.digSiteCount}/${data.digSiteLimit}`; const buffsUl = document.createElement('ul'); buffsUl.classList.add('summary-buffs-list'); const sortedBuffTypes = ALL_BUFF_TYPES.filter(buffType => data.buffs[buffType] > 0); sortedBuffTypes.forEach(buffType => { const buffValue = data.buffs[buffType] || 0; const iconClass = getIconClass(buffType); const buffLi = document.createElement('li'); buffLi.innerHTML = `<i class="${iconClass}"></i><span class="buff-name">${buffType}</span><span class="buff-value">${buffValue}%</span>`; buffsUl.appendChild(buffLi); }); itemDiv.appendChild(headerDiv); itemDiv.appendChild(resourcesDiv); itemDiv.appendChild(countsDiv); itemDiv.appendChild(buffsUl); summaryItemContainer.appendChild(itemDiv); }); initializePopovers();
     }
 
-    function initializePopovers() {
-        popoverTriggerList.forEach(p => p.dispose());
-        // *** IMPORTANT: Scope popover initialization to the summary container ***
-        const newPopoverTriggerList = summaryItemContainer.querySelectorAll('[data-bs-toggle="popover"]');
-        popoverTriggerList = [...newPopoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
-    }
-
-    function updateAllianceSummary() {
-        calculateAllianceBuffs();
-        calculateAllianceResources();
-        summaryItemContainer.innerHTML = ''; // **** NEW: Clear the container, not the whole sidebar ****
-
-        Object.entries(alliances).forEach(([code, data]) => {
-            const itemDiv = document.createElement('div'); itemDiv.classList.add('summary-item');
-            const headerDiv = document.createElement('div'); headerDiv.classList.add('summary-header');
-            headerDiv.innerHTML = `<span class="summary-color-dot" style="background-color: ${data.color};"></span><span class="summary-alliance-name">${data.name}</span>`;
-
-            const resourcesDiv = document.createElement('div');
-            resourcesDiv.classList.add('summary-resources');
-            resourcesDiv.innerHTML = `
-                <span>
-                  <span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Coal Per Hour">Cph</span>
-                  <span class="resource-value">${data.totalCPH || 0}</span>
-                </span> |
-                <span>
-                  <span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Rare Soil Per Hour">RSph</span>
-                  <span class="resource-value">${data.totalRSPH || 0}</span>
-                </span>
-            `;
-
-            const countsDiv = document.createElement('div'); countsDiv.classList.add('summary-counts');
-            countsDiv.innerHTML = `Cities: ${data.cityCount}/${data.cityLimit} | Digs: ${data.digSiteCount}/${data.digSiteLimit}`;
-            const buffsUl = document.createElement('ul'); buffsUl.classList.add('summary-buffs-list');
-
-            ALL_BUFF_TYPES.forEach(buffType => {
-                const buffValue = data.buffs[buffType] || 0;
-                if (buffValue > 0) {
-                    const iconClass = getIconClass(buffType);
-                    const buffLi = document.createElement('li');
-                    buffLi.innerHTML = `<i class="${iconClass}"></i><span class="buff-name">${buffType}</span><span class="buff-value">${buffValue}%</span>`;
-                    buffsUl.appendChild(buffLi);
-                }
-            });
-
-            itemDiv.appendChild(headerDiv); itemDiv.appendChild(resourcesDiv); itemDiv.appendChild(countsDiv); itemDiv.appendChild(buffsUl);
-            summaryItemContainer.appendChild(itemDiv); // **** NEW: Append to container ****
-        });
-
-        initializePopovers();
-    }
-
+    // --- UPDATED Save State ---
     function saveState() {
         const stateToSave = {
              assignments: {},
-             fixedActive: fixedAlliancesActive // **** NEW: Save toggle state ****
+             fixedActive: fixedAlliancesActive,
+             assignmentOrderViewActive: assignmentOrderActive,
+             // No need to save per-alliance counters, reconstruct from assignments
         };
+        // Save assignments with owner and order
         for (const segmentId in landData) {
-            // Only save owner if it exists AND the segment is not fixed
-            if (landData[segmentId].owner && !landData[segmentId].isFixed) {
-                 stateToSave.assignments[segmentId] = landData[segmentId].owner;
+            if (landData[segmentId].owner && !landData[segmentId].isFixed && landData[segmentId].assignmentOrder !== null) {
+                 stateToSave.assignments[segmentId] = {
+                      owner: landData[segmentId].owner,
+                      order: landData[segmentId].assignmentOrder
+                 };
             }
         }
-        localStorage.setItem('allianceMapState_v3', JSON.stringify(stateToSave)); // Use v3 for new structure
+        localStorage.setItem(SAVE_KEY, JSON.stringify(stateToSave));
     }
 
-    function initializeMapState() {
-         // 1. Load Saved State (including toggle state)
-         const savedStateRaw = localStorage.getItem('allianceMapState_v3'); // Use v3
-         let parsedState = { assignments: {}, fixedActive: true }; // Default state
+    // --- UPDATED Initialize Map State ---
+     function initializeMapState() {
+         // 1. Load Saved State
+         const savedStateRaw = localStorage.getItem(SAVE_KEY);
+         let parsedState = { assignments: {}, fixedActive: true, assignmentOrderViewActive: false }; // Default structure
+
          if (savedStateRaw) {
               try {
                    const loaded = JSON.parse(savedStateRaw);
-                   // Basic validation
-                   if (loaded && typeof loaded.assignments === 'object' && typeof loaded.fixedActive === 'boolean') {
+                   // Validate structure
+                   if (loaded && typeof loaded.assignments === 'object' &&
+                       typeof loaded.fixedActive === 'boolean' &&
+                       typeof loaded.assignmentOrderViewActive === 'boolean') {
                         parsedState = loaded;
-                   } else {
-                       console.warn("Invalid saved state structure found, using defaults.");
-                   }
-              } catch (e) {
-                   console.error("Failed to parse saved state, using defaults.", e);
-              }
+                   } else { console.warn("Invalid saved state structure v5, using defaults."); localStorage.removeItem(SAVE_KEY); }
+              } catch (e) { console.error("Failed to parse saved state v5, using defaults.", e); localStorage.removeItem(SAVE_KEY); }
          }
-         fixedAlliancesActive = parsedState.fixedActive; // Set global state from saved
-         fixedAllianceToggle.checked = fixedAlliancesActive; // Set toggle element state
 
+         // Set toggle states
+         fixedAlliancesActive = parsedState.fixedActive;
+         fixedAllianceToggle.checked = fixedAlliancesActive;
+         assignmentOrderActive = parsedState.assignmentOrderViewActive;
+         assignmentOrderToggle.checked = assignmentOrderActive;
+         if (assignmentOrderActive) bodyElement.classList.add('assignment-order-active');
+         else bodyElement.classList.remove('assignment-order-active');
 
-        // 2. Reset all counts and owners IN MEMORY first
-        for (const code in alliances) {
-            alliances[code].cityCount = 0;
-            alliances[code].digSiteCount = 0;
-            alliances[code].buffs = {};
-            alliances[code].totalCPH = 0;
-            alliances[code].totalRSPH = 0;
-        }
-         for (const segmentId in landData) {
+         // 2. Reset runtime states (counts, per-alliance lists/counters)
+         for (const code in alliances) {
+             alliances[code].cityCount = 0; alliances[code].digSiteCount = 0; alliances[code].buffs = {}; alliances[code].totalCPH = 0; alliances[code].totalRSPH = 0;
+             alliances[code].assignmentCounter = 0; // Reset counter
+             alliances[code].orderedAssignments = []; // Reset list
+         }
+         for (const segmentId in landData) { // Reset segment data
               landData[segmentId].owner = null;
+              landData[segmentId].assignmentOrder = null;
+              updateSegmentOrderDisplay(segmentId, null); // Clear display
               const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
-              if (segmentElement) {
-                   Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass));
-              }
+              if (segmentElement) Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass));
          }
-
 
         // 3. Apply fixed assignments IF ACTIVE
         if (fixedAlliancesActive) {
-            for (const segmentId in FIXED_ASSIGNMENTS) {
-                 if (landData[segmentId]) {
-                      const segmentData = landData[segmentId];
-                      const allianceCode = FIXED_ASSIGNMENTS[segmentId];
-                      const alliance = alliances[allianceCode];
-                      const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
-
-                      segmentData.owner = allianceCode; // Assign owner
-                      if(segmentElement && alliance) { // Apply CSS
-                           segmentElement.classList.add(alliance.cssClass);
-                      }
-                      // Increment count for fixed assignments
-                      if (alliance) {
-                          if (segmentData.type === 'City') alliance.cityCount++;
-                          else if (segmentData.type === 'Dig Site') alliance.digSiteCount++;
-                      }
-                 }
+            for (const segmentId in FIXED_ASSIGNMENTS) { /* ... apply fixed assignments ... */
+                 if (landData[segmentId]) { const segmentData = landData[segmentId]; const allianceCode = FIXED_ASSIGNMENTS[segmentId]; const alliance = alliances[allianceCode]; const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`); let canAssignFixed = false; if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } } else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } } if(canAssignFixed) { segmentData.owner = allianceCode; if(segmentElement && alliance) segmentElement.classList.add(alliance.cssClass); } else { console.warn(`Init conflict: Limit fixed ${allianceCode} at ${segmentId}.`); } }
             }
         }
-        // Else: Fixed assignments remain ownerless, counts are 0
 
-        // 4. Load saved USER assignments (non-fixed)
-        for (const segmentId in parsedState.assignments) {
-            // Ensure segment exists, is NOT fixed, and alliance exists
-            if (landData[segmentId] && !landData[segmentId].isFixed && alliances[parsedState.assignments[segmentId]]) {
+        // 4. Load saved USER assignments & reconstruct per-alliance state
+        const maxOrderPerAlliance = {}; // Track max order found for each alliance during load
+
+        // Sort saved assignments by order before processing
+        const sortedAssignments = Object.entries(parsedState.assignments)
+            .filter(([id, data]) => data && typeof data.order === 'number' && data.owner) // Ensure valid data
+            .sort(([, a], [, b]) => a.order - b.order);
+
+        sortedAssignments.forEach(([segmentId, assignmentData]) => {
+            if (landData[segmentId] && !landData[segmentId].isFixed && alliances[assignmentData.owner]) {
                  const segmentData = landData[segmentId];
-                 const allianceCode = parsedState.assignments[segmentId];
+                 const allianceCode = assignmentData.owner;
                  const alliance = alliances[allianceCode];
                  const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
+                 const order = assignmentData.order;
 
-                 // Check limits *before* assigning from save state
-                 let canAssign = false;
-                 if (segmentData.type === 'City') {
-                     if (alliance.cityCount < alliance.cityLimit) {
-                         alliance.cityCount++; canAssign = true;
-                     }
-                 } else if (segmentData.type === 'Dig Site') {
-                     if (alliance.digSiteCount < alliance.digSiteLimit) {
-                         alliance.digSiteCount++; canAssign = true;
-                     }
-                 }
+                 // Check limits
+                 let canAssignUser = false;
+                 if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignUser = true; } }
+                 else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignUser = true; } }
 
-                 if (canAssign) {
+                 if (canAssignUser) {
                      segmentData.owner = allianceCode;
-                     if (segmentElement) {
-                          segmentElement.classList.add(alliance.cssClass);
+                     segmentData.assignmentOrder = order;
+                     updateSegmentOrderDisplay(segmentId, order); // Update display
+                     if (segmentElement) segmentElement.classList.add(alliance.cssClass);
+
+                     // Reconstruct per-alliance list
+                     alliance.orderedAssignments.push({ segmentId: segmentId, order: order });
+
+                     // Track max order for this alliance
+                     if (!maxOrderPerAlliance[allianceCode] || order > maxOrderPerAlliance[allianceCode]) {
+                         maxOrderPerAlliance[allianceCode] = order;
                      }
-                 } else {
-                     console.warn(`Load conflict: Limit for ${allianceCode} at ${segmentId}. Saved assignment ignored.`);
+                 } else { /* ... handle load conflict ... */
+                      console.warn(`Load conflict: Limit ${allianceCode} at ${segmentId}. Saved ignored.`); segmentData.owner = null; segmentData.assignmentOrder = null; updateSegmentOrderDisplay(segmentId, null); if(segmentElement) Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass));
                  }
             }
+        });
+
+        // Set final per-alliance counters after loading all assignments
+        for (const code in alliances) {
+            alliances[code].assignmentCounter = maxOrderPerAlliance[code] || 0;
+            // Optional: Sort the reconstructed lists if order matters internally
+            // alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
         }
 
-        // 5. Final summary update reflects all assignments based on current state
+        // 5. Final summary update
         updateAllianceSummary();
     }
 
 
-    // --- Sidebar Toggle Logic (No changes needed) ---
-    function setSidebarState(isActive) {
-        if(isActive) {
-            bodyElement.classList.add('sidebar-active');
-            allianceSummaryDiv.classList.remove('sidebar-collapsed');
-            sidebarToggleBtn.title = "Hide Alliance Summary";
-        } else {
-            bodyElement.classList.remove('sidebar-active');
-            allianceSummaryDiv.classList.add('sidebar-collapsed');
-            sidebarToggleBtn.title = "Show Alliance Summary";
-        }
-        requestAnimationFrame(() => {
-             setTimeout(() => {
-                 panzoom.resize();
-             }, 350);
-        });
+    // --- Sidebar Toggle Logic ---
+    function setSidebarState(isActive) { /* ... no changes ... */
+        if(isActive) { bodyElement.classList.add('sidebar-active'); allianceSummaryDiv.classList.remove('sidebar-collapsed'); sidebarToggleBtn.title = "Hide Alliance Summary"; } else { bodyElement.classList.remove('sidebar-active'); allianceSummaryDiv.classList.add('sidebar-collapsed'); sidebarToggleBtn.title = "Show Alliance Summary"; } requestAnimationFrame(() => { setTimeout(() => { panzoom.resize(); }, 350); });
     }
-
-    sidebarToggleBtn.addEventListener('click', () => {
-        const currentlyActive = bodyElement.classList.contains('sidebar-active');
-        setSidebarState(!currentlyActive);
-        if (!currentlyActive) {
-             bodyElement.classList.add('sidebar-force-active');
-        } else {
-             bodyElement.classList.remove('sidebar-force-active');
-        }
+    sidebarToggleBtn.addEventListener('click', () => { /* ... no changes ... */
+        const currentlyActive = bodyElement.classList.contains('sidebar-active'); setSidebarState(!currentlyActive); if (window.matchMedia('(max-width: 992px)').matches) { if (!currentlyActive) { bodyElement.classList.add('sidebar-force-active'); } else { bodyElement.classList.remove('sidebar-force-active'); } }
     });
-
     const mediaQuery = window.matchMedia('(max-width: 992px)');
-    function handleMobileChange(e) {
-        if (e.matches && !bodyElement.classList.contains('sidebar-force-active')) {
-            setSidebarState(false);
-        } else if (!e.matches && !bodyElement.classList.contains('sidebar-force-active')) {
-             setSidebarState(true);
-        }
+    function handleMobileChange(e) { /* ... no changes ... */
+        if (!bodyElement.classList.contains('sidebar-force-active')) { setSidebarState(!e.matches); }
     }
     mediaQuery.addEventListener('change', handleMobileChange);
-    handleMobileChange(mediaQuery);
-    if (!mediaQuery.matches && !bodyElement.classList.contains('sidebar-force-active')) {
-         setSidebarState(true);
-     } else if (mediaQuery.matches && !bodyElement.classList.contains('sidebar-force-active')) {
-         setSidebarState(false);
-     }
 
     // --- Initial Load ---
-    initializeMapState(); // Initializes data, applies states based on toggle, counts, visuals, and calls updateAllianceSummary
+    initializeMapState();
+    if (!bodyElement.classList.contains('sidebar-force-active')) { handleMobileChange(mediaQuery); }
+
 
 }); // End DOMContentLoaded
