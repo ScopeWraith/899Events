@@ -45,7 +45,7 @@ body.sidebar-active #map-container {
 
 .map-segment {
     border: 1px solid var(--bs-border-color-translucent);
-    position: relative; /* For absolute positioning of label/level */
+    position: relative; /* For absolute positioning of label/level/icon */
     display: flex;
     flex-direction: column;
     justify-content: center; /* Center content vertically */
@@ -78,6 +78,7 @@ body.sidebar-active #map-container {
     font-size: 0.7rem;
     opacity: 0.8;
     pointer-events: none; /* Prevent label from interfering with clicks */
+    z-index: 10; /* Ensure label is above other elements */
 }
 
 .segment-level {
@@ -87,6 +88,7 @@ body.sidebar-active #map-container {
     font-size: 0.7rem;
     opacity: 0.8;
     pointer-events: none; /* Prevent level from interfering */
+    z-index: 10; /* Ensure level is above other elements */
 }
 
 .segment-content {
@@ -95,7 +97,8 @@ body.sidebar-active #map-container {
     align-items: center;
     gap: 2px; /* Further reduced gap */
     pointer-events: none; /* Prevent content from interfering */
-    margin-top: 10px;
+    margin-top: 10px; /* Adjusted margin */
+    padding: 0 5px; /* Add some padding */
 }
 
 .segment-name {
@@ -115,41 +118,64 @@ body.sidebar-active #map-container {
     opacity: 0.9;
     line-height: 1.1;
 }
+.segment-resistance {
+    margin-top: 2px; /* Add space above resistance */
+}
 
 /* Assignment Order Styling */
 .segment-assignment-order {
     font-size: 1.8rem; /* Make number prominent */
     font-weight: bold;
     line-height: 1;
-    margin-top: 2px; /* Adjust margin */
+    margin-top: 5px; /* Adjust margin */
     color: var(--bs-warning); /* Use a distinct color */
     display: none; /* Hidden by default */
+    z-index: 5; /* Position relative to other elements */
+}
+
+/* *** NEW: Boss Icon Styling *** */
+.segment-boss-icon {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 20px; /* Adjust size as needed */
+    height: 20px; /* Adjust size as needed */
+    z-index: 5; /* Ensure it's above background, below labels */
+    pointer-events: none; /* Don't interfere with clicks */
+    display: block; /* Show by default */
+    opacity: 0.4; /* Slightly transparent */
 }
 
 
 /* --- Toggle Visibility based on body class --- */
 
-/* Default: Show icon/buff/resistance, hide order */
+/* Default: Show icon/buff/resistance/boss, hide order */
 body:not(.assignment-order-active) .segment-icon,
 body:not(.assignment-order-active) .segment-buff,
-body:not(.assignment-order-active) .segment-resistance {
+body:not(.assignment-order-active) .segment-resistance,
+body:not(.assignment-order-active) .segment-boss-icon { /* Show boss icon */
     display: block;
 }
 body:not(.assignment-order-active) .segment-assignment-order {
     display: none;
 }
 
-/* When active: Hide icon & buff, show order & resistance */
+/* When active: Hide icon, buff, show order, resistance, AND boss icon */
 body.assignment-order-active .segment-icon,
-body.assignment-order-active .segment-buff { /* Only hide icon and buff */
+body.assignment-order-active .segment-buff { /* REMOVED .segment-boss-icon from this line */
     display: none;
 }
 body.assignment-order-active .segment-assignment-order,
-body.assignment-order-active .segment-resistance { /* Show order and resistance */
+body.assignment-order-active .segment-resistance,
+body.assignment-order-active .segment-boss-icon { /* ADDED .segment-boss-icon to this line */
     display: block;
 }
 /* Ensure resistance doesn't display if it shouldn't (e.g., non-dig sites) */
 body.assignment-order-active .map-segment:not(:has(.segment-resistance)) .segment-resistance {
+    display: none;
+}
+/* Ensure boss icon doesn't display if it shouldn't (e.g., non-dig sites or other segments without one) */
+body.assignment-order-active .map-segment:not(:has(.segment-boss-icon)) .segment-boss-icon {
     display: none;
 }
 /* --- END Toggle Visibility --- */
@@ -184,8 +210,15 @@ body.assignment-order-active .map-segment:not(:has(.segment-resistance)) .segmen
 .map-segment:not(.city)[class*="alliance-"] .segment-name { color: #fff !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); }
 /* Ensure assignment order number is readable on colored background */
 .map-segment[class*="alliance-"] .segment-assignment-order {
-    color: #ffeb3b !important; /* Bright yellow */
+    color: #ffffff !important; /* Bright yellow */
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+/* *** NEW: Ensure boss icon is visible on colored background (optional adjustment if needed) *** */
+.map-segment[class*="alliance-"] .segment-boss-icon {
+    /* background-color: rgba(0,0,0,0.1); /* Optional light background */
+    /* border-radius: 3px; /* Optional rounding */
+    /* Add filter if needed for contrast, e.g. filter: brightness(1.1); */
+    opacity: 0.95; /* Make slightly more opaque */
 }
 
 
@@ -271,6 +304,7 @@ body.assignment-order-active .map-segment:not(:has(.segment-resistance)) .segmen
     #map-grid { grid-template-columns: repeat(13, minmax(80px, 1fr)); grid-template-rows: repeat(13, minmax(80px, 1fr)); width: 1300px; height: 1300px; }
     .map-segment { font-size: 0.7rem; } .segment-name { font-size: 0.75rem; } .segment-icon { font-size: 1.2rem; } .segment-buff, .segment-resistance { font-size: 0.65rem; }
     .segment-assignment-order { font-size: 1.5rem; margin-top: 1px; } /* Adjust order number size/pos */
+    .segment-boss-icon { width: 16px; height: 16px; bottom: 2px; right: 2px; } /* Adjust boss icon size/pos for mobile */
     .summary-alliance-name { font-size: 0.85rem;} .summary-resources { font-size: 0.7rem; } .summary-counts { font-size: 0.75rem; } .summary-buffs-list { font-size: 0.7rem; }
     .summary-buffs-list li i { width: 14px; margin-right: 4px; } .summary-buffs-list li .buff-value { min-width: 35px; }
 }
