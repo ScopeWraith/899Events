@@ -1,0 +1,310 @@
+/* --- Google Fonts Import --- */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&family=Roboto:wght@400;700&display=swap');
+
+/* --- Base Styles --- */
+body {
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+    background-color: #1a1d20;
+    color: var(--bs-body-color);
+    padding-bottom: 3rem;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1140px;
+}
+
+/* --- Typography --- */
+h1, h2, h3, h4, h5, h6, .page-title, .section-container-title, .input-panel-title, .result-value strong, .result-value span {
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.page-title {
+    color: #e9ecef;
+    margin-bottom: 2.5rem !important;
+    font-size: 2.25rem;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+
+/* --- Section Container Styles (Dark Grey Box) --- */
+.section-container {
+    background-color: #2b3035; /* Slightly different dark grey */
+    border: 1px solid #495057;
+    border-radius: 0.5rem;
+    padding: 1.5rem; /* Default padding */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Adjusted shadow */
+    margin-bottom: 2rem !important; /* Consistent spacing */
+}
+
+.factory-section-padding {
+    padding: 1rem 1rem 1.25rem 1rem; /* Reduced padding */
+}
+
+.section-container-title {
+    font-weight: 700;
+    color: #ced4da;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem; /* Adjusted size */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #495057;
+    display: inline-block;
+}
+
+/* --- Factory Styles --- */
+.factory-container {
+    position: relative;
+    width: 100%;
+    max-width: 150px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-bottom: 10px; /* Reduced bottom padding */
+    padding-top: 20px; /* Add space for label */
+}
+
+/* *** Style for Factory Labels *** */
+.factory-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.75rem; /* Small label */
+    font-weight: 400;
+    color: #adb5bd; /* Light grey color */
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* *** Style for Disabled Factory 5 Label *** */
+#factory5Label.disabled-label {
+    color: #6c757d; /* Dimmer grey color */
+    /* Optional: Add other styles like line-through */
+    /* text-decoration: line-through; */
+}
+
+
+.factory-image {
+    display: block;
+    margin: 0 auto 0.5rem auto;
+}
+
+.level-selector-wrapper {
+    position: absolute;
+    bottom: -8px; /* Adjusted position slightly */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 110px;
+    z-index: 10;
+}
+
+.factory5-toggle-wrapper {
+    position: absolute;
+    top: 20%; /* Adjusted slightly */
+    left: 50%;
+    transform: translateX(-50%) scale(1.2); /* Made slightly larger */
+    z-index: 15;
+    transform-origin: center;
+}
+
+/* --- Themed Form Elements --- */
+.themed-select, .themed-input {
+    border-radius: 0.25rem;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    border: 1px solid #6c757d; /* Consistent border */
+}
+
+/* Style for Select Dropdowns */
+.themed-select {
+    background-color: #495057; /* Darker grey background */
+    color: #e9ecef; /* Light text */
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    /* Ensure default arrow is visible or replace */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e"); /* Bootstrap dark arrow */
+}
+.themed-select:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    background-color: #495057; /* Keep background on focus */
+    color: #ffffff;
+}
+
+/* Style for Number Inputs */
+.themed-input {
+    background-color: #2b3035;
+    color: #FFFFFF; /* Dark text */
+}
+.themed-input:focus {
+    background-color: #2b3035;
+    color: #FFFFFF;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+.input-panel .themed-input::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+}
+
+/* Style for Toggle Switch */
+.themed-switch .form-check-input {
+    background-color: #6c757d;
+    border-color: #5c636a;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    width: 2.75em; /* Slightly larger switch */
+    height: 1.4em;
+    margin-top: 0; /* Align better */
+}
+.themed-switch .form-check-input:checked {
+    background-color: #198754; /* Bootstrap success green */
+    border-color: #146c43;
+}
+.themed-switch .form-check-input:focus {
+     border-color: #146c43;
+     box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.5); /* Green focus */
+}
+
+/* --- Input Panel Section --- */
+.furnace-image {
+    max-width: 100%;
+}
+
+.input-panel-title {
+    font-weight: 700;
+    color: #ced4da;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.3rem; /* Adjusted size */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.input-panel {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 1rem; /* Adjusted padding */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.07);
+}
+
+.input-section {
+    margin-bottom: 0.85rem; /* Adjusted spacing */
+}
+.input-section:last-child { margin-bottom: 0; }
+
+.input-panel label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem; /* Adjusted size */
+    font-weight: 700;
+    font-family: 'Roboto', sans-serif;
+}
+
+.label-held { color: #ffffff; }
+.label-needed { color: #ff0019; }
+
+.input-divider {
+    border: none;
+    border-top: 1px solid #dee2e6;
+    margin-top: 0.85rem; /* Adjusted spacing */
+    margin-bottom: 0.85rem;
+    opacity: 0.75;
+}
+
+/* --- Results Section --- */
+.results-container {
+    padding-bottom: 1.5rem; /* Match top padding */
+}
+
+/* Ensure results container takes full height in its column */
+.main-content-row > .col-lg-5 > .results-container {
+    display: flex;
+    flex-direction: column;
+}
+.main-content-row > .col-lg-5 > .results-container > .row {
+    flex-grow: 1; /* Allow inner row to take space */
+}
+
+
+.result-card {
+    background-color: #495057;
+    padding: 1rem; /* Adjusted padding */
+    border-radius: 0.375rem;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.result-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.8rem; /* Adjusted size */
+    color: #adb5bd;
+    margin-bottom: 0.35rem; /* Adjusted spacing */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.result-value {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1.6rem; /* Adjusted size */
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+    word-wrap: break-word;
+}
+.result-value strong, .result-value span { color: #ffffff; font-weight: 700; }
+
+
+.result-unit {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.8rem; /* Adjusted size */
+    color: #adb5bd;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 575.98px) { /* Below sm */
+     .page-title { font-size: 1.8rem; margin-bottom: 1.5rem !important; }
+     .section-container-title { font-size: 1.2rem; margin-bottom: 1.2rem; }
+     .input-panel-title { font-size: 1.1rem; text-align: center !important; } /* Center on mobile */
+     .level-selector-wrapper { bottom: -5px; }
+     .factory5-toggle-wrapper { top: 20%; transform: translateX(-50%) scale(1.1); }
+     .result-value { font-size: 1.4rem; }
+     .section-container { padding: 1rem; }
+     .factory-section-padding { padding: 1rem 0.75rem 1.25rem 0.75rem; }
+     .input-panel { padding: 1rem 0.75rem; }
+}
+/* Ensure equal height columns work on relevant breakpoints */
+@media (min-width: 992px) {
+    .main-content-row {
+        display: flex;
+    }
+    .main-content-row > [class*='col-'] {
+        display: flex;
+        flex-direction: column;
+    }
+    .main-content-row > [class*='col-'] > .section-container {
+        flex-grow: 1;
+    }
+}
+
+@media (max-width: 991.98px) { /* Below lg */
+    .results-container .col-12:first-child { margin-bottom: 1rem; }
+}
