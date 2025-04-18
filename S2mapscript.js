@@ -3,17 +3,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // UPDATED: Alliance configuration with new names, cases, colors, and order
     const alliances = {
-        aDhD: { name: 'aDhD', color: 'rgba(232, 62, 140, 0.7)', cssClass: 'alliance-adhd-pink', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
-        THOR: { name: 'THOR', color: 'rgba(0, 123, 255, 0.7)', cssClass: 'alliance-thor', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
-        fAfO: { name: 'fAfO', color: 'rgba(220, 53, 69, 0.7)', cssClass: 'alliance-fafo', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
-        HeRa: { name: 'HeRa', color: 'rgba(255, 193, 7, 0.7)', cssClass: 'alliance-hera', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] }, // NEW
-        COLD: { name: 'COLD', color: 'rgba(23, 162, 184, 0.7)', cssClass: 'alliance-cold', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
-        VaLT: { name: 'VaLT', color: 'rgba(108, 117, 125, 0.7)', cssClass: 'alliance-valt', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
-        adHD: { name: 'adHD', color: 'rgba(102, 16, 242, 0.7)', cssClass: 'alliance-adhd-purple', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] }, // Renamed/Recolored
-        BRSL: { name: 'BRSL', color: 'rgba(40, 167, 69, 0.7)', cssClass: 'alliance-brsl', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] },
-        Tone: { name: 'Tone', color: 'rgba(253, 126, 20, 0.7)', cssClass: 'alliance-tone', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] }, // NEW
-        MINI: { name: 'MINI', color: 'rgba(0, 210, 180, 0.7)', cssClass: 'alliance-mini', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] }, // NEW
-        yi6r: { name: 'yi6r', color: 'rgba(200, 200, 200, 0.7)', cssClass: 'alliance-yi6r', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [] }, // NEW
+        aDhD: { name: 'aDhD', color: 'rgba(232, 62, 140, 0.7)', cssClass: 'alliance-adhd-pink', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false }, // Added state props
+        THOR: { name: 'THOR', color: 'rgba(0, 123, 255, 0.7)', cssClass: 'alliance-thor', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
+        fAfO: { name: 'fAfO', color: 'rgba(220, 53, 69, 0.7)', cssClass: 'alliance-fafo', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
+        HeRa: { name: 'HeRa', color: 'rgba(255, 193, 7, 0.7)', cssClass: 'alliance-hera', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
+        COLD: { name: 'COLD', color: 'rgba(23, 162, 184, 0.7)', cssClass: 'alliance-cold', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
+        VaLT: { name: 'VaLT', color: 'rgba(108, 117, 125, 0.7)', cssClass: 'alliance-valt', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
+        adHD: { name: 'adHD', color: 'rgba(102, 16, 242, 0.7)', cssClass: 'alliance-adhd-purple', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
+        BRSL: { name: 'BRSL', color: 'rgba(40, 167, 69, 0.7)', cssClass: 'alliance-brsl', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
+        Tone: { name: 'Tone', color: 'rgba(253, 126, 20, 0.7)', cssClass: 'alliance-tone', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
+        MINI: { name: 'MINI', color: 'rgba(0, 210, 180, 0.7)', cssClass: 'alliance-mini', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
+        yi6r: { name: 'yi6r', color: 'rgba(200, 200, 200, 0.7)', cssClass: 'alliance-yi6r', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
     };
 
     // NEW: Define the desired display order for the summary
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         M1: 'Missile', M3: 'Tank', M5: 'Air', M7: 'Missile', M9: 'Tank', M11: 'Air', M13: 'Missile'
      };
 
-    const SAVE_KEY = 'allianceMapState_v6'; // Increment version due to data structure changes (conflict/drop)
+    const SAVE_KEY = 'allianceMapState_v7'; // Increment version for new summary states
 
     // --- State Variables ---
     let fixedAlliancesActive = true;
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
          // Update summary and save state if requested (usually true unless called internally)
          if (updateSummaryAndSave) {
-             updateAllianceSummary();
+             updateAllianceSummary(); // This will recalculate buffs/resources
              saveState();
          }
          return true; // Indicate success
@@ -489,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Final Actions ---
         if (assignmentChanged) {
-            updateAllianceSummary();
+            updateAllianceSummary(); // Recalculate buffs/resources and update display
             saveState();
         }
 
@@ -514,6 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alliances[code].digSiteCount = 0;
             alliances[code].assignmentCounter = 0;
             alliances[code].orderedAssignments = [];
+            // Do NOT reset pinned/collapsed status here
         }
 
         // Process each segment
@@ -562,7 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Recalculate counters for any remaining fixed assignments
         Object.keys(alliances).forEach(recalculateAllianceCounter);
 
-        updateAllianceSummary();
+        updateAllianceSummary(); // Update display with cleared assignments but retaining pin/collapse status
         saveState();
         console.log("Assignments cleared based on fixed toggle state.");
     }
@@ -633,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Recalculate all counters after processing all fixed assignments
          Object.keys(alliances).forEach(recalculateAllianceCounter);
-        updateAllianceSummary(); // Recalculate buffs/resources
+        updateAllianceSummary(); // Recalculate buffs/resources and update display
         saveState();
     }
     fixedAllianceToggle.addEventListener('change', (event) => toggleFixedAlliances(event.target.checked));
@@ -698,22 +699,67 @@ document.addEventListener('DOMContentLoaded', () => {
         popoverTriggerList = [...newPopoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
     }
 
+    // --- NEW: Toggle Pin Status ---
+    function toggleAlliancePin(allianceCode) {
+        if (alliances[allianceCode]) {
+            alliances[allianceCode].isPinned = !alliances[allianceCode].isPinned;
+            updateAllianceSummary(); // Re-render the summary to reflect pinning order
+            saveState();
+        }
+    }
+
+    // --- NEW: Toggle Collapse Status ---
+    function toggleAllianceCollapse(allianceCode) {
+        if (alliances[allianceCode]) {
+            alliances[allianceCode].isCollapsed = !alliances[allianceCode].isCollapsed;
+            // Find the specific summary item and toggle its class
+            const summaryItem = summaryItemContainer.querySelector(`.summary-item[data-alliance-code="${allianceCode}"]`);
+            const collapseIcon = summaryItem?.querySelector('.summary-collapse-toggle i');
+            if (summaryItem && collapseIcon) {
+                summaryItem.classList.toggle('collapsed', alliances[allianceCode].isCollapsed);
+                collapseIcon.classList.toggle('fa-chevron-down', !alliances[allianceCode].isCollapsed);
+                collapseIcon.classList.toggle('fa-chevron-up', alliances[allianceCode].isCollapsed);
+            }
+            saveState();
+        }
+    }
+
     function updateAllianceSummary() {
         calculateAllianceBuffs();
         calculateAllianceResources();
         summaryItemContainer.innerHTML = ''; // Clear previous summary
 
-        // UPDATED: Iterate using the defined display order
-        allianceDisplayOrder.forEach(code => {
+        // Separate pinned and unpinned alliances based on the display order
+        const pinnedAlliances = allianceDisplayOrder.filter(code => alliances[code]?.isPinned);
+        const unpinnedAlliances = allianceDisplayOrder.filter(code => !alliances[code]?.isPinned);
+
+        // Combine, putting pinned first, then unpinned
+        const displayOrder = [...pinnedAlliances, ...unpinnedAlliances];
+
+        displayOrder.forEach(code => {
             const data = alliances[code];
-            if (!data) return; // Skip if alliance code isn't found (shouldn't happen)
+            if (!data) return; // Skip if alliance code isn't found
 
             const itemDiv = document.createElement('div');
             itemDiv.classList.add('summary-item');
+            itemDiv.dataset.allianceCode = code; // Add data attribute for easier selection
+            itemDiv.classList.toggle('pinned', data.isPinned); // Apply pinned class
+            itemDiv.classList.toggle('collapsed', data.isCollapsed); // Apply collapsed class
 
             const headerDiv = document.createElement('div');
             headerDiv.classList.add('summary-header');
-            headerDiv.innerHTML = `<span class="summary-color-dot" style="background-color: ${data.color};"></span><span class="summary-alliance-name">${data.name}</span>`;
+            headerDiv.innerHTML = `
+                <span class="summary-color-dot" style="background-color: ${data.color};"></span>
+                <span class="summary-alliance-name">${data.name}</span>
+                <div class="summary-controls">
+                     <button type="button" class="btn btn-sm btn-outline-secondary summary-pin-toggle" title="${data.isPinned ? 'Unpin' : 'Pin'} Alliance">
+                         <i class="fas fa-thumbtack ${data.isPinned ? 'active' : ''}"></i>
+                     </button>
+                     <button type="button" class="btn btn-sm btn-outline-secondary summary-collapse-toggle" title="${data.isCollapsed ? 'Expand' : 'Collapse'} Alliance">
+                         <i class="fas ${data.isCollapsed ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
+                     </button>
+                </div>
+            `;
 
             const resourcesDiv = document.createElement('div');
             resourcesDiv.classList.add('summary-resources');
@@ -741,6 +787,24 @@ document.addEventListener('DOMContentLoaded', () => {
             itemDiv.appendChild(countsDiv);
             itemDiv.appendChild(buffsUl);
             summaryItemContainer.appendChild(itemDiv);
+
+            // Add event listeners for the new buttons within this item
+            const pinButton = itemDiv.querySelector('.summary-pin-toggle');
+            const collapseButton = itemDiv.querySelector('.summary-collapse-toggle');
+
+            if (pinButton) {
+                pinButton.addEventListener('click', (e) => {
+                     e.stopPropagation(); // Prevent triggering other clicks if needed
+                     toggleAlliancePin(code);
+                });
+            }
+             if (collapseButton) {
+                collapseButton.addEventListener('click', (e) => {
+                     e.stopPropagation();
+                     toggleAllianceCollapse(code);
+                });
+            }
+
         });
         initializePopovers(); // Re-initialize popovers for the new content
     }
@@ -749,10 +813,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveState() {
         const stateToSave = {
             assignments: {},
-            markers: {}, // NEW: Save conflict/drop state
+            markers: {},
             fixedActive: fixedAlliancesActive,
             assignmentOrderViewActive: assignmentOrderActive, // Keep saving this? Or remove if reset on load desired.
-            labelsVisible: labelsVisible, // NEW: Save label visibility
+            labelsVisible: labelsVisible,
+            // NEW: Save summary item states
+            summaryStates: {}
         };
 
         for (const segmentId in landData) {
@@ -773,6 +839,15 @@ document.addEventListener('DOMContentLoaded', () => {
                  };
             }
         }
+
+        // NEW: Save pin/collapse status for each alliance
+        for (const code in alliances) {
+             stateToSave.summaryStates[code] = {
+                 isPinned: alliances[code].isPinned,
+                 isCollapsed: alliances[code].isCollapsed
+             };
+        }
+
         localStorage.setItem(SAVE_KEY, JSON.stringify(stateToSave));
          // console.log("State Saved:", stateToSave); // For debugging
     }
@@ -782,10 +857,11 @@ document.addEventListener('DOMContentLoaded', () => {
          const savedStateRaw = localStorage.getItem(SAVE_KEY);
          let parsedState = {
              assignments: {},
-             markers: {}, // NEW default
+             markers: {},
              fixedActive: true,
              assignmentOrderViewActive: false,
-             labelsVisible: true // NEW default
+             labelsVisible: true,
+             summaryStates: {} // NEW default
          };
 
          // Try to parse saved state
@@ -794,18 +870,31 @@ document.addEventListener('DOMContentLoaded', () => {
                  const loaded = JSON.parse(savedStateRaw);
                  // Basic validation
                  if (loaded && typeof loaded.assignments === 'object' &&
-                     typeof loaded.markers === 'object' && // Validate new structure
+                     typeof loaded.markers === 'object' &&
                      typeof loaded.fixedActive === 'boolean' &&
                      typeof loaded.assignmentOrderViewActive === 'boolean' &&
-                     typeof loaded.labelsVisible === 'boolean') { // Validate new state
+                     typeof loaded.labelsVisible === 'boolean' &&
+                     typeof loaded.summaryStates === 'object') { // Validate new structure
                      parsedState = loaded;
                  } else {
-                     console.warn(`Invalid saved state structure (v6: ${SAVE_KEY}), using defaults.`);
+                     console.warn(`Invalid saved state structure (v7: ${SAVE_KEY}), using defaults.`);
                      localStorage.removeItem(SAVE_KEY);
                  }
              } catch (e) {
-                 console.error(`Failed to parse saved state (v6: ${SAVE_KEY}), using defaults.`, e);
+                 console.error(`Failed to parse saved state (v7: ${SAVE_KEY}), using defaults.`, e);
                  localStorage.removeItem(SAVE_KEY);
+             }
+         }
+
+        // NEW: Apply saved summary states (pinned/collapsed) before doing anything else
+         for (const code in alliances) {
+             if (parsedState.summaryStates && parsedState.summaryStates[code]) {
+                 alliances[code].isPinned = !!parsedState.summaryStates[code].isPinned; // Ensure boolean
+                 alliances[code].isCollapsed = !!parsedState.summaryStates[code].isCollapsed; // Ensure boolean
+             } else {
+                 // Reset to default if not found in saved state (e.g., new alliance added)
+                 alliances[code].isPinned = false;
+                 alliances[code].isCollapsed = false;
              }
          }
 
@@ -928,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // Now update all segment visuals based on the loaded owner and marker data
           Object.keys(landData).forEach(updateSegmentVisualState);
 
-         updateAllianceSummary(); // Calculate buffs/resources and display summary
+         updateAllianceSummary(); // Calculate buffs/resources and display summary including pin/collapse states
          console.log("Map state initialized.");
     }
 
@@ -946,10 +1035,15 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebarToggleBtn.title = "Show Alliance Summary";
             sidebarToggleBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
         }
+        // Update panzoom after sidebar animation might finish
         requestAnimationFrame(() => {
             setTimeout(() => {
-                panzoom.resize();
-            }, 350);
+                // FIX: Removed the non-existent panzoom.resize() call
+                // panzoom.resize();
+                // Panzoom should ideally auto-detect container resize.
+                // If visual issues persist after this fix, further investigation
+                // into how @panzoom/panzoom handles CSS transitions might be needed.
+            }, 350); // Delay to wait for CSS transition
         });
     }
     sidebarToggleBtn.addEventListener('click', () => {
