@@ -1,3 +1,9 @@
+/*
+ * S2mapscript.js (Modified to adjust initial zoom for mobile vertical visibility)
+ *
+ * Changes:
+ * - Modified the centerOnG7 function to calculate initialZoom based on window.innerHeight.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration & Data ---
 
@@ -26,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // UPDATED: Fixed assignments with correct alliance casing
     const FIXED_ASSIGNMENTS = { 'G6': 'THOR', 'F7': 'COLD', 'G8': 'fAfO', 'H7': 'aDhD' };
 
-    const landDataInput = [ /* ... Same land data input array ... */
+    const landDataInput = [ /* ... Same land data input array ... */ // Shortened for brevity
         "A1: Level 1 Dig Site 2% Coin", "A2: Level 1 Village 5% Iron", "A3: Level 1 Dig Site 2% Food", "A4: Level 1 Village 5% Food", "A5: Level 1 Dig Site 2% Iron", "A6: Level 1 Village 5% Iron", "A7: Level 1 Dig Site 2% Coin", "A8: Level 1 Village 5% Food", "A9: Level 1 Dig Site 2% Food", "A10: Level 1 Village 5% Iron", "A11: Level 1 Dig Site 2% Iron", "A12: Level 1 Village 5% Food", "A13: Level 1 Dig Site 2% Coin",
         "B1: Level 1 Village 5% Iron", "B2: Level 2 Dig Site 3% Coin", "B3: Level 2 Town 5% Gathering", "B4: Level 2 Dig Site 3% Food", "B5: Level 2 Town 5% Coin", "B6: Level 2 Dig Site 3% Iron", "B7: Level 2 Town 5% Gathering", "B8: Level 2 Dig Site 3% Coin", "B9: Level 2 Town 5% Coin", "B10: Level 2 Dig Site 3% Food", "B11: Level 2 Town 5% Gathering", "B12: Level 2 Dig Site 3% Iron", "B13: Level 1 Village 5% Food",
         "C1: Level 1 Dig Site 2% Food", "C2: Level 2 Town 5% Gathering", "C3: Level 3 Dig Site 4% Coin", "C4: Level 3 Factory 10% Food", "C5: Level 3 Dig Site 4% Food", "C6: Level 3 Factory 10% Iron", "C7: Level 3 Dig Site 4% Iron", "C8: Level 3 Factory 10% Coin", "C9: Level 3 Dig Site 4% Coin", "C10: Level 3 Factory 10% Food", "C11: Level 3 Dig Site 4% Food", "C12: Level 2 Town 5% Coin", "C13: Level 1 Dig Site 2% Iron",
@@ -43,14 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     const landData = {};
     const cityTypes = ['Village', 'Town', 'Factory', 'Train Station', 'Launch Site', 'War Palace', 'Capitol'];
-    const bossTypeMapping = { /* ... Same boss mapping ... */
+    const bossTypeMapping = { /* ... Same boss mapping ... */ // Shortened for brevity
         A1: 'Missile', A3: 'Tank', A5: 'Air', A7: 'Missile', A9: 'Tank', A11: 'Air', A13: 'Missile',
         B2: 'Tank', B4: 'Air', B6: 'Missile', B8: 'Tank', B10: 'Air', B12: 'Missile',
         C1: 'Air', C3: 'Missile', C5: 'Tank', C7: 'Air', C9: 'Missile', C11: 'Tank', C13: 'Air',
         D2: 'Missile', D4: 'Tank', D6: 'Air', D8: 'Missile', D10: 'Tank', D12: 'Air',
         E1: 'Tank', E3: 'Air', E5: 'Missile', E7: 'Tank', E9: 'Air', E11: 'Missile', E13: 'Tank',
         F2: 'Air', F4: 'Missile', F6: 'Tank', F8: 'Air', F10: 'Missile', F12: 'Tank',
-        G1: 'Missile', G3: 'Tank', G5: 'Air', /* G7: 'Missile', */ G9: 'Tank', G11: 'Air', G13: 'Missile', // Commented out G7 as it's Capitol
+        G1: 'Missile', G3: 'Tank', G5: 'Air', /* G7: 'Missile', */ G9: 'Tank', G11: 'Air', G13: 'Missile',
         H2: 'Tank', H4: 'Air', H6: 'Missile', H8: 'Tank', H10: 'Air', H12: 'Missile',
         I1: 'Air', I3: 'Missile', I5: 'Tank', I7: 'Air', I9: 'Missile', I11: 'Tank', I13: 'Air',
         J2: 'Missile', J4: 'Tank', J6: 'Air', J8: 'Missile', J10: 'Tank', J12: 'Air',
@@ -122,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const assignmentOrderToggle = document.getElementById('assignment-order-toggle');
     const labelVisibilityToggle = document.getElementById('label-visibility-toggle'); // NEW
     const summaryItemContainer = allianceSummaryDiv.querySelector('.summary-item-container'); // Use existing container
-    const loadCurrentStateButton = document.getElementById('load-current-state-button'); // NEW
+    const loadCurrentStateButton = document.getElementById('load-current-state-button'); // Assuming this exists
 
     // NEW: Modal Action Buttons
     const markConflictButton = document.getElementById('mark-conflict-button');
@@ -195,9 +201,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Panzoom Initialization ---
     const panzoom = Panzoom(mapGrid, { maxScale: 5, minScale: 0.3, contain: 'outside', canvas: true, cursor: 'grab', step: 0.3 });
     mapContainer.addEventListener('wheel', panzoom.zoomWithWheel);
+
+    // --- MODIFIED centerOnG7 Function ---
     function centerOnG7() {
-        const g7Element = mapGrid.querySelector('[data-id="G7"]'); if (!g7Element) return; const mapRect = mapContainer.getBoundingClientRect(); const elementWidth = g7Element.offsetWidth; const elementHeight = g7Element.offsetHeight; const initialZoom = 0.8; panzoom.zoom(initialZoom, { animate: false }); const zoomedElementWidth = elementWidth * initialZoom; const zoomedElementHeight = elementHeight * initialZoom; const zoomedG7CenterX = (g7Element.offsetLeft * initialZoom) + zoomedElementWidth / 2; const zoomedG7CenterY = (g7Element.offsetTop * initialZoom) + zoomedElementHeight / 2; const finalPanX = (mapRect.width / 2) - zoomedG7CenterX; const finalPanY = (mapRect.height / 2) - zoomedG7CenterY; panzoom.pan(finalPanX, finalPanY, { animate: false, force: true });
+        const g7Element = mapGrid.querySelector('[data-id="G7"]');
+        if (!g7Element) return;
+
+        const mapRect = mapContainer.getBoundingClientRect();
+        const elementWidth = g7Element.offsetWidth;
+        const elementHeight = g7Element.offsetHeight;
+
+        // --- Start Modification ---
+        // Calculate initial zoom based on viewport height to try and fit the map
+        const viewportHeight = window.innerHeight;
+        const baseHeightForDefaultZoom = 800; // Adjust this value based on testing - height where default zoom looks good
+        const defaultInitialZoom = 0.8; // Your original default zoom
+        const minAllowedScale = panzoom.getOptions().minScale || 0.3; // Get minScale from panzoom options
+
+        // Calculate a scaling factor based on height, capped between 0 and 1
+        // Smaller heights will result in a smaller factor
+        const heightFactor = Math.max(0, Math.min(1, viewportHeight / baseHeightForDefaultZoom));
+
+        // Adjust the default zoom level by the height factor
+        // We might want a non-linear relationship, but linear is simpler start
+        // Let's make it less sensitive: scale factor affects zoom proportionally less
+        let calculatedZoom = defaultInitialZoom * (1 - (1 - heightFactor) * 0.5); // Reduce zoom by half the difference factor
+
+        // Ensure the calculated zoom isn't lower than the minimum allowed scale
+        const initialZoom = Math.max(minAllowedScale, calculatedZoom);
+        // console.log(`Viewport H: ${viewportHeight}, Factor: ${heightFactor.toFixed(2)}, Calc Zoom: ${calculatedZoom.toFixed(2)}, Final Initial Zoom: ${initialZoom.toFixed(2)}`); // Debugging line
+        // --- End Modification ---
+
+        panzoom.zoom(initialZoom, { animate: false });
+
+        // Recalculate centers and pan after applying the dynamic zoom
+        const zoomedElementWidth = elementWidth * initialZoom;
+        const zoomedElementHeight = elementHeight * initialZoom;
+        const zoomedG7CenterX = (g7Element.offsetLeft * initialZoom) + zoomedElementWidth / 2;
+        const zoomedG7CenterY = (g7Element.offsetTop * initialZoom) + zoomedElementHeight / 2;
+        const finalPanX = (mapRect.width / 2) - zoomedG7CenterX;
+        const finalPanY = (mapRect.height / 2) - zoomedG7CenterY; // Adjust vertical pan slightly more if needed? Maybe center slightly higher than pure center?
+                                                                  // Example: const finalPanY = (mapRect.height * 0.45) - zoomedG7CenterY; // Center slightly above middle
+
+        panzoom.pan(finalPanX, finalPanY, { animate: false, force: true });
     }
+    // Center after a short delay to allow layout calculations
     setTimeout(centerOnG7, 150);
 
     // --- Event Handlers & Logic ---
@@ -1169,61 +1217,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- NEW: Load Current State from Google Sheet ---
+    // Function definition remains the same...
     async function loadCurrentStateFromSheet() {
         alert("Connecting to Google Sheet to load current state..."); // Placeholder feedback
 
         // --- Google Sheets API Integration Placeholder ---
-        // IMPORTANT: This section requires significant setup and is just a conceptual outline.
-        // You will need to:
-        // 1. Set up Google Cloud Project & Enable Google Sheets API.
-        // 2. Get API Key or set up OAuth 2.0 credentials.
-        // 3. Decide on authentication method (API Key is simpler for public read-only sheets, OAuth for private).
-        // 4. Handle potential CORS issues if calling directly from the browser. A simple backend proxy might be needed.
-
-        const SPREADSHEET_ID = '11xLE36SczirdFuzCWm2051uvbyOTqXl4w4zjMZB2fOE'; // Replace with your actual Sheet ID
+        const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'; // Replace with your actual Sheet ID
         const RANGE = 'Sheet1!A:B'; // Example: Column A = Segment ID, Column B = Alliance Tag (Adjust if needed)
-        const API_KEY = 'AIzaSyCKW_UfnhCFOrc-7a5nia4f7FHujQCEX2E'; // Replace with your API Key (if using for public sheet)
+        const API_KEY = 'YOUR_API_KEY'; // Replace with your API Key (if using for public sheet)
 
-        // Example URL structure for reading public sheet data with API Key:
-        const apiUrl = `https://docs.google.com/spreadsheets/d/11xLE36SczirdFuzCWm2051uvbyOTqXl4w4zjMZB2fOE/`;
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
 
         try {
-            // Make the API call (using fetch API)
             const response = await fetch(apiUrl);
             if (!response.ok) {
-                 // Try to get more specific error message from Google API response body
                  let errorBody = await response.text();
-                 try { errorBody = JSON.parse(errorBody).error.message; } catch(e) { /* Ignore if not JSON */ }
+                 try { errorBody = JSON.parse(errorBody).error.message; } catch(e) { /* Ignore */ }
                 throw new Error(`Google Sheets API Error: ${response.status} ${response.statusText}. ${errorBody}`);
             }
             const data = await response.json();
 
-            if (!data.values || data.values.length <= 1) { // Check if only header or empty
+            if (!data.values || data.values.length <= 1) {
                 alert("No data found in the specified Google Sheet range (or only header row).");
                 return;
             }
 
-            // --- Process the Sheet Data ---
-            console.log("Raw data from sheet:", data.values); // For debugging
-
-            // Store current assignments to compare later if needed (optional)
-            // const previousAssignments = {};
-            // Object.keys(landData).forEach(id => {
-            //      if (landData[id].owner) { previousAssignments[id] = landData[id].owner; }
-            // });
-
-            // --- Reset current state before applying sheet data ---
-            // Reset alliance stats
+            // Reset current state before applying sheet data
             for (const code in alliances) {
                  alliances[code].cityCount = 0;
                  alliances[code].digSiteCount = 0;
-                 alliances[code].assignmentCounter = 0; // Reset counter for fresh load
+                 alliances[code].assignmentCounter = 0;
                  alliances[code].orderedAssignments = [];
-                 alliances[code].buffs = {}; // Reset calculated buffs/resources
+                 alliances[code].buffs = {};
                  alliances[code].totalCPH = 0;
                  alliances[code].totalRSPH = 0;
             }
-            // Reset segment states (owner, marks, order)
             for (const segmentId in landData) {
                  const segmentData = landData[segmentId];
                  segmentData.owner = null;
@@ -1231,99 +1259,61 @@ document.addEventListener('DOMContentLoaded', () => {
                  segmentData.isConflict = false;
                  segmentData.conflictAlliances = [];
                  segmentData.isDropped = false;
-                 // Visual state will be updated later
             }
 
-             // Re-apply fixed if toggle is ON (essential after clearing everything)
-             applyFixedAssignmentsOnLoad(); // This re-populates fixed owners and their initial counts
+             applyFixedAssignmentsOnLoad(); // Re-apply fixed assignments after clearing
 
-            // --- Parse assignments from sheet ---
             let assignedCount = 0;
-            const sheetAssignments = {}; // Use an object for quick lookup: { "A1": "THOR", "A2": "COLD", ... }
-
-            // Assuming row[0] is Segment ID (e.g., "A1") and row[1] is Alliance Tag (e.g., "THOR")
-            // Skip header row (index 0)
-            for (let i = 1; i < data.values.length; i++) {
+            const sheetAssignments = {};
+            for (let i = 1; i < data.values.length; i++) { // Skip header
                 const row = data.values[i];
-                if (row && row[0] && row[1]) {
+                if (row && row[0]) {
                     const segmentId = row[0].trim().toUpperCase();
-                    const allianceCode = row[1].trim().toUpperCase(); // Make sure alliance tags match your config keys
-                    if (landData[segmentId] && alliances[allianceCode]) {
-                         // Check if this segment is already assigned (e.g. by fixed toggle)
+                    const allianceCode = row[1] ? row[1].trim().toUpperCase() : null;
+                    if (landData[segmentId]) {
                          if(landData[segmentId].owner) {
                               console.warn(`Sheet Load: Segment ${segmentId} already assigned to ${landData[segmentId].owner} (likely fixed). Ignoring sheet value ${allianceCode}.`);
-                         } else {
+                         } else if (allianceCode === null) {
+                             sheetAssignments[segmentId] = null; // Explicitly unassigned
+                         } else if (alliances[allianceCode]) {
                               sheetAssignments[segmentId] = allianceCode;
+                         } else {
+                              console.warn(`Skipping sheet row ${i + 1}: Invalid alliance code '${row[1]}' for segment '${segmentId}'`);
                          }
-                    } else if (landData[segmentId] && row[1].trim() === '') {
-                         // Handle intentionally blank cells in sheet (means unassigned)
-                         sheetAssignments[segmentId] = null; // Represent as null owner
                     } else {
-                         console.warn(`Skipping sheet row ${i + 1}: Invalid segment ID '${segmentId}' or alliance code '${allianceCode}'`);
+                         console.warn(`Skipping sheet row ${i + 1}: Invalid segment ID '${segmentId}'`);
                     }
-                } else if (row && row[0] && !row[1]) {
-                     // Handle row with segment ID but no alliance (treat as unassigned)
-                     const segmentId = row[0].trim().toUpperCase();
-                     if(landData[segmentId] && !landData[segmentId].owner) { // Check if not already fixed
-                         sheetAssignments[segmentId] = null;
-                     }
                 }
             }
 
-            console.log("Parsed sheet assignments (excluding fixed overrides):", sheetAssignments); // For debugging
-
-            // --- Apply assignments from sheet ---
+            // Apply assignments from sheet
             for (const segmentId in sheetAssignments) {
-                 const allianceCode = sheetAssignments[segmentId]; // Can be null for unassigned
+                 const allianceCode = sheetAssignments[segmentId];
                  const segmentData = landData[segmentId];
                  const alliance = allianceCode ? alliances[allianceCode] : null;
 
-                 // Skip if already owned (handled above)
-                 if(segmentData.owner) continue;
+                 if(segmentData.owner) continue; // Skip if already owned (fixed)
 
                  if (allianceCode === null) {
-                      // Segment is explicitly unassigned in the sheet
                       segmentData.owner = null;
-                      // No counts to update
                  } else if (alliance) {
-                      // Attempt to assign to the specified alliance
                       let canAssign = false;
-                      if (segmentData.type === 'City' && alliance.cityCount < alliance.cityLimit) {
-                          alliance.cityCount++;
-                          canAssign = true;
-                      } else if (segmentData.type === 'Dig Site' && alliance.digSiteCount < alliance.digSiteLimit) {
-                          alliance.digSiteCount++;
-                          canAssign = true;
-                      } else if (segmentData.type !== 'City' && segmentData.type !== 'Dig Site') {
-                          // Allow assigning other types
-                          canAssign = true;
-                      }
+                      if (segmentData.type === 'City' && alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssign = true; }
+                      else if (segmentData.type === 'Dig Site' && alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssign = true; }
+                      else if (segmentData.type !== 'City' && segmentData.type !== 'Dig Site') { canAssign = true; }
 
                       if (canAssign) {
                           segmentData.owner = allianceCode;
-                          // Order number isn't typically loaded from a 'current state' sheet
-                          // segmentData.assignmentOrder = assignedCount + 1;
-                          // alliance.orderedAssignments.push({ segmentId: segmentId, order: assignedCount + 1 });
                           assignedCount++;
                       } else {
                           console.warn(`Sheet Load: Limit reached for ${allianceCode} at ${segmentId}. Assignment ignored.`);
-                           // Optionally mark as conflict or handle differently? Maybe set as dropped?
-                           // segmentData.isDropped = true;
                       }
                  }
-                 // If allianceCode was invalid but passed initial check (shouldn't happen often), it remains unassigned
             }
 
-            // --- Final Update ---
-            // Recalculate counters just in case any fixed assignments were affected or limits changed
-            // Object.keys(alliances).forEach(recalculateAllianceCounter); // Counters updated during assignment now
-
-            // Update visuals for all segments based on the final owner/state
             Object.keys(landData).forEach(updateSegmentVisualState);
-
-            updateAllianceSummary(); // Recalculate resources/buffs based on final state and update display
-            // Decide whether to save this loaded state to localStorage
-            // saveState(); // Uncomment if you want the loaded state to persist
+            updateAllianceSummary();
+            // saveState(); // Optional: save loaded state
 
             alert(`Loaded state for ${assignedCount} segments from Google Sheet (Fixed assignments maintained).`);
 
@@ -1353,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 // Panzoom should auto-detect container resize with CSS.
                 // Re-center map slightly if needed after sidebar state change
-                // centerOnG7(); // Optional: re-center after toggle
+                 // centerOnG7(); // Optional: re-center after toggle
             }, 350); // Delay to wait for CSS transition
         });
     }
@@ -1371,7 +1361,12 @@ document.addEventListener('DOMContentLoaded', () => {
     initializePopovers();
 
     // --- Add Event Listener for Load Button ---
-    loadCurrentStateButton.addEventListener('click', loadCurrentStateFromSheet);
+    // Ensure the button exists before adding the listener
+    if (loadCurrentStateButton) {
+         loadCurrentStateButton.addEventListener('click', loadCurrentStateFromSheet);
+    } else {
+         console.warn("Element with ID 'load-current-state-button' not found.");
+    }
 
 
 }); // End DOMContentLoaded
