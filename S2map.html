@@ -13,6 +13,17 @@
             </div>
     </div>
 
+    <div id="sidebar-button-dock">
+        <button class="btn btn-secondary" id="sidebar-toggle" type="button" title="Toggle Alliance Summary">
+            <i class="fa-solid fa-chevron-right"></i> </button>
+        <button class="btn btn-info" id="info-button" type="button" title="Information & Donate" data-bs-toggle="modal" data-bs-target="#infoModal">
+            <i class="fa-solid fa-circle-info"></i>
+        </button>
+        <button class="btn btn-danger" id="clear-all-button" type="button" title="Clear All User Assignments">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </div>
+
     <div id="alliance-summary">
         <div class="fixed-toggle-container p-1 border-bottom">
             <div class="form-check form-switch">
@@ -23,26 +34,18 @@
         <div class="fixed-toggle-container p-1 border-bottom">
             <div class="form-check form-switch">
                 <input class="form-check-input mt-1" type="checkbox" role="switch" id="assignment-order-toggle">
-                <label class="form-check-label small mt-0" for="assignment-order-toggle"> Show Assignment Order</label>
+                <label class="form-check-label small mt-0" for="assignment-order-toggle"> Capture Order</label>
             </div>
         </div>
         <div class="fixed-toggle-container p-1 border-bottom">
             <div class="form-check form-switch">
                 <input class="form-check-input mt-1" type="checkbox" role="switch" id="label-visibility-toggle" checked>
-                <label class="form-check-label small mt-0" for="label-visibility-toggle"> Hide/Show Labels</label>
+                <label class="form-check-label small mt-0" for="label-visibility-toggle"> Labels</label>
             </div>
         </div>
         <div class="summary-item-container">
-        </div>
-        </div>
-
-    <button class="btn btn-secondary" id="sidebar-toggle" type="button" title="Toggle Alliance Summary">
-        <i class="fa-solid fa-bars"></i>
-    </button>
-
-    <button class="btn btn-danger" id="clear-all-button" type="button" title="Clear All User Assignments">
-        <i class="fa-solid fa-trash"></i>
-    </button>
+            </div>
+    </div>
 
     <div class="modal fade" id="allianceSelectModal" tabindex="-1" aria-labelledby="allianceSelectModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -78,6 +81,48 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="infoModalLabel">About This Map Tool</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>This interactive map helps coordinate alliance assignments for Season 2 events.</p>
+            <h6>How it Works:</h6>
+            <ul>
+              <li>Click on a map segment to view its details (level, type, buff, production, boss type).</li>
+              <li>Assign the segment to an alliance using the buttons in the modal.</li>
+              <li>Use the toggles in the sidebar to view fixed War Palace assignments, see the capture order number on segments, or hide segment labels.</li>
+              <li>Mark segments for conflict or drop status using the buttons (<i class="fa-solid fa-triangle-exclamation"></i>, <i class="fa-solid fa-circle-xmark"></i>) in the segment modal.</li>
+              <li>The sidebar summarizes alliance progress, resource totals, and buffs. You can pin or collapse alliance summaries.</li>
+              <li>Assignments are saved locally in your browser. Use the <i class="fa-solid fa-trash"></i> button to clear assignments (respects the 'Designated War Palace' toggle).</li>
+            </ul>
+            <hr>
+            <h6>Support Development:</h6>
+            <p>If you find this tool helpful, consider supporting its development and maintenance.</p>
+            <div id="donate-button-container" class="d-flex justify-content-center">
+                <div id="donate-button"></div>
+                <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+                <script>
+                PayPal.Donation.Button({
+                env:'production',
+                hosted_button_id:'W7FS5UKKY5LPY',
+                image: {
+                src:'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
+                alt:'Donate with PayPal button',
+                title:'PayPal - The safer, easier way to pay online!',
+                }
+                }).render('#donate-button');
+                </script>
+                </div>             
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

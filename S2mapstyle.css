@@ -12,9 +12,10 @@ html, body {
     --sidebar-width: 300px; /* Adjust as needed */
     --base-bg-lightness: 15%; /* Adjust base lightness for HSL calculation */
     --mobile-bottom-buffer: 60px; /* Buffer for mobile nav bars */
-    /* NEW: Conflict color */
     --conflict-border-color: rgba(255, 0, 0, 0.8);
     --conflict-glow-color: rgba(255, 0, 0, 0.5);
+    /* Width of the button dock */
+    --button-dock-width: 50px;
 }
 
 #map-container {
@@ -30,6 +31,7 @@ html, body {
     -moz-user-select: none;
     -ms-user-select: none;
     padding-bottom: 0; /* Default no padding */
+    z-index: 1; /* Lower z-index than sidebar buttons */
 }
 /* When sidebar is active, shrink map container */
 body.sidebar-active #map-container {
@@ -133,6 +135,15 @@ body.sidebar-active #map-container {
 }
 .modal-body{
     font-size:.80rem;
+}
+/* Make info modal list items slightly smaller */
+#infoModal .modal-body ul {
+    font-size: 0.78rem;
+}
+#infoModal .modal-body ul li i {
+    width: 14px; /* Ensure icons align */
+    text-align: center;
+    margin-right: 4px;
 }
 
 .segment-label {
@@ -318,7 +329,7 @@ body.labels-hidden .segment-boss-icon {
 /* --- Alliance Summary Sidebar Styling --- */
 #alliance-summary {
     position: fixed; top: 0; right: 0; width: var(--sidebar-width); height: 100vh;
-    background-color: var(--bs-body-tertiary); padding: 0; border-left: 1px solid var(--bs-border-color);
+    background-color: var(--bs-body-tertiary); padding: 0; /* Removed padding */ border-left: 1px solid var(--bs-border-color);
     overflow-y: hidden; /* Change to hidden, container below will scroll */
     display: flex; flex-direction: column; gap: 0; z-index: 1050;
     transform: translateX(0); transition: transform 0.3s ease-in-out;
@@ -326,14 +337,59 @@ body.labels-hidden .segment-boss-icon {
 }
 #alliance-summary.sidebar-collapsed { transform: translateX(100%); }
 
-/* Toggle Switch Containers */
+/* --- UPDATED: Sidebar Button Dock --- */
+#sidebar-button-dock {
+    position: fixed; /* Position relative to viewport */
+    top: 10px; /* Position from top */
+    width: var(--button-dock-width);
+    height: auto; /* Adjust height based on content */
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    align-items: center; /* Center buttons horizontally */
+    gap: 8px; /* Space between buttons */
+    padding: 10px 5px; /* Padding around buttons */
+    z-index: 1055; /* Ensure buttons are above map and sidebar */
+    background-color: rgba(var(--bs-dark-rgb), 0.5); /* Semi-transparent background */
+    backdrop-filter: blur(5px); /* Optional: Blur background */
+    border-radius: 8px 0 0 8px; /* Rounded left corners */
+    transition: left 0.3s ease-in-out; /* Animate position change */
+}
+
+/* Position dock based on sidebar state */
+body.sidebar-active #sidebar-button-dock {
+    /* Position just left of the sidebar's inner edge */
+    left: calc(100% - var(--sidebar-width) - var(--button-dock-width));
+}
+
+body:not(.sidebar-active) #sidebar-button-dock {
+    /* Position docked to the right edge of the viewport */
+    left: calc(100% - var(--button-dock-width));
+}
+
+
+/* Style buttons within the dock */
+#sidebar-button-dock .btn {
+    padding: 0.3rem 0.5rem; /* Adjust padding */
+    font-size: 0.9rem; /* Adjust font size */
+    width: calc(var(--button-dock-width) - 10px); /* Width relative to dock, minus padding */
+    height: calc(var(--button-dock-width) - 10px); /* Height relative to dock */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    /* Remove fixed positioning from individual buttons */
+}
+
+/* Toggle Switch Containers - No longer need top padding */
 .fixed-toggle-container {
     min-height: 35px; background-color: var(--bs-tertiary-bg); flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; padding: 5px 10px;
 }
+/* Removed margin-top from first-child */
 .fixed-toggle-container:not(:last-child) { border-bottom: 1px solid var(--bs-border-color-translucent); }
 .fixed-toggle-container .form-check { display: flex; align-items: center; margin-bottom: 0; }
 .fixed-toggle-container .form-check-label { margin-left: 0.5rem; line-height: 1; white-space: nowrap; }
+
 
 /* Summary Items Container - Make this scrollable */
 .summary-item-container {
@@ -433,29 +489,43 @@ body.labels-hidden .segment-boss-icon {
 .summary-buffs-list li .buff-name { flex-grow: 1; text-align: left; margin-right: 4px; /* Reduced margin */ }
 .summary-buffs-list li .buff-value { font-weight: bold; min-width: 35px; /* Slightly smaller */ text-align: right; color: var(--bs-emphasis-color); }
 
-/* --- Sidebar Toggle Button --- */
-#sidebar-toggle {
-    position: fixed; top: 10px; left: 10px; z-index: 1055;
-    padding: 0.25rem 0.5rem; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
+/* --- Sidebar Toggle Button (REMOVED fixed positioning) --- */
+/* #sidebar-toggle is now positioned via #sidebar-button-dock */
 
-/* --- Clear All Button Styling --- */
-#clear-all-button {
-    position: fixed; bottom: 10px; left: 10px; z-index: 1055;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
+/* --- Clear All Button Styling (REMOVED fixed positioning) --- */
+/* #clear-all-button is now positioned via #sidebar-button-dock */
+
 
 /* --- Mobile Adjustments --- */
 @media (max-width: 992px) {
-    :root { --sidebar-width: 250px; }
-    body:not(.sidebar-force-active) #alliance-summary { transform: translateX(100%); }
+    :root {
+        --sidebar-width: 250px;
+        --button-dock-width: 45px; /* Adjust dock width */
+    }
+    /* Sidebar is always collapsed on mobile unless forced */
+    /* body:not(.sidebar-force-active) #alliance-summary { transform: translateX(100%); } */
+    /* Button dock positioning adjusts automatically via the body class toggle */
+
     body.sidebar-active #map-container { width: calc(100% - var(--sidebar-width)); }
     .summary-alliance-name { font-size: 0.9rem;} .summary-resources { font-size: 0.75rem; } .summary-buffs-list { font-size: 0.75rem; }
     #map-container { padding-bottom: var(--mobile-bottom-buffer); height: calc(100vh - var(--mobile-bottom-buffer)); }
-    #clear-all-button { bottom: calc(var(--mobile-bottom-buffer) + 10px); }
+
+    /* Adjust docked buttons for mobile */
+    #sidebar-button-dock {
+        gap: 6px;
+        padding: 8px 4px;
+    }
+     #sidebar-button-dock .btn {
+        width: calc(var(--button-dock-width) - 8px); /* Adjust button size based on dock width */
+        height: calc(var(--button-dock-width) - 8px);
+        font-size: 0.8rem;
+    }
 }
 @media (max-width: 768px) {
-    :root { --sidebar-width: 250px; }
+    :root {
+        --sidebar-width: 250px;
+        --button-dock-width: 45px; /* Keep consistent mobile dock width */
+     }
     #map-grid { grid-template-columns: repeat(13, minmax(80px, 1fr)); grid-template-rows: repeat(13, minmax(80px, 1fr)); width: 1300px; height: 1300px; }
     .map-segment { font-size: 0.7rem; }
 
