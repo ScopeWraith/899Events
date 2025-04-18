@@ -12,6 +12,9 @@ html, body {
     --sidebar-width: 300px; /* Adjust as needed */
     --base-bg-lightness: 15%; /* Adjust base lightness for HSL calculation */
     --mobile-bottom-buffer: 60px; /* Buffer for mobile nav bars */
+    /* NEW: Conflict color */
+    --conflict-border-color: rgba(255, 0, 0, 0.8);
+    --conflict-glow-color: rgba(255, 0, 0, 0.5);
 }
 
 #map-container {
@@ -53,22 +56,83 @@ body.sidebar-active #map-container {
     text-align: center;
     font-size: 0.8rem; /* Base size, scales with zoom */
     cursor: pointer; /* Cursor indicates clickable */
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, border 0.3s ease; /* Added transitions */
     overflow: hidden; /* Prevent content overflow */
     background-color: var(--bs-body-bg); /* Default background */
     touch-action: none; /* Prevent default touch actions like scrolling when interacting with segments */
 }
 /* Style fixed segments */
 .map-segment.fixed-assignment {
-    cursor: not-allowed; /* Indicate it cannot be changed */
+    /* cursor: not-allowed; /* Let JS handle modal blocking */
 }
 .map-segment.fixed-assignment:hover {
-     background-color: inherit; /* Prevent hover effect on fixed segments */
+     /* Allow hover effect even if fixed, but disable clicks in JS */
+     /* background-color: inherit; */
 }
 
-/* Standard hover effect for non-fixed segments */
-.map-segment:not(.fixed-assignment):hover {
+/* Standard hover effect */
+.map-segment:hover {
     background-color: var(--bs-secondary-bg-subtle);
+}
+
+/* --- NEW: Conflict Styling --- */
+.map-segment.conflict {
+    border: 2px solid var(--conflict-border-color);
+    box-shadow: 0 0 10px 3px var(--conflict-glow-color);
+    background-color: rgba(100, 0, 0, 0.2) !important; /* Dark red transparent bg */
+    color: #fff !important; /* Ensure text is white */
+}
+.segment-content.conflict-text {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #ffdddd; /* Light red text */
+    text-shadow: 1px 1px 2px black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%; /* Try to fill content area */
+}
+.conflict-indicator {
+    padding: 5px;
+    line-height: 1.2;
+}
+
+
+/* --- NEW: Dropped Styling --- */
+.map-segment.dropped {
+    background-color: rgba(50, 50, 50, 0.5) !important; /* Dark grey bg */
+    border-style: dashed;
+    border-color: rgba(150, 150, 150, 0.5);
+    cursor: default; /* Indicate non-interactive state */
+}
+.segment-content.dropped-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+.dropped-indicator {
+    font-size: 4rem; /* Large X */
+    font-weight: bold;
+    color: rgba(255, 0, 0, 0.6); /* Red X */
+    line-height: 1;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+/* Hide regular content when dropped/conflict */
+.map-segment.conflict .segment-content > *:not(.conflict-indicator),
+.map-segment.dropped .segment-content > *:not(.dropped-indicator) {
+    display: none !important;
+}
+/* Hide boss icon when conflict/dropped */
+.map-segment.conflict .segment-boss-icon,
+.map-segment.dropped .segment-boss-icon {
+    display: none !important;
+}
+.modal-title{
+    font-size:.9rem;
+}
+.modal-body{
+    font-size:.80rem;
 }
 
 .segment-label {
@@ -77,8 +141,8 @@ body.sidebar-active #map-container {
     left: 4px;
     font-size: 0.7rem;
     opacity: 0.8;
-    pointer-events: none; /* Prevent label from interfering with clicks */
-    z-index: 10; /* Ensure label is above other elements */
+    pointer-events: none;
+    z-index: 10;
 }
 
 .segment-level {
@@ -87,18 +151,20 @@ body.sidebar-active #map-container {
     right: 4px;
     font-size: 0.7rem;
     opacity: 0.8;
-    pointer-events: none; /* Prevent level from interfering */
-    z-index: 10; /* Ensure level is above other elements */
+    pointer-events: none;
+    z-index: 10;
 }
 
 .segment-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px; /* Further reduced gap */
-    pointer-events: none; /* Prevent content from interfering */
-    margin-top: 10px; /* Adjusted margin */
-    padding: 0 5px; /* Add some padding */
+    gap: 2px;
+    pointer-events: none;
+    margin-top: 10px;
+    padding: 0 5px;
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* Transition for hiding */
+    width: 100%; /* Ensure content takes full width */
 }
 
 .segment-name {
@@ -119,31 +185,31 @@ body.sidebar-active #map-container {
     line-height: 1.1;
 }
 .segment-resistance {
-    margin-top: 2px; /* Add space above resistance */
+    margin-top: 2px;
 }
 
 /* Assignment Order Styling */
 .segment-assignment-order {
-    font-size: 3rem; /* Make number prominent */
+    font-size: 3rem;
     font-weight: bold;
     line-height: 1;
     margin-top:-5px;
-    color: var(--bs-warning); /* Use a distinct color */
+    color: var(--bs-warning);
     display: none; /* Hidden by default */
-    z-index: 5; /* Position relative to other elements */
+    z-index: 5;
 }
 
-/* *** NEW: Boss Icon Styling *** */
+/* Boss Icon Styling */
 .segment-boss-icon {
     position: absolute;
     bottom: 3px;
     right: 3px;
-    width: 20px; /* Adjust size as needed */
-    height: 20px; /* Adjust size as needed */
-    z-index: 5; /* Ensure it's above background, below labels */
-    pointer-events: none; /* Don't interfere with clicks */
-    display: block; /* Show by default */
-    opacity: 0.4; /* Slightly transparent */
+    width: 20px;
+    height: 20px;
+    z-index: 5;
+    pointer-events: none;
+    display: block;
+    opacity: 0.4;
 }
 
 
@@ -153,32 +219,49 @@ body.sidebar-active #map-container {
 body:not(.assignment-order-active) .segment-icon,
 body:not(.assignment-order-active) .segment-buff,
 body:not(.assignment-order-active) .segment-resistance,
-body:not(.assignment-order-active) .segment-boss-icon { /* Show boss icon */
+body:not(.assignment-order-active) .segment-boss-icon {
     display: block;
 }
 body:not(.assignment-order-active) .segment-assignment-order {
     display: none;
 }
 
-/* When active: Hide icon, buff, show order, resistance, AND boss icon */
+/* When assignment order active: Hide icon, buff, show order, resistance, AND boss icon */
 body.assignment-order-active .segment-icon,
-body.assignment-order-active .segment-buff { /* REMOVED .segment-boss-icon from this line */
+body.assignment-order-active .segment-buff {
     display: none;
 }
 body.assignment-order-active .segment-assignment-order,
 body.assignment-order-active .segment-resistance,
-body.assignment-order-active .segment-boss-icon { /* ADDED .segment-boss-icon to this line */
+body.assignment-order-active .segment-boss-icon {
     display: block;
 }
-/* Ensure resistance doesn't display if it shouldn't (e.g., non-dig sites) */
+/* Ensure resistance doesn't display if it shouldn't */
 body.assignment-order-active .map-segment:not(:has(.segment-resistance)) .segment-resistance {
     display: none;
 }
-/* Ensure boss icon doesn't display if it shouldn't (e.g., non-dig sites or other segments without one) */
+/* Ensure boss icon doesn't display if it shouldn't */
 body.assignment-order-active .map-segment:not(:has(.segment-boss-icon)) .segment-boss-icon {
     display: none;
 }
-/* --- END Toggle Visibility --- */
+
+/* --- NEW: Label Visibility Toggle --- */
+/* When labels are hidden, reduce opacity and make non-interactive */
+body.labels-hidden .segment-content {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+/* Keep Labels/Levels visible even when content hidden */
+body.labels-hidden .segment-label,
+body.labels-hidden .segment-level {
+    opacity: 0.6; /* Slightly dim them */
+}
+/* Keep Boss Icon visible but dimmed when labels hidden */
+body.labels-hidden .segment-boss-icon {
+    opacity: 0.2; /* Dim the boss icon */
+    visibility: visible; /* Ensure it stays visible */
+}
 
 
 /* City emphasis (default) */
@@ -187,15 +270,19 @@ body.assignment-order-active .map-segment:not(:has(.segment-boss-icon)) .segment
     font-weight: bolder;
 }
 
-/* Alliance Colors */
+/* Alliance Colors - Updated and New */
 .alliance-thor { background-color: rgba(0, 123, 255, 0.7) !important; }
 .alliance-cold { background-color: rgba(23, 162, 184, 0.7) !important; }
-.alliance-fafo { background-color: rgba(220, 53, 69, 0.7) !important; }
-.alliance-adhd { background-color: rgba(232, 62, 140, 0.7) !important; }
-.alliance-newj { background-color: rgba(255, 193, 7, 0.7) !important; }
+.alliance-fafo { background-color: rgba(220, 53, 69, 0.7) !important; } /* fAfO */
+.alliance-adhd-pink { background-color: rgba(232, 62, 140, 0.7) !important; } /* aDhD */
+.alliance-hera { background-color: rgba(255, 193, 7, 0.7) !important; } /* HeRa - Was NEWJ */
 .alliance-brsl { background-color: rgba(40, 167, 69, 0.7) !important; }
 .alliance-valt { background-color: rgba(108, 117, 125, 0.7) !important; }
-.alliance-hpce { background-color: rgba(102, 16, 242, 0.7) !important; }
+.alliance-adhd-purple { background-color: rgba(102, 16, 242, 0.7) !important; } /* adHD - Was HPCE */
+.alliance-tone { background-color: rgba(253, 126, 20, 0.7) !important; } /* Tone - NEW */
+.alliance-mini { background-color: rgba(0, 210, 180, 0.7) !important; } /* MINI - NEW */
+.alliance-yi6r { background-color: rgba(200, 200, 200, 0.7) !important; } /* yi6r - NEW */
+
 
 /* Ensure text is readable on colored backgrounds */
 .map-segment[class*="alliance-"] { color: #fff; }
@@ -210,15 +297,12 @@ body.assignment-order-active .map-segment:not(:has(.segment-boss-icon)) .segment
 .map-segment:not(.city)[class*="alliance-"] .segment-name { color: #fff !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); }
 /* Ensure assignment order number is readable on colored background */
 .map-segment[class*="alliance-"] .segment-assignment-order {
-    color: #ffffff !important; /* Bright yellow */
+    color: #ffffff !important;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
-/* *** NEW: Ensure boss icon is visible on colored background (optional adjustment if needed) *** */
+/* Ensure boss icon is visible on colored background */
 .map-segment[class*="alliance-"] .segment-boss-icon {
-    /* background-color: rgba(0,0,0,0.1); /* Optional light background */
-    /* border-radius: 3px; /* Optional rounding */
-    /* Add filter if needed for contrast, e.g. filter: brightness(1.1); */
-    opacity: 0.95; /* Make slightly more opaque */
+    opacity: 0.95;
 }
 
 
@@ -235,9 +319,9 @@ body.assignment-order-active .map-segment:not(:has(.segment-boss-icon)) .segment
 #alliance-summary {
     position: fixed; top: 0; right: 0; width: var(--sidebar-width); height: 100vh;
     background-color: var(--bs-body-tertiary); padding: 0; border-left: 1px solid var(--bs-border-color);
-    overflow-y: auto; display: flex; flex-direction: column; gap: 0; z-index: 1050;
+    overflow-y: hidden; /* Change to hidden, container below will scroll */
+    display: flex; flex-direction: column; gap: 0; z-index: 1050;
     transform: translateX(0); transition: transform 0.3s ease-in-out;
-    padding-bottom: var(--mobile-bottom-buffer);
     box-sizing: border-box;
 }
 #alliance-summary.sidebar-collapsed { transform: translateX(100%); }
@@ -251,10 +335,11 @@ body.assignment-order-active .map-segment:not(:has(.segment-boss-icon)) .segment
 .fixed-toggle-container .form-check { display: flex; align-items: center; margin-bottom: 0; }
 .fixed-toggle-container .form-check-label { margin-left: 0.5rem; line-height: 1; white-space: nowrap; }
 
-/* Summary Items Container */
+/* Summary Items Container - Make this scrollable */
 .summary-item-container {
     padding: 15px 10px; display: flex; flex-direction: column; gap: 15px;
-    flex-grow: 1; overflow-y: auto;
+    flex-grow: 1; overflow-y: auto; /* Enable vertical scrolling */
+    padding-bottom: var(--mobile-bottom-buffer); /* Add padding at bottom */
 }
 
 /* Individual Summary Item */
@@ -305,43 +390,42 @@ body.assignment-order-active .map-segment:not(:has(.segment-boss-icon)) .segment
     .map-segment { font-size: 0.7rem; }
 
     .segment-content {
-        gap: 4px; /* Increased gap */
-        /* Inherit other properties like display, flex-direction, etc. */
+        gap: 4px;
         display: flex;
         flex-direction: column;
         align-items: center;
         pointer-events: none;
-        margin-top: 10px; /* Keep original margin or adjust if needed */
-        padding: 3px 5px 0 5px; /* Adjusted padding */
+        margin-top: 10px;
+        padding: 3px 5px 0 5px;
     }
 
     .segment-name {
         font-size: 0.75rem;
-        margin-bottom: 2px; /* Added small bottom margin */
-        /* Inherit other properties */
+        margin-bottom: 2px;
         font-weight: bold;
         line-height: 1.2;
     }
 
     .segment-icon {
         font-size: 1.2rem;
-        margin-bottom: 3px; /* Added bottom margin */
-        /* Inherit other properties */
+        margin-bottom: 3px;
         line-height: 1;
     }
 
     .segment-buff, .segment-resistance {
         font-size: 0.65rem;
-        /* Inherit other properties */
         opacity: 0.9;
         line-height: 1.1;
     }
 
     .segment-resistance {
-        margin-top: 2px; /* Keep original margin */
+        margin-top: 2px;
     }
-    .segment-assignment-order { font-size: 2rem; } /* Adjust order number size/pos */
-    .segment-boss-icon { width: 16px; height: 16px; bottom: 2px; right: 2px; } /* Adjust boss icon size/pos for mobile */
+    .segment-assignment-order { font-size: 2rem; }
+    .segment-boss-icon { width: 16px; height: 16px; bottom: 2px; right: 2px; }
+    .segment-content.conflict-text { font-size: 0.9rem; } /* Adjust conflict text size */
+    .dropped-indicator { font-size: 3rem; } /* Adjust dropped X size */
+
     .summary-alliance-name { font-size: 0.85rem;} .summary-resources { font-size: 0.7rem; } .summary-counts { font-size: 0.75rem; } .summary-buffs-list { font-size: 0.7rem; }
     .summary-buffs-list li i { width: 14px; margin-right: 4px; } .summary-buffs-list li .buff-value { min-width: 35px; }
 }

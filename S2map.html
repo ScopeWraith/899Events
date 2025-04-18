@@ -22,7 +22,17 @@
         </div>
         <div class="fixed-toggle-container p-1 border-bottom">
             <div class="form-check form-switch">
-                <input class="form-check-input mt-1" type="checkbox" role="switch" id="assignment-order-toggle"> <label class="form-check-label small mt-0" for="assignment-order-toggle"> Show Assignment Order</label> </div>
+                <input class="form-check-input mt-1" type="checkbox" role="switch" id="assignment-order-toggle">
+                <label class="form-check-label small mt-0" for="assignment-order-toggle"> Show Assignment Order</label>
+            </div>
+        </div>
+        <div class="fixed-toggle-container p-1 border-bottom">
+            <div class="form-check form-switch">
+                <input class="form-check-input mt-1" type="checkbox" role="switch" id="label-visibility-toggle" checked>
+                <label class="form-check-label small mt-0" for="label-visibility-toggle"> Hide/Show Labels</label>
+            </div>
+        </div>
+        <div class="summary-item-container">
         </div>
         </div>
 
@@ -51,7 +61,17 @@
                     <p><strong>Resistance Required:</strong> <span id="modalSegmentResistance"></span></p>
                     <p><strong>Boss Type:</strong> <span id="modalSegmentBoss">N/A</span></p>
                     <hr>
-                    <p>Select alliance to occupy this segment:</p>
+                    <div class="d-flex justify-content-center gap-2 mb-3 border-bottom pb-3">
+                         <button type="button" class="btn btn-warning btn-sm" id="mark-conflict-button" title="Mark potential conflict">
+                             <i class="fa-solid fa-triangle-exclamation"></i> Conflict
+                         </button>
+                         <button type="button" class="btn btn-danger btn-sm" id="mark-drop-button" title="Mark as dropped/unwanted">
+                            <i class="fa-solid fa-circle-xmark"></i> Drop
+                         </button>
+                         <button type="button" class="btn btn-info btn-sm" id="clear-marks-button" title="Clear Conflict/Drop marks">
+                            <i class="fa-solid fa-eraser"></i> Clear Marks
+                        </button>
+                    </div>
                     <div id="alliance-buttons" class="d-grid gap-2">
                         </div>
                      <button type="button" class="btn btn-secondary w-100 mt-3" id="clear-alliance-button">Clear Assignment</button>
