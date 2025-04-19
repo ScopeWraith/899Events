@@ -3,28 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Titanium Alloy Calculator</title>
+    <title>Titanium Alloy Production Calculator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="TACalcstyle.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
 </head>
 <body>
     <div class="container mt-4 mt-md-5 mb-5">
-        <div class="section-container factory-section-padding mb-4">
-            <h2 class="section-container-title text-center">FACTORIES</h2>
+        <h1 class="page-title text-center mb-4">Titanium Alloy Calculator</h1>
+
+        <div class="section-container factory-section mb-4">
+            <h2 class="section-title text-center">Factories</h2>
             <div class="row g-3 justify-content-center text-center">
                 <script>
                     const factoryImageSrc = "TACalc.factory.png";
                     for (let i = 1; i <= 4; i++) {
                         document.write(`
-                            <div class="col-6 col-sm-4 col-md-4 col-lg-2">
-                                <div class="factory-container position-relative">
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                                <div class="factory-card">
                                      <div class="factory-label">Factory ${i}</div>
                                     <img src="${factoryImageSrc}" class="img-fluid rounded factory-image" alt="Titanium Alloy Factory ${i}">
-                                    <div class="level-selector-wrapper">
+                                    <div class="level-selector-wrapper mt-2">
                                         <label for="factoryLevel${i}" class="visually-hidden">Factory ${i} Level</label>
                                         <select class="form-select form-select-sm level-select themed-select" id="factoryLevel${i}" aria-label="Factory ${i} Level">
                                             </select>
@@ -35,64 +37,72 @@
                     }
                 </script>
 
-                <div class="col-6 col-sm-4 col-md-4 col-lg-2">
-                    <div class="factory-container position-relative">
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <div class="factory-card">
                          <div class="factory-label" id="factory5Label">Factory 5</div>
                         <img src="TACalc.factory.png" id="factory5Image" class="img-fluid rounded factory-image" alt="Titanium Alloy Factory 5">
-                        <div class="factory5-toggle-wrapper">
+                         <div class="factory5-toggle-wrapper">
                             <div class="form-check form-switch themed-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="factory5Toggle" checked aria-label="Enable Factory 5">
                             </div>
                         </div>
-                        <div class="level-selector-wrapper">
+                        <div class="level-selector-wrapper mt-2">
                             <label for="factoryLevel5" class="visually-hidden">Factory 5 Level</label>
                             <select class="form-select form-select-sm level-select themed-select" id="factoryLevel5" aria-label="Factory 5 Level">
                                 </select>
                         </div>
                     </div>
                 </div>
-            </div></div><div class="row main-content-row g-4">
+            </div>
+        </div>
+
+        <div class="row g-4">
 
             <div class="col-lg-7">
-                <div class="section-container h-100">
-                    <div class="row align-items-center g-3 g-lg-4">
+                <div class="section-container input-section h-100">
+                     <h2 class="section-title text-center d-lg-none mb-3">Alloy Amount</h2> <div class="row align-items-center g-3 g-lg-4">
                         <div class="col-md-4 text-center">
-                            <img src="TACalcHHF.png" alt="High-Heat Furnace Storage" class="img-fluid furnace-image mb-3 mb-md-0" style="max-height:160px;">
+                            <img src="TACalcHHF.png" alt="High-Heat Furnace Storage" class="img-fluid furnace-image mb-3 mb-md-0">
                         </div>
                         <div class="col-md-8">
-                            <div class="result-card">
-                                <div class="input-section">
-                                    <label for="currentAlloy" class="form-label label-held">Titanium Held:</label>
-                                    <input type="number" class="form-control themed-input" id="currentAlloy" placeholder="0" min="0" inputmode="numeric" pattern="[0-9]*">
-                                </div>
-                                <hr class="input-divider">
-                                <div class="input-section">
-                                    <label for="neededAlloy" class="form-label label-needed">Titanium Needed:</label>
-                                    <input type="number" class="form-control themed-input" id="neededAlloy" placeholder="0" min="0" inputmode="numeric" pattern="[0-9]*">
-                                </div>
+                             <h2 class="section-title d-none d-lg-block mb-4">Alloy Amount</h2> <div class="mb-3">
+                                <label for="currentAlloy" class="form-label label-held">Titanium Held:</label>
+                                <input type="number" class="form-control themed-input" id="currentAlloy" placeholder="Enter current amount" min="0" inputmode="numeric" pattern="[0-9]*">
+                            </div>
+                            <div>
+                                <label for="neededAlloy" class="form-label label-needed">Titanium Needed:</label>
+                                <input type="number" class="form-control themed-input" id="neededAlloy" placeholder="Enter target amount" min="0" inputmode="numeric" pattern="[0-9]*">
                             </div>
                         </div>
                     </div>
                 </div>
-            </div><div class="col-lg-5">
-                 <div class="section-container results-container h-100">
+            </div>
+
+            <div class="col-lg-5">
+                 <div class="section-container results-section h-100">
+                     <h2 class="section-title text-center mb-4">Production Estimate</h2>
                     <div class="row g-3">
                          <div class="col-12">
                             <div class="result-card">
-                                <div class="result-label">Total Production</div>
+                                <div class="result-label">Total Production Rate</div>
                                 <div class="result-value"><strong id="totalOutput">0</strong></div>
                                 <div class="result-unit">Titanium Alloy / hour</div>
                             </div>
                         </div>
                          <div class="col-12">
                              <div class="result-card">
-                                <div class="result-label">Estimated Time Needed</div>
-                                <div class="result-value"><span id="timeNeeded">Enter amounts above</span></div>
+                                <div class="result-label">Estimated Time Required</div>
+                                <div class="result-value time-value"><span id="timeNeeded">Enter amounts</span></div>
+                                <div class="result-detail"><span id="completionTime"></span></div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div></div> </div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="TACalcscript.js"></script>
 </body>
 </html>
