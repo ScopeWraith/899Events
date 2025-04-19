@@ -93,6 +93,7 @@ body.sidebar-active #map-container {
     align-items: center;
     justify-content: center;
     height: 100%; /* Try to fill content area */
+    text-transform: none;
 }
 .conflict-indicator {
     padding: 5px;
@@ -130,12 +131,75 @@ body.sidebar-active #map-container {
 .map-segment.dropped .segment-boss-icon {
     display: none !important;
 }
-.modal-title{
-    font-size:.9rem;
+
+/* --- Alliance Modal Adjustments --- */
+#allianceSelectModal .modal-title {
+    font-size: 1rem; /* Slightly larger title */
+    line-height: 1.3;
 }
-.modal-body{
-    font-size:.80rem;
+
+#allianceSelectModal .modal-body {
+    font-size: 0.85rem; /* Base font size for modal body */
 }
+
+#allianceSelectModal .modal-section {
+    padding-bottom: 0.75rem; /* Add padding to bottom of section before border */
+}
+
+#allianceSelectModal .modal-section:last-child {
+     margin-bottom: 0 !important;
+     padding-bottom: 0; /* No padding needed on last section */
+}
+
+#allianceSelectModal .modal-section-header {
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+#allianceSelectModal .info-group {
+    margin-bottom: 0.25rem !important; /* Reduced space between info lines */
+    line-height: 1.4;
+}
+#allianceSelectModal .info-group strong {
+    display: inline-block;
+    min-width: 70px; /* Align keys */
+    color: var(--bs-secondary-color);
+}
+#allianceSelectModal .info-group .resource-value {
+    font-weight: 600;
+    color: var(--bs-emphasis-color);
+}
+#allianceSelectModal .modal-boss-icon {
+     width: 16px;
+     height: 16px;
+     vertical-align: text-bottom;
+}
+
+#allianceSelectModal #alliance-buttons {
+    padding-right: 5px; /* Add padding for scrollbar */
+}
+
+#allianceSelectModal .alliance-assign-button {
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem; /* Adjust padding */
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Text shadow for readability */
+    transition: opacity 0.2s ease; /* Smooth transition for disabled state */
+}
+#allianceSelectModal .alliance-assign-button:disabled {
+    opacity: 0.5 !important; /* Make disabled more obvious */
+    background-color: var(--bs-secondary-bg) !important; /* Grey background when disabled */
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-secondary-color) !important;
+    text-shadow: none;
+}
+
 /* Make info modal list items slightly smaller */
 #infoModal .modal-body ul {
     font-size: 0.78rem;
@@ -574,4 +638,10 @@ body:not(.sidebar-active) #sidebar-button-dock {
     .summary-buffs-list li i { width: 14px; margin-right: 4px; }
     .summary-buffs-list li .buff-value { min-width: 35px; }
     .summary-controls .btn { padding: 0.05rem 0.25rem; font-size: 0.7rem; }
+
+    /* Mobile Modal Adjustments */
+    #allianceSelectModal .modal-body { font-size: 0.8rem; }
+    #allianceSelectModal .info-group strong { min-width: 60px; }
+    #allianceSelectModal #alliance-buttons { max-height: 120px; } /* Adjust height for smaller screens */
+
 }

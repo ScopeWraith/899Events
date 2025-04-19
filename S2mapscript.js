@@ -3,6 +3,7 @@
  *
  * Changes:
  * - Modified the centerOnG7 function to calculate initialZoom based on window.innerHeight.
+ * - Updated handleSegmentClick to populate the revamped modal structure.
  */
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration & Data ---
@@ -114,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bodyElement = document.body;
     const modalElement = document.getElementById('allianceSelectModal');
     const allianceSelectModal = new bootstrap.Modal(modalElement);
+    // Modal Elements (Updated)
     const modalSegmentIdSpan = document.getElementById('modalSegmentId');
     const modalSegmentNameSpan = document.getElementById('modalSegmentName');
     const modalSegmentLevelSpan = document.getElementById('modalSegmentLevel');
@@ -121,8 +123,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalSegmentProdSpan = document.getElementById('modalSegmentProd');
     const modalSegmentResistanceSpan = document.getElementById('modalSegmentResistance');
     const modalSegmentBossSpan = document.getElementById('modalSegmentBoss');
+    const modalBossInfoContainer = document.getElementById('modalBossInfoContainer');
+    const modalProdInfoContainer = document.getElementById('modalProdInfoContainer');
+    const modalResistanceInfoContainer = document.getElementById('modalResistanceInfoContainer');
     const allianceButtonsDiv = document.getElementById('alliance-buttons');
     const clearAllianceButton = document.getElementById('clear-alliance-button');
+    // End Updated Modal Elements
     const clearAllButton = document.getElementById('clear-all-button');
     const fixedAllianceToggle = document.getElementById('fixed-alliance-toggle');
     const assignmentOrderToggle = document.getElementById('assignment-order-toggle');
@@ -374,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+    // --- UPDATED: handleSegmentClick ---
     function handleSegmentClick(segmentId) {
         const segmentData = landData[segmentId];
         if (!segmentData) return; // Exit if no data
@@ -381,34 +388,42 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSegmentId = segmentId;
         modalSegmentIdSpan.textContent = segmentId;
         modalSegmentNameSpan.textContent = segmentData.name;
-        modalSegmentLevelSpan.textContent = segmentData.level;
+        modalSegmentLevelSpan.textContent = segmentData.level !== 'N/A' ? segmentData.level : 'N/A';
         modalSegmentBuffSpan.textContent = `${segmentData.buffValue > 0 ? segmentData.buffValue + '% ' + segmentData.buffType : 'None'}`;
 
+        // Production Info
         let prodText = '';
-        if (segmentData.coalPerHour > 0) prodText += `<span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Coal Per Hour">CPH: </span><span class="resource-value">${segmentData.coalPerHour.toLocaleString()}</span> `;
-        if (segmentData.rareSoilPerHour > 0) prodText += `<span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Rare Soil Per Hour">RSPH: </span><span class="resource-value">${segmentData.rareSoilPerHour.toLocaleString()}</span>`;
-        modalSegmentProdSpan.innerHTML = prodText || 'None';
-
-        if (segmentData.type === 'Dig Site' && segmentData.resistance) {
-            modalSegmentResistanceSpan.textContent = segmentData.resistance.toLocaleString();
-            modalSegmentResistanceSpan.closest('p').style.display = 'block';
+        if (segmentData.coalPerHour > 0) prodText += `<span class="resource-value">${segmentData.coalPerHour.toLocaleString()}</span> CPH `;
+        if (segmentData.rareSoilPerHour > 0) prodText += `<span class="resource-value">${segmentData.rareSoilPerHour.toLocaleString()}</span> RSPH`;
+        if (prodText) {
+            modalSegmentProdSpan.innerHTML = prodText.trim();
+            modalProdInfoContainer.style.display = 'block';
         } else {
-            modalSegmentResistanceSpan.textContent = 'N/A';
-            modalSegmentResistanceSpan.closest('p').style.display = 'none';
+            modalSegmentProdSpan.innerHTML = 'None';
+            modalProdInfoContainer.style.display = 'block'; // Keep container visible even if None
         }
 
-        const bossInfoP = modalSegmentBossSpan.closest('p');
+        // Resistance Info
+        if (segmentData.type === 'Dig Site' && segmentData.resistance) {
+            modalSegmentResistanceSpan.textContent = segmentData.resistance.toLocaleString();
+            modalResistanceInfoContainer.style.display = 'block';
+        } else {
+            modalSegmentResistanceSpan.textContent = 'N/A';
+            modalResistanceInfoContainer.style.display = 'block'; // Keep container visible even if N/A
+        }
+
+        // Boss Info
         if (segmentData.bossType && segmentData.type === 'Dig Site') {
             let bossHtml = '';
             if (segmentData.bossIcon) {
-                bossHtml += `<img src="${segmentData.bossIcon}" alt="${segmentData.bossType} Boss" style="width: 18px; height: 18px; vertical-align: text-bottom; margin-right: 5px;">`;
+                bossHtml += `<img src="${segmentData.bossIcon}" alt="${segmentData.bossType} Boss" class="modal-boss-icon me-1">`;
             }
             bossHtml += segmentData.bossType;
             modalSegmentBossSpan.innerHTML = bossHtml;
-            bossInfoP.style.display = 'block';
+            modalBossInfoContainer.style.display = 'block';
         } else {
             modalSegmentBossSpan.innerHTML = 'N/A';
-            bossInfoP.style.display = 'none';
+            modalBossInfoContainer.style.display = 'block'; // Keep container visible even if N/A
         }
 
 
@@ -425,28 +440,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const button = document.createElement('button');
             button.type = 'button';
-            button.classList.add('btn', 'btn-sm', 'w-100');
+            button.classList.add('btn', 'btn-sm', 'w-100', 'alliance-assign-button'); // Added class for styling
+            // Apply background color directly for now, could use classes
             button.style.backgroundColor = data.color;
+            button.style.borderColor = data.color; // Match border
             button.style.color = '#fff'; // Ensure text contrast
-            button.style.fontWeight = '600';
-            button.textContent = `Assign to ${data.name}`;
+            button.textContent = `${data.name}`; // Keep it concise
             button.dataset.allianceCode = code;
 
              // Disable assigning if fixed & toggle active OR if segment is marked conflict/dropped
              let disabledReason = null;
+             let limitReached = false;
+             if (segmentData.type === 'City' && data.cityCount >= data.cityLimit) {
+                 disabledReason = ` (Limit: ${data.cityCount}/${data.cityLimit} Cities)`;
+                 limitReached = true;
+             } else if (segmentData.type === 'Dig Site' && data.digSiteCount >= data.digSiteLimit) {
+                 disabledReason = ` (Limit: ${data.digSiteCount}/${data.digSiteLimit} Digs)`;
+                 limitReached = true;
+             }
+
              if (segmentData.isFixed && fixedAlliancesActive) {
                  disabledReason = ` (Fixed: ${FIXED_ASSIGNMENTS[segmentId]})`;
              } else if (segmentData.isConflict) {
-                 disabledReason = ` (Marked as Conflict)`;
+                 disabledReason = ` (Conflict)`;
              } else if (segmentData.isDropped) {
-                  disabledReason = ` (Marked as Dropped)`;
+                  disabledReason = ` (Dropped)`;
              } else if (segmentData.owner === code) {
-                disabledReason = ` (Already Owned)`;
-            } else if (segmentData.type === 'City' && data.cityCount >= data.cityLimit) {
-                disabledReason = ` (Limit: ${data.cityCount}/${data.cityLimit} Cities)`;
-            } else if (segmentData.type === 'Dig Site' && data.digSiteCount >= data.digSiteLimit) {
-                disabledReason = ` (Limit: ${data.digSiteCount}/${data.digSiteLimit} Digs)`;
-            }
+                disabledReason = ` (Assigned)`;
+             }
 
             if (disabledReason) {
                 button.disabled = true;
@@ -454,7 +475,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.style.opacity = '0.65';
                 button.style.cursor = 'not-allowed';
             } else {
-                button.addEventListener('click', () => handleAllianceSelection(code));
+                 button.addEventListener('click', () => handleAllianceSelection(code));
+                 // Optionally add limit counts even if not disabled yet
+                 if(segmentData.type === 'City') button.textContent += ` (${data.cityCount}/${data.cityLimit})`;
+                 else if(segmentData.type === 'Dig Site') button.textContent += ` (${data.digSiteCount}/${data.digSiteLimit})`;
             }
             allianceButtonsDiv.appendChild(button);
         });

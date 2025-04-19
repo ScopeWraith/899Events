@@ -50,39 +50,59 @@
     <div class="modal fade" id="allianceSelectModal" tabindex="-1" aria-labelledby="allianceSelectModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header py-2"> 
                     <h5 class="modal-title" id="allianceSelectModalLabel">
-                        <span id="modalSegmentId"></span> -
-                        Level <span id="modalSegmentLevel"></span>
-                        <span id="modalSegmentName"></span> -
-                        Buff: <span id="modalSegmentBuff"></span>
+                        Segment <span id="modalSegmentId" class="fw-bold"></span> - Details & Assignment
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p><strong>Production:</strong> <span id="modalSegmentProd"></span></p>
-                    <p><strong>Resistance Required:</strong> <span id="modalSegmentResistance"></span></p>
-                    <p><strong>Boss Type:</strong> <span id="modalSegmentBoss">N/A</span></p>
-                    <hr>
-                    <div class="d-flex justify-content-center gap-2 mb-3 border-bottom pb-3">
-                         <button type="button" class="btn btn-warning btn-sm" id="mark-conflict-button" title="Mark potential conflict">
-                             <i class="fa-solid fa-triangle-exclamation"></i> Conflict
-                         </button>
-                         <button type="button" class="btn btn-danger btn-sm" id="mark-drop-button" title="Mark as dropped/unwanted">
-                            <i class="fa-solid fa-circle-xmark"></i> Drop
-                         </button>
-                         <button type="button" class="btn btn-info btn-sm" id="clear-marks-button" title="Clear Conflict/Drop marks">
-                            <i class="fa-solid fa-eraser"></i> Clear Marks
-                        </button>
-                    </div>
-                    <div id="alliance-buttons" class="d-grid gap-2">
+                <div class="modal-body py-2">
+                    <div class="modal-section">
+                        <strong>Segment Information</strong>
+                        <div class="row g-2">
+                            <div class="col-sm-6">
+                                <p class="mb-1 info-group"><strong>Level:</strong> <span id="modalSegmentLevel"></span></p>
+                                <p class="mb-1 info-group"><strong>Type:</strong> <span id="modalSegmentName"></span></p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 info-group"><strong>Buff:</strong> <span id="modalSegmentBuff"></span></p>
+                                <p class="mb-1 info-group" id="modalBossInfoContainer"><strong>Boss:</strong> <span id="modalSegmentBoss">N/A</span></p>
+                            </div>
                         </div>
-                     <button type="button" class="btn btn-secondary w-100 mt-3" id="clear-alliance-button">Clear Assignment</button>
-                </div>
+                         <div class="row g-2 mt-1"> 
+                            <div class="col-sm-6">
+                                <p class="mb-1 info-group" id="modalProdInfoContainer"><strong>Production:</strong> <span id="modalSegmentProd"></span></p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 info-group" id="modalResistanceInfoContainer"><strong>Resistance:</strong> <span id="modalSegmentResistance"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-section">
+                         <div class="d-flex justify-content-center gap-2">
+                             <button type="button" class="btn btn-warning btn-sm flex-fill" id="mark-conflict-button" title="Mark potential conflict">
+                                 <i class="fa-solid fa-triangle-exclamation me-1"></i> Conflict
+                             </button>
+                             <button type="button" class="btn btn-danger btn-sm flex-fill" id="mark-drop-button" title="Mark as dropped/unwanted">
+                                <i class="fa-solid fa-circle-xmark me-1"></i> Drop
+                             </button>
+                             <button type="button" class="btn btn-secondary btn-sm flex-fill" id="clear-marks-button" title="Clear Conflict/Drop marks">
+                                <i class="fa-solid fa-eraser me-1"></i> Clear Marks
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border-top modal-section">
+                         <div class="modal-section-header" class="mt-1">Assign Alliance</div>
+                         <div id="alliance-buttons" class="d-grid gap-2" style="max-height: 150px; overflow-y: auto;"> 
+                         </div>
+                         <button type="button" class="btn btn-outline-secondary w-100 mt-2 btn-sm" id="clear-alliance-button">
+                             <i class="fa-solid fa-times-circle me-1"></i>Clear Assignment
+                         </button>
+                    </div>
+                </div> 
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -118,7 +138,7 @@
                 }
                 }).render('#donate-button');
                 </script>
-                </div>             
+                </div>
             </div>
           </div>
         </div>
