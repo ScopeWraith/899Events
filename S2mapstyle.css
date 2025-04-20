@@ -399,13 +399,15 @@ body:not(.sidebar-active) #sidebar-button-dock { left: calc(100% - var(--button-
     }
     #map-grid { grid-template-columns: repeat(13, minmax(80px, 1fr)); grid-template-rows: repeat(13, minmax(80px, 1fr)); width: 1300px; height: 1300px; }
     .map-segment { font-size: 0.7rem; }
-    .segment-content { padding: 12px 3px 3px 3px; gap: 3px; }
+    .segment-content { padding: 10px 3px 3px 3px; gap: 3px; }
     .segment-name { font-size: 0.75rem; margin-bottom: 1px;}
+    .segment-label { font-size: 0.7rem; }
+    .segment-level { font-size: 0.7rem; }
     .segment-icon { font-size: 1.1rem; margin-bottom: 1px;}
-    .segment-buff, .segment-resistance { font-size: 0.65rem; min-height: 1.3em; }
+    .segment-buff, .segment-resistance { font-size: 0.65rem; min-height: 1.5em; }
     .segment-assignment-order { font-size: 2rem; }
-    .segment-boss-icon { width: 16px; height: 16px; bottom: 2px; right: 2px; }
-    .segment-owner-name { font-size: 0.6rem; top: -4px; left: 19px; }
+    .segment-boss-icon { width: 16px; height: 16px; bottom: 0px; right: 1px; }
+    .segment-owner-name { font-size: 0.68rem; top: -6px; left: 19px; }
     .segment-content .conflict-indicator { font-size: 0.8rem; }
     .dropped-indicator { font-size: 2.5rem; }
 
