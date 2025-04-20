@@ -1,16 +1,20 @@
 /*
- * S2mapscript.js (Modified to adjust initial zoom for mobile vertical visibility)
- *
- * Changes:
- * - Modified the centerOnG7 function to calculate initialZoom based on window.innerHeight.
- * - Updated handleSegmentClick to populate the revamped modal structure.
+ * S2mapscript.js
+ * Features:
+ * - Interactive S2 map with alliance assignments.
+ * - Conflict/Drop marking.
+ * - Fixed War Palace assignments (toggleable).
+ * - Capture order view (toggleable).
+ * - Label visibility (toggleable).
+ * - Alliance summary sidebar with resource/buff calculation.
+ * - Pin/Collapse alliance summaries.
+ * - Import/Export map state via Base64 code.
+ * - Automatic local storage saving.
  */
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration & Data ---
-
-    // UPDATED: Alliance configuration with new names, cases, colors, and order
     const alliances = {
-        aDhD: { name: 'aDhD', color: 'rgba(232, 62, 140, 0.7)', cssClass: 'alliance-adhd-pink', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false }, // Added state props
+        aDhD: { name: 'aDhD', color: 'rgba(232, 62, 140, 0.7)', cssClass: 'alliance-adhd-pink', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
         THOR: { name: 'THOR', color: 'rgba(0, 123, 255, 0.7)', cssClass: 'alliance-thor', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
         fAfO: { name: 'fAfO', color: 'rgba(220, 53, 69, 0.7)', cssClass: 'alliance-fafo', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
         HeRa: { name: 'HeRa', color: 'rgba(255, 193, 7, 0.7)', cssClass: 'alliance-hera', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
@@ -22,17 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
         MINI: { name: 'MINI', color: 'rgba(0, 210, 180, 0.7)', cssClass: 'alliance-mini', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
         yi6r: { name: 'yi6r', color: 'rgba(200, 200, 200, 0.7)', cssClass: 'alliance-yi6r', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
     };
-
-    // NEW: Define the desired display order for the summary
     const allianceDisplayOrder = ['aDhD', 'THOR', 'fAfO', 'HeRa', 'COLD', 'VaLT', 'adHD', 'BRSL', 'Tone', 'MINI', 'yi6r'];
     const digSiteProduction = { 1: { coal: 2736, soil: 100 }, 2: { coal: 2880, soil: 110 }, 3: { coal: 3024, soil: 120 }, 4: { coal: 3168, soil: 130 }, 5: { coal: 3312, soil: 140 }, 6: { coal: 3456, soil: 150 } };
     const citySoilProduction = 350;
     const digSiteResistance = { 1: 3500, 2: 6000, 3: 8000, 4: 9500, 5: 10000, 6: 10500 };
     const ALL_BUFF_TYPES = ['Coin', 'Food', 'Iron', 'Gathering', 'March Speed', 'Construction', 'Research', 'Training', 'Healing'];
-
-    // UPDATED: Fixed assignments with correct alliance casing
     const FIXED_ASSIGNMENTS = { 'G6': 'THOR', 'F7': 'COLD', 'G8': 'fAfO', 'H7': 'aDhD' };
-
     const landDataInput = [ /* ... Same land data input array ... */ // Shortened for brevity
         "A1: Level 1 Dig Site 2% Coin", "A2: Level 1 Village 5% Iron", "A3: Level 1 Dig Site 2% Food", "A4: Level 1 Village 5% Food", "A5: Level 1 Dig Site 2% Iron", "A6: Level 1 Village 5% Iron", "A7: Level 1 Dig Site 2% Coin", "A8: Level 1 Village 5% Food", "A9: Level 1 Dig Site 2% Food", "A10: Level 1 Village 5% Iron", "A11: Level 1 Dig Site 2% Iron", "A12: Level 1 Village 5% Food", "A13: Level 1 Dig Site 2% Coin",
         "B1: Level 1 Village 5% Iron", "B2: Level 2 Dig Site 3% Coin", "B3: Level 2 Town 5% Gathering", "B4: Level 2 Dig Site 3% Food", "B5: Level 2 Town 5% Coin", "B6: Level 2 Dig Site 3% Iron", "B7: Level 2 Town 5% Gathering", "B8: Level 2 Dig Site 3% Coin", "B9: Level 2 Town 5% Coin", "B10: Level 2 Dig Site 3% Food", "B11: Level 2 Town 5% Gathering", "B12: Level 2 Dig Site 3% Iron", "B13: Level 1 Village 5% Food",
@@ -65,29 +64,65 @@ document.addEventListener('DOMContentLoaded', () => {
         L2: 'Air', L4: 'Missile', L6: 'Tank', L8: 'Air', L10: 'Missile', L12: 'Tank',
         M1: 'Missile', M3: 'Tank', M5: 'Air', M7: 'Missile', M9: 'Tank', M11: 'Air', M13: 'Missile'
      };
-
-    const SAVE_KEY = 'allianceMapState_v8'; // Increment version if state structure changes significantly
+    const SAVE_KEY = 'allianceMapState_v11_autosave'; // Single key for auto-save
 
     // --- State Variables ---
     let fixedAlliancesActive = true;
     let assignmentOrderActive = false;
-    let labelsVisible = true; // NEW state for label visibility
+    let labelsVisible = true;
+    let currentSegmentId = null;
+    let isInConflictSelectionMode = false;
+    let conflictSelection = [];
 
+    // --- Helper Functions ---
     function getIconClass(buffType) {
-        switch (buffType.toLowerCase()) {
-            case 'coin': return 'fa-solid fa-coins'; case 'iron': return 'fa-solid fa-mound'; case 'food': return 'fa-solid fa-bread-slice'; case 'gathering': return 'fa-solid fa-tractor'; case 'healing': return 'fa-solid fa-bandage'; case 'construction': return 'fa-solid fa-hammer'; case 'march speed': return 'fa-solid fa-truck-fast'; case 'training': return 'fa-solid fa-shield-halved'; case 'research': return 'fa-solid fa-flask-vial'; default: return 'fa-solid fa-question-circle'; // Added default return
+        switch (buffType?.toLowerCase()) {
+            case 'coin': return 'fa-solid fa-coins';
+            case 'iron': return 'fa-solid fa-mound';
+            case 'food': return 'fa-solid fa-bread-slice';
+            case 'gathering': return 'fa-solid fa-tractor';
+            case 'healing': return 'fa-solid fa-bandage';
+            case 'construction': return 'fa-solid fa-hammer';
+            case 'march speed': return 'fa-solid fa-truck-fast';
+            case 'training': return 'fa-solid fa-shield-halved';
+            case 'research': return 'fa-solid fa-flask-vial';
+            default: return 'fa-solid fa-question-circle';
         }
     }
 
+    // Removed getCurrentSaveKey function
 
-    // Parse data
+    // --- Parse Land Data ---
     landDataInput.forEach(item => {
         const parts = item.split(': '); const id = parts[0]; const details = parts[1];
-        let level = 0, name = '', buffValue = 0, buffType = '', type = 'Other'; let coalPerHour = 0, rareSoilPerHour = 0, resistance = null;
+        let level = 0, name = '', buffValue = 0, buffType = '', type = 'Other';
+        let coalPerHour = 0, rareSoilPerHour = 0, resistance = null;
         let bossType = null, bossIcon = null;
 
-        if (id === 'G7') { level = 'N/A'; name = 'Capitol'; type = 'City'; const bm = details.match(/(\d+)% (.*)/); if (bm) { buffValue = parseInt(bm[1], 10); buffType = bm[2]; } rareSoilPerHour = citySoilProduction; }
-        else { const lm = details.match(/Level (\d+)/); if (lm) level = parseInt(lm[1], 10); const nameMatch = details.match(/Level \d+ ([\w\s]+?)(?: \d+%|\s*$)/); if (nameMatch) name = nameMatch[1].trim(); else name = 'Unknown'; const bm = details.match(/(\d+)% (.*)/); if (bm) { buffValue = parseInt(bm[1], 10); buffType = bm[2]; } if (name.includes('Dig Site')) type = 'Dig Site'; else if (cityTypes.some(city => name.includes(city))) type = 'City'; else type = 'Other'; if (type === 'Dig Site' && digSiteProduction[level]) { coalPerHour = digSiteProduction[level].coal; rareSoilPerHour = digSiteProduction[level].soil; resistance = digSiteResistance[level] || null; } else if (type === 'City' && level >= 1 && level <= 6) { rareSoilPerHour = citySoilProduction; } }
+        if (id === 'G7') {
+            level = 'N/A'; name = 'Capitol'; type = 'City';
+            const bm = details.match(/(\d+)% (.*)/);
+            if (bm) { buffValue = parseInt(bm[1], 10); buffType = bm[2]; }
+            rareSoilPerHour = citySoilProduction;
+        } else {
+            const lm = details.match(/Level (\d+)/); if (lm) level = parseInt(lm[1], 10);
+            const nameMatch = details.match(/Level \d+ ([\w\s]+?)(?: \d+%|\s*$)/);
+            if (nameMatch) name = nameMatch[1].trim(); else name = 'Unknown';
+            const bm = details.match(/(\d+)% (.*)/);
+            if (bm) { buffValue = parseInt(bm[1], 10); buffType = bm[2]; }
+
+            if (name.includes('Dig Site')) type = 'Dig Site';
+            else if (cityTypes.some(city => name.includes(city))) type = 'City';
+            else type = 'Other';
+
+            if (type === 'Dig Site' && digSiteProduction[level]) {
+                coalPerHour = digSiteProduction[level].coal;
+                rareSoilPerHour = digSiteProduction[level].soil;
+                resistance = digSiteResistance[level] || null;
+            } else if (type === 'City' && level >= 1 && level <= 6) {
+                rareSoilPerHour = citySoilProduction;
+            }
+        }
 
         if (type === 'Dig Site' && bossTypeMapping[id]) {
             bossType = bossTypeMapping[id];
@@ -95,17 +130,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const isFixed = FIXED_ASSIGNMENTS.hasOwnProperty(id);
-        // NEW: Add state properties for conflict and drop status
         landData[id] = {
             id, level, name, type, buffValue, buffType, iconClass: getIconClass(buffType),
             owner: null, isFixed, coalPerHour, rareSoilPerHour, resistance, assignmentOrder: null,
             bossType, bossIcon,
-            isConflict: false, // NEW
-            conflictAlliances: [], // NEW
-            isDropped: false // NEW
+            isConflict: false, conflictAlliances: [], isDropped: false,
+            originalHTMLContent: '' // Will be set during map generation
         };
     });
-
 
     // --- DOM Elements ---
     const mapGrid = document.getElementById('map-grid');
@@ -114,8 +146,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
     const bodyElement = document.body;
     const modalElement = document.getElementById('allianceSelectModal');
-    const allianceSelectModal = new bootstrap.Modal(modalElement);
-    // Modal Elements (Updated)
+    const allianceSelectModalInstance = new bootstrap.Modal(modalElement);
+    const modalBody = modalElement.querySelector('.modal-body'); // Cache modal body
+    const modalTitle = document.getElementById('allianceSelectModalLabel');
+    const modalDynamicTitleSpan = document.getElementById('modalDynamicTitle');
+
+    // Modal Info Elements
     const modalSegmentIdSpan = document.getElementById('modalSegmentId');
     const modalSegmentNameSpan = document.getElementById('modalSegmentName');
     const modalSegmentLevelSpan = document.getElementById('modalSegmentLevel');
@@ -126,31 +162,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalBossInfoContainer = document.getElementById('modalBossInfoContainer');
     const modalProdInfoContainer = document.getElementById('modalProdInfoContainer');
     const modalResistanceInfoContainer = document.getElementById('modalResistanceInfoContainer');
+
+    // Modal Button Elements
     const allianceButtonsDiv = document.getElementById('alliance-buttons');
     const clearAllianceButton = document.getElementById('clear-alliance-button');
-    // End Updated Modal Elements
-    const clearAllButton = document.getElementById('clear-all-button');
-    const fixedAllianceToggle = document.getElementById('fixed-alliance-toggle');
-    const assignmentOrderToggle = document.getElementById('assignment-order-toggle');
-    const labelVisibilityToggle = document.getElementById('label-visibility-toggle'); // NEW
-    const summaryItemContainer = allianceSummaryDiv.querySelector('.summary-item-container'); // Use existing container
-    const loadCurrentStateButton = document.getElementById('load-current-state-button'); // Assuming this exists
-
-    // NEW: Modal Action Buttons
     const markConflictButton = document.getElementById('mark-conflict-button');
     const markDropButton = document.getElementById('mark-drop-button');
     const clearMarksButton = document.getElementById('clear-marks-button');
+    const cancelConflictSelectionButton = document.getElementById('cancel-conflict-selection-button');
 
-    // NEW: Info Modal Elements
-    const infoButton = document.getElementById('info-button'); // Added in HTML
+    // Other Buttons/Toggles
+    const clearAllButton = document.getElementById('clear-all-button');
+    const fixedAllianceToggle = document.getElementById('fixed-alliance-toggle');
+    const assignmentOrderToggle = document.getElementById('assignment-order-toggle');
+    const labelVisibilityToggle = document.getElementById('label-visibility-toggle');
+    const summaryItemContainer = allianceSummaryDiv.querySelector('.summary-item-container');
+    const infoButton = document.getElementById('info-button');
     const infoModalElement = document.getElementById('infoModal');
-    const infoModal = new bootstrap.Modal(infoModalElement);
+    // const infoModal = new bootstrap.Modal(infoModalElement);
 
+    // Import/Export Elements
+    const importMapButton = document.getElementById('import-map-button');
+    const exportMapButton = document.getElementById('export-map-button');
+    const codeModalElement = document.getElementById('codeModal');
+    const codeModalInstance = new bootstrap.Modal(codeModalElement);
+    const codeModalLabel = document.getElementById('codeModalLabel');
+    const codeModalInstructions = document.getElementById('codeModalInstructions');
+    const codeModalTextarea = document.getElementById('codeModalTextarea');
+    const copyCodeButton = document.getElementById('copyCodeButton');
+    const copyFeedbackElement = document.getElementById('copyFeedback'); // Get feedback element
 
-    let currentSegmentId = null;
-    let popoverTriggerList = [];
+    // Removed Save/Load Slot Button variables
+
 
     // --- Map Generation ---
+    // ... (Map generation code remains the same) ...
     const rows = 'ABCDEFGHIJKLM';
     for (let r = 0; r < 13; r++) {
         for (let c = 1; c <= 13; c++) {
@@ -171,16 +217,17 @@ document.addEventListener('DOMContentLoaded', () => {
             let resistanceHTML = '';
             if (segmentData.type === 'Dig Site' && segmentData.resistance) {
                 resistanceHTML = `<span class="segment-resistance">Res: ${segmentData.resistance.toLocaleString()}</span>`;
+            } else {
+                 resistanceHTML = `<span class="segment-resistance"></span>`;
             }
 
-            // Generate base inner HTML - Store original content separately
             segmentData.originalHTMLContent = `
                 <span class="segment-name">${segmentData.name}</span>
                 <i class="segment-icon ${segmentData.iconClass}"></i>
                 <span class="segment-buff">${segmentData.buffValue > 0 ? segmentData.buffValue + '% ' + segmentData.buffType : ''}</span>
-                <span class="segment-assignment-order"></span>
                 ${resistanceHTML}
-            `;
+                <span class="segment-assignment-order"></span>
+                <span class="segment-owner-name"></span> `;
 
             segmentDiv.innerHTML = `
                 <span class="segment-label">${segmentId}</span>
@@ -208,182 +255,263 @@ document.addEventListener('DOMContentLoaded', () => {
     const panzoom = Panzoom(mapGrid, { maxScale: 5, minScale: 0.3, contain: 'outside', canvas: true, cursor: 'grab', step: 0.3 });
     mapContainer.addEventListener('wheel', panzoom.zoomWithWheel);
 
-    // --- MODIFIED centerOnG7 Function ---
+    // --- Center Map Function ---
     function centerOnG7() {
         const g7Element = mapGrid.querySelector('[data-id="G7"]');
         if (!g7Element) return;
-
         const mapRect = mapContainer.getBoundingClientRect();
         const elementWidth = g7Element.offsetWidth;
         const elementHeight = g7Element.offsetHeight;
-
-        // --- Start Modification ---
-        // Calculate initial zoom based on viewport height to try and fit the map
         const viewportHeight = window.innerHeight;
-        const baseHeightForDefaultZoom = 800; // Adjust this value based on testing - height where default zoom looks good
-        const defaultInitialZoom = 0.8; // Your original default zoom
-        const minAllowedScale = panzoom.getOptions().minScale || 0.3; // Get minScale from panzoom options
-
-        // Calculate a scaling factor based on height, capped between 0 and 1
-        // Smaller heights will result in a smaller factor
+        const baseHeightForDefaultZoom = 800;
+        const defaultInitialZoom = 0.8;
+        const minAllowedScale = panzoom.getOptions().minScale || 0.3;
         const heightFactor = Math.max(0, Math.min(1, viewportHeight / baseHeightForDefaultZoom));
-
-        // Adjust the default zoom level by the height factor
-        // We might want a non-linear relationship, but linear is simpler start
-        // Let's make it less sensitive: scale factor affects zoom proportionally less
-        let calculatedZoom = defaultInitialZoom * (1 - (1 - heightFactor) * 0.5); // Reduce zoom by half the difference factor
-
-        // Ensure the calculated zoom isn't lower than the minimum allowed scale
+        let calculatedZoom = defaultInitialZoom * (1 - (1 - heightFactor) * 0.5);
         const initialZoom = Math.max(minAllowedScale, calculatedZoom);
-        // console.log(`Viewport H: ${viewportHeight}, Factor: ${heightFactor.toFixed(2)}, Calc Zoom: ${calculatedZoom.toFixed(2)}, Final Initial Zoom: ${initialZoom.toFixed(2)}`); // Debugging line
-        // --- End Modification ---
-
         panzoom.zoom(initialZoom, { animate: false });
-
-        // Recalculate centers and pan after applying the dynamic zoom
         const zoomedElementWidth = elementWidth * initialZoom;
         const zoomedElementHeight = elementHeight * initialZoom;
         const zoomedG7CenterX = (g7Element.offsetLeft * initialZoom) + zoomedElementWidth / 2;
         const zoomedG7CenterY = (g7Element.offsetTop * initialZoom) + zoomedElementHeight / 2;
         const finalPanX = (mapRect.width / 2) - zoomedG7CenterX;
-        const finalPanY = (mapRect.height / 2) - zoomedG7CenterY; // Adjust vertical pan slightly more if needed? Maybe center slightly higher than pure center?
-                                                                  // Example: const finalPanY = (mapRect.height * 0.45) - zoomedG7CenterY; // Center slightly above middle
-
+        const finalPanY = (mapRect.height / 2) - zoomedG7CenterY;
         panzoom.pan(finalPanX, finalPanY, { animate: false, force: true });
     }
-    // Center after a short delay to allow layout calculations
-    setTimeout(centerOnG7, 150);
+    setTimeout(centerOnG7, 150); // Allow layout calculations
 
     // --- Event Handlers & Logic ---
 
-    // --- NEW: Helper function to update segment visual state (Conflict/Drop/Normal) ---
+    // --- Update Segment Visual State ---
     function updateSegmentVisualState(segmentId) {
         const segmentData = landData[segmentId];
         const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
         const segmentContentElement = segmentElement?.querySelector('.segment-content');
+
         if (!segmentData || !segmentElement || !segmentContentElement) return;
 
-        // Remove status classes first
         segmentElement.classList.remove('conflict', 'dropped');
-        segmentContentElement.classList.remove('conflict-text', 'dropped-text'); // Use classes for content styling
-         // Remove all potential alliance classes first
         Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass));
-
 
         if (segmentData.isConflict) {
             segmentElement.classList.add('conflict');
-            segmentContentElement.classList.add('conflict-text');
-            segmentContentElement.innerHTML = `<span class="conflict-indicator">${segmentData.conflictAlliances.join(' vs. ') || 'Conflict'}</span>`;
+            segmentContentElement.innerHTML = `<span class="conflict-indicator">${segmentData.conflictAlliances.map(code => alliances[code]?.name || code).join(' vs ') || 'Conflict'}</span>`;
         } else if (segmentData.isDropped) {
             segmentElement.classList.add('dropped');
-            segmentContentElement.classList.add('dropped-text');
             segmentContentElement.innerHTML = `<span class="dropped-indicator">X</span>`;
-             // Ensure alliance owner/stats are cleared if marked as dropped (clearAssignmentForSegment handles stats)
-            if (segmentData.owner) {
-                 clearAssignmentForSegment(segmentId, false); // Clear without closing modal or saving yet
-            }
         } else {
-            // Restore original content (including assignment order if active)
             segmentContentElement.innerHTML = segmentData.originalHTMLContent;
-            updateSegmentOrderDisplay(segmentId, segmentData.assignmentOrder); // Re-apply order number if applicable
+            updateSegmentOrderDisplay(segmentId, segmentData.assignmentOrder);
 
-            // Re-apply owner class if not dropped/conflict
-             if (segmentData.owner && alliances[segmentData.owner]) {
+            if (segmentData.owner && alliances[segmentData.owner]) {
                 segmentElement.classList.add(alliances[segmentData.owner].cssClass);
-             }
+                const ownerNameSpan = segmentContentElement.querySelector('.segment-owner-name');
+                if (ownerNameSpan) {
+                    ownerNameSpan.textContent = alliances[segmentData.owner].name;
+                }
+            } else {
+                 const ownerNameSpan = segmentContentElement.querySelector('.segment-owner-name');
+                 if(ownerNameSpan) ownerNameSpan.textContent = '';
+            }
         }
+        bodyElement.classList.toggle('labels-hidden', !labelsVisible);
     }
 
-    // --- NEW: Modal Action Button Handlers ---
-    markConflictButton.addEventListener('click', () => {
+    // --- Conflict Mode Handling ---
+    // ... (Conflict mode functions remain the same) ...
+        function enterConflictSelectionMode() {
         if (!currentSegmentId) return;
         const segmentData = landData[currentSegmentId];
+        if (segmentData.isFixed && fixedAlliancesActive) {
+            alert("Cannot mark conflict on a fixed segment while 'Designated War Palace' is active.");
+            return;
+        }
 
-        // Prompt for alliances
-        const alliance1 = prompt(`Enter the first alliance for conflict at ${currentSegmentId}:`);
-        const alliance2 = prompt(`Enter the second alliance for conflict at ${currentSegmentId}:`);
+        isInConflictSelectionMode = true;
+        conflictSelection = [];
+        modalBody.classList.add('conflict-selection-active');
+        modalDynamicTitleSpan.textContent = "Select TWO Alliances for Conflict";
+        markConflictButton.style.display = 'none';
+        markDropButton.style.display = 'none';
+        clearMarksButton.style.display = 'none';
+        cancelConflictSelectionButton.style.display = 'inline-flex';
 
-        if (alliance1 && alliance2) {
-             // Clear existing owner first if marking conflict
+        populateAllianceButtons(currentSegmentId);
+        clearAllianceButton.disabled = true;
+    }
+
+    function exitConflictSelectionMode(processConflict = false) {
+        isInConflictSelectionMode = false;
+        modalBody.classList.remove('conflict-selection-active');
+        modalDynamicTitleSpan.textContent = "Details & Assignment";
+        markConflictButton.style.display = 'inline-flex';
+        markDropButton.style.display = 'inline-flex';
+        clearMarksButton.style.display = 'inline-flex';
+        cancelConflictSelectionButton.style.display = 'none';
+
+
+        if (processConflict && conflictSelection.length === 2) {
+            const segmentData = landData[currentSegmentId];
             if (segmentData.owner) {
-                clearAssignmentForSegment(currentSegmentId, false); // Clear stats, don't save yet
+                clearAssignmentForSegment(currentSegmentId, false);
             }
 
             segmentData.isConflict = true;
-            segmentData.conflictAlliances = [alliance1.trim().toUpperCase(), alliance2.trim().toUpperCase()]; // Store names
-            segmentData.isDropped = false; // Conflict overrides drop
+            segmentData.conflictAlliances = [...conflictSelection];
+            segmentData.isDropped = false;
 
             updateSegmentVisualState(currentSegmentId);
-            updateAllianceSummary(); // Update summary after clearing potential owner
+            updateAllianceSummary();
             saveState();
-            allianceSelectModal.hide();
+            allianceSelectModalInstance.hide();
         } else {
-            alert("Both alliance names are required to mark conflict.");
+            populateAllianceButtons(currentSegmentId);
+            const segmentData = landData[currentSegmentId];
+            if (!processConflict && segmentData) {
+                 clearAllianceButton.disabled = (segmentData.isFixed && fixedAlliancesActive) || !segmentData.owner || segmentData.isConflict || segmentData.isDropped;
+            }
         }
-    });
+        conflictSelection = [];
+    }
 
+    function handleConflictAllianceSelection(allianceCode) {
+        if (!isInConflictSelectionMode || conflictSelection.length >= 2) return;
+
+        if (!conflictSelection.includes(allianceCode)) {
+            conflictSelection.push(allianceCode);
+            populateAllianceButtons(currentSegmentId);
+        }
+
+        if (conflictSelection.length === 2) {
+             modalDynamicTitleSpan.textContent = `Mark Conflict: ${alliances[conflictSelection[0]].name} vs ${alliances[conflictSelection[1]].name}?`;
+             setTimeout(() => exitConflictSelectionMode(true), 200);
+        }
+    }
+
+    markConflictButton.addEventListener('click', enterConflictSelectionMode);
+    cancelConflictSelectionButton.addEventListener('click', () => exitConflictSelectionMode(false));
+
+    // --- Other Action Button Handlers ---
     markDropButton.addEventListener('click', () => {
         if (!currentSegmentId) return;
         const segmentData = landData[currentSegmentId];
-
-         // Clear existing owner first if marking as dropped (handled by updateSegmentVisualState calling clearAssignmentForSegment)
-         // if (segmentData.owner) {
-         //     clearAssignmentForSegment(currentSegmentId, false); // Clear stats, don't save yet
-         // }
-
+        if (segmentData.isFixed && fixedAlliancesActive) {
+             alert("Cannot mark drop on a fixed segment while 'Designated War Palace' is active.");
+             return;
+        }
+        if (segmentData.owner) {
+            clearAssignmentForSegment(currentSegmentId, false);
+        }
         segmentData.isDropped = true;
-        segmentData.isConflict = false; // Drop overrides conflict
+        segmentData.isConflict = false;
         segmentData.conflictAlliances = [];
-
-        updateSegmentVisualState(currentSegmentId); // This will also trigger clearing the assignment internally
-        updateAllianceSummary(); // Update summary after clearing potential owner
+        updateSegmentVisualState(currentSegmentId);
+        updateAllianceSummary();
         saveState();
-        allianceSelectModal.hide();
+        allianceSelectModalInstance.hide();
     });
 
     clearMarksButton.addEventListener('click', () => {
         if (!currentSegmentId) return;
         const segmentData = landData[currentSegmentId];
-
         segmentData.isConflict = false;
         segmentData.conflictAlliances = [];
         segmentData.isDropped = false;
-
-        updateSegmentVisualState(currentSegmentId); // Restore normal view
-        // No need to update summary unless owner changed, which it doesn't here
+        updateSegmentVisualState(currentSegmentId);
         saveState();
-        allianceSelectModal.hide(); // Keep modal open if needed? For now, close.
-        // Note: This does NOT reassign a previous owner automatically.
+        populateAllianceButtons(currentSegmentId);
     });
 
-
+    // --- Update Order Display ---
     function updateSegmentOrderDisplay(segmentId, orderNumber) {
         const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"] .segment-assignment-order`);
-        if (segmentElement) segmentElement.textContent = orderNumber !== null ? `#${orderNumber}` : ''; // Added '#' prefix
-    }
-
-
-    function recalculateAllianceCounter(allianceCode) {
-        if (!alliances[allianceCode]) return;
-        const alliance = alliances[allianceCode];
-        if (alliance.orderedAssignments.length === 0) {
-            alliance.assignmentCounter = 0;
-        } else {
-            // Ensure orders are numbers and find the max
-            const validOrders = alliance.orderedAssignments
-                                    .map(item => item.order)
-                                    .filter(order => typeof order === 'number' && !isNaN(order));
-            const maxOrder = validOrders.length > 0 ? Math.max(0, ...validOrders) : 0;
-            alliance.assignmentCounter = maxOrder;
+        if (segmentElement) {
+            segmentElement.textContent = orderNumber !== null ? `#${orderNumber}` : '';
         }
     }
 
+    // --- Recalculate Alliance Counter ---
+    function recalculateAllianceCounter(allianceCode) {
+        if (!alliances[allianceCode]) return;
+        const alliance = alliances[allianceCode];
+        const validOrders = alliance.orderedAssignments
+                                .map(item => item.order)
+                                .filter(order => typeof order === 'number' && !isNaN(order));
+        alliance.assignmentCounter = validOrders.length > 0 ? Math.max(0, ...validOrders) : 0;
+    }
 
+    // --- Populate Alliance Buttons in Modal ---
+    function populateAllianceButtons(segmentId) {
+        const segmentData = landData[segmentId];
+        allianceButtonsDiv.innerHTML = '';
 
-    // --- UPDATED: handleSegmentClick ---
+        allianceDisplayOrder.forEach(code => {
+            const data = alliances[code];
+            if (!data) return;
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.classList.add('btn', 'btn-sm', 'w-100', 'alliance-assign-button');
+            button.style.backgroundColor = data.color;
+            button.style.borderColor = data.color;
+            button.style.color = '#fff';
+            button.textContent = data.name;
+            button.dataset.allianceCode = code;
+
+            let isDisabled = false;
+            let disabledReason = null;
+
+            if (isInConflictSelectionMode) {
+                button.onclick = () => handleConflictAllianceSelection(code);
+                if (conflictSelection.includes(code)) {
+                    button.classList.add('selected-for-conflict');
+                    button.disabled = true;
+                    disabledReason = ` (Selected)`;
+                } else if (conflictSelection.length >= 2) {
+                     isDisabled = true;
+                     disabledReason = ` (Max 2)`;
+                }
+            } else {
+                button.onclick = () => handleAllianceSelection(code);
+                if (segmentData.isFixed && fixedAlliancesActive) {
+                    isDisabled = true; disabledReason = ` (Fixed: ${FIXED_ASSIGNMENTS[segmentId]})`;
+                } else if (segmentData.isConflict) {
+                    isDisabled = true; disabledReason = ` (Conflict)`;
+                } else if (segmentData.isDropped) {
+                    isDisabled = true; disabledReason = ` (Dropped)`;
+                } else if (segmentData.owner === code) {
+                     isDisabled = true; disabledReason = ` (Assigned)`;
+                } else {
+                     if (segmentData.type === 'City' && data.cityCount >= data.cityLimit) {
+                         isDisabled = true; disabledReason = ` (Limit: ${data.cityCount}/${data.cityLimit} Cities)`;
+                     } else if (segmentData.type === 'Dig Site' && data.digSiteCount >= data.digSiteLimit) {
+                         isDisabled = true; disabledReason = ` (Limit: ${data.digSiteCount}/${data.digSiteLimit} Digs)`;
+                     }
+                }
+                 if (!isDisabled) {
+                     if(segmentData.type === 'City') button.textContent += ` (${data.cityCount}/${data.cityLimit})`;
+                     else if(segmentData.type === 'Dig Site') button.textContent += ` (${data.digSiteCount}/${data.digSiteLimit})`;
+                 }
+            }
+
+            if (isDisabled || disabledReason) {
+                 button.disabled = true;
+                 if(disabledReason) button.textContent += disabledReason;
+                 button.style.opacity = '0.65';
+                 button.style.cursor = 'not-allowed';
+            }
+            allianceButtonsDiv.appendChild(button);
+        });
+    }
+
+    // --- Handle Segment Click ---
+    // ... (handleSegmentClick function remains largely the same) ...
     function handleSegmentClick(segmentId) {
         const segmentData = landData[segmentId];
-        if (!segmentData) return; // Exit if no data
+        if (!segmentData) return;
+        if (isInConflictSelectionMode) {
+             exitConflictSelectionMode(false);
+        }
 
         currentSegmentId = segmentId;
         modalSegmentIdSpan.textContent = segmentId;
@@ -391,7 +519,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modalSegmentLevelSpan.textContent = segmentData.level !== 'N/A' ? segmentData.level : 'N/A';
         modalSegmentBuffSpan.textContent = `${segmentData.buffValue > 0 ? segmentData.buffValue + '% ' + segmentData.buffType : 'None'}`;
 
-        // Production Info
         let prodText = '';
         if (segmentData.coalPerHour > 0) prodText += `<span class="resource-value">${segmentData.coalPerHour.toLocaleString()}</span> CPH `;
         if (segmentData.rareSoilPerHour > 0) prodText += `<span class="resource-value">${segmentData.rareSoilPerHour.toLocaleString()}</span> RSPH`;
@@ -400,19 +527,17 @@ document.addEventListener('DOMContentLoaded', () => {
             modalProdInfoContainer.style.display = 'block';
         } else {
             modalSegmentProdSpan.innerHTML = 'None';
-            modalProdInfoContainer.style.display = 'block'; // Keep container visible even if None
+            modalProdInfoContainer.style.display = 'block';
         }
 
-        // Resistance Info
         if (segmentData.type === 'Dig Site' && segmentData.resistance) {
             modalSegmentResistanceSpan.textContent = segmentData.resistance.toLocaleString();
             modalResistanceInfoContainer.style.display = 'block';
         } else {
             modalSegmentResistanceSpan.textContent = 'N/A';
-            modalResistanceInfoContainer.style.display = 'block'; // Keep container visible even if N/A
+            modalResistanceInfoContainer.style.display = 'block';
         }
 
-        // Boss Info
         if (segmentData.bossType && segmentData.type === 'Dig Site') {
             let bossHtml = '';
             if (segmentData.bossIcon) {
@@ -423,283 +548,152 @@ document.addEventListener('DOMContentLoaded', () => {
             modalBossInfoContainer.style.display = 'block';
         } else {
             modalSegmentBossSpan.innerHTML = 'N/A';
-            modalBossInfoContainer.style.display = 'block'; // Keep container visible even if N/A
+            modalBossInfoContainer.style.display = 'block';
         }
 
-
-        // Initialize popovers within the modal content just added
         const modalPopoverTriggerList = modalElement.querySelectorAll('[data-bs-toggle="popover"]');
         modalPopoverTriggerList.forEach(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
 
-        // Populate alliance buttons
-        allianceButtonsDiv.innerHTML = '';
-        // Use allianceDisplayOrder to ensure buttons match sidebar order
-        allianceDisplayOrder.forEach(code => {
-            const data = alliances[code];
-            if (!data) return; // Skip if alliance code isn't found
+        populateAllianceButtons(segmentId);
 
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.classList.add('btn', 'btn-sm', 'w-100', 'alliance-assign-button'); // Added class for styling
-            // Apply background color directly for now, could use classes
-            button.style.backgroundColor = data.color;
-            button.style.borderColor = data.color; // Match border
-            button.style.color = '#fff'; // Ensure text contrast
-            button.textContent = `${data.name}`; // Keep it concise
-            button.dataset.allianceCode = code;
+        markConflictButton.disabled = (segmentData.isFixed && fixedAlliancesActive) || segmentData.isConflict || segmentData.isDropped;
+        markDropButton.disabled = (segmentData.isFixed && fixedAlliancesActive) || segmentData.isConflict || segmentData.isDropped;
+        clearMarksButton.disabled = (!segmentData.isConflict && !segmentData.isDropped) || (segmentData.isFixed && fixedAlliancesActive);
 
-             // Disable assigning if fixed & toggle active OR if segment is marked conflict/dropped
-             let disabledReason = null;
-             let limitReached = false;
-             if (segmentData.type === 'City' && data.cityCount >= data.cityLimit) {
-                 disabledReason = ` (Limit: ${data.cityCount}/${data.cityLimit} Cities)`;
-                 limitReached = true;
-             } else if (segmentData.type === 'Dig Site' && data.digSiteCount >= data.digSiteLimit) {
-                 disabledReason = ` (Limit: ${data.digSiteCount}/${data.digSiteLimit} Digs)`;
-                 limitReached = true;
-             }
-
-             if (segmentData.isFixed && fixedAlliancesActive) {
-                 disabledReason = ` (Fixed: ${FIXED_ASSIGNMENTS[segmentId]})`;
-             } else if (segmentData.isConflict) {
-                 disabledReason = ` (Conflict)`;
-             } else if (segmentData.isDropped) {
-                  disabledReason = ` (Dropped)`;
-             } else if (segmentData.owner === code) {
-                disabledReason = ` (Assigned)`;
-             }
-
-            if (disabledReason) {
-                button.disabled = true;
-                button.textContent += disabledReason;
-                button.style.opacity = '0.65';
-                button.style.cursor = 'not-allowed';
-            } else {
-                 button.addEventListener('click', () => handleAllianceSelection(code));
-                 // Optionally add limit counts even if not disabled yet
-                 if(segmentData.type === 'City') button.textContent += ` (${data.cityCount}/${data.cityLimit})`;
-                 else if(segmentData.type === 'Dig Site') button.textContent += ` (${data.digSiteCount}/${data.digSiteLimit})`;
-            }
-            allianceButtonsDiv.appendChild(button);
-        });
-
-
-        // Disable clear button if fixed & active OR if no current owner OR if conflict/dropped
         clearAllianceButton.disabled = (segmentData.isFixed && fixedAlliancesActive) || !segmentData.owner || segmentData.isConflict || segmentData.isDropped;
         clearAllianceButton.onclick = () => handleAllianceSelection(null);
 
-         // Enable/Disable modal action buttons based on state
-         markConflictButton.disabled = (segmentData.isFixed && fixedAlliancesActive);
-         markDropButton.disabled = (segmentData.isFixed && fixedAlliancesActive);
-         clearMarksButton.disabled = !segmentData.isConflict && !segmentData.isDropped; // Only enable if marked
-
-
-        allianceSelectModal.show();
+        allianceSelectModalInstance.show();
     }
 
-    // --- Helper Function to clear assignment for a segment ---
+    // --- Clear Assignment Helper ---
     function clearAssignmentForSegment(segmentId, updateSummaryAndSave = true) {
          const segmentData = landData[segmentId];
-         const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
          const previousOwner = segmentData.owner;
          const previousOrder = segmentData.assignmentOrder;
 
-         if (previousOwner) {
-            const prevAlliance = alliances[previousOwner];
-            if (prevAlliance) {
-                // Decrement counts
-                if (segmentData.type === 'City') prevAlliance.cityCount = Math.max(0, prevAlliance.cityCount - 1);
-                else if (segmentData.type === 'Dig Site') prevAlliance.digSiteCount = Math.max(0, prevAlliance.digSiteCount - 1);
-                // Remove CSS class
-                if (segmentElement) segmentElement.classList.remove(prevAlliance.cssClass);
+         if (!previousOwner) return false;
 
-                // Remove from ordered list
-                if (previousOrder !== null) {
-                    const assignmentIndex = prevAlliance.orderedAssignments.findIndex(item => item.segmentId === segmentId);
-                    if (assignmentIndex > -1) {
-                        prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
-                    }
-                    // Recalculate counter only if updating summary (avoid redundant calcs when called internally)
-                    if (updateSummaryAndSave) {
-                        recalculateAllianceCounter(previousOwner);
-                    }
-                }
-            }
+         const prevAlliance = alliances[previousOwner];
+         if (prevAlliance) {
+             if (segmentData.type === 'City') prevAlliance.cityCount = Math.max(0, prevAlliance.cityCount - 1);
+             else if (segmentData.type === 'Dig Site') prevAlliance.digSiteCount = Math.max(0, prevAlliance.digSiteCount - 1);
+
+             if (previousOrder !== null) {
+                 const assignmentIndex = prevAlliance.orderedAssignments.findIndex(item => item.segmentId === segmentId);
+                 if (assignmentIndex > -1) {
+                     prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
+                     if (updateSummaryAndSave) recalculateAllianceCounter(previousOwner);
+                 }
+             }
          }
-
-
          segmentData.owner = null;
          segmentData.assignmentOrder = null;
-         updateSegmentOrderDisplay(segmentId, null); // Clear order display
-
-         // Update summary and save state if requested (usually true unless called internally by drop/conflict)
          if (updateSummaryAndSave) {
-             updateAllianceSummary(); // This will recalculate buffs/resources
+             updateAllianceSummary();
              saveState();
          }
-         return true; // Indicate success
+         return true;
     }
 
-
+    // --- Handle Alliance Selection (Assignment/Clearing) ---
     function handleAllianceSelection(allianceCode) {
-        if (!currentSegmentId) return;
+        if (!currentSegmentId || isInConflictSelectionMode) return;
         const segmentData = landData[currentSegmentId];
-        const segmentElement = mapGrid.querySelector(`[data-id="${currentSegmentId}"]`);
         let assignmentChanged = false;
-        const previousOwner = segmentData.owner; // Store owner before changes
+        const previousOwner = segmentData.owner;
 
-        // Prevent changing if fixed assignments active, or if marked as conflict/dropped
         if ((segmentData.isFixed && fixedAlliancesActive) || segmentData.isConflict || segmentData.isDropped) {
             console.warn("Assignment blocked: Segment is fixed, conflict, or dropped.");
             return;
         }
 
-        // --- Handle Clearing Assignment ---
-        if (allianceCode === null) {
-             if (clearAssignmentForSegment(currentSegmentId, true)) { // Use helper, update summary & save
+        if (allianceCode === null) { // Clearing
+            if (clearAssignmentForSegment(currentSegmentId, true)) {
                  assignmentChanged = true;
-             }
-        }
-        // --- Handle Assigning New Alliance ---
-        else {
-             const newAlliance = alliances[allianceCode];
-             if (!newAlliance) return; // Should not happen
+            }
+        } else { // Assigning
+            const newAlliance = alliances[allianceCode];
+            if (!newAlliance) return;
 
-             // Check limits
-             if (segmentData.type === 'City' && newAlliance.cityCount >= newAlliance.cityLimit) { alert(`${newAlliance.name} City limit reached.`); return; }
-             if (segmentData.type === 'Dig Site' && newAlliance.digSiteCount >= newAlliance.digSiteLimit) { alert(`${newAlliance.name} Dig Site limit reached.`); return; }
+            if (segmentData.type === 'City' && newAlliance.cityCount >= newAlliance.cityLimit) { alert(`${newAlliance.name} City limit reached.`); return; }
+            if (segmentData.type === 'Dig Site' && newAlliance.digSiteCount >= newAlliance.digSiteLimit) { alert(`${newAlliance.name} Dig Site limit reached.`); return; }
 
-             // Clear previous owner first (if any) using the helper, but DON'T save/update summary yet
-             if (segmentData.owner) {
-                 clearAssignmentForSegment(currentSegmentId, false);
-             }
+            if (segmentData.owner) {
+                clearAssignmentForSegment(currentSegmentId, false);
+            }
 
-            // Assign to new owner
             segmentData.owner = allianceCode;
-            segmentData.isConflict = false; // Assigning clears conflict/drop
+            segmentData.isConflict = false;
             segmentData.isDropped = false;
             segmentData.conflictAlliances = [];
 
-            // Increment counts
             if (segmentData.type === 'City') newAlliance.cityCount++;
             else if (segmentData.type === 'Dig Site') newAlliance.digSiteCount++;
-            // Add CSS class
-            if (segmentElement) segmentElement.classList.add(newAlliance.cssClass);
 
-            // Assign new sequence number
             newAlliance.assignmentCounter++;
             const newOrder = newAlliance.assignmentCounter;
             segmentData.assignmentOrder = newOrder;
             newAlliance.orderedAssignments.push({ segmentId: currentSegmentId, order: newOrder });
-            // Sort the ordered list after adding
             newAlliance.orderedAssignments.sort((a, b) => a.order - b.order);
-
-            updateSegmentOrderDisplay(currentSegmentId, newOrder);
-            updateSegmentVisualState(currentSegmentId); // Ensure content is restored if it was conflict/drop
             assignmentChanged = true;
         }
 
-        // --- Final Actions ---
         if (assignmentChanged) {
-             // Recalculate counters for affected alliances AFTER changes
-             if (previousOwner && previousOwner !== allianceCode) recalculateAllianceCounter(previousOwner); // Recalc previous owner if different
-             if (allianceCode) recalculateAllianceCounter(allianceCode); // Recalc new owner (or the cleared owner if code is null)
-
-            updateAllianceSummary(); // Recalculate buffs/resources and update display
-            saveState();
+            if (previousOwner && previousOwner !== allianceCode) recalculateAllianceCounter(previousOwner);
+            if (allianceCode) recalculateAllianceCounter(allianceCode);
+            updateAllianceSummary();
+            updateSegmentVisualState(currentSegmentId);
+            saveState(); // Auto-save on change
         }
-
-
-        allianceSelectModal.hide();
+        allianceSelectModalInstance.hide();
         currentSegmentId = null;
     }
 
-
-    // --- Clear All Assignments Function ---
-    function clearAllAssignments() {
+    // --- Clear All Assignments ---
+        function clearAllAssignments() {
         const confirmationMessage = fixedAlliancesActive
-            ? "Are you sure you want to clear ALL user-assigned segments? Designated War Palace assignments and Conflict/Drop marks will REMAIN." // Clarified marks remain
-            : "Are you sure you want to clear ALL assigned segments (including fixed) and Conflict/Drop marks? Fixed toggle is OFF."; // Clarified marks cleared too
+            ? "Are you sure you want to clear ALL user-assigned segments? Designated War Palace assignments and Conflict/Drop marks will REMAIN."
+            : "Are you sure you want to clear ALL assigned segments (including fixed) and Conflict/Drop marks? Fixed toggle is OFF.";
 
-        if (!confirm(confirmationMessage)) {
-             return;
-        }
+        if (!confirm(confirmationMessage)) return;
 
-        // Reset alliance counters and lists
         for (const code in alliances) {
-            alliances[code].cityCount = 0;
-            alliances[code].digSiteCount = 0;
-            alliances[code].assignmentCounter = 0;
-            alliances[code].orderedAssignments = [];
-            // Do NOT reset pinned/collapsed status here
+            alliances[code].cityCount = 0; alliances[code].digSiteCount = 0;
+            alliances[code].assignmentCounter = 0; alliances[code].orderedAssignments = [];
         }
 
-        // Process each segment
         for (const segmentId in landData) {
             const segmentData = landData[segmentId];
-            const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
-            segmentData.assignmentOrder = null; // Clear order number
-
-            // Clear existing owner class regardless of type
-            if (segmentData.owner && segmentElement) {
-                Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass));
-            }
-
-             // Handle Conflict/Drop marks based on toggle
-             if (!fixedAlliancesActive) { // Clear marks only if toggle is OFF
-                 segmentData.isConflict = false;
-                 segmentData.conflictAlliances = [];
+            segmentData.assignmentOrder = null;
+             if (!fixedAlliancesActive) {
+                 segmentData.isConflict = false; segmentData.conflictAlliances = [];
                  segmentData.isDropped = false;
              }
-
-            // Reset owner based on fixed status and toggle state
             if (segmentData.isFixed && fixedAlliancesActive && FIXED_ASSIGNMENTS[segmentId]) {
-                 // Re-apply fixed assignment if toggle is ON
                  const fixedOwnerCode = FIXED_ASSIGNMENTS[segmentId];
                  const alliance = alliances[fixedOwnerCode];
                  if (alliance) {
                      segmentData.owner = fixedOwnerCode;
-                     // Recalculate counts for fixed assignments
                      let canAssignFixed = false;
                       if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
                       else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
-                      else { canAssignFixed = true; } // Other types like capitol
-
-                      if(canAssignFixed) {
-                          if(segmentElement) segmentElement.classList.add(alliance.cssClass);
-                      } else {
-                          console.warn(`Clear All: Limit for fixed ${fixedOwnerCode} at ${segmentId}. Cannot assign.`);
-                          segmentData.owner = null; // Reset if limit reached
-                      }
-
-                 } else {
-                    segmentData.owner = null;
-                 }
-            } else {
-                // Clear owner if it's not fixed OR if it is fixed but the toggle is OFF
-                segmentData.owner = null;
-            }
-
-
-            // Update visual state AFTER owner/marks are set
-             updateSegmentVisualState(segmentId);
+                      else { canAssignFixed = true; }
+                      if (!canAssignFixed) { console.warn(`Clear All: Limit for fixed ${fixedOwnerCode} at ${segmentId}. Cannot assign.`); segmentData.owner = null; }
+                 } else { segmentData.owner = null; }
+            } else { segmentData.owner = null; }
+            updateSegmentVisualState(segmentId);
         }
-
-        // Recalculate counters for any remaining fixed assignments
         Object.keys(alliances).forEach(recalculateAllianceCounter);
-
-        updateAllianceSummary(); // Update display with cleared assignments but retaining pin/collapse status
+        updateAllianceSummary();
         saveState();
         console.log("Assignments cleared based on fixed toggle state.");
     }
     clearAllButton.addEventListener('click', clearAllAssignments);
 
-
-    // --- Toggle Fixed Alliances Function ---
+    // --- Toggle Fixed Alliances ---
     function toggleFixedAlliances(isActive) {
         fixedAlliancesActive = isActive;
-
-        // Store current owners before potentially changing them
         const ownersBeforeToggle = {};
         Object.keys(landData).forEach(id => ownersBeforeToggle[id] = landData[id].owner);
 
@@ -708,128 +702,79 @@ document.addEventListener('DOMContentLoaded', () => {
                 const segmentData = landData[segmentId];
                 const fixedAllianceCode = FIXED_ASSIGNMENTS[segmentId];
                 const alliance = alliances[fixedAllianceCode];
-                const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
-                const currentOwner = ownersBeforeToggle[segmentId]; // Use owner before this loop started
+                const currentOwner = ownersBeforeToggle[segmentId];
 
-                if (isActive) {
-                    // --- Turning Fixed ON ---
-                    // Clear conflict/drop status for the fixed segment
-                    segmentData.isConflict = false;
-                    segmentData.conflictAlliances = [];
-                    segmentData.isDropped = false;
-
-                    // If it's not currently owned by the correct fixed alliance
+                if (isActive) { // Turning Fixed ON
+                    segmentData.isConflict = false; segmentData.conflictAlliances = []; segmentData.isDropped = false;
                     if (currentOwner !== fixedAllianceCode) {
-                        // 1. Remove from previous owner if it had one (stats only)
-                        if (currentOwner && alliances[currentOwner]) {
+                        if (currentOwner && alliances[currentOwner]) { // Remove from previous
                             const prevAlliance = alliances[currentOwner];
                             if (segmentData.type === 'City') prevAlliance.cityCount = Math.max(0, prevAlliance.cityCount - 1);
                             else if (segmentData.type === 'Dig Site') prevAlliance.digSiteCount = Math.max(0, prevAlliance.digSiteCount - 1);
-                             // Remove from ordered list if it had an order number
                             if (segmentData.assignmentOrder !== null) {
                                  const assignmentIndex = prevAlliance.orderedAssignments.findIndex(item => item.segmentId === segmentId);
-                                 if (assignmentIndex > -1) {
-                                     prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
-                                 }
+                                 if (assignmentIndex > -1) prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
                             }
-                             // Recalculate counter for the PREVIOUS owner immediately after removal
                             recalculateAllianceCounter(currentOwner);
                         }
-
-
-                        // 2. Assign to the correct fixed alliance (check limits)
-                        segmentData.owner = fixedAllianceCode;
+                        segmentData.owner = fixedAllianceCode; // Assign to fixed
                         if (alliance) {
                              let canAssignFixed = false;
                              if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
                              else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
-                             else { canAssignFixed = true; } // Allow other types
-
-                             if (canAssignFixed) {
-                                if (segmentElement) {
-                                     Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass)); // Clear old colors
-                                     segmentElement.classList.add(alliance.cssClass);
-                                }
-                             } else {
-                                console.warn(`Toggle ON conflict: Limit for fixed ${fixedAllianceCode} at ${segmentId}. Cannot assign.`);
-                                segmentData.owner = null; // Cannot assign due to limit
-                                if(segmentElement) Object.values(alliances).forEach(a => segmentElement.classList.remove(a.cssClass));
-                             }
-                        } else {
-                             segmentData.owner = null;
-                        }
+                             else { canAssignFixed = true; }
+                             if (!canAssignFixed) { console.warn(`Toggle ON: Limit for fixed ${fixedAllianceCode} at ${segmentId}. Cannot assign.`); segmentData.owner = null; }
+                        } else { segmentData.owner = null; }
                     }
-                     // Ensure it loses any user-assigned order number if it had one (even if owner didn't change)
                     segmentData.assignmentOrder = null;
-
-
-                } else {
-                    // --- Turning Fixed OFF ---
-                    // If it's currently owned by the fixed alliance, release it (make it user assignable)
+                } else { // Turning Fixed OFF
                     if (currentOwner === fixedAllianceCode) {
                         if(alliance) {
                              if (segmentData.type === 'City') alliance.cityCount = Math.max(0, alliance.cityCount - 1);
                              else if (segmentData.type === 'Dig Site') alliance.digSiteCount = Math.max(0, alliance.digSiteCount - 1);
-                             if(segmentElement) segmentElement.classList.remove(alliance.cssClass);
-                              // Recalculate counter for the fixed alliance being released
                              recalculateAllianceCounter(fixedAllianceCode);
                         }
                         segmentData.owner = null;
-                        segmentData.assignmentOrder = null; // Ensure no order
+                        segmentData.assignmentOrder = null;
                     }
-                    // If owned by someone else, or no one, do nothing (it's already user-controlled)
                 }
-                 updateSegmentVisualState(segmentId); // Update visuals after potential changes
+                 updateSegmentVisualState(segmentId);
             }
         }
-        // Recalculate all counters after processing all fixed assignments just in case
-         // Object.keys(alliances).forEach(recalculateAllianceCounter); // Might be needed if limits caused issues
-        updateAllianceSummary(); // Recalculate buffs/resources and update display
+        updateAllianceSummary();
         saveState();
     }
-
-
     fixedAllianceToggle.addEventListener('change', (event) => toggleFixedAlliances(event.target.checked));
 
-
-    // --- Toggle Assignment Order View Function ---
+    // --- Toggle Assignment Order View ---
     function toggleAssignmentOrderView(isActive) {
         assignmentOrderActive = isActive;
-        if (isActive) {
-            bodyElement.classList.add('assignment-order-active');
-        } else {
-            bodyElement.classList.remove('assignment-order-active');
-        }
-        // Don't save view state preference, let it reset on load maybe? Or save if desired.
-        // saveState(); // Optional: Save view state preference
+        bodyElement.classList.toggle('assignment-order-active', isActive);
+        saveState(); // Save view preference
     }
     assignmentOrderToggle.addEventListener('change', (event) => toggleAssignmentOrderView(event.target.checked));
 
-    // --- NEW: Toggle Label Visibility Function ---
+    // --- Toggle Label Visibility ---
     function toggleLabelVisibility(isVisible) {
         labelsVisible = isVisible;
-        if (isVisible) {
-            bodyElement.classList.remove('labels-hidden');
-        } else {
-            bodyElement.classList.add('labels-hidden');
-        }
-         saveState(); // Save the label visibility state
+        bodyElement.classList.toggle('labels-hidden', !isVisible);
     }
-    labelVisibilityToggle.addEventListener('change', (event) => toggleLabelVisibility(event.target.checked));
+    labelVisibilityToggle.addEventListener('change', (event) => {
+        toggleLabelVisibility(event.target.checked);
+        saveState(); // Save state only on direct user interaction
+    });
 
 
-    function calculateAllianceBuffs() {
+    // --- Calculate Alliance Stats ---
+     function calculateAllianceBuffs() {
         for (const code in alliances) { alliances[code].buffs = {}; }
         for (const segmentId in landData) {
             const segment = landData[segmentId];
-            // Only count buffs if segment is owned AND not dropped/conflict
             if (segment.owner && alliances[segment.owner] && !segment.isConflict && !segment.isDropped) {
                 const alliance = alliances[segment.owner];
-                const buffType = segment.buffType;
-                const buffValue = segment.buffValue;
-                if (buffValue > 0 && buffType) {
-                    if (!alliance.buffs[buffType]) alliance.buffs[buffType] = 0;
-                    alliance.buffs[buffType] += buffValue;
+                if (segment.buffValue > 0 && segment.buffType) {
+                    if (!alliance.buffs[segment.buffType]) alliance.buffs[segment.buffType] = 0;
+                    alliance.buffs[segment.buffType] += segment.buffValue;
                 }
             }
         }
@@ -838,41 +783,38 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const code in alliances) { alliances[code].totalCPH = 0; alliances[code].totalRSPH = 0; }
         for (const segmentId in landData) {
             const segment = landData[segmentId];
-             // Only count resources if segment is owned AND not dropped/conflict
              if (segment.owner && alliances[segment.owner] && !segment.isConflict && !segment.isDropped) {
                 alliances[segment.owner].totalCPH += segment.coalPerHour || 0;
                 alliances[segment.owner].totalRSPH += segment.rareSoilPerHour || 0;
             }
         }
     }
-    function initializePopovers() {
-        // Dispose existing popovers first
-        if (popoverTriggerList && popoverTriggerList.length > 0) {
-            popoverTriggerList.forEach(p => p.dispose());
-        }
-        // Re-initialize for elements currently in the DOM
-        const newPopoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
-        popoverTriggerList = [...newPopoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
-            trigger: 'hover focus', // Ensure trigger is set correctly
-            html: true // Allow HTML in popovers if needed
+
+
+    // --- Initialize Popovers ---
+     function initializePopovers() {
+        const existingPopovers = document.querySelectorAll('[data-bs-toggle="popover"]');
+        existingPopovers.forEach(el => {
+             const instance = bootstrap.Popover.getInstance(el);
+             if (instance) instance.dispose();
+        });
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+        [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+             trigger: 'hover focus', html: true
         }));
     }
 
-
-    // --- NEW: Toggle Pin Status ---
+    // --- Summary Pin/Collapse Toggles ---
     function toggleAlliancePin(allianceCode) {
         if (alliances[allianceCode]) {
             alliances[allianceCode].isPinned = !alliances[allianceCode].isPinned;
-            updateAllianceSummary(); // Re-render the summary to reflect pinning order
+            updateAllianceSummary();
             saveState();
         }
     }
-
-    // --- NEW: Toggle Collapse Status ---
     function toggleAllianceCollapse(allianceCode) {
         if (alliances[allianceCode]) {
             alliances[allianceCode].isCollapsed = !alliances[allianceCode].isCollapsed;
-            // Find the specific summary item and toggle its class
             const summaryItem = summaryItemContainer.querySelector(`.summary-item[data-alliance-code="${allianceCode}"]`);
             const collapseIcon = summaryItem?.querySelector('.summary-collapse-toggle i');
             if (summaryItem && collapseIcon) {
@@ -884,30 +826,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Update Alliance Summary Display ---
     function updateAllianceSummary() {
         calculateAllianceBuffs();
         calculateAllianceResources();
-        summaryItemContainer.innerHTML = ''; // Clear previous summary
+        summaryItemContainer.innerHTML = '';
 
-        // Separate pinned and unpinned alliances based on the display order
         const pinnedAlliances = allianceDisplayOrder.filter(code => alliances[code]?.isPinned);
         const unpinnedAlliances = allianceDisplayOrder.filter(code => !alliances[code]?.isPinned);
-
-        // Combine, putting pinned first, then unpinned
         const displayOrder = [...pinnedAlliances, ...unpinnedAlliances];
 
         displayOrder.forEach(code => {
             const data = alliances[code];
-            if (!data) return; // Skip if alliance code isn't found
+            if (!data) return;
 
             const itemDiv = document.createElement('div');
-            itemDiv.classList.add('summary-item');
-            itemDiv.dataset.allianceCode = code; // Add data attribute for easier selection
-            itemDiv.classList.toggle('pinned', data.isPinned); // Apply pinned class
-            itemDiv.classList.toggle('collapsed', data.isCollapsed); // Apply collapsed class
+            itemDiv.className = `summary-item ${data.isPinned ? 'pinned' : ''} ${data.isCollapsed ? 'collapsed' : ''}`;
+            itemDiv.dataset.allianceCode = code;
 
             const headerDiv = document.createElement('div');
-            headerDiv.classList.add('summary-header');
+            headerDiv.className = 'summary-header';
             headerDiv.innerHTML = `
                 <span class="summary-color-dot" style="background-color: ${data.color};"></span>
                 <span class="summary-alliance-name">${data.name}</span>
@@ -922,25 +860,24 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             const resourcesDiv = document.createElement('div');
-            resourcesDiv.classList.add('summary-resources');
+            resourcesDiv.className = 'summary-resources';
             resourcesDiv.innerHTML = `<span><span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Coal Per Hour">Cph</span><span class="resource-value">${data.totalCPH.toLocaleString() || 0}</span></span> | <span><span class="resource-label" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Rare Soil Per Hour">RSph</span><span class="resource-value">${data.totalRSPH.toLocaleString() || 0}</span></span>`;
 
             const countsDiv = document.createElement('div');
-            countsDiv.classList.add('summary-counts');
+            countsDiv.className = 'summary-counts';
             countsDiv.innerHTML = `Cities: ${data.cityCount}/${data.cityLimit} | Digs: ${data.digSiteCount}/${data.digSiteLimit}`;
 
             const buffsUl = document.createElement('ul');
-            buffsUl.classList.add('summary-buffs-list');
-             const sortedBuffTypes = ALL_BUFF_TYPES.filter(buffType => data.buffs[buffType] > 0);
-
+            buffsUl.className = 'summary-buffs-list';
+            const sortedBuffTypes = ALL_BUFF_TYPES.filter(buffType => data.buffs[buffType] > 0);
             sortedBuffTypes.forEach(buffType => {
-                const buffValue = data.buffs[buffType] || 0;
-                const iconClass = getIconClass(buffType);
                 const buffLi = document.createElement('li');
-                buffLi.innerHTML = `<i class="${iconClass}"></i><span class="buff-name">${buffType}</span><span class="buff-value">${buffValue}%</span>`;
+                buffLi.innerHTML = `<i class="${getIconClass(buffType)}"></i><span class="buff-name">${buffType}</span><span class="buff-value">${data.buffs[buffType] || 0}%</span>`;
                 buffsUl.appendChild(buffLi);
             });
-
+            if (sortedBuffTypes.length === 0) {
+                buffsUl.innerHTML = '<li class="no-buffs">No active buffs</li>';
+            }
 
             itemDiv.appendChild(headerDiv);
             itemDiv.appendChild(resourcesDiv);
@@ -948,449 +885,407 @@ document.addEventListener('DOMContentLoaded', () => {
             itemDiv.appendChild(buffsUl);
             summaryItemContainer.appendChild(itemDiv);
 
-            // Add event listeners for the new buttons within this item
-            const pinButton = itemDiv.querySelector('.summary-pin-toggle');
-            const collapseButton = itemDiv.querySelector('.summary-collapse-toggle');
-
-            if (pinButton) {
-                pinButton.addEventListener('click', (e) => {
-                     e.stopPropagation(); // Prevent triggering other clicks if needed
-                     toggleAlliancePin(code);
-                });
-            }
-             if (collapseButton) {
-                collapseButton.addEventListener('click', (e) => {
-                     e.stopPropagation();
-                     toggleAllianceCollapse(code);
-                });
-            }
-
+            itemDiv.querySelector('.summary-pin-toggle')?.addEventListener('click', (e) => { e.stopPropagation(); toggleAlliancePin(code); });
+            itemDiv.querySelector('.summary-collapse-toggle')?.addEventListener('click', (e) => { e.stopPropagation(); toggleAllianceCollapse(code); });
         });
-        initializePopovers(); // Re-initialize popovers for the new content
+        initializePopovers(); // Re-initialize popovers after summary update
     }
 
-    // --- Save State ---
+    // --- Save State (Auto-save) ---
     function saveState() {
         const stateToSave = {
-            assignments: {},
-            markers: {},
-            fixedActive: fixedAlliancesActive,
-            assignmentOrderViewActive: assignmentOrderActive, // Keep saving this? Or remove if reset on load desired.
-            labelsVisible: labelsVisible,
-            // NEW: Save summary item states
+            assignments: {}, markers: {}, fixedActive: fixedAlliancesActive,
+            assignmentOrderViewActive: assignmentOrderActive, labelsVisible: labelsVisible,
             summaryStates: {}
         };
 
         for (const segmentId in landData) {
             const segmentData = landData[segmentId];
-            // Save user assignment if owner exists, NOT fixed, AND has order number
-            if (segmentData.owner && !segmentData.isFixed && segmentData.assignmentOrder !== null) {
-                stateToSave.assignments[segmentId] = {
-                    owner: segmentData.owner,
-                    order: segmentData.assignmentOrder
-                };
+            // Save assignments only if they are NOT fixed OR if fixed toggle is OFF
+            if (segmentData.owner && segmentData.assignmentOrder !== null && (!segmentData.isFixed || !fixedAlliancesActive)) {
+                stateToSave.assignments[segmentId] = { owner: segmentData.owner, order: segmentData.assignmentOrder };
             }
-            // Save conflict/drop markers
-            if (segmentData.isConflict || segmentData.isDropped) {
-                 stateToSave.markers[segmentId] = {
-                     isConflict: segmentData.isConflict,
-                     conflictAlliances: segmentData.conflictAlliances,
-                     isDropped: segmentData.isDropped
-                 };
-            }
+            // Save markers only if they are NOT fixed OR if fixed toggle is OFF
+             if ((segmentData.isConflict || segmentData.isDropped) && (!segmentData.isFixed || !fixedAlliancesActive)) {
+                 stateToSave.markers[segmentId] = { isConflict: segmentData.isConflict, conflictAlliances: segmentData.conflictAlliances, isDropped: segmentData.isDropped };
+             }
         }
-
-        // NEW: Save pin/collapse status for each alliance
         for (const code in alliances) {
-             stateToSave.summaryStates[code] = {
-                 isPinned: alliances[code].isPinned,
-                 isCollapsed: alliances[code].isCollapsed
-             };
+             stateToSave.summaryStates[code] = { isPinned: alliances[code].isPinned, isCollapsed: alliances[code].isCollapsed };
         }
 
-        localStorage.setItem(SAVE_KEY, JSON.stringify(stateToSave));
-         // console.log("State Saved:", stateToSave); // For debugging
+        try {
+            // Use the single auto-save key
+            localStorage.setItem(SAVE_KEY, JSON.stringify(stateToSave));
+            // console.log(`Map state auto-saved to key: ${SAVE_KEY}`); // Optional: keep for debugging
+        } catch (e) {
+            console.error("Error auto-saving state to localStorage:", e);
+            // Avoid alerting on auto-save errors to prevent annoyance
+        }
     }
 
-     // --- NEW: Helper Function for applying fixed assignments on load ---
-     function applyFixedAssignmentsOnLoad() {
-         if (fixedAlliancesActive) {
-             for (const segmentId in FIXED_ASSIGNMENTS) {
-                 if (landData[segmentId]) {
-                     const segmentData = landData[segmentId];
-                     const allianceCode = FIXED_ASSIGNMENTS[segmentId];
-                     const alliance = alliances[allianceCode];
+    // --- Apply Fixed Assignments on Load ---
+        function applyFixedAssignmentsOnLoad() {
+        if (fixedAlliancesActive) {
+            for (const segmentId in FIXED_ASSIGNMENTS) {
+                if (landData[segmentId]) {
+                    const segmentData = landData[segmentId];
+                    const allianceCode = FIXED_ASSIGNMENTS[segmentId];
+                    const alliance = alliances[allianceCode];
+                    if (alliance && (!segmentData.owner || segmentData.owner !== allianceCode)) {
+                        if(segmentData.owner && segmentData.owner !== allianceCode) {
+                             console.warn(`Init: Overwriting saved owner ${segmentData.owner} with fixed ${allianceCode} for ${segmentId}`);
+                             clearAssignmentForSegment(segmentId, false);
+                        }
+                        let canAssignFixed = false;
+                        if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
+                        else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
+                        else { canAssignFixed = true; }
 
-                     // Check if not already owned (might have been loaded from save state before toggle check)
-                     if (alliance && !segmentData.owner) {
-                          let canAssignFixed = false;
-                         if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
-                         else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
-                         else { canAssignFixed = true; } // Allow assigning other types like Capitol
+                        if (canAssignFixed) {
+                            segmentData.owner = allianceCode;
+                            segmentData.assignmentOrder = null;
+                            segmentData.isConflict = false; segmentData.isDropped = false; segmentData.conflictAlliances = [];
+                        } else {
+                             console.warn(`Init: Limit for fixed ${allianceCode} at ${segmentId}. Cannot assign.`);
+                             segmentData.owner = null;
+                        }
+                    } else if (segmentData.owner === allianceCode) {
+                         segmentData.isConflict = false; segmentData.isDropped = false; segmentData.conflictAlliances = [];
+                         segmentData.assignmentOrder = null;
+                    }
+                }
+            }
+        }
+    }
 
-                         if (canAssignFixed) {
-                             segmentData.owner = allianceCode;
-                             // Visual update will happen later in initializeMapState
-                         } else {
-                              console.warn(`Init conflict: Limit for fixed ${allianceCode} at ${segmentId}.`);
-                         }
-                     } else if(segmentData.owner && segmentData.owner !== allianceCode) {
-                         // If it was loaded with a different owner from save state, overwrite it with fixed
-                         console.warn(`Init conflict: Overwriting saved owner ${segmentData.owner} with fixed ${allianceCode} for ${segmentId}`);
-                         // Correct stats for previous owner
-                         const prevAlliance = alliances[segmentData.owner];
-                         if(prevAlliance) {
-                             if (segmentData.type === 'City') prevAlliance.cityCount = Math.max(0, prevAlliance.cityCount - 1);
-                             else if (segmentData.type === 'Dig Site') prevAlliance.digSiteCount = Math.max(0, prevAlliance.digSiteCount - 1);
-                             // Remove from ordered list if applicable
-                             const assignmentIndex = prevAlliance.orderedAssignments.findIndex(item => item.segmentId === segmentId);
-                             if (assignmentIndex > -1) prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
-                             recalculateAllianceCounter(segmentData.owner); // Recalculate previous owner
-                         }
+    // --- Initialize/Load Map State (Auto-load) ---
+    function initializeMapState() {
+        const savedStateRaw = localStorage.getItem(SAVE_KEY); // Use single auto-save key
+        let parsedState = { assignments: {}, markers: {}, fixedActive: true, assignmentOrderViewActive: false, labelsVisible: true, summaryStates: {} };
 
-                         // Now assign to fixed owner (checking limits again)
-                         let canAssignFixed = false;
-                         if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
-                         else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
-                         else { canAssignFixed = true; }
+        console.log(`Initializing map state internally from key: ${SAVE_KEY}`);
 
-                          if (canAssignFixed) {
-                             segmentData.owner = allianceCode;
-                             segmentData.assignmentOrder = null; // Fixed assignments have no order number
-                         } else {
-                              console.warn(`Init conflict: Limit for fixed ${allianceCode} at ${segmentId} after overwrite attempt.`);
-                              segmentData.owner = null; // Can't assign due to limit
-                         }
-                     }
-                 }
-             }
-         }
-     }
+        if (savedStateRaw) {
+            try {
+                const loaded = JSON.parse(savedStateRaw);
+                if (loaded && typeof loaded.assignments === 'object' && loaded.assignments !== null &&
+                    typeof loaded.markers === 'object' && loaded.markers !== null &&
+                    typeof loaded.fixedActive === 'boolean' &&
+                    typeof loaded.summaryStates === 'object' && loaded.summaryStates !== null) {
+                    parsedState = loaded;
+                    parsedState.assignmentOrderViewActive = typeof loaded.assignmentOrderViewActive === 'boolean' ? loaded.assignmentOrderViewActive : false;
+                    parsedState.labelsVisible = typeof loaded.labelsVisible === 'boolean' ? loaded.labelsVisible : true;
+                } else {
+                    console.warn(`Invalid saved state structure (Key: ${SAVE_KEY}), using defaults.`);
+                    localStorage.removeItem(SAVE_KEY);
+                }
+            } catch (e) {
+                console.error(`Failed to parse saved state (Key: ${SAVE_KEY}), using defaults.`, e);
+                localStorage.removeItem(SAVE_KEY);
+            }
+        }
 
+        // Apply toggle states FIRST
+        fixedAlliancesActive = parsedState.fixedActive; fixedAllianceToggle.checked = fixedAlliancesActive;
+        assignmentOrderActive = parsedState.assignmentOrderViewActive; assignmentOrderToggle.checked = assignmentOrderActive;
+        labelsVisible = parsedState.labelsVisible; labelVisibilityToggle.checked = labelsVisible;
+        bodyElement.classList.toggle('assignment-order-active', assignmentOrderActive);
+        bodyElement.classList.toggle('labels-hidden', !labelsVisible);
 
-    // --- Initialize Map State (Load) ---
-     function initializeMapState() {
-         const savedStateRaw = localStorage.getItem(SAVE_KEY);
-         let parsedState = {
-             assignments: {},
-             markers: {},
-             fixedActive: true,
-             assignmentOrderViewActive: false,
-             labelsVisible: true,
-             summaryStates: {} // NEW default
-         };
+        // Reset Counts and Map State
+        resetMapState();
 
-         // Try to parse saved state
-         if (savedStateRaw) {
-             try {
-                 const loaded = JSON.parse(savedStateRaw);
-                 // Basic validation - ensure all expected top-level keys exist
-                 if (loaded && typeof loaded.assignments === 'object' && loaded.assignments !== null &&
-                     typeof loaded.markers === 'object' && loaded.markers !== null &&
-                     typeof loaded.fixedActive === 'boolean' &&
-                     typeof loaded.assignmentOrderViewActive === 'boolean' &&
-                     typeof loaded.labelsVisible === 'boolean' &&
-                     typeof loaded.summaryStates === 'object' && loaded.summaryStates !== null) { // Validate new structure
-                     parsedState = loaded;
-                 } else {
-                     console.warn(`Invalid saved state structure (v8: ${SAVE_KEY}), using defaults.`);
-                     localStorage.removeItem(SAVE_KEY);
-                 }
-             } catch (e) {
-                 console.error(`Failed to parse saved state (v8: ${SAVE_KEY}), using defaults.`, e);
-                 localStorage.removeItem(SAVE_KEY);
-             }
-         }
+        // Apply Saved User Assignments
+        applyUserAssignments(parsedState.assignments);
 
+        // Apply Fixed Assignments
+        applyFixedAssignmentsOnLoad();
 
-         // Apply loaded/default toggle states FIRST
-         fixedAlliancesActive = parsedState.fixedActive;
-         fixedAllianceToggle.checked = fixedAlliancesActive;
-         assignmentOrderActive = parsedState.assignmentOrderViewActive; // Apply saved view state
-         assignmentOrderToggle.checked = assignmentOrderActive;
-         labelsVisible = parsedState.labelsVisible; // Apply saved label visibility
-         labelVisibilityToggle.checked = labelsVisible;
+        // Sort orders and recalc counters
+        for (const code in alliances) {
+            alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
+            recalculateAllianceCounter(code);
+        }
 
-         // Apply body classes based on loaded state immediately
-         toggleAssignmentOrderView(assignmentOrderActive); // Set initial class
-         toggleLabelVisibility(labelsVisible); // Set initial class
+        // Apply Saved Markers
+        applyMarkers(parsedState.markers);
 
+        // Apply saved Summary States
+        applySummaryStates(parsedState.summaryStates);
 
-         // --- Reset Counts and Map State FIRST ---
+        console.log(`Map state initialized internally. Visual refresh needed.`);
+    }
+
+    // --- Helper: Reset Map State ---
+    function resetMapState() {
          for (const code in alliances) {
-             alliances[code].cityCount = 0;
-             alliances[code].digSiteCount = 0;
-             alliances[code].buffs = {};
-             alliances[code].totalCPH = 0;
-             alliances[code].totalRSPH = 0;
-             alliances[code].assignmentCounter = 0;
-             alliances[code].orderedAssignments = [];
-             // Apply saved pin/collapse state here
-             if (parsedState.summaryStates && parsedState.summaryStates[code]) {
-                 alliances[code].isPinned = !!parsedState.summaryStates[code].isPinned;
-                 alliances[code].isCollapsed = !!parsedState.summaryStates[code].isCollapsed;
+             alliances[code].cityCount = 0; alliances[code].digSiteCount = 0; alliances[code].buffs = {};
+             alliances[code].totalCPH = 0; alliances[code].totalRSPH = 0; alliances[code].assignmentCounter = 0; alliances[code].orderedAssignments = [];
+         }
+         for (const segmentId in landData) {
+             landData[segmentId].owner = null; landData[segmentId].assignmentOrder = null;
+             landData[segmentId].isConflict = false; landData[segmentId].conflictAlliances = []; landData[segmentId].isDropped = false;
+         }
+         console.log("Internal map state reset.");
+    }
+
+    // --- Helper: Apply User Assignments ---
+    function applyUserAssignments(assignments) {
+         const validAssignments = Object.entries(assignments || {})
+            .filter(([id, data]) => data && data.owner && typeof data.order === 'number' && landData[id] && !landData[id].isFixed);
+
+         validAssignments.forEach(([segmentId, assignmentData]) => {
+             const segmentData = landData[segmentId];
+             const allianceCode = assignmentData.owner;
+             const alliance = alliances[allianceCode];
+             if (alliance) {
+                 let canAssignUser = false;
+                 if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignUser = true; } }
+                 else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignUser = true; } }
+                 else { canAssignUser = true; }
+                 if (canAssignUser) {
+                     segmentData.owner = allianceCode;
+                     segmentData.assignmentOrder = assignmentData.order;
+                     alliance.orderedAssignments.push({ segmentId: segmentId, order: assignmentData.order });
+                 } else { console.warn(`Load/Import: Limit reached for ${allianceCode} at ${segmentId}. Assignment ignored.`); }
+             } else { console.warn(`Load/Import: Unknown alliance code "${allianceCode}" found for ${segmentId}. Assignment ignored.`); }
+         });
+         console.log(`Applied ${validAssignments.length} user assignments.`);
+    }
+
+     // --- Helper: Apply Markers ---
+    function applyMarkers(markers) {
+         let appliedCount = 0;
+         for (const segmentId in markers || {}) {
+            if (landData[segmentId]) {
+                const segmentData = landData[segmentId];
+                const markerData = markers[segmentId];
+                if (!segmentData.owner || !segmentData.isFixed || !fixedAlliancesActive) {
+                     if ((markerData.isDropped || markerData.isConflict) && segmentData.owner) {
+                         console.warn(`Load/Import: Clearing owner ${segmentData.owner} from ${segmentId} due to drop/conflict marker.`);
+                         clearAssignmentForSegment(segmentId, false);
+                     }
+                     segmentData.isConflict = markerData.isConflict || false;
+                     segmentData.conflictAlliances = markerData.conflictAlliances || [];
+                     segmentData.isDropped = markerData.isDropped || false;
+                     appliedCount++;
+                } else { console.warn(`Load/Import: Conflict/Drop marker ignored for ${segmentId} because it's a fixed assignment.`); }
+            }
+        }
+        console.log(`Applied ${appliedCount} markers.`);
+    }
+
+    // --- Helper: Apply Summary States ---
+    function applySummaryStates(summaryStates) {
+         for (const code in alliances) {
+             if (summaryStates && summaryStates[code]) {
+                 alliances[code].isPinned = !!summaryStates[code].isPinned;
+                 alliances[code].isCollapsed = !!summaryStates[code].isCollapsed;
              } else {
                  alliances[code].isPinned = false;
                  alliances[code].isCollapsed = false;
              }
          }
+        console.log("Applied summary pin/collapse states.");
+    }
 
-         // Clear visual state and internal data state from map elements
-         for (const segmentId in landData) {
-             landData[segmentId].owner = null;
-             landData[segmentId].assignmentOrder = null;
-             landData[segmentId].isConflict = false; // Reset markers
-             landData[segmentId].conflictAlliances = [];
-             landData[segmentId].isDropped = false;
-         }
-
-
-         // --- Apply Saved User Assignments FIRST (before fixed, to allow fixed to override) ---
-         const maxOrderPerAlliance = {};
-         // Ensure assignments have owner and order before sorting/processing
-         const validAssignments = Object.entries(parsedState.assignments)
-             .filter(([id, data]) => data && data.owner && typeof data.order === 'number' && landData[id]);
-
-         // Don't sort globally yet, process per alliance later if needed for counter
-         // const sortedAssignments = validAssignments.sort(([, a], [, b]) => a.order - b.order);
-
-
-         validAssignments.forEach(([segmentId, assignmentData]) => {
-              const segmentData = landData[segmentId];
-              const allianceCode = assignmentData.owner;
-              const alliance = alliances[allianceCode];
-
-              // Load assignment regardless of fixed toggle state initially.
-              // The applyFixedAssignmentsOnLoad function will handle overwriting if the toggle is ON.
-              if (alliance && !segmentData.isFixed) { // Only load for non-fixed segments here
-                 // Also ensure it wasn't already assigned (e.g., by fixed assignment logic above)
-                  if (!segmentData.owner) {
-                      let canAssignUser = false;
-                      if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignUser = true; } }
-                      else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignUser = true; } }
-                       else { canAssignUser = true; } // Allow other types
-
-                      if (canAssignUser) {
-                          segmentData.owner = allianceCode;
-                          segmentData.assignmentOrder = assignmentData.order;
-                          alliance.orderedAssignments.push({ segmentId: segmentId, order: assignmentData.order });
-                          // Don't directly update maxOrder here, do it after processing all
-                      } else {
-                          console.warn(`Load conflict: Limit reached for ${allianceCode} at ${segmentId}. Saved assignment ignored.`);
-                      }
-                  } else {
-                       console.warn(`Load conflict: Segment ${segmentId} already owned by ${segmentData.owner}. Saved assignment for ${allianceCode} ignored.`);
-                  }
-
-              } else if (!alliance) {
-                  console.warn(`Load warning: Unknown alliance code "${allianceCode}" found for ${segmentId}. Saved assignment ignored.`);
-              } else if (segmentData.isFixed) {
-                   // We specifically ignore loading saved assignments for fixed segments here,
-                   // they will be handled by applyFixedAssignmentsOnLoad if the toggle is ON.
-                   // console.log(`Skipping saved assignment for fixed segment ${segmentId}, will be handled by toggle.`);
-              }
-          });
-
-
-         // --- Apply Fixed Assignments (potentially overwriting saved user assignments if toggle is active) ---
-         applyFixedAssignmentsOnLoad();
-
-
-         // --- Sort ordered assignments within each alliance and find max order ---
-         for (const code in alliances) {
-             alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
-             recalculateAllianceCounter(code); // Recalculate based on loaded assignments
-         }
-
-
-         // --- Apply Saved Markers (Conflict/Drop) ---
-         for (const segmentId in parsedState.markers) {
-             if (landData[segmentId]) {
-                 const segmentData = landData[segmentId];
-                 const markerData = parsedState.markers[segmentId];
-                 // Apply marker state ONLY if the segment isn't currently a fixed assignment (when toggle is ON)
-                  // AND only if it doesn't currently have an owner assigned by the fixed toggle logic
-                 if (!segmentData.owner || !segmentData.isFixed || !fixedAlliancesActive) {
-                      // If applying drop or conflict marker, ensure owner/stats are cleared FIRST
-                     if ((markerData.isDropped || markerData.isConflict) && segmentData.owner) {
-                          console.warn(`Load: Clearing owner ${segmentData.owner} from ${segmentId} due to saved drop/conflict marker.`);
-                          clearAssignmentForSegment(segmentId, false); // Clear internally without saving/updating summary yet
-                     }
-
-                     segmentData.isConflict = markerData.isConflict || false;
-                     segmentData.conflictAlliances = markerData.conflictAlliances || [];
-                     segmentData.isDropped = markerData.isDropped || false;
-
-                 } else {
-                      console.warn(`Load Conflict/Drop marker ignored for ${segmentId} because it's a fixed assignment or already owned by fixed.`);
-                 }
-             }
-         }
-
-         // --- Final Update and Visual Sync ---
-          // Now update all segment visuals based on the loaded owner and marker data
-          Object.keys(landData).forEach(segmentId => {
-              updateSegmentVisualState(segmentId); // Updates color, content based on owner/conflict/drop
-             // updateSegmentOrderDisplay(segmentId, landData[segmentId].assignmentOrder); // Order display handled within updateSegmentVisualState restoration
-          });
-
-
-         updateAllianceSummary(); // Calculate buffs/resources and display summary including pin/collapse states
-         console.log("Map state initialized.");
+    // --- Helper: Update All Segments Visual State ---
+    function updateAllSegmentsVisualState() {
+        console.log("Updating all segment visuals...");
+        Object.keys(landData).forEach(updateSegmentVisualState);
+        console.log("Finished updating all segment visuals.");
     }
 
 
-    // --- NEW: Load Current State from Google Sheet ---
-    // Function definition remains the same...
-    async function loadCurrentStateFromSheet() {
-        alert("Connecting to Google Sheet to load current state..."); // Placeholder feedback
+    // --- Load from Google Sheet (Placeholder - requires setup) ---
+    // ... (loadCurrentStateFromSheet function remains the same - placeholder) ...
 
-        // --- Google Sheets API Integration Placeholder ---
-        const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'; // Replace with your actual Sheet ID
-        const RANGE = 'Sheet1!A:B'; // Example: Column A = Segment ID, Column B = Alliance Tag (Adjust if needed)
-        const API_KEY = 'YOUR_API_KEY'; // Replace with your API Key (if using for public sheet)
+    // --- Sidebar Toggle Logic ---
+        function setSidebarState(isActive) {
+        const sidebarIcon = sidebarToggleBtn.querySelector('i');
+        bodyElement.classList.toggle('sidebar-active', isActive);
+        allianceSummaryDiv.classList.toggle('sidebar-collapsed', !isActive);
+        sidebarToggleBtn.title = isActive ? "Hide Alliance Summary" : "Show Alliance Summary";
+        if (sidebarIcon) sidebarIcon.className = isActive ? 'fa-solid fa-chevron-right' : 'fa-solid fa-bars';
+    }
+    sidebarToggleBtn.addEventListener('click', () => setSidebarState(!bodyElement.classList.contains('sidebar-active')));
 
-        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+    // Removed Save/Load Slot Logic (handleSaveState, handleLoadState, updateSaveLoadButtonStyles, event listeners)
+
+
+    // --- Import/Export Logic ---
+    function generateMapCode() {
+        const stateToExport = {
+             assignments: {}, markers: {},
+             // Export view settings as well for better restoration
+             fixedActive: fixedAlliancesActive,
+             assignmentOrderViewActive: assignmentOrderActive,
+             labelsVisible: labelsVisible,
+             summaryStates: {} // Export summary states too
+        };
+
+        for (const segmentId in landData) {
+            const segmentData = landData[segmentId];
+            // Export assignments only if they are NOT fixed OR if fixed toggle is OFF
+            if (segmentData.owner && segmentData.assignmentOrder !== null && (!segmentData.isFixed || !fixedAlliancesActive)) {
+                stateToExport.assignments[segmentId] = { owner: segmentData.owner, order: segmentData.assignmentOrder };
+            }
+            // Export markers only if they are NOT fixed OR if fixed toggle is OFF
+             if ((segmentData.isConflict || segmentData.isDropped) && (!segmentData.isFixed || !fixedAlliancesActive)) {
+                 stateToExport.markers[segmentId] = { isConflict: segmentData.isConflict, conflictAlliances: segmentData.conflictAlliances, isDropped: segmentData.isDropped };
+             }
+        }
+         for (const code in alliances) { // Export summary states
+             stateToExport.summaryStates[code] = { isPinned: alliances[code].isPinned, isCollapsed: alliances[code].isCollapsed };
+        }
 
         try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                 let errorBody = await response.text();
-                 try { errorBody = JSON.parse(errorBody).error.message; } catch(e) { /* Ignore */ }
-                throw new Error(`Google Sheets API Error: ${response.status} ${response.statusText}. ${errorBody}`);
-            }
-            const data = await response.json();
+            const jsonString = JSON.stringify(stateToExport);
+            return btoa(jsonString); // Encode to Base64
+        } catch (e) {
+            console.error("Error generating export code:", e);
+            alert("Failed to generate export code.");
+            return null;
+        }
+    }
 
-            if (!data.values || data.values.length <= 1) {
-                alert("No data found in the specified Google Sheet range (or only header row).");
+    function handleExportMap() {
+        const code = generateMapCode();
+        if (code) {
+            codeModalLabel.textContent = "Export Map Code";
+            codeModalInstructions.textContent = "Copy the code below to share or save your current map state (including non-fixed assignments, markers, view toggles, and sidebar pin/collapse states).";
+            codeModalTextarea.value = code;
+            codeModalTextarea.readOnly = true;
+            copyFeedbackElement.style.display = 'none'; // Hide feedback initially
+            copyCodeButton.innerHTML = '<i class="fa-regular fa-copy me-1"></i>Copy Code'; // Reset button text/icon
+            codeModalInstance.show();
+        }
+    }
+
+    function handleImportMap() {
+        const code = prompt("Paste the map code here to load a saved state:");
+        if (code === null || code.trim() === "") {
+            return; // User cancelled or entered nothing
+        }
+
+        try {
+            const jsonString = atob(code.trim()); // Decode Base64
+            const importedState = JSON.parse(jsonString);
+
+            // Validate imported structure more thoroughly
+            if (!importedState || typeof importedState.assignments !== 'object' ||
+                typeof importedState.markers !== 'object' || typeof importedState.fixedActive !== 'boolean' ||
+                typeof importedState.assignmentOrderViewActive !== 'boolean' || typeof importedState.labelsVisible !== 'boolean' ||
+                typeof importedState.summaryStates !== 'object') {
+                throw new Error("Invalid or incomplete code structure.");
+            }
+
+            if (!confirm("Importing this code will overwrite your current map state, including view settings. Continue?")) {
                 return;
             }
 
-            // Reset current state before applying sheet data
+            console.log("Applying imported state...");
+
+             // --- Apply imported state directly ---
+            // Apply toggle states FIRST from imported data
+            fixedAlliancesActive = importedState.fixedActive; fixedAllianceToggle.checked = fixedAlliancesActive;
+            assignmentOrderActive = importedState.assignmentOrderViewActive; assignmentOrderToggle.checked = assignmentOrderActive;
+            labelsVisible = importedState.labelsVisible; labelVisibilityToggle.checked = labelsVisible;
+            bodyElement.classList.toggle('assignment-order-active', assignmentOrderActive);
+            bodyElement.classList.toggle('labels-hidden', !labelsVisible);
+
+            // Reset internal counts/assignments
+            resetMapState();
+
+            // Apply imported user assignments
+            applyUserAssignments(importedState.assignments);
+
+            // Apply fixed assignments (based on the *imported* toggle state)
+            applyFixedAssignmentsOnLoad();
+
+            // Recalculate counters
             for (const code in alliances) {
-                 alliances[code].cityCount = 0;
-                 alliances[code].digSiteCount = 0;
-                 alliances[code].assignmentCounter = 0;
-                 alliances[code].orderedAssignments = [];
-                 alliances[code].buffs = {};
-                 alliances[code].totalCPH = 0;
-                 alliances[code].totalRSPH = 0;
-            }
-            for (const segmentId in landData) {
-                 const segmentData = landData[segmentId];
-                 segmentData.owner = null;
-                 segmentData.assignmentOrder = null;
-                 segmentData.isConflict = false;
-                 segmentData.conflictAlliances = [];
-                 segmentData.isDropped = false;
+                alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
+                recalculateAllianceCounter(code);
             }
 
-             applyFixedAssignmentsOnLoad(); // Re-apply fixed assignments after clearing
+            // Apply imported markers
+            applyMarkers(importedState.markers);
 
-            let assignedCount = 0;
-            const sheetAssignments = {};
-            for (let i = 1; i < data.values.length; i++) { // Skip header
-                const row = data.values[i];
-                if (row && row[0]) {
-                    const segmentId = row[0].trim().toUpperCase();
-                    const allianceCode = row[1] ? row[1].trim().toUpperCase() : null;
-                    if (landData[segmentId]) {
-                         if(landData[segmentId].owner) {
-                              console.warn(`Sheet Load: Segment ${segmentId} already assigned to ${landData[segmentId].owner} (likely fixed). Ignoring sheet value ${allianceCode}.`);
-                         } else if (allianceCode === null) {
-                             sheetAssignments[segmentId] = null; // Explicitly unassigned
-                         } else if (alliances[allianceCode]) {
-                              sheetAssignments[segmentId] = allianceCode;
-                         } else {
-                              console.warn(`Skipping sheet row ${i + 1}: Invalid alliance code '${row[1]}' for segment '${segmentId}'`);
-                         }
-                    } else {
-                         console.warn(`Skipping sheet row ${i + 1}: Invalid segment ID '${segmentId}'`);
-                    }
-                }
-            }
+            // Apply imported summary states
+            applySummaryStates(importedState.summaryStates);
 
-            // Apply assignments from sheet
-            for (const segmentId in sheetAssignments) {
-                 const allianceCode = sheetAssignments[segmentId];
-                 const segmentData = landData[segmentId];
-                 const alliance = allianceCode ? alliances[allianceCode] : null;
 
-                 if(segmentData.owner) continue; // Skip if already owned (fixed)
+            // --- Explicitly refresh visuals AFTER import ---
+            console.log("Queueing visual refresh after import...");
+             setTimeout(() => {
+                 console.log("Executing delayed visual refresh after import...");
+                 updateAllSegmentsVisualState();
+                 updateAllianceSummary(); // This now uses the imported pin/collapse states
+                 initializePopovers();
 
-                 if (allianceCode === null) {
-                      segmentData.owner = null;
-                 } else if (alliance) {
-                      let canAssign = false;
-                      if (segmentData.type === 'City' && alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssign = true; }
-                      else if (segmentData.type === 'Dig Site' && alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssign = true; }
-                      else if (segmentData.type !== 'City' && segmentData.type !== 'Dig Site') { canAssign = true; }
+                 saveState(); // Save the successfully imported state as the new auto-save
 
-                      if (canAssign) {
-                          segmentData.owner = allianceCode;
-                          assignedCount++;
-                      } else {
-                          console.warn(`Sheet Load: Limit reached for ${allianceCode} at ${segmentId}. Assignment ignored.`);
-                      }
-                 }
-            }
+                 console.log("Delayed visual refresh after import complete.");
+                 alert("Map state imported successfully!");
+             }, 0); // 0ms delay
 
-            Object.keys(landData).forEach(updateSegmentVisualState);
-            updateAllianceSummary();
-            // saveState(); // Optional: save loaded state
-
-            alert(`Loaded state for ${assignedCount} segments from Google Sheet (Fixed assignments maintained).`);
-
-        } catch (error) {
-            console.error("Error loading data from Google Sheet:", error);
-            alert(`Failed to load data from Google Sheet. Check console for details. Error: ${error.message}`);
+        } catch (e) {
+            console.error("Error importing map code:", e);
+            alert(`Failed to import map code. ${e.message}. Please ensure the code is valid and complete.`);
         }
     }
 
+    // Add event listeners for Import/Export buttons
+    exportMapButton.addEventListener('click', handleExportMap);
+    importMapButton.addEventListener('click', handleImportMap);
 
-    // --- Sidebar Toggle Logic ---
-    function setSidebarState(isActive) {
-        const sidebarIcon = sidebarToggleBtn.querySelector('i');
-        if(isActive) {
-            bodyElement.classList.add('sidebar-active');
-            allianceSummaryDiv.classList.remove('sidebar-collapsed');
-            sidebarToggleBtn.title = "Hide Alliance Summary";
-            if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-chevron-right';
+    // Improved Copy Button Logic
+    copyCodeButton.addEventListener('click', () => {
+        const codeToCopy = codeModalTextarea.value;
+        if (!codeToCopy) return;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                copyFeedbackElement.style.display = 'block'; // Show feedback
+                copyCodeButton.innerHTML = '<i class="fa-solid fa-check me-1"></i>Copied!';
+                setTimeout(() => {
+                     copyFeedbackElement.style.display = 'none';
+                     copyCodeButton.innerHTML = '<i class="fa-regular fa-copy me-1"></i>Copy Code';
+                }, 2000); // Hide feedback after 2 seconds
+            }).catch(err => {
+                console.error('Clipboard API copy failed:', err);
+                alert("Could not copy code automatically. Please copy manually.");
+            });
         } else {
-            bodyElement.classList.remove('sidebar-active');
-            allianceSummaryDiv.classList.add('sidebar-collapsed');
-            sidebarToggleBtn.title = "Show Alliance Summary";
-            if (sidebarIcon) sidebarIcon.className = 'fa-solid fa-bars';
+             // Fallback for older browsers (less reliable)
+            try {
+                codeModalTextarea.select();
+                document.execCommand('copy');
+                copyFeedbackElement.style.display = 'block';
+                copyCodeButton.innerHTML = '<i class="fa-solid fa-check me-1"></i>Copied!';
+                setTimeout(() => {
+                     copyFeedbackElement.style.display = 'none';
+                     copyCodeButton.innerHTML = '<i class="fa-regular fa-copy me-1"></i>Copy Code';
+                 }, 2000);
+            } catch (e) {
+                console.error('Fallback copy failed:', e);
+                alert("Could not copy code automatically. Please copy manually.");
+            }
         }
-        // Update panzoom after sidebar animation might finish
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                // Panzoom should auto-detect container resize with CSS.
-                // Re-center map slightly if needed after sidebar state change
-                 // centerOnG7(); // Optional: re-center after toggle
-            }, 350); // Delay to wait for CSS transition
-        });
-    }
-    sidebarToggleBtn.addEventListener('click', () => {
-        const currentlyActive = bodyElement.classList.contains('sidebar-active');
-        setSidebarState(!currentlyActive);
     });
 
 
     // --- Initial Load ---
-    initializeMapState(); // Load saved state first
-    // Set initial sidebar state based on whether 'sidebar-active' class exists AFTER load
+    initializeMapState(); // Load default auto-save state first
+     setTimeout(() => { // Use setTimeout for initial render consistency
+        console.log("Executing initial visual refresh...");
+        updateAllSegmentsVisualState();
+        updateAllianceSummary();
+        initializePopovers();
+        console.log("Initial visual refresh complete.");
+     }, 0);
     setSidebarState(bodyElement.classList.contains('sidebar-active'));
-    // Initialize popovers globally after everything is loaded
-    initializePopovers();
-
-    // --- Add Event Listener for Load Button ---
-    // Ensure the button exists before adding the listener
-    if (loadCurrentStateButton) {
-         loadCurrentStateButton.addEventListener('click', loadCurrentStateFromSheet);
-    } else {
-         console.warn("Element with ID 'load-current-state-button' not found.");
-    }
-
 
 }); // End DOMContentLoaded
