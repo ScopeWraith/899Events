@@ -15,7 +15,8 @@ html, body {
     --conflict-border-color: rgba(255, 100, 0, 0.9); /* Orange-red */
     --conflict-glow-color: rgba(255, 100, 0, 0.6);
     --dropped-indicator-color: rgba(200, 0, 0, 0.7);
-    --button-dock-width: 50px;
+    --button-dock-width: 65px; /* Increased width for text */
+    --live-active-color: #20c997; /* Bootstrap $success */
 }
 
 #map-container {
@@ -156,17 +157,8 @@ body.sidebar-active #map-container {
 .segment-resistance:empty { visibility: hidden; }
 
 
-/* Assignment Order Styling */
-.segment-assignment-order {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 3rem; font-weight: bold; line-height: 1;
-    color: var(--bs-warning);
-    display: none;
-    z-index: 5; opacity: 0.7;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
-}
+/* Assignment Order Styling (Removed related classes/styles) */
+/* .segment-assignment-order { ... } */
 
 /* Alliance Owner Name Styling */
 .segment-owner-name {
@@ -194,22 +186,8 @@ body.sidebar-active #map-container {
 }
 
 
-/* --- Toggle Visibility based on body class --- */
-body:not(.assignment-order-active) .segment-content > *:not(.segment-assignment-order):not(.segment-owner-name),
-body:not(.assignment-order-active) .segment-owner-name { display: block; }
-body:not(.assignment-order-active) .segment-icon { display: block; }
-body:not(.assignment-order-active) .segment-assignment-order { display: none; }
-
-body.assignment-order-active .segment-name,
-body.assignment-order-active .segment-icon,
-body.assignment-order-active .segment-buff,
-body.assignment-order-active .segment-owner-name { display: none !important; }
-body.assignment-order-active .segment-assignment-order { display: block; }
-body.assignment-order-active .segment-resistance:not(:empty),
-body.assignment-order-active .segment-boss-icon { display: block; opacity: 1; margin-top: auto; }
-
-
-/* --- Label Visibility Toggle --- */
+/* --- Toggle Visibility based on body class (Removed assignment order logic) --- */
+/* Keep existing label visibility logic */
 body.labels-hidden .segment-content > * { opacity: 0 !important; visibility: hidden !important; transition: opacity 0.2s ease, visibility 0.2s ease; }
 body.labels-hidden .segment-label, body.labels-hidden .segment-level { opacity: 0.5; }
 body.labels-hidden .segment-boss-icon { opacity: 0.2; visibility: visible; }
@@ -240,7 +218,7 @@ body.labels-hidden .segment-boss-icon { opacity: 0.2; visibility: visible; }
 .map-segment[class*="alliance-"] .segment-resistance { color: #fff !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); }
 .map-segment.city[class*="alliance-"] .segment-name { color: #ffd700 !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); }
 .map-segment:not(.city)[class*="alliance-"] .segment-name { color: #fff !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); }
-.map-segment[class*="alliance-"] .segment-assignment-order { color: #ffffff !important; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); }
+/* .map-segment[class*="alliance-"] .segment-assignment-order { ... } */ /* Removed */
 .map-segment[class*="alliance-"] .segment-owner-name { color: #fff !important; }
 .map-segment[class*="alliance-"] .segment-boss-icon { opacity: 0.95; }
 
@@ -259,9 +237,8 @@ body.labels-hidden .segment-boss-icon { opacity: 0.2; visibility: visible; }
 }
 #alliance-summary.sidebar-collapsed { transform: translateX(100%); }
 
-/* Removed Save/Load Container Styles */
 
-/* Original Toggle Containers */
+/* Original Toggle Containers (Removed Assignment Order toggle) */
 .fixed-toggle-container {
     min-height: 35px; background-color: var(--bs-tertiary-bg); flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; padding: 5px 10px;
@@ -299,10 +276,43 @@ body.sidebar-active #sidebar-button-dock { left: calc(100% - var(--sidebar-width
 body:not(.sidebar-active) #sidebar-button-dock { left: calc(100% - var(--button-dock-width)); }
 
 #sidebar-button-dock .btn {
-    padding: 0.3rem 0.5rem; font-size: 0.9rem;
-    width: calc(var(--button-dock-width) - 10px); height: calc(var(--button-dock-width) - 10px);
-    display: flex; justify-content: center; align-items: center;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.9rem;
+    width: calc(var(--button-dock-width) - 10px);
+    height: auto; /* Allow height to adjust for text */
+    min-height: calc(var(--button-dock-width) - 10px); /* Ensure minimum height */
+    display: flex;
+    flex-direction: column; /* Stack icon and text vertically */
+    justify-content: center;
+    align-items: center;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    line-height: 1.1; /* Adjust line height */
+    gap: 2px; /* Space between icon and text */
+}
+
+#sidebar-button-dock .btn i {
+    font-size: 1.1rem; /* Adjust icon size if needed */
+    margin-bottom: 1px; /* Small space below icon */
+}
+
+#sidebar-button-dock .btn .button-text {
+    font-size: 0.6rem; /* Smaller text size */
+    display: block; /* Ensure it takes space */
+    text-transform: uppercase; /* Optional: make text uppercase */
+    font-weight: 600; /* Optional: slightly bolder */
+}
+
+/* LIVE Button Active State */
+#live-map-button.live-map-active .button-text {
+    color: var(--live-active-color) !important;
+    font-weight: bold;
+}
+#live-map-button.live-map-active i {
+    color: var(--live-active-color) !important;
+}
+#live-map-button.live-map-active {
+     border-color: var(--live-active-color); /* Optional: add border */
+     box-shadow: 0 0 5px var(--live-active-color); /* Optional: add glow */
 }
 
 
@@ -382,20 +392,20 @@ body:not(.sidebar-active) #sidebar-button-dock { left: calc(100% - var(--button-
 @media (max-width: 992px) {
     :root {
          --sidebar-width: 250px;
-         --button-dock-width: 45px;
+         --button-dock-width: 60px; /* Adjust mobile dock width */
      }
     body.sidebar-active #map-container { width: calc(100% - var(--sidebar-width)); }
     .summary-alliance-name { font-size: 0.9rem;} .summary-resources, .summary-counts, .summary-buffs-list { font-size: 0.75rem; }
 
-    /* Removed save/load styles */
-
     #sidebar-button-dock { top: 10px; gap: 6px; padding: 8px 4px; }
-    #sidebar-button-dock .btn { width: calc(var(--button-dock-width) - 8px); height: calc(var(--button-dock-width) - 8px); font-size: 0.8rem; }
+    #sidebar-button-dock .btn { width: calc(var(--button-dock-width) - 8px); min-height: calc(var(--button-dock-width) - 8px); }
+    #sidebar-button-dock .btn i { font-size: 1rem; }
+    #sidebar-button-dock .btn .button-text { font-size: 0.55rem; }
 }
 @media (max-width: 768px) {
     :root {
         --sidebar-width: 220px;
-        --button-dock-width: 40px;
+        --button-dock-width: 50px; /* Adjust smaller mobile dock width */
     }
     #map-grid { grid-template-columns: repeat(13, minmax(80px, 1fr)); grid-template-rows: repeat(13, minmax(80px, 1fr)); width: 1300px; height: 1300px; }
     .map-segment { font-size: 0.7rem; }
@@ -405,7 +415,7 @@ body:not(.sidebar-active) #sidebar-button-dock { left: calc(100% - var(--button-
     .segment-level { font-size: 0.7rem; }
     .segment-icon { font-size: 1.1rem; margin-bottom: 1px;}
     .segment-buff, .segment-resistance { font-size: 0.65rem; min-height: 1.5em; }
-    .segment-assignment-order { font-size: 2rem; }
+    /* .segment-assignment-order { font-size: 2rem; } */ /* Removed */
     .segment-boss-icon { width: 16px; height: 16px; bottom: 0px; right: 1px; }
     .segment-owner-name { font-size: 0.68rem; top: -6px; left: 19px; }
     .segment-content .conflict-indicator { font-size: 0.8rem; }
@@ -421,9 +431,10 @@ body:not(.sidebar-active) #sidebar-button-dock { left: calc(100% - var(--button-
     #allianceSelectModal .info-group strong { min-width: 60px; }
     #allianceSelectModal #alliance-buttons { max-height: 120px; }
 
-     /* Removed save/load styles */
 
     #sidebar-button-dock { top: 10px; gap: 5px; padding: 6px 3px; }
-     #sidebar-button-dock .btn { width: calc(var(--button-dock-width) - 6px); height: calc(var(--button-dock-width) - 6px); font-size: 0.75rem; }
+     #sidebar-button-dock .btn { width: calc(var(--button-dock-width) - 6px); min-height: calc(var(--button-dock-width) - 6px); }
+    #sidebar-button-dock .btn i { font-size: 0.9rem; }
+    #sidebar-button-dock .btn .button-text { font-size: 0.5rem; }
 
 }

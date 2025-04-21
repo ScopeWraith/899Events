@@ -4,15 +4,20 @@
  * - Interactive S2 map with alliance assignments.
  * - Conflict/Drop marking.
  * - Fixed War Palace assignments (toggleable).
- * - Capture order view (toggleable).
  * - Label visibility (toggleable).
  * - Alliance summary sidebar with resource/buff calculation.
  * - Pin/Collapse alliance summaries.
  * - Import/Export map state via Base64 code.
+ * - LIVE map import from internal constant variable.
  * - Automatic local storage saving.
  */
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration & Data ---
+
+    // !!! IMPORTANT: Manually update this constant with the Base64 encoded JSON string for the LIVE map data !!!
+    const LIVE_MAP_DATA_B64 = "eyJhc3NpZ25tZW50cyI6eyJBMiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6MX0sIkE0Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo2fSwiQTUiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjd9LCJBNiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6OH0sIkE4Ijp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjozfSwiQTEwIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo2fSwiQTExIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjoxfSwiQTEyIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjoyfSwiQTEzIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjozfSwiQjEiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjF9LCJCMiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6Mn0sIkIzIjp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjozfSwiQjQiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjR9LCJCNSI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6NX0sIkI2Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo5fSwiQjciOnsib3duZXIiOiJDT0xEIiwib3JkZXIiOjF9LCJCOCI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6Mn0sIkI5Ijp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo0fSwiQjEwIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo1fSwiQjExIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo3fSwiQjEyIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo4fSwiQjEzIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjoxfSwiQzEiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjJ9LCJDMiI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6OX0sIkMzIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjoxMH0sIkMxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6Mn0sIkQxIjp7Im93bmVyIjoiYWRIRCIsIm9yZGVyIjozfSwiRDIiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjZ9LCJEMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjN9LCJEMTMiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjR9LCJFMSI6eyJvd25lciI6ImFkSEQiLCJvcmRlciI6NH0sIkUyIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjo3fSwiRTMiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjh9LCJFMTIiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjF9LCJFMTMiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjJ9LCJGMiI6eyJvd25lciI6ImFkSEQiLCJvcmRlciI6NX0sIkYxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6NX0sIkYxMyI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6Nn0sIkcyIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjo1fSwiRzMiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjZ9LCJHMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjd9LCJIMSI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6NH0sIkgxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6OH0sIkkyIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjoyfSwiSTMiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjN9LCJJMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjl9LCJJMTMiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjJ9LCJKMSI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6MX0sIko0Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo4fSwiSjYiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjd9LCJKMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjEwfSwiSjEzIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjozfSwiSzEiOnsib3duZXIiOiJUb25lIiwib3JkZXIiOjF9LCJLMiI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6MTB9LCJLNSI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6Nn0sIks5Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjoyfSwiSzEyIjp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjo5fSwiSzEzIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjo0fSwiTDMiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjl9LCJMNSI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6NX0sIkw3Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjozfSwiTDkiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjF9LCJMMTAiOnsib3duZXIiOiJWYUxUIiwib3JkZXIiOjEyfSwiTDExIjp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxMX0sIkwxMiI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6Nn0sIkwxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6N30sIk02Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo0fSwiTTciOnsib3duZXIiOiJWYUxUIiwib3JkZXIiOjE2fSwiTTgiOnsib3duZXIiOiJWYUxUIiwib3JkZXIiOjE1fSwiTTkiOnsib3duZXIiOiJWYUxUIiwib3JkZXIiOjE0fSwiTTEwIjp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxM30sIk0xMSI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6MTB9LCJNMTIiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjl9LCJNMTMiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjh9fSwibWFya2VycyI6e30sImZpeGVkQWN0aXZlIjpmYWxzZSwibGFiZWxzVmlzaWJsZSI6dHJ1ZSwic3VtbWFyeVN0YXRlcyI6eyJhRGhEIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiVEhPUiI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sImZBZk8iOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJIZVJhIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiQ09MRCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIlZhTFQiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJhZEhEIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiQlJTTCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIlRvbmUiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJNSU5JIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwieWk2ciI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX19fQ=="; // Example: "ewogICJhc3NpZ25tZW50cyI6IHsgIkExIjogeyAib3duZXIiOiAiVEhPUiIsICJvcmRlciI6IDEgfSB9LAogICJtYXJrZXJzIjogeyAiQTIiOiB7ICJpc0NvbmZsaWN0IjogZmFsc2UsICJjb25mbGljdEFsbGlhbmNlcyI6IFtdLCAiaXNEcm9wcGVkIjogdHJ1ZSB9IH0KfQ=="
+    // The above example assigns A1 to THOR and marks A2 as dropped. Replace with your actual data.
+
     const alliances = {
         aDhD: { name: 'aDhD', color: 'rgba(232, 62, 140, 0.7)', cssClass: 'alliance-adhd-pink', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
         THOR: { name: 'THOR', color: 'rgba(0, 123, 255, 0.7)', cssClass: 'alliance-thor', cityLimit: 6, digSiteLimit: 4, cityCount: 0, digSiteCount: 0, buffs: {}, totalCPH: 0, totalRSPH: 0, assignmentCounter: 0, orderedAssignments: [], isPinned: false, isCollapsed: false },
@@ -64,15 +69,17 @@ document.addEventListener('DOMContentLoaded', () => {
         L2: 'Air', L4: 'Missile', L6: 'Tank', L8: 'Air', L10: 'Missile', L12: 'Tank',
         M1: 'Missile', M3: 'Tank', M5: 'Air', M7: 'Missile', M9: 'Tank', M11: 'Air', M13: 'Missile'
      };
-    const SAVE_KEY = 'allianceMapState_v11_autosave'; // Single key for auto-save
+    const SAVE_KEY = 'allianceMapState_v12_autosave'; // Keep version key consistent unless schema changes
 
     // --- State Variables ---
     let fixedAlliancesActive = true;
-    let assignmentOrderActive = false;
+    // let assignmentOrderActive = false; // Removed
     let labelsVisible = true;
     let currentSegmentId = null;
     let isInConflictSelectionMode = false;
     let conflictSelection = [];
+    let liveMapLoaded = false; // Track if LIVE map was the last load action
+    let mapStateDirtyAfterLiveLoad = false; // Track changes *after* LIVE load
 
     // --- Helper Functions ---
     function getIconClass(buffType) {
@@ -89,8 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
             default: return 'fa-solid fa-question-circle';
         }
     }
-
-    // Removed getCurrentSaveKey function
 
     // --- Parse Land Data ---
     landDataInput.forEach(item => {
@@ -174,16 +179,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Other Buttons/Toggles
     const clearAllButton = document.getElementById('clear-all-button');
     const fixedAllianceToggle = document.getElementById('fixed-alliance-toggle');
-    const assignmentOrderToggle = document.getElementById('assignment-order-toggle');
+    // const assignmentOrderToggle = document.getElementById('assignment-order-toggle'); // Removed
     const labelVisibilityToggle = document.getElementById('label-visibility-toggle');
     const summaryItemContainer = allianceSummaryDiv.querySelector('.summary-item-container');
     const infoButton = document.getElementById('info-button');
     const infoModalElement = document.getElementById('infoModal');
     // const infoModal = new bootstrap.Modal(infoModalElement);
 
-    // Import/Export Elements
+    // Import/Export/Live Elements
     const importMapButton = document.getElementById('import-map-button');
     const exportMapButton = document.getElementById('export-map-button');
+    const liveMapButton = document.getElementById('live-map-button'); // Added LIVE button
     const codeModalElement = document.getElementById('codeModal');
     const codeModalInstance = new bootstrap.Modal(codeModalElement);
     const codeModalLabel = document.getElementById('codeModalLabel');
@@ -192,11 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyCodeButton = document.getElementById('copyCodeButton');
     const copyFeedbackElement = document.getElementById('copyFeedback'); // Get feedback element
 
-    // Removed Save/Load Slot Button variables
-
 
     // --- Map Generation ---
-    // ... (Map generation code remains the same) ...
     const rows = 'ABCDEFGHIJKLM';
     for (let r = 0; r < 13; r++) {
         for (let c = 1; c <= 13; c++) {
@@ -221,13 +224,13 @@ document.addEventListener('DOMContentLoaded', () => {
                  resistanceHTML = `<span class="segment-resistance"></span>`;
             }
 
+            // Removed segment-assignment-order span from originalHTMLContent
             segmentData.originalHTMLContent = `
                 <span class="segment-name">${segmentData.name}</span>
                 <i class="segment-icon ${segmentData.iconClass}"></i>
-                <span class="segment-buff">${segmentData.buffValue > 0 ? segmentData.buffValue + '% ' + segmentData.buffType : ''}</span>
+                <span class="segment-buff">${segmentData.buffValue > 0 ? segmentData.buffValue + '%' + segmentData.buffType : ''}</span>
                 ${resistanceHTML}
-                <span class="segment-assignment-order"></span>
-                <span class="segment-owner-name"></span> `;
+                <span class="segment-owner-name"></span> `; // Removed assignment order span
 
             segmentDiv.innerHTML = `
                 <span class="segment-label">${segmentId}</span>
@@ -301,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
             segmentContentElement.innerHTML = `<span class="dropped-indicator">X</span>`;
         } else {
             segmentContentElement.innerHTML = segmentData.originalHTMLContent;
-            updateSegmentOrderDisplay(segmentId, segmentData.assignmentOrder);
+            // updateSegmentOrderDisplay(segmentId, segmentData.assignmentOrder); // Removed call
 
             if (segmentData.owner && alliances[segmentData.owner]) {
                 segmentElement.classList.add(alliances[segmentData.owner].cssClass);
@@ -407,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         segmentData.conflictAlliances = [];
         updateSegmentVisualState(currentSegmentId);
         updateAllianceSummary();
-        saveState();
+        saveState(); // This will now also trigger mapStateDirtyAfterLiveLoad if needed
         allianceSelectModalInstance.hide();
     });
 
@@ -418,25 +421,22 @@ document.addEventListener('DOMContentLoaded', () => {
         segmentData.conflictAlliances = [];
         segmentData.isDropped = false;
         updateSegmentVisualState(currentSegmentId);
-        saveState();
+        saveState(); // This will now also trigger mapStateDirtyAfterLiveLoad if needed
         populateAllianceButtons(currentSegmentId);
     });
 
-    // --- Update Order Display ---
-    function updateSegmentOrderDisplay(segmentId, orderNumber) {
-        const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"] .segment-assignment-order`);
-        if (segmentElement) {
-            segmentElement.textContent = orderNumber !== null ? `#${orderNumber}` : '';
-        }
-    }
+    // --- Update Order Display (Removed) ---
+    // function updateSegmentOrderDisplay(segmentId, orderNumber) { ... }
 
     // --- Recalculate Alliance Counter ---
+    // No change needed here, but assignmentOrder is now less critical for display
     function recalculateAllianceCounter(allianceCode) {
         if (!alliances[allianceCode]) return;
         const alliance = alliances[allianceCode];
-        const validOrders = alliance.orderedAssignments
-                                .map(item => item.order)
-                                .filter(order => typeof order === 'number' && !isNaN(order));
+        // Count non-null, unique, numeric orders
+        const validOrders = [...new Set(alliance.orderedAssignments
+            .map(item => item.order)
+            .filter(order => typeof order === 'number' && !isNaN(order)))];
         alliance.assignmentCounter = validOrders.length > 0 ? Math.max(0, ...validOrders) : 0;
     }
 
@@ -505,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Handle Segment Click ---
-    // ... (handleSegmentClick function remains largely the same) ...
+    // ... (handleSegmentClick function remains largely the same, no assignment order logic needed) ...
     function handleSegmentClick(segmentId) {
         const segmentData = landData[segmentId];
         if (!segmentData) return;
@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearAssignmentForSegment(segmentId, updateSummaryAndSave = true) {
          const segmentData = landData[segmentId];
          const previousOwner = segmentData.owner;
-         const previousOrder = segmentData.assignmentOrder;
+         const previousOrder = segmentData.assignmentOrder; // Keep track of order for recalc
 
          if (!previousOwner) return false;
 
@@ -579,19 +579,30 @@ document.addEventListener('DOMContentLoaded', () => {
              if (segmentData.type === 'City') prevAlliance.cityCount = Math.max(0, prevAlliance.cityCount - 1);
              else if (segmentData.type === 'Dig Site') prevAlliance.digSiteCount = Math.max(0, prevAlliance.digSiteCount - 1);
 
+             // Remove from orderedAssignments even if order display is off
              if (previousOrder !== null) {
                  const assignmentIndex = prevAlliance.orderedAssignments.findIndex(item => item.segmentId === segmentId);
                  if (assignmentIndex > -1) {
                      prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
-                     if (updateSummaryAndSave) recalculateAllianceCounter(previousOwner);
+                     // Recalculate counter only if saving, otherwise parent function handles it
+                     // if (updateSummaryAndSave) recalculateAllianceCounter(previousOwner); // Moved recalc after all changes
+                 } else {
+                     // If not found by segmentId, might be an inconsistent state, try to find by order if unique
+                     const orderIndex = prevAlliance.orderedAssignments.findIndex(item => item.order === previousOrder);
+                      if (orderIndex > -1 && prevAlliance.orderedAssignments.filter(item => item.order === previousOrder).length === 1) {
+                         prevAlliance.orderedAssignments.splice(orderIndex, 1);
+                         // if (updateSummaryAndSave) recalculateAllianceCounter(previousOwner); // Moved recalc after all changes
+                     }
                  }
              }
          }
          segmentData.owner = null;
-         segmentData.assignmentOrder = null;
+         segmentData.assignmentOrder = null; // Clear internal order
          if (updateSummaryAndSave) {
+             // Recalculate here if called independently with save=true
+              if (previousOwner) recalculateAllianceCounter(previousOwner);
              updateAllianceSummary();
-             saveState();
+             saveState(); // This will now also trigger mapStateDirtyAfterLiveLoad if needed
          }
          return true;
     }
@@ -609,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (allianceCode === null) { // Clearing
-            if (clearAssignmentForSegment(currentSegmentId, true)) {
+            if (clearAssignmentForSegment(currentSegmentId, false)) { // Pass false, recalc/save later
                  assignmentChanged = true;
             }
         } else { // Assigning
@@ -619,8 +630,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (segmentData.type === 'City' && newAlliance.cityCount >= newAlliance.cityLimit) { alert(`${newAlliance.name} City limit reached.`); return; }
             if (segmentData.type === 'Dig Site' && newAlliance.digSiteCount >= newAlliance.digSiteLimit) { alert(`${newAlliance.name} Dig Site limit reached.`); return; }
 
+            // Clear previous owner if exists, but don't save/update yet
             if (segmentData.owner) {
-                clearAssignmentForSegment(currentSegmentId, false);
+                clearAssignmentForSegment(currentSegmentId, false); // Pass false
             }
 
             segmentData.owner = allianceCode;
@@ -631,20 +643,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (segmentData.type === 'City') newAlliance.cityCount++;
             else if (segmentData.type === 'Dig Site') newAlliance.digSiteCount++;
 
+            // Increment counter and assign order internally
             newAlliance.assignmentCounter++;
             const newOrder = newAlliance.assignmentCounter;
             segmentData.assignmentOrder = newOrder;
             newAlliance.orderedAssignments.push({ segmentId: currentSegmentId, order: newOrder });
-            newAlliance.orderedAssignments.sort((a, b) => a.order - b.order);
+            newAlliance.orderedAssignments.sort((a, b) => a.order - b.order); // Keep sorted internally
             assignmentChanged = true;
         }
 
         if (assignmentChanged) {
+            // Recalculate counters *after* all changes for the affected alliances
             if (previousOwner && previousOwner !== allianceCode) recalculateAllianceCounter(previousOwner);
             if (allianceCode) recalculateAllianceCounter(allianceCode);
-            updateAllianceSummary();
-            updateSegmentVisualState(currentSegmentId);
-            saveState(); // Auto-save on change
+
+            updateAllianceSummary(); // Update summary display
+            updateSegmentVisualState(currentSegmentId); // Update segment display
+            saveState(); // Save the new state (will trigger dirty flag if live map was loaded)
         }
         allianceSelectModalInstance.hide();
         currentSegmentId = null;
@@ -658,35 +673,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!confirm(confirmationMessage)) return;
 
+        // Reset alliance counts and internal order tracking
         for (const code in alliances) {
             alliances[code].cityCount = 0; alliances[code].digSiteCount = 0;
             alliances[code].assignmentCounter = 0; alliances[code].orderedAssignments = [];
         }
 
+        // Process each segment
         for (const segmentId in landData) {
             const segmentData = landData[segmentId];
-            segmentData.assignmentOrder = null;
+            segmentData.assignmentOrder = null; // Clear internal order
+
+            // Handle markers based on fixed toggle
              if (!fixedAlliancesActive) {
                  segmentData.isConflict = false; segmentData.conflictAlliances = [];
                  segmentData.isDropped = false;
+             } else {
+                 // If fixed is active, clear markers only if the segment is *not* fixed
+                 if (!segmentData.isFixed) {
+                     segmentData.isConflict = false; segmentData.conflictAlliances = [];
+                     segmentData.isDropped = false;
+                 }
              }
+
+            // Handle ownership based on fixed toggle
             if (segmentData.isFixed && fixedAlliancesActive && FIXED_ASSIGNMENTS[segmentId]) {
                  const fixedOwnerCode = FIXED_ASSIGNMENTS[segmentId];
                  const alliance = alliances[fixedOwnerCode];
                  if (alliance) {
-                     segmentData.owner = fixedOwnerCode;
+                     segmentData.owner = fixedOwnerCode; // Assign fixed owner
+                     // Increment fixed owner's count (check limits - though less critical here as we reset at start)
                      let canAssignFixed = false;
                       if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
                       else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
                       else { canAssignFixed = true; }
                       if (!canAssignFixed) { console.warn(`Clear All: Limit for fixed ${fixedOwnerCode} at ${segmentId}. Cannot assign.`); segmentData.owner = null; }
-                 } else { segmentData.owner = null; }
-            } else { segmentData.owner = null; }
-            updateSegmentVisualState(segmentId);
+                      else {
+                           // If assigning fixed, ensure markers are cleared
+                           segmentData.isConflict = false; segmentData.conflictAlliances = []; segmentData.isDropped = false;
+                      }
+                 } else { segmentData.owner = null; } // Invalid fixed alliance code?
+            } else {
+                // If not fixed or fixed is off, clear the owner
+                segmentData.owner = null;
+            }
+            updateSegmentVisualState(segmentId); // Update visual immediately
         }
+
+        // Recalculate all counters based on final state (mainly for fixed assignments)
         Object.keys(alliances).forEach(recalculateAllianceCounter);
         updateAllianceSummary();
-        saveState();
+        saveState(); // Save the cleared state (will trigger dirty flag if live map was loaded)
         console.log("Assignments cleared based on fixed toggle state.");
     }
     clearAllButton.addEventListener('click', clearAllAssignments);
@@ -694,76 +731,118 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Toggle Fixed Alliances ---
     function toggleFixedAlliances(isActive) {
         fixedAlliancesActive = isActive;
-        const ownersBeforeToggle = {};
-        Object.keys(landData).forEach(id => ownersBeforeToggle[id] = landData[id].owner);
+        const originalAssignments = {}; // Store owner and order
+        const originalMarkers = {}; // Store conflict/drop state
 
-        for (const segmentId in FIXED_ASSIGNMENTS) {
-            if (landData[segmentId]) {
-                const segmentData = landData[segmentId];
+        // Store current state before making changes
+        for (const segmentId in landData) {
+             originalAssignments[segmentId] = { owner: landData[segmentId].owner, order: landData[segmentId].assignmentOrder };
+             originalMarkers[segmentId] = { isConflict: landData[segmentId].isConflict, conflictAlliances: [...landData[segmentId].conflictAlliances], isDropped: landData[segmentId].isDropped };
+        }
+
+        // Reset counts and internal lists before reapplying based on new toggle state
+        for (const code in alliances) {
+             alliances[code].cityCount = 0; alliances[code].digSiteCount = 0; alliances[code].assignmentCounter = 0; alliances[code].orderedAssignments = [];
+        }
+
+        // --- Iterate and apply new state based on toggle ---
+        for (const segmentId in landData) {
+            const segmentData = landData[segmentId];
+            const originalState = originalAssignments[segmentId];
+            const originalMarkerState = originalMarkers[segmentId];
+
+            if (segmentData.isFixed && FIXED_ASSIGNMENTS[segmentId]) {
+                // --- Handling Fixed Segments ---
                 const fixedAllianceCode = FIXED_ASSIGNMENTS[segmentId];
-                const alliance = alliances[fixedAllianceCode];
-                const currentOwner = ownersBeforeToggle[segmentId];
+                const fixedAlliance = alliances[fixedAllianceCode];
 
                 if (isActive) { // Turning Fixed ON
-                    segmentData.isConflict = false; segmentData.conflictAlliances = []; segmentData.isDropped = false;
-                    if (currentOwner !== fixedAllianceCode) {
-                        if (currentOwner && alliances[currentOwner]) { // Remove from previous
-                            const prevAlliance = alliances[currentOwner];
-                            if (segmentData.type === 'City') prevAlliance.cityCount = Math.max(0, prevAlliance.cityCount - 1);
-                            else if (segmentData.type === 'Dig Site') prevAlliance.digSiteCount = Math.max(0, prevAlliance.digSiteCount - 1);
-                            if (segmentData.assignmentOrder !== null) {
-                                 const assignmentIndex = prevAlliance.orderedAssignments.findIndex(item => item.segmentId === segmentId);
-                                 if (assignmentIndex > -1) prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
-                            }
-                            recalculateAllianceCounter(currentOwner);
-                        }
-                        segmentData.owner = fixedAllianceCode; // Assign to fixed
-                        if (alliance) {
-                             let canAssignFixed = false;
-                             if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
-                             else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
-                             else { canAssignFixed = true; }
-                             if (!canAssignFixed) { console.warn(`Toggle ON: Limit for fixed ${fixedAllianceCode} at ${segmentId}. Cannot assign.`); segmentData.owner = null; }
-                        } else { segmentData.owner = null; }
-                    }
-                    segmentData.assignmentOrder = null;
+                     segmentData.owner = fixedAllianceCode; // Assign fixed owner
+                     segmentData.assignmentOrder = null; // Fixed have no user order
+                     segmentData.isConflict = false; segmentData.conflictAlliances = []; segmentData.isDropped = false; // Clear markers
+
+                     // Increment count for the fixed alliance (check limits)
+                     if (fixedAlliance) {
+                         let canAssignFixed = false;
+                         if (segmentData.type === 'City') { if (fixedAlliance.cityCount < fixedAlliance.cityLimit) { fixedAlliance.cityCount++; canAssignFixed = true; } }
+                         else if (segmentData.type === 'Dig Site') { if (fixedAlliance.digSiteCount < fixedAlliance.digSiteLimit) { fixedAlliance.digSiteCount++; canAssignFixed = true; } }
+                         else { canAssignFixed = true; }
+                         if (!canAssignFixed) { console.warn(`Toggle ON: Limit for fixed ${fixedAllianceCode} at ${segmentId}. Cannot assign.`); segmentData.owner = null; }
+                     } else { segmentData.owner = null; } // Invalid fixed alliance?
+
                 } else { // Turning Fixed OFF
-                    if (currentOwner === fixedAllianceCode) {
-                        if(alliance) {
-                             if (segmentData.type === 'City') alliance.cityCount = Math.max(0, alliance.cityCount - 1);
-                             else if (segmentData.type === 'Dig Site') alliance.digSiteCount = Math.max(0, alliance.digSiteCount - 1);
-                             recalculateAllianceCounter(fixedAllianceCode);
-                        }
-                        segmentData.owner = null;
-                        segmentData.assignmentOrder = null;
-                    }
+                     // Revert to the state it had *before* the toggle action
+                     segmentData.owner = originalState.owner;
+                     segmentData.assignmentOrder = originalState.order;
+                     // Restore markers only if it wasn't the fixed alliance owning it before toggle
+                     if (originalState.owner !== fixedAllianceCode) {
+                         segmentData.isConflict = originalMarkerState.isConflict;
+                         segmentData.conflictAlliances = [...originalMarkerState.conflictAlliances];
+                         segmentData.isDropped = originalMarkerState.isDropped;
+                     } else {
+                        // If it *was* the fixed owner, ensure markers are clear after toggle OFF
+                        segmentData.isConflict = false; segmentData.conflictAlliances = []; segmentData.isDropped = false;
+                     }
+                      // Recount owners below
                 }
-                 updateSegmentVisualState(segmentId);
+            } else {
+                // --- Handling Non-Fixed Segments ---
+                 // Owner, order, and markers remain unchanged by the fixed toggle itself
+                 segmentData.owner = originalState.owner;
+                 segmentData.assignmentOrder = originalState.order;
+                 segmentData.isConflict = originalMarkerState.isConflict;
+                 segmentData.conflictAlliances = [...originalMarkerState.conflictAlliances];
+                 segmentData.isDropped = originalMarkerState.isDropped;
+                 // Recount owners below
             }
         }
+
+        // --- Recount ALL assignments and rebuild ordered lists based on the NEW state ---
+         for (const segmentId in landData) {
+             const segmentData = landData[segmentId];
+             if (segmentData.owner && (!segmentData.isFixed || !fixedAlliancesActive)) { // Count only non-fixed owners (or all if toggle is OFF)
+                 const currentOwner = segmentData.owner;
+                 const alliance = alliances[currentOwner];
+                 if (alliance) {
+                    // Increment counts for the current owner
+                    if (segmentData.type === 'City') alliance.cityCount++;
+                    else if (segmentData.type === 'Dig Site') alliance.digSiteCount++;
+
+                     // Re-add to ordered assignments if it has an order number
+                     if (segmentData.assignmentOrder !== null) {
+                         alliance.orderedAssignments.push({ segmentId: segmentId, order: segmentData.assignmentOrder });
+                     }
+                 }
+             }
+              // Update visual state for all segments reflecting the new state
+             updateSegmentVisualState(segmentId);
+         }
+
+         // Sort ordered assignments and recalculate counters for all alliances
+         for (const code in alliances) {
+             alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
+             recalculateAllianceCounter(code);
+         }
+
         updateAllianceSummary();
-        saveState();
+        saveState(); // Save the state after toggle (will trigger dirty flag if live map was loaded)
     }
     fixedAllianceToggle.addEventListener('change', (event) => toggleFixedAlliances(event.target.checked));
 
-    // --- Toggle Assignment Order View ---
-    function toggleAssignmentOrderView(isActive) {
-        assignmentOrderActive = isActive;
-        bodyElement.classList.toggle('assignment-order-active', isActive);
-        saveState(); // Save view preference
-    }
-    assignmentOrderToggle.addEventListener('change', (event) => toggleAssignmentOrderView(event.target.checked));
+    // --- Toggle Assignment Order View (Removed) ---
+    // function toggleAssignmentOrderView(isActive) { ... }
+    // assignmentOrderToggle.addEventListener('change', ...);
 
     // --- Toggle Label Visibility ---
     function toggleLabelVisibility(isVisible) {
         labelsVisible = isVisible;
         bodyElement.classList.toggle('labels-hidden', !isVisible);
+        saveState(); // Save view preference immediately
     }
     labelVisibilityToggle.addEventListener('change', (event) => {
         toggleLabelVisibility(event.target.checked);
-        saveState(); // Save state only on direct user interaction
+        // saveState(); // Called within toggleLabelVisibility now
     });
-
 
     // --- Calculate Alliance Stats ---
      function calculateAllianceBuffs() {
@@ -809,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (alliances[allianceCode]) {
             alliances[allianceCode].isPinned = !alliances[allianceCode].isPinned;
             updateAllianceSummary();
-            saveState();
+            saveState(); // Save change (no map change, so doesn't affect dirty flag)
         }
     }
     function toggleAllianceCollapse(allianceCode) {
@@ -822,7 +901,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 collapseIcon.classList.toggle('fa-chevron-down', !alliances[allianceCode].isCollapsed);
                 collapseIcon.classList.toggle('fa-chevron-up', alliances[allianceCode].isCollapsed);
             }
-            saveState();
+            saveState(); // Save change (no map change, so doesn't affect dirty flag)
+        }
+    }
+
+    // --- Update LIVE Button State ---
+    function updateLiveButtonState() {
+        if (liveMapLoaded && !mapStateDirtyAfterLiveLoad) {
+            liveMapButton.classList.add('live-map-active');
+            liveMapButton.title = "Live map loaded (Unchanged)";
+        } else {
+            liveMapButton.classList.remove('live-map-active');
+            liveMapButton.title = "Import Live Map Data";
+            if (liveMapLoaded && mapStateDirtyAfterLiveLoad) {
+                 liveMapButton.title = "Live map loaded (Changed)";
+            }
         }
     }
 
@@ -888,22 +981,38 @@ document.addEventListener('DOMContentLoaded', () => {
             itemDiv.querySelector('.summary-pin-toggle')?.addEventListener('click', (e) => { e.stopPropagation(); toggleAlliancePin(code); });
             itemDiv.querySelector('.summary-collapse-toggle')?.addEventListener('click', (e) => { e.stopPropagation(); toggleAllianceCollapse(code); });
         });
+        updateLiveButtonState(); // Update LIVE button state whenever summary refreshes
         initializePopovers(); // Re-initialize popovers after summary update
     }
 
     // --- Save State (Auto-save) ---
     function saveState() {
+        // If live map was previously loaded (and maybe now dirty), mark as dirty.
+        // Don't reset liveMapLoaded here, only when LIVE is clicked again.
+        if (liveMapLoaded) {
+            mapStateDirtyAfterLiveLoad = true;
+            // liveMapLoaded = false; // Resetting flag moved to handleLiveMapImport
+            console.log("Map state changed after LIVE load, marking as dirty.");
+        }
+
         const stateToSave = {
             assignments: {}, markers: {}, fixedActive: fixedAlliancesActive,
-            assignmentOrderViewActive: assignmentOrderActive, labelsVisible: labelsVisible,
+            // assignmentOrderViewActive: false, // Removed
+            labelsVisible: labelsVisible,
             summaryStates: {}
         };
 
         for (const segmentId in landData) {
             const segmentData = landData[segmentId];
             // Save assignments only if they are NOT fixed OR if fixed toggle is OFF
-            if (segmentData.owner && segmentData.assignmentOrder !== null && (!segmentData.isFixed || !fixedAlliancesActive)) {
-                stateToSave.assignments[segmentId] = { owner: segmentData.owner, order: segmentData.assignmentOrder };
+             if (segmentData.owner && (!segmentData.isFixed || !fixedAlliancesActive)) {
+                // Also ensure there's an assignment order (even if not displayed)
+                 if (segmentData.assignmentOrder !== null) {
+                    stateToSave.assignments[segmentId] = { owner: segmentData.owner, order: segmentData.assignmentOrder };
+                 } else {
+                     // Handle cases where owner exists but order is null (shouldn't happen with current logic, but good safeguard)
+                     console.warn(`Segment ${segmentId} owned by ${segmentData.owner} but has null order during save.`);
+                 }
             }
             // Save markers only if they are NOT fixed OR if fixed toggle is OFF
              if ((segmentData.isConflict || segmentData.isDropped) && (!segmentData.isFixed || !fixedAlliancesActive)) {
@@ -915,28 +1024,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Use the single auto-save key
             localStorage.setItem(SAVE_KEY, JSON.stringify(stateToSave));
-            // console.log(`Map state auto-saved to key: ${SAVE_KEY}`); // Optional: keep for debugging
+            // console.log(`Map state auto-saved to key: ${SAVE_KEY}`);
         } catch (e) {
             console.error("Error auto-saving state to localStorage:", e);
-            // Avoid alerting on auto-save errors to prevent annoyance
         }
+         // Update the Live button state immediately after saving/state change
+         updateLiveButtonState();
     }
 
     // --- Apply Fixed Assignments on Load ---
-        function applyFixedAssignmentsOnLoad() {
+    function applyFixedAssignmentsOnLoad() {
         if (fixedAlliancesActive) {
             for (const segmentId in FIXED_ASSIGNMENTS) {
                 if (landData[segmentId]) {
                     const segmentData = landData[segmentId];
                     const allianceCode = FIXED_ASSIGNMENTS[segmentId];
                     const alliance = alliances[allianceCode];
+                    // Only apply if the segment isn't already owned by the correct fixed alliance
                     if (alliance && (!segmentData.owner || segmentData.owner !== allianceCode)) {
+                        // If it was owned by someone else, clear that first (without saving)
                         if(segmentData.owner && segmentData.owner !== allianceCode) {
-                             console.warn(`Init: Overwriting saved owner ${segmentData.owner} with fixed ${allianceCode} for ${segmentId}`);
-                             clearAssignmentForSegment(segmentId, false);
+                             console.warn(`Init/Load: Overwriting saved/current owner ${segmentData.owner} with fixed ${allianceCode} for ${segmentId}`);
+                             clearAssignmentForSegment(segmentId, false); // Don't trigger save/update here
                         }
+                        // Check limits before assigning
                         let canAssignFixed = false;
                         if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
                         else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
@@ -944,38 +1056,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (canAssignFixed) {
                             segmentData.owner = allianceCode;
-                            segmentData.assignmentOrder = null;
-                            segmentData.isConflict = false; segmentData.isDropped = false; segmentData.conflictAlliances = [];
+                            segmentData.assignmentOrder = null; // Fixed assignments have no user order
+                            segmentData.isConflict = false; segmentData.isDropped = false; segmentData.conflictAlliances = []; // Clear markers
                         } else {
-                             console.warn(`Init: Limit for fixed ${allianceCode} at ${segmentId}. Cannot assign.`);
-                             segmentData.owner = null;
+                             console.warn(`Init/Load: Limit for fixed ${allianceCode} at ${segmentId}. Cannot assign.`);
+                             segmentData.owner = null; // Ensure it's unowned if limit reached
                         }
                     } else if (segmentData.owner === allianceCode) {
+                         // If already owned by the correct fixed alliance, just ensure markers/order are cleared
                          segmentData.isConflict = false; segmentData.isDropped = false; segmentData.conflictAlliances = [];
                          segmentData.assignmentOrder = null;
                     }
                 }
             }
         }
+         // Note: Recalculation of counters and summary update happens after all assignments are processed in the calling function (initializeMapState, handleImportMap, etc.)
     }
+
 
     // --- Initialize/Load Map State (Auto-load) ---
     function initializeMapState() {
-        const savedStateRaw = localStorage.getItem(SAVE_KEY); // Use single auto-save key
-        let parsedState = { assignments: {}, markers: {}, fixedActive: true, assignmentOrderViewActive: false, labelsVisible: true, summaryStates: {} };
+        const savedStateRaw = localStorage.getItem(SAVE_KEY);
+        // Default structure, removed assignmentOrderViewActive
+        let parsedState = { assignments: {}, markers: {}, fixedActive: true, labelsVisible: true, summaryStates: {} };
 
         console.log(`Initializing map state internally from key: ${SAVE_KEY}`);
 
         if (savedStateRaw) {
             try {
                 const loaded = JSON.parse(savedStateRaw);
+                 // Validate structure, remove assignmentOrderViewActive check
                 if (loaded && typeof loaded.assignments === 'object' && loaded.assignments !== null &&
                     typeof loaded.markers === 'object' && loaded.markers !== null &&
                     typeof loaded.fixedActive === 'boolean' &&
+                    typeof loaded.labelsVisible === 'boolean' && // Keep this check
                     typeof loaded.summaryStates === 'object' && loaded.summaryStates !== null) {
                     parsedState = loaded;
-                    parsedState.assignmentOrderViewActive = typeof loaded.assignmentOrderViewActive === 'boolean' ? loaded.assignmentOrderViewActive : false;
-                    parsedState.labelsVisible = typeof loaded.labelsVisible === 'boolean' ? loaded.labelsVisible : true;
+                    // parsedState.assignmentOrderViewActive = false; // No longer needed
+                    parsedState.labelsVisible = loaded.labelsVisible; // Keep loading labelsVisible
                 } else {
                     console.warn(`Invalid saved state structure (Key: ${SAVE_KEY}), using defaults.`);
                     localStorage.removeItem(SAVE_KEY);
@@ -988,31 +1106,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Apply toggle states FIRST
         fixedAlliancesActive = parsedState.fixedActive; fixedAllianceToggle.checked = fixedAlliancesActive;
-        assignmentOrderActive = parsedState.assignmentOrderViewActive; assignmentOrderToggle.checked = assignmentOrderActive;
+        // assignmentOrderActive = false; assignmentOrderToggle.checked = false; // Removed
         labelsVisible = parsedState.labelsVisible; labelVisibilityToggle.checked = labelsVisible;
-        bodyElement.classList.toggle('assignment-order-active', assignmentOrderActive);
+        // bodyElement.classList.remove('assignment-order-active'); // Ensure class is removed
         bodyElement.classList.toggle('labels-hidden', !labelsVisible);
 
         // Reset Counts and Map State
         resetMapState();
 
-        // Apply Saved User Assignments
+        // Apply Saved User Assignments (Non-Fixed)
         applyUserAssignments(parsedState.assignments);
 
-        // Apply Fixed Assignments
+        // Apply Fixed Assignments (based on the loaded fixedActive state)
         applyFixedAssignmentsOnLoad();
 
-        // Sort orders and recalc counters
+        // Sort orders and recalc counters for all alliances
         for (const code in alliances) {
             alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
             recalculateAllianceCounter(code);
         }
 
-        // Apply Saved Markers
+        // Apply Saved Markers (respecting fixed toggle state)
         applyMarkers(parsedState.markers);
 
         // Apply saved Summary States
         applySummaryStates(parsedState.summaryStates);
+
+        // Reset LIVE map flags on initial load
+        liveMapLoaded = false;
+        mapStateDirtyAfterLiveLoad = false;
 
         console.log(`Map state initialized internally. Visual refresh needed.`);
     }
@@ -1022,36 +1144,47 @@ document.addEventListener('DOMContentLoaded', () => {
          for (const code in alliances) {
              alliances[code].cityCount = 0; alliances[code].digSiteCount = 0; alliances[code].buffs = {};
              alliances[code].totalCPH = 0; alliances[code].totalRSPH = 0; alliances[code].assignmentCounter = 0; alliances[code].orderedAssignments = [];
+             // Keep pin/collapse state unless explicitly reset by import/load
          }
          for (const segmentId in landData) {
              landData[segmentId].owner = null; landData[segmentId].assignmentOrder = null;
              landData[segmentId].isConflict = false; landData[segmentId].conflictAlliances = []; landData[segmentId].isDropped = false;
          }
-         console.log("Internal map state reset.");
+         console.log("Internal map state reset (assignments/markers/counts).");
     }
 
     // --- Helper: Apply User Assignments ---
     function applyUserAssignments(assignments) {
-         const validAssignments = Object.entries(assignments || {})
-            .filter(([id, data]) => data && data.owner && typeof data.order === 'number' && landData[id] && !landData[id].isFixed);
+        const validAssignments = Object.entries(assignments || {})
+            // Ensure segment exists and data includes owner and a valid order number
+            .filter(([id, data]) => data && data.owner && typeof data.order === 'number' && landData[id]);
 
-         validAssignments.forEach(([segmentId, assignmentData]) => {
-             const segmentData = landData[segmentId];
-             const allianceCode = assignmentData.owner;
-             const alliance = alliances[allianceCode];
-             if (alliance) {
-                 let canAssignUser = false;
-                 if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignUser = true; } }
-                 else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignUser = true; } }
-                 else { canAssignUser = true; }
-                 if (canAssignUser) {
-                     segmentData.owner = allianceCode;
-                     segmentData.assignmentOrder = assignmentData.order;
-                     alliance.orderedAssignments.push({ segmentId: segmentId, order: assignmentData.order });
-                 } else { console.warn(`Load/Import: Limit reached for ${allianceCode} at ${segmentId}. Assignment ignored.`); }
-             } else { console.warn(`Load/Import: Unknown alliance code "${allianceCode}" found for ${segmentId}. Assignment ignored.`); }
-         });
-         console.log(`Applied ${validAssignments.length} user assignments.`);
+        validAssignments.forEach(([segmentId, assignmentData]) => {
+            const segmentData = landData[segmentId];
+            const allianceCode = assignmentData.owner;
+            const alliance = alliances[allianceCode];
+
+            // Only apply if the segment is NOT fixed OR if the fixed toggle is currently OFF
+            if (alliance && (!segmentData.isFixed || !fixedAlliancesActive)) {
+                let canAssignUser = false;
+                if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignUser = true; } }
+                else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignUser = true; } }
+                else { canAssignUser = true; } // Allow assigning non-city/dig sites
+
+                if (canAssignUser) {
+                    segmentData.owner = allianceCode;
+                    segmentData.assignmentOrder = assignmentData.order; // Restore the saved order
+                    alliance.orderedAssignments.push({ segmentId: segmentId, order: assignmentData.order });
+                } else { console.warn(`Load/Import: Limit reached for ${allianceCode} at ${segmentId}. Assignment ignored.`); }
+            } else if (!alliance) {
+                 console.warn(`Load/Import: Unknown alliance code "${allianceCode}" found for ${segmentId}. Assignment ignored.`);
+            } else if (segmentData.isFixed && fixedAlliancesActive) {
+                // Log if we are skipping a saved assignment because it's now fixed
+                 console.log(`Load/Import: Skipping saved assignment for ${segmentId} (${allianceCode}) because it is currently a fixed assignment.`);
+            }
+        });
+        console.log(`Attempted to apply ${validAssignments.length} user assignments (respecting fixed toggle).`);
+        // Note: Recalculation of counters and summary update happens after all assignments are processed.
     }
 
      // --- Helper: Apply Markers ---
@@ -1061,19 +1194,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (landData[segmentId]) {
                 const segmentData = landData[segmentId];
                 const markerData = markers[segmentId];
-                if (!segmentData.owner || !segmentData.isFixed || !fixedAlliancesActive) {
+
+                // Apply markers only if the segment is NOT fixed OR fixed toggle is OFF
+                if (!segmentData.isFixed || !fixedAlliancesActive) {
+                     // If applying a marker, ensure the segment is not currently owned (markers override owners)
                      if ((markerData.isDropped || markerData.isConflict) && segmentData.owner) {
                          console.warn(`Load/Import: Clearing owner ${segmentData.owner} from ${segmentId} due to drop/conflict marker.`);
-                         clearAssignmentForSegment(segmentId, false);
+                         clearAssignmentForSegment(segmentId, false); // Clear assignment without saving yet
                      }
                      segmentData.isConflict = markerData.isConflict || false;
                      segmentData.conflictAlliances = markerData.conflictAlliances || [];
                      segmentData.isDropped = markerData.isDropped || false;
                      appliedCount++;
-                } else { console.warn(`Load/Import: Conflict/Drop marker ignored for ${segmentId} because it's a fixed assignment.`); }
+                } else { console.warn(`Load/Import: Conflict/Drop marker ignored for fixed segment ${segmentId}.`); }
             }
         }
-        console.log(`Applied ${appliedCount} markers.`);
+        console.log(`Applied ${appliedCount} markers (respecting fixed toggle).`);
     }
 
     // --- Helper: Apply Summary States ---
@@ -1083,6 +1219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  alliances[code].isPinned = !!summaryStates[code].isPinned;
                  alliances[code].isCollapsed = !!summaryStates[code].isCollapsed;
              } else {
+                 // Default if not found in saved state
                  alliances[code].isPinned = false;
                  alliances[code].isCollapsed = false;
              }
@@ -1111,24 +1248,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     sidebarToggleBtn.addEventListener('click', () => setSidebarState(!bodyElement.classList.contains('sidebar-active')));
 
-    // Removed Save/Load Slot Logic (handleSaveState, handleLoadState, updateSaveLoadButtonStyles, event listeners)
-
-
     // --- Import/Export Logic ---
     function generateMapCode() {
         const stateToExport = {
              assignments: {}, markers: {},
-             // Export view settings as well for better restoration
              fixedActive: fixedAlliancesActive,
-             assignmentOrderViewActive: assignmentOrderActive,
+             // assignmentOrderViewActive: false, // No longer needed
              labelsVisible: labelsVisible,
-             summaryStates: {} // Export summary states too
+             summaryStates: {}
         };
 
         for (const segmentId in landData) {
             const segmentData = landData[segmentId];
             // Export assignments only if they are NOT fixed OR if fixed toggle is OFF
-            if (segmentData.owner && segmentData.assignmentOrder !== null && (!segmentData.isFixed || !fixedAlliancesActive)) {
+             if (segmentData.owner && (!segmentData.isFixed || !fixedAlliancesActive) && segmentData.assignmentOrder !== null) {
                 stateToExport.assignments[segmentId] = { owner: segmentData.owner, order: segmentData.assignmentOrder };
             }
             // Export markers only if they are NOT fixed OR if fixed toggle is OFF
@@ -1136,7 +1269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  stateToExport.markers[segmentId] = { isConflict: segmentData.isConflict, conflictAlliances: segmentData.conflictAlliances, isDropped: segmentData.isDropped };
              }
         }
-         for (const code in alliances) { // Export summary states
+         for (const code in alliances) {
              stateToExport.summaryStates[code] = { isPinned: alliances[code].isPinned, isCollapsed: alliances[code].isCollapsed };
         }
 
@@ -1154,14 +1287,82 @@ document.addEventListener('DOMContentLoaded', () => {
         const code = generateMapCode();
         if (code) {
             codeModalLabel.textContent = "Export Map Code";
+            // Updated instructions
             codeModalInstructions.textContent = "Copy the code below to share or save your current map state (including non-fixed assignments, markers, view toggles, and sidebar pin/collapse states).";
             codeModalTextarea.value = code;
             codeModalTextarea.readOnly = true;
-            copyFeedbackElement.style.display = 'none'; // Hide feedback initially
-            copyCodeButton.innerHTML = '<i class="fa-regular fa-copy me-1"></i>Copy Code'; // Reset button text/icon
+            copyFeedbackElement.style.display = 'none';
+            copyCodeButton.innerHTML = '<i class="fa-regular fa-copy me-1"></i>Copy Code';
             codeModalInstance.show();
         }
     }
+
+    function applyImportedState(importedState, isLiveImport = false) {
+        // --- Apply imported state directly ---
+        console.log(`Applying state from ${isLiveImport ? 'LIVE source' : 'Import Code'}...`);
+
+        // Apply toggle states FIRST from imported data (unless it's LIVE import)
+        if (!isLiveImport) {
+            fixedAlliancesActive = importedState.fixedActive; fixedAllianceToggle.checked = fixedAlliancesActive;
+            // assignmentOrderActive = false; assignmentOrderToggle.checked = false; // Removed
+            labelsVisible = importedState.labelsVisible; labelVisibilityToggle.checked = labelsVisible;
+            // bodyElement.classList.remove('assignment-order-active');
+            bodyElement.classList.toggle('labels-hidden', !labelsVisible);
+        } else {
+             // For LIVE import, keep current view settings (fixed, labels)
+             console.log("LIVE import: Keeping current view settings.");
+        }
+
+        // Reset internal counts/assignments
+        resetMapState();
+
+        // Apply imported user assignments (respects *current* fixedAlliancesActive state)
+        applyUserAssignments(importedState.assignments);
+
+        // Apply fixed assignments (based on the *current* fixedAlliancesActive state)
+        applyFixedAssignmentsOnLoad();
+
+        // Recalculate counters and sort orders
+        for (const code in alliances) {
+            alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
+            recalculateAllianceCounter(code);
+        }
+
+        // Apply imported markers (respects *current* fixedAlliancesActive state)
+        applyMarkers(importedState.markers);
+
+        // Apply imported summary states (unless it's LIVE import)
+        if (!isLiveImport) {
+            applySummaryStates(importedState.summaryStates);
+        } else {
+             console.log("LIVE import: Keeping current summary pin/collapse states.");
+        }
+
+
+        // --- Explicitly refresh visuals AFTER applying state ---
+        console.log("Queueing visual refresh after state application...");
+         setTimeout(() => {
+             console.log(`Executing delayed visual refresh after ${isLiveImport ? 'LIVE' : 'Import'}...`);
+             updateAllSegmentsVisualState();
+             updateAllianceSummary(); // Uses current pin/collapse states
+             initializePopovers();
+
+             if (isLiveImport) {
+                liveMapLoaded = true; // Set flag indicating LIVE map was just loaded
+                mapStateDirtyAfterLiveLoad = false; // Reset dirty flag
+                console.log("LIVE map loaded successfully. Flags set.");
+                 updateLiveButtonState(); // Update button immediately
+             } else {
+                 // Reset LIVE flags if importing regular code
+                 liveMapLoaded = false;
+                 mapStateDirtyAfterLiveLoad = false;
+                 saveState(); // Save the successfully imported state as the new auto-save
+                 console.log("Regular import complete. Saved to auto-save. LIVE flags reset.");
+                 alert("Map state imported successfully!");
+             }
+         }, 0); // 0ms delay ensures it runs after current execution context
+    }
+
 
     function handleImportMap() {
         const code = prompt("Paste the map code here to load a saved state:");
@@ -1173,10 +1374,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const jsonString = atob(code.trim()); // Decode Base64
             const importedState = JSON.parse(jsonString);
 
-            // Validate imported structure more thoroughly
+            // Validate imported structure (removed assignmentOrderViewActive)
             if (!importedState || typeof importedState.assignments !== 'object' ||
                 typeof importedState.markers !== 'object' || typeof importedState.fixedActive !== 'boolean' ||
-                typeof importedState.assignmentOrderViewActive !== 'boolean' || typeof importedState.labelsVisible !== 'boolean' ||
+                typeof importedState.labelsVisible !== 'boolean' || // Keep this
                 typeof importedState.summaryStates !== 'object') {
                 throw new Error("Invalid or incomplete code structure.");
             }
@@ -1185,51 +1386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            console.log("Applying imported state...");
-
-             // --- Apply imported state directly ---
-            // Apply toggle states FIRST from imported data
-            fixedAlliancesActive = importedState.fixedActive; fixedAllianceToggle.checked = fixedAlliancesActive;
-            assignmentOrderActive = importedState.assignmentOrderViewActive; assignmentOrderToggle.checked = assignmentOrderActive;
-            labelsVisible = importedState.labelsVisible; labelVisibilityToggle.checked = labelsVisible;
-            bodyElement.classList.toggle('assignment-order-active', assignmentOrderActive);
-            bodyElement.classList.toggle('labels-hidden', !labelsVisible);
-
-            // Reset internal counts/assignments
-            resetMapState();
-
-            // Apply imported user assignments
-            applyUserAssignments(importedState.assignments);
-
-            // Apply fixed assignments (based on the *imported* toggle state)
-            applyFixedAssignmentsOnLoad();
-
-            // Recalculate counters
-            for (const code in alliances) {
-                alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
-                recalculateAllianceCounter(code);
-            }
-
-            // Apply imported markers
-            applyMarkers(importedState.markers);
-
-            // Apply imported summary states
-            applySummaryStates(importedState.summaryStates);
-
-
-            // --- Explicitly refresh visuals AFTER import ---
-            console.log("Queueing visual refresh after import...");
-             setTimeout(() => {
-                 console.log("Executing delayed visual refresh after import...");
-                 updateAllSegmentsVisualState();
-                 updateAllianceSummary(); // This now uses the imported pin/collapse states
-                 initializePopovers();
-
-                 saveState(); // Save the successfully imported state as the new auto-save
-
-                 console.log("Delayed visual refresh after import complete.");
-                 alert("Map state imported successfully!");
-             }, 0); // 0ms delay
+            applyImportedState(importedState, false); // Apply as regular import
 
         } catch (e) {
             console.error("Error importing map code:", e);
@@ -1237,9 +1394,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Add event listeners for Import/Export buttons
+     // --- Get LIVE map data from the constant variable ---
+    function getLiveMapData() {
+        console.log("Getting LIVE map data from internal constant.");
+        // Simply return the value of the constant defined at the top
+        return LIVE_MAP_DATA_B64;
+    }
+
+    // --- Handle LIVE Map Import ---
+    function handleLiveMapImport() { // No longer async
+        // Reset the dirty flag first, before attempting load
+        mapStateDirtyAfterLiveLoad = false;
+        liveMapLoaded = false; // Assume failure until success
+        updateLiveButtonState(); // Show button as normal
+
+        try {
+            // Get the code from the internal constant
+            const code = getLiveMapData();
+
+            if (code === null || code.trim() === "") {
+                 // Throw error if the constant is empty
+                 throw new Error("LIVE_MAP_DATA_B64 constant is empty. Please update it in the script.");
+            }
+
+            const jsonString = atob(code.trim()); // Decode Base64
+            const liveState = JSON.parse(jsonString);
+
+            // Basic validation of the structure expected from live map
+            // Typically just assignments and markers
+             if (!liveState || typeof liveState.assignments !== 'object' ||
+                typeof liveState.markers !== 'object') {
+                 throw new Error("Invalid structure in LIVE_MAP_DATA_B64 constant. Expected assignments and markers objects.");
+            }
+
+             // No confirmation needed for LIVE update
+            console.log("Applying LIVE map state from constant...");
+            applyImportedState(liveState, true); // Apply as LIVE import
+
+        } catch (e) {
+            console.error("Error importing LIVE map from constant:", e);
+            // Display a more specific error message to the user
+            alert(`Failed to import LIVE map: ${e.message}`);
+             mapStateDirtyAfterLiveLoad = false; // Ensure flags are reset on error
+             liveMapLoaded = false;
+             updateLiveButtonState(); // Reset button visuals on error
+        }
+    }
+
+
+    // Add event listeners for Import/Export/Live buttons
     exportMapButton.addEventListener('click', handleExportMap);
     importMapButton.addEventListener('click', handleImportMap);
+    liveMapButton.addEventListener('click', handleLiveMapImport); // Listener remains the same
 
     // Improved Copy Button Logic
     copyCodeButton.addEventListener('click', () => {
@@ -1282,7 +1488,7 @@ document.addEventListener('DOMContentLoaded', () => {
      setTimeout(() => { // Use setTimeout for initial render consistency
         console.log("Executing initial visual refresh...");
         updateAllSegmentsVisualState();
-        updateAllianceSummary();
+        updateAllianceSummary(); // Includes initial LIVE button state update
         initializePopovers();
         console.log("Initial visual refresh complete.");
      }, 0);

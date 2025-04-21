@@ -15,20 +15,28 @@
     </div>
 
     <div id="sidebar-button-dock">
-        <button class="btn btn-secondary" id="sidebar-toggle" type="button" title="Toggle Alliance Summary">
+         <button class="btn btn-secondary" id="sidebar-toggle" type="button" title="Toggle Alliance Summary">
             <i class="fa-solid fa-chevron-right"></i>
+            <span class="button-text">Toggle</span>
         </button>
-        <button class="btn btn-info" id="info-button" type="button" title="Information & Donate" data-bs-toggle="modal" data-bs-target="#infoModal">
+        <button class="btn btn-warming" id="info-button" type="button" title="Information & Donate" data-bs-toggle="modal" data-bs-target="#infoModal">
             <i class="fa-solid fa-circle-info"></i>
+             <span class="button-text">Info</span>
         </button>
-        <button class="btn btn-primary" id="import-map-button" type="button" title="Import Map Data from Code">
+        <button class="btn btn-dark" id="import-map-button" type="button" title="Import Map Data from Code">
             <i class="fa-solid fa-file-import"></i>
+             <span class="button-text">Import</span>
         </button>
-        <button class="btn btn-success" id="export-map-button" type="button" title="Export Map Data as Code">
+        <button class="btn btn-dark" id="export-map-button" type="button" title="Export Map Data as Code">
             <i class="fa-solid fa-file-export"></i>
+             <span class="button-text">Export</span>
+        </button>
+        <button class="btn btn-success" id="live-map-button" type="button" title="Import Live Map Data">
+            <i class="fa-solid fa-satellite-dish"></i> <span class="button-text">LIVE</span>
         </button>
         <button class="btn btn-danger" id="clear-all-button" type="button" title="Clear All User Assignments">
             <i class="fa-solid fa-trash"></i>
+             <span class="button-text">Clear</span>
         </button>
     </div>
 
@@ -37,12 +45,6 @@
             <div class="form-check form-switch">
                 <input class="form-check-input mt-1" type="checkbox" role="switch" id="fixed-alliance-toggle" checked>
                 <label class="form-check-label small mt-0" for="fixed-alliance-toggle"> Designated War Palace</label>
-            </div>
-        </div>
-        <div class="fixed-toggle-container p-1 border-bottom">
-            <div class="form-check form-switch">
-                <input class="form-check-input mt-1" type="checkbox" role="switch" id="assignment-order-toggle">
-                <label class="form-check-label small mt-0" for="assignment-order-toggle"> Capture Order</label>
             </div>
         </div>
         <div class="fixed-toggle-container p-1 border-bottom">
@@ -128,13 +130,14 @@
             <ul>
               <li>Click on a map segment to view its details (level, type, buff, production, boss type).</li>
               <li>Assign the segment to an alliance using the buttons in the modal.</li>
-              <li>Use the toggles in the sidebar to view fixed War Palace assignments, see the capture order number on segments, or hide segment labels.</li>
+              <li>Use the toggles in the sidebar to view fixed War Palace assignments or hide segment labels.</li>
               <li>Mark segments for conflict (<i class="fa-solid fa-triangle-exclamation"></i>) or drop status (<i class="fa-solid fa-circle-xmark"></i>) using the buttons in the segment modal. Conflict marking now uses the alliance buttons for selection.</li>
               <li>The alliance name of the owner is displayed in the bottom-left of the segment.</li>
               <li>The sidebar summarizes alliance progress, resource totals, and buffs. You can pin or collapse alliance summaries.</li>
               <li>Assignments are saved automatically in your browser. Use the <i class="fa-solid fa-trash"></i> button to clear assignments (respects the 'Designated War Palace' toggle).</li>
               <li>Use <i class="fa-solid fa-file-export"></i> (Export) to generate a text code representing the current non-fixed assignments and markers.</li>
               <li>Use <i class="fa-solid fa-file-import"></i> (Import) to load a map state from a previously exported text code.</li>
+              <li>Use <i class="fa-solid fa-satellite-dish"></i> (LIVE) to load the current map state from the 'currentmap.txt' file. The button turns green after loading and resets to white if the map is changed.</li>
               </ul>
             <hr>
             <h6>Support Development:</h6>
