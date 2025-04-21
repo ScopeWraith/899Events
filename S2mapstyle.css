@@ -15,8 +15,9 @@ html, body {
     --conflict-border-color: rgba(255, 100, 0, 0.9); /* Orange-red */
     --conflict-glow-color: rgba(255, 100, 0, 0.6);
     --dropped-indicator-color: rgba(200, 0, 0, 0.7);
-    --button-dock-width: 65px; /* Increased width for text */
+    --button-dock-width: 55px; /* Slightly smaller width */
     --live-active-color: #20c997; /* Bootstrap $success */
+    --map-padding: 10px; /* Define map padding variable */
 }
 
 #map-container {
@@ -26,16 +27,20 @@ html, body {
     top: 0;
     left: 0;
     width: 100%;
-    transition: width 0.3s ease-in-out;
+    transition: width 0.3s ease-in-out, padding 0.3s ease-in-out; /* Add padding transition */
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    padding-bottom: 0;
+    padding: var(--map-padding); /* Apply uniform padding */
+    padding-right: calc(var(--button-dock-width) + var(--map-padding)); /* Adjust right padding for button dock */
+    padding-bottom: 0; /* Keep bottom padding 0 if needed */
+    box-sizing: border-box; /* Include padding in height/width */
     z-index: 1;
 }
 body.sidebar-active #map-container {
     width: calc(100% - var(--sidebar-width));
+    padding-right: var(--map-padding); /* Reset right padding when sidebar active */
 }
 
 #map-grid {
@@ -47,6 +52,7 @@ body.sidebar-active #map-container {
     border: 1px solid var(--bs-border-color-translucent);
     transform-origin: 0 0;
     position: relative; /* Needed for absolute positioning context */
+    padding:60px;
 }
 
 .map-segment {
@@ -258,48 +264,80 @@ body.labels-hidden .segment-boss-icon { opacity: 0.2; visibility: visible; }
 /* --- Main Button Dock --- */
 #sidebar-button-dock {
     position: fixed;
-    top: 10px; /* Back to original top position */
+    top: var(--map-padding); /* Align with map padding */
+    right: var(--map-padding); /* Align with map padding */
     width: var(--button-dock-width);
-    height: auto;
+    height: auto; /* Adjust height based on content */
+    max-height: calc(100vh - 2 * var(--map-padding)); /* Prevent overlap with top/bottom */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 10px 5px;
+    gap: 5px; /* Slightly reduced gap */
+    padding: 8px 0; /* Adjust padding */
     z-index: 1055;
     background-color: rgba(var(--bs-dark-rgb), 0.5);
     backdrop-filter: blur(5px);
-    border-radius: 8px 0 0 8px;
-    transition: left 0.3s ease-in-out;
+    border-radius: 8px; /* Apply rounding to all corners */
+    transition: right 0.3s ease-in-out; /* Transition right property */
 }
-body.sidebar-active #sidebar-button-dock { left: calc(100% - var(--sidebar-width) - var(--button-dock-width)); }
-body:not(.sidebar-active) #sidebar-button-dock { left: calc(100% - var(--button-dock-width)); }
+body.sidebar-active #sidebar-button-dock {
+    /* Keep position fixed relative to viewport when sidebar is active */
+    right: calc(var(--sidebar-width) + var(--map-padding));
+}
 
-#sidebar-button-dock .btn {
-    padding: 0.3rem 0.5rem;
-    font-size: 0.9rem;
-    width: calc(var(--button-dock-width) - 10px);
-    height: auto; /* Allow height to adjust for text */
-    min-height: calc(var(--button-dock-width) - 10px); /* Ensure minimum height */
+/* Style for the container of action buttons */
+#action-buttons-container {
     display: flex;
-    flex-direction: column; /* Stack icon and text vertically */
+    flex-direction: column;
+    align-items: center;
+    gap: inherit; /* Use the same gap as the main dock */
+    width: 100%;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    max-height: 500px; /* Arbitrary large value for expanded state */
+    opacity: 1;
+}
+
+/* Collapsed state for the action buttons container */
+#sidebar-button-dock.collapsed #action-buttons-container {
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s ease-in, opacity 0.2s ease-in;
+}
+
+/* Style for ALL buttons in the dock (including toggle) */
+#sidebar-button-dock .btn {
+    padding: 0.25rem 0.4rem; /* Smaller padding */
+    font-size: 0.8rem; /* Slightly smaller font */
+    width: calc(var(--button-dock-width) - 10px); /* Adjust width */
+    height: auto; /* Allow height to adjust */
+    min-height: calc(var(--button-dock-width) - 15px); /* Smaller min-height */
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    line-height: 1.1; /* Adjust line height */
-    gap: 2px; /* Space between icon and text */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Lighter shadow */
+    line-height: 1; /* Tighter line height */
+    gap: 1px; /* Minimal gap */
+    flex-shrink: 0; /* Prevent buttons from shrinking */
 }
 
 #sidebar-button-dock .btn i {
-    font-size: 1.1rem; /* Adjust icon size if needed */
-    margin-bottom: 1px; /* Small space below icon */
+    font-size: 1rem; /* Slightly smaller icon */
+    margin-bottom: 0;
 }
 
 #sidebar-button-dock .btn .button-text {
-    font-size: 0.6rem; /* Smaller text size */
-    display: block; /* Ensure it takes space */
-    text-transform: uppercase; /* Optional: make text uppercase */
-    font-weight: 600; /* Optional: slightly bolder */
+    font-size: 0.55rem; /* Even smaller text */
+    display: block;
+    text-transform: uppercase;
+    font-weight: 600;
+    line-height: 1.1; /* Ensure text doesn't wrap weirdly */
+}
+
+/* Style for the toggle button specifically */
+#sidebar-toggle {
+    margin-bottom: 3px; /* Add slight space below toggle */
 }
 
 /* LIVE Button Active State */
@@ -392,31 +430,32 @@ body:not(.sidebar-active) #sidebar-button-dock { left: calc(100% - var(--button-
 @media (max-width: 992px) {
     :root {
          --sidebar-width: 250px;
-         --button-dock-width: 60px; /* Adjust mobile dock width */
+         --button-dock-width: 50px; /* Adjust mobile dock width */
      }
     body.sidebar-active #map-container { width: calc(100% - var(--sidebar-width)); }
     .summary-alliance-name { font-size: 0.9rem;} .summary-resources, .summary-counts, .summary-buffs-list { font-size: 0.75rem; }
 
-    #sidebar-button-dock { top: 10px; gap: 6px; padding: 8px 4px; }
-    #sidebar-button-dock .btn { width: calc(var(--button-dock-width) - 8px); min-height: calc(var(--button-dock-width) - 8px); }
-    #sidebar-button-dock .btn i { font-size: 1rem; }
-    #sidebar-button-dock .btn .button-text { font-size: 0.55rem; }
+    #sidebar-button-dock { top: var(--map-padding); right: var(--map-padding); gap: 4px; padding: 6px 0; }
+    #sidebar-button-dock .btn { width: calc(var(--button-dock-width) - 8px); min-height: calc(var(--button-dock-width) - 12px); }
+    #sidebar-button-dock .btn i { font-size: 0.9rem; }
+    #sidebar-button-dock .btn .button-text { font-size: 0.5rem; }
 }
 @media (max-width: 768px) {
     :root {
         --sidebar-width: 220px;
-        --button-dock-width: 50px; /* Adjust smaller mobile dock width */
+        --button-dock-width: 45px; /* Adjust smaller mobile dock width */
+         --map-padding: 5px; /* Smaller padding on mobile */
     }
-    #map-grid { grid-template-columns: repeat(13, minmax(80px, 1fr)); grid-template-rows: repeat(13, minmax(80px, 1fr)); width: 1300px; height: 1300px; }
+    #map-grid { grid-template-columns: repeat(13, minmax(80px, 1fr)); grid-template-rows: repeat(13, minmax(80px, 1fr)); width: 1300px; height: 1300px; padding-bottom:60px;}
     .map-segment { font-size: 0.7rem; }
     .segment-content { padding: 10px 3px 3px 3px; gap: 3px; }
-    .segment-name { font-size: 0.75rem; margin-bottom: 1px;}
+    .segment-name { font-size: 0.75rem; margin-bottom: 0px;}
     .segment-label { font-size: 0.7rem; }
     .segment-level { font-size: 0.7rem; }
-    .segment-icon { font-size: 1.1rem; margin-bottom: 1px;}
-    .segment-buff, .segment-resistance { font-size: 0.65rem; min-height: 1.5em; }
+    .segment-icon { font-size: .90rem; margin-bottom: 1px;}
+    .segment-buff, .segment-resistance { font-size: 0.65rem; min-height: 1.7em; }
     /* .segment-assignment-order { font-size: 2rem; } */ /* Removed */
-    .segment-boss-icon { width: 16px; height: 16px; bottom: 0px; right: 1px; }
+    .segment-boss-icon { width: 16px; height: 16px; bottom: -2px; right: 0px; }
     .segment-owner-name { font-size: 0.68rem; top: -6px; left: 19px; }
     .segment-content .conflict-indicator { font-size: 0.8rem; }
     .dropped-indicator { font-size: 2.5rem; }
@@ -432,9 +471,9 @@ body:not(.sidebar-active) #sidebar-button-dock { left: calc(100% - var(--button-
     #allianceSelectModal #alliance-buttons { max-height: 120px; }
 
 
-    #sidebar-button-dock { top: 10px; gap: 5px; padding: 6px 3px; }
-     #sidebar-button-dock .btn { width: calc(var(--button-dock-width) - 6px); min-height: calc(var(--button-dock-width) - 6px); }
-    #sidebar-button-dock .btn i { font-size: 0.9rem; }
-    #sidebar-button-dock .btn .button-text { font-size: 0.5rem; }
+    #sidebar-button-dock { top: var(--map-padding); right: var(--map-padding); gap: 3px; padding: 5px 0; }
+     #sidebar-button-dock .btn { width: calc(var(--button-dock-width) - 6px); min-height: calc(var(--button-dock-width) - 10px); }
+    #sidebar-button-dock .btn i { font-size: 0.8rem; }
+    #sidebar-button-dock .btn .button-text { font-size: 0.45rem; line-height: 1; }
 
 }

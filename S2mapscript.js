@@ -10,12 +10,13 @@
  * - Import/Export map state via Base64 code.
  * - LIVE map import from internal constant variable.
  * - Automatic local storage saving.
+ * - Collapsible button dock controlled by sidebar toggle.
  */
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration & Data ---
 
     // !!! IMPORTANT: Manually update this constant with the Base64 encoded JSON string for the LIVE map data !!!
-    const LIVE_MAP_DATA_B64 = "eyJhc3NpZ25tZW50cyI6eyJBMiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6MX0sIkE0Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo2fSwiQTUiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjd9LCJBNiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6OH0sIkE4Ijp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjozfSwiQTEwIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo2fSwiQTExIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjoxfSwiQTEyIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjoyfSwiQTEzIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjozfSwiQjEiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjF9LCJCMiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6Mn0sIkIzIjp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjozfSwiQjQiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjR9LCJCNSI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6NX0sIkI2Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo5fSwiQjciOnsib3duZXIiOiJDT0xEIiwib3JkZXIiOjF9LCJCOCI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6Mn0sIkI5Ijp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo0fSwiQjEwIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo1fSwiQjExIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo3fSwiQjEyIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo4fSwiQjEzIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjoxfSwiQzEiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjJ9LCJDMiI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6OX0sIkMzIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjoxMH0sIkMxMSI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6OX0sIkMxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6Mn0sIkMxMyI6eyJvd25lciI6IkJSU0wiLCJvcmRlciI6NH0sIkQxIjp7Im93bmVyIjoiYWRIRCIsIm9yZGVyIjozfSwiRDIiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjZ9LCJEMTIiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjN9LCJEMTMiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjR9LCJFMSI6eyJvd25lciI6ImFkSEQiLCJvcmRlciI6NH0sIkUyIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjo3fSwiRTMiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjh9LCJFMTIiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjF9LCJFMTMiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjJ9LCJGMiI6eyJvd25lciI6ImFkSEQiLCJvcmRlciI6NX0sIkYxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6NX0sIkYxMyI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6Nn0sIkcyIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjo1fSwiRzMiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjZ9LCJHMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjd9LCJIMSI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6NH0sIkgxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6OH0sIkkxIjp7Im93bmVyIjoiVG9uZSIsIm9yZGVyIjozfSwiSTIiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjJ9LCJJMyI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6M30sIkkxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6OX0sIkkxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6Mn0sIkoxIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjoxfSwiSjIiOnsib3duZXIiOiJUb25lIiwib3JkZXIiOjJ9LCJKNCI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6OH0sIko2Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo3fSwiSjEyIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjoxMH0sIkoxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6M30sIksxIjp7Im93bmVyIjoiVG9uZSIsIm9yZGVyIjoxfSwiSzIiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjEwfSwiSzUiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjZ9LCJLOSI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6Mn0sIksxMiI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6OX0sIksxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6NH0sIkwzIjp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo5fSwiTDUiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjV9LCJMNyI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6M30sIkw5Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjoxfSwiTDEwIjp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxMn0sIkwxMSI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6MTF9LCJMMTIiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjZ9LCJMMTMiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjd9LCJNNiI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6NH0sIk03Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNn0sIk04Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNX0sIk05Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNH0sIk0xMCI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6MTN9LCJNMTEiOnsib3duZXIiOiJWYUxUIiwib3JkZXIiOjEwfSwiTTEyIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjo5fSwiTTEzIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjo4fX0sIm1hcmtlcnMiOnt9LCJmaXhlZEFjdGl2ZSI6ZmFsc2UsImxhYmVsc1Zpc2libGUiOnRydWUsInN1bW1hcnlTdGF0ZXMiOnsiYURoRCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIlRIT1IiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJmQWZPIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiSGVSYSI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIkNPTEQiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJWYUxUIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiYWRIRCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIkJSU0wiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJUb25lIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiTUlOSSI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sInlpNnIiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9fX0="
+    const LIVE_MAP_DATA_B64 = "eyJhc3NpZ25tZW50cyI6eyJBMiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6MX0sIkE0Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo2fSwiQTUiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjd9LCJBNiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6OH0sIkE4Ijp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjozfSwiQTEwIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo2fSwiQTExIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjoxfSwiQTEyIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjoyfSwiQTEzIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjozfSwiQjEiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjF9LCJCMiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6Mn0sIkIzIjp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjozfSwiQjQiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjR9LCJCNSI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6NX0sIkI2Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo5fSwiQjciOnsib3duZXIiOiJDT0xEIiwib3JkZXIiOjF9LCJCOCI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6Mn0sIkI5Ijp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo0fSwiQjEwIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo1fSwiQjExIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo3fSwiQjEyIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo4fSwiQjEzIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjoxfSwiQzEiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjJ9LCJDMiI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6OX0sIkMzIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjoxMH0sIkMxMSI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6OX0sIkMxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6Mn0sIkMxMyI6eyJvd25lciI6IkJSU0wiLCJvcmRlciI6NH0sIkQxIjp7Im93bmVyIjoiYWRIRCIsIm9yZGVyIjozfSwiRDIiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjZ9LCJEMTIiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjN9LCJEMTMiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjR9LCJFMSI6eyJvd25lciI6ImFkSEQiLCJvcmRlciI6NH0sIkUyIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjo3fSwiRTMiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjh9LCJFMTIiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjF9LCJFMTMiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjJ9LCJGMiI6eyJvd25lciI6ImFkSEQiLCJvcmRlciI6NX0sIkYxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6NX0sIkYxMyI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6Nn0sIkcyIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjo1fSwiRzMiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjZ9LCJHMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjd9LCJIMSI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6NH0sIkgxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6OH0sIkkxIjp7Im93bmVyIjoiVG9uZSIsIm9yZGVyIjozfSwiSTIiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjJ9LCJJMyI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6M30sIkkxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6OX0sIkkxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6Mn0sIkoxIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjoxfSwiSjIiOnsib3duZXIiOiJUb25lIiwib3JkZXIiOjJ9LCJKNCI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6OH0sIko2Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo3fSwiSjEyIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjoxMH0sIkoxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6M30sIksxIjp7Im93bmVyIjoiVG9uZSIsIm9yZGVyIjoxfSwiSzIiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjEwfSwiSzUiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjZ9LCJLOSI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6Mn0sIksxMiI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6OX0sIksxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6NH0sIkwzIjp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo5fSwiTDUiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjV9LCJMNyI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6M30sIkw5Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjoxfSwiTDEwIjp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxMn0sIkwxMSI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6MTF9LCJMMTIiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjZ9LCJMMTMiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjd9LCJNNiI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6NH0sIk03Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNn0sIk04Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNX0sIk05Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNH0sIk0xMCI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6MTN9LCJNMTEiOnsib3duZXIiOiJWYUxUIiwib3JkZXIiOjEwfSwiTTEyIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjo5fSwiTTEzIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjo4fX0sIm1hcmtlcnMiOnt9LCJmaXhlZEFjdGl2ZSI6ZmFsc2UsImxhYmVsc1Zpc2libGUiOnRydWUsInN1bW1hcnlTdGF0ZXMiOnsiYURoRCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIlRIT1IiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJmQWZPIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiSGVSYSI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIkNPTEQiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJWYUxUIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiYWRIRCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIkJSU0wiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJUb25lIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiTUlOSSI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sInlpNnIiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9fX0="; // Example: "ewogICJhc3NpZ25tZW50cyI6IHsgIkExIjogeyAib3duZXIiOiAiVEhPUiIsICJvcmRlciI6IDEgfSB9LAogICJtYXJrZXJzIjogeyAiQTIiOiB7ICJpc0NvbmZsaWN0IjogZmFsc2UsICJjb25mbGljdEFsbGlhbmNlcyI6IFtdLCAiaXNEcm9wcGVkIjogdHJ1ZSB9IH0KfQ=="
     // The above example assigns A1 to THOR and marks A2 as dropped. Replace with your actual data.
 
     const alliances = {
@@ -73,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- State Variables ---
     let fixedAlliancesActive = true;
-    // let assignmentOrderActive = false; // Removed
     let labelsVisible = true;
     let currentSegmentId = null;
     let isInConflictSelectionMode = false;
@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Parse Land Data ---
+    // (No changes needed in parsing logic)
     landDataInput.forEach(item => {
         const parts = item.split(': '); const id = parts[0]; const details = parts[1];
         let level = 0, name = '', buffValue = 0, buffType = '', type = 'Other';
@@ -149,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapContainer = document.getElementById('map-container');
     const allianceSummaryDiv = document.getElementById('alliance-summary');
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+    const buttonDock = document.getElementById('sidebar-button-dock'); // Get button dock element
     const bodyElement = document.body;
     const modalElement = document.getElementById('allianceSelectModal');
     const allianceSelectModalInstance = new bootstrap.Modal(modalElement);
@@ -179,12 +181,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Other Buttons/Toggles
     const clearAllButton = document.getElementById('clear-all-button');
     const fixedAllianceToggle = document.getElementById('fixed-alliance-toggle');
-    // const assignmentOrderToggle = document.getElementById('assignment-order-toggle'); // Removed
     const labelVisibilityToggle = document.getElementById('label-visibility-toggle');
     const summaryItemContainer = allianceSummaryDiv.querySelector('.summary-item-container');
     const infoButton = document.getElementById('info-button');
     const infoModalElement = document.getElementById('infoModal');
-    // const infoModal = new bootstrap.Modal(infoModalElement);
 
     // Import/Export/Live Elements
     const importMapButton = document.getElementById('import-map-button');
@@ -200,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Map Generation ---
+    // (No changes needed)
     const rows = 'ABCDEFGHIJKLM';
     for (let r = 0; r < 13; r++) {
         for (let c = 1; c <= 13; c++) {
@@ -224,13 +225,12 @@ document.addEventListener('DOMContentLoaded', () => {
                  resistanceHTML = `<span class="segment-resistance"></span>`;
             }
 
-            // Removed segment-assignment-order span from originalHTMLContent
             segmentData.originalHTMLContent = `
                 <span class="segment-name">${segmentData.name}</span>
                 <i class="segment-icon ${segmentData.iconClass}"></i>
                 <span class="segment-buff">${segmentData.buffValue > 0 ? segmentData.buffValue + '%' + segmentData.buffType : ''}</span>
                 ${resistanceHTML}
-                <span class="segment-owner-name"></span> `; // Removed assignment order span
+                <span class="segment-owner-name"></span> `;
 
             segmentDiv.innerHTML = `
                 <span class="segment-label">${segmentId}</span>
@@ -259,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mapContainer.addEventListener('wheel', panzoom.zoomWithWheel);
 
     // --- Center Map Function ---
+    // (No changes needed)
     function centerOnG7() {
         const g7Element = mapGrid.querySelector('[data-id="G7"]');
         if (!g7Element) return;
@@ -286,6 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Handlers & Logic ---
 
     // --- Update Segment Visual State ---
+    // (No changes needed)
     function updateSegmentVisualState(segmentId) {
         const segmentData = landData[segmentId];
         const segmentElement = mapGrid.querySelector(`[data-id="${segmentId}"]`);
@@ -304,7 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
             segmentContentElement.innerHTML = `<span class="dropped-indicator">X</span>`;
         } else {
             segmentContentElement.innerHTML = segmentData.originalHTMLContent;
-            // updateSegmentOrderDisplay(segmentId, segmentData.assignmentOrder); // Removed call
 
             if (segmentData.owner && alliances[segmentData.owner]) {
                 segmentElement.classList.add(alliances[segmentData.owner].cssClass);
@@ -321,8 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Conflict Mode Handling ---
-    // ... (Conflict mode functions remain the same) ...
-        function enterConflictSelectionMode() {
+    // (No changes needed)
+    function enterConflictSelectionMode() {
         if (!currentSegmentId) return;
         const segmentData = landData[currentSegmentId];
         if (segmentData.isFixed && fixedAlliancesActive) {
@@ -395,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelConflictSelectionButton.addEventListener('click', () => exitConflictSelectionMode(false));
 
     // --- Other Action Button Handlers ---
+    // (No changes needed)
     markDropButton.addEventListener('click', () => {
         if (!currentSegmentId) return;
         const segmentData = landData[currentSegmentId];
@@ -425,11 +427,9 @@ document.addEventListener('DOMContentLoaded', () => {
         populateAllianceButtons(currentSegmentId);
     });
 
-    // --- Update Order Display (Removed) ---
-    // function updateSegmentOrderDisplay(segmentId, orderNumber) { ... }
 
     // --- Recalculate Alliance Counter ---
-    // No change needed here, but assignmentOrder is now less critical for display
+    // (No changes needed)
     function recalculateAllianceCounter(allianceCode) {
         if (!alliances[allianceCode]) return;
         const alliance = alliances[allianceCode];
@@ -441,6 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Populate Alliance Buttons in Modal ---
+    // (No changes needed)
     function populateAllianceButtons(segmentId) {
         const segmentData = landData[segmentId];
         allianceButtonsDiv.innerHTML = '';
@@ -505,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Handle Segment Click ---
-    // ... (handleSegmentClick function remains largely the same, no assignment order logic needed) ...
+    // (No changes needed)
     function handleSegmentClick(segmentId) {
         const segmentData = landData[segmentId];
         if (!segmentData) return;
@@ -567,6 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Clear Assignment Helper ---
+    // (No changes needed)
     function clearAssignmentForSegment(segmentId, updateSummaryAndSave = true) {
          const segmentData = landData[segmentId];
          const previousOwner = segmentData.owner;
@@ -584,14 +586,11 @@ document.addEventListener('DOMContentLoaded', () => {
                  const assignmentIndex = prevAlliance.orderedAssignments.findIndex(item => item.segmentId === segmentId);
                  if (assignmentIndex > -1) {
                      prevAlliance.orderedAssignments.splice(assignmentIndex, 1);
-                     // Recalculate counter only if saving, otherwise parent function handles it
-                     // if (updateSummaryAndSave) recalculateAllianceCounter(previousOwner); // Moved recalc after all changes
                  } else {
                      // If not found by segmentId, might be an inconsistent state, try to find by order if unique
                      const orderIndex = prevAlliance.orderedAssignments.findIndex(item => item.order === previousOrder);
                       if (orderIndex > -1 && prevAlliance.orderedAssignments.filter(item => item.order === previousOrder).length === 1) {
                          prevAlliance.orderedAssignments.splice(orderIndex, 1);
-                         // if (updateSummaryAndSave) recalculateAllianceCounter(previousOwner); // Moved recalc after all changes
                      }
                  }
              }
@@ -608,6 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Handle Alliance Selection (Assignment/Clearing) ---
+    // (No changes needed)
     function handleAllianceSelection(allianceCode) {
         if (!currentSegmentId || isInConflictSelectionMode) return;
         const segmentData = landData[currentSegmentId];
@@ -666,6 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Clear All Assignments ---
+    // (No changes needed)
         function clearAllAssignments() {
         const confirmationMessage = fixedAlliancesActive
             ? "Are you sure you want to clear ALL user-assigned segments? Designated War Palace assignments and Conflict/Drop marks will REMAIN."
@@ -729,6 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearAllButton.addEventListener('click', clearAllAssignments);
 
     // --- Toggle Fixed Alliances ---
+    // (No changes needed)
     function toggleFixedAlliances(isActive) {
         fixedAlliancesActive = isActive;
         const originalAssignments = {}; // Store owner and order
@@ -829,11 +831,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     fixedAllianceToggle.addEventListener('change', (event) => toggleFixedAlliances(event.target.checked));
 
-    // --- Toggle Assignment Order View (Removed) ---
-    // function toggleAssignmentOrderView(isActive) { ... }
-    // assignmentOrderToggle.addEventListener('change', ...);
 
     // --- Toggle Label Visibility ---
+    // (No changes needed)
     function toggleLabelVisibility(isVisible) {
         labelsVisible = isVisible;
         bodyElement.classList.toggle('labels-hidden', !isVisible);
@@ -841,10 +841,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     labelVisibilityToggle.addEventListener('change', (event) => {
         toggleLabelVisibility(event.target.checked);
-        // saveState(); // Called within toggleLabelVisibility now
     });
 
     // --- Calculate Alliance Stats ---
+    // (No changes needed)
      function calculateAllianceBuffs() {
         for (const code in alliances) { alliances[code].buffs = {}; }
         for (const segmentId in landData) {
@@ -871,6 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Initialize Popovers ---
+    // (No changes needed)
      function initializePopovers() {
         const existingPopovers = document.querySelectorAll('[data-bs-toggle="popover"]');
         existingPopovers.forEach(el => {
@@ -884,6 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Summary Pin/Collapse Toggles ---
+    // (No changes needed)
     function toggleAlliancePin(allianceCode) {
         if (alliances[allianceCode]) {
             alliances[allianceCode].isPinned = !alliances[allianceCode].isPinned;
@@ -906,6 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Update LIVE Button State ---
+    // (No changes needed)
     function updateLiveButtonState() {
         if (liveMapLoaded && !mapStateDirtyAfterLiveLoad) {
             liveMapButton.classList.add('live-map-active');
@@ -920,6 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Update Alliance Summary Display ---
+    // (No changes needed)
     function updateAllianceSummary() {
         calculateAllianceBuffs();
         calculateAllianceResources();
@@ -986,18 +990,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Save State (Auto-save) ---
+    // (No changes needed)
     function saveState() {
         // If live map was previously loaded (and maybe now dirty), mark as dirty.
-        // Don't reset liveMapLoaded here, only when LIVE is clicked again.
         if (liveMapLoaded) {
             mapStateDirtyAfterLiveLoad = true;
-            // liveMapLoaded = false; // Resetting flag moved to handleLiveMapImport
             console.log("Map state changed after LIVE load, marking as dirty.");
         }
 
         const stateToSave = {
             assignments: {}, markers: {}, fixedActive: fixedAlliancesActive,
-            // assignmentOrderViewActive: false, // Removed
             labelsVisible: labelsVisible,
             summaryStates: {}
         };
@@ -1006,11 +1008,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const segmentData = landData[segmentId];
             // Save assignments only if they are NOT fixed OR if fixed toggle is OFF
              if (segmentData.owner && (!segmentData.isFixed || !fixedAlliancesActive)) {
-                // Also ensure there's an assignment order (even if not displayed)
                  if (segmentData.assignmentOrder !== null) {
                     stateToSave.assignments[segmentId] = { owner: segmentData.owner, order: segmentData.assignmentOrder };
                  } else {
-                     // Handle cases where owner exists but order is null (shouldn't happen with current logic, but good safeguard)
                      console.warn(`Segment ${segmentId} owned by ${segmentData.owner} but has null order during save.`);
                  }
             }
@@ -1025,7 +1025,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             localStorage.setItem(SAVE_KEY, JSON.stringify(stateToSave));
-            // console.log(`Map state auto-saved to key: ${SAVE_KEY}`);
         } catch (e) {
             console.error("Error auto-saving state to localStorage:", e);
         }
@@ -1034,6 +1033,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Apply Fixed Assignments on Load ---
+    // (No changes needed)
     function applyFixedAssignmentsOnLoad() {
         if (fixedAlliancesActive) {
             for (const segmentId in FIXED_ASSIGNMENTS) {
@@ -1070,14 +1070,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-         // Note: Recalculation of counters and summary update happens after all assignments are processed in the calling function (initializeMapState, handleImportMap, etc.)
     }
 
 
     // --- Initialize/Load Map State (Auto-load) ---
+    // (No changes needed)
     function initializeMapState() {
         const savedStateRaw = localStorage.getItem(SAVE_KEY);
-        // Default structure, removed assignmentOrderViewActive
         let parsedState = { assignments: {}, markers: {}, fixedActive: true, labelsVisible: true, summaryStates: {} };
 
         console.log(`Initializing map state internally from key: ${SAVE_KEY}`);
@@ -1085,15 +1084,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedStateRaw) {
             try {
                 const loaded = JSON.parse(savedStateRaw);
-                 // Validate structure, remove assignmentOrderViewActive check
+                 // Validate structure
                 if (loaded && typeof loaded.assignments === 'object' && loaded.assignments !== null &&
                     typeof loaded.markers === 'object' && loaded.markers !== null &&
                     typeof loaded.fixedActive === 'boolean' &&
-                    typeof loaded.labelsVisible === 'boolean' && // Keep this check
+                    typeof loaded.labelsVisible === 'boolean' &&
                     typeof loaded.summaryStates === 'object' && loaded.summaryStates !== null) {
                     parsedState = loaded;
-                    // parsedState.assignmentOrderViewActive = false; // No longer needed
-                    parsedState.labelsVisible = loaded.labelsVisible; // Keep loading labelsVisible
+                    parsedState.labelsVisible = loaded.labelsVisible;
                 } else {
                     console.warn(`Invalid saved state structure (Key: ${SAVE_KEY}), using defaults.`);
                     localStorage.removeItem(SAVE_KEY);
@@ -1106,9 +1104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Apply toggle states FIRST
         fixedAlliancesActive = parsedState.fixedActive; fixedAllianceToggle.checked = fixedAlliancesActive;
-        // assignmentOrderActive = false; assignmentOrderToggle.checked = false; // Removed
         labelsVisible = parsedState.labelsVisible; labelVisibilityToggle.checked = labelsVisible;
-        // bodyElement.classList.remove('assignment-order-active'); // Ensure class is removed
         bodyElement.classList.toggle('labels-hidden', !labelsVisible);
 
         // Reset Counts and Map State
@@ -1140,11 +1136,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Helper: Reset Map State ---
+    // (No changes needed)
     function resetMapState() {
          for (const code in alliances) {
              alliances[code].cityCount = 0; alliances[code].digSiteCount = 0; alliances[code].buffs = {};
              alliances[code].totalCPH = 0; alliances[code].totalRSPH = 0; alliances[code].assignmentCounter = 0; alliances[code].orderedAssignments = [];
-             // Keep pin/collapse state unless explicitly reset by import/load
          }
          for (const segmentId in landData) {
              landData[segmentId].owner = null; landData[segmentId].assignmentOrder = null;
@@ -1154,9 +1150,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Helper: Apply User Assignments ---
+    // (No changes needed)
     function applyUserAssignments(assignments) {
         const validAssignments = Object.entries(assignments || {})
-            // Ensure segment exists and data includes owner and a valid order number
             .filter(([id, data]) => data && data.owner && typeof data.order === 'number' && landData[id]);
 
         validAssignments.forEach(([segmentId, assignmentData]) => {
@@ -1169,25 +1165,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 let canAssignUser = false;
                 if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignUser = true; } }
                 else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignUser = true; } }
-                else { canAssignUser = true; } // Allow assigning non-city/dig sites
+                else { canAssignUser = true; }
 
                 if (canAssignUser) {
                     segmentData.owner = allianceCode;
-                    segmentData.assignmentOrder = assignmentData.order; // Restore the saved order
+                    segmentData.assignmentOrder = assignmentData.order;
                     alliance.orderedAssignments.push({ segmentId: segmentId, order: assignmentData.order });
                 } else { console.warn(`Load/Import: Limit reached for ${allianceCode} at ${segmentId}. Assignment ignored.`); }
             } else if (!alliance) {
                  console.warn(`Load/Import: Unknown alliance code "${allianceCode}" found for ${segmentId}. Assignment ignored.`);
             } else if (segmentData.isFixed && fixedAlliancesActive) {
-                // Log if we are skipping a saved assignment because it's now fixed
                  console.log(`Load/Import: Skipping saved assignment for ${segmentId} (${allianceCode}) because it is currently a fixed assignment.`);
             }
         });
         console.log(`Attempted to apply ${validAssignments.length} user assignments (respecting fixed toggle).`);
-        // Note: Recalculation of counters and summary update happens after all assignments are processed.
     }
 
      // --- Helper: Apply Markers ---
+     // (No changes needed)
     function applyMarkers(markers) {
          let appliedCount = 0;
          for (const segmentId in markers || {}) {
@@ -1197,10 +1192,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Apply markers only if the segment is NOT fixed OR fixed toggle is OFF
                 if (!segmentData.isFixed || !fixedAlliancesActive) {
-                     // If applying a marker, ensure the segment is not currently owned (markers override owners)
+                     // If applying a marker, ensure the segment is not currently owned
                      if ((markerData.isDropped || markerData.isConflict) && segmentData.owner) {
                          console.warn(`Load/Import: Clearing owner ${segmentData.owner} from ${segmentId} due to drop/conflict marker.`);
-                         clearAssignmentForSegment(segmentId, false); // Clear assignment without saving yet
+                         clearAssignmentForSegment(segmentId, false);
                      }
                      segmentData.isConflict = markerData.isConflict || false;
                      segmentData.conflictAlliances = markerData.conflictAlliances || [];
@@ -1213,13 +1208,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Helper: Apply Summary States ---
+    // (No changes needed)
     function applySummaryStates(summaryStates) {
          for (const code in alliances) {
              if (summaryStates && summaryStates[code]) {
                  alliances[code].isPinned = !!summaryStates[code].isPinned;
                  alliances[code].isCollapsed = !!summaryStates[code].isCollapsed;
              } else {
-                 // Default if not found in saved state
                  alliances[code].isPinned = false;
                  alliances[code].isCollapsed = false;
              }
@@ -1228,6 +1223,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Helper: Update All Segments Visual State ---
+    // (No changes needed)
     function updateAllSegmentsVisualState() {
         console.log("Updating all segment visuals...");
         Object.keys(landData).forEach(updateSegmentVisualState);
@@ -1238,22 +1234,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Load from Google Sheet (Placeholder - requires setup) ---
     // ... (loadCurrentStateFromSheet function remains the same - placeholder) ...
 
-    // --- Sidebar Toggle Logic ---
-        function setSidebarState(isActive) {
+    // --- Sidebar Toggle Logic (Combined with Button Dock Collapse) ---
+    function setSidebarAndDockState(isActive) {
         const sidebarIcon = sidebarToggleBtn.querySelector('i');
+
+        // Toggle main sidebar visibility
         bodyElement.classList.toggle('sidebar-active', isActive);
         allianceSummaryDiv.classList.toggle('sidebar-collapsed', !isActive);
-        sidebarToggleBtn.title = isActive ? "Hide Alliance Summary" : "Show Alliance Summary";
-        if (sidebarIcon) sidebarIcon.className = isActive ? 'fa-solid fa-chevron-right' : 'fa-solid fa-bars';
+
+        // Toggle button dock collapsed state
+        buttonDock.classList.toggle('collapsed', !isActive); // Collapse when sidebar is hidden
+
+        // Update toggle button title and icon
+        sidebarToggleBtn.title = isActive ? "Hide Summary & Collapse Buttons" : "Show Summary & Expand Buttons";
+        if (sidebarIcon) {
+            sidebarIcon.className = isActive ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left'; // Use left/right arrows
+        }
     }
-    sidebarToggleBtn.addEventListener('click', () => setSidebarState(!bodyElement.classList.contains('sidebar-active')));
+    // Initial state setup for button dock based on sidebar state
+    buttonDock.classList.toggle('collapsed', !bodyElement.classList.contains('sidebar-active'));
+
+    sidebarToggleBtn.addEventListener('click', () => {
+        const currentlyActive = bodyElement.classList.contains('sidebar-active');
+        setSidebarAndDockState(!currentlyActive); // Toggle the state
+    });
 
     // --- Import/Export Logic ---
+    // (No changes needed in generateMapCode, handleExportMap, applyImportedState, handleImportMap, getLiveMapData, handleLiveMapImport)
     function generateMapCode() {
         const stateToExport = {
              assignments: {}, markers: {},
              fixedActive: fixedAlliancesActive,
-             // assignmentOrderViewActive: false, // No longer needed
              labelsVisible: labelsVisible,
              summaryStates: {}
         };
@@ -1287,7 +1298,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const code = generateMapCode();
         if (code) {
             codeModalLabel.textContent = "Export Map Code";
-            // Updated instructions
             codeModalInstructions.textContent = "Copy the code below to share or save your current map state (including non-fixed assignments, markers, view toggles, and sidebar pin/collapse states).";
             codeModalTextarea.value = code;
             codeModalTextarea.readOnly = true;
@@ -1298,18 +1308,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyImportedState(importedState, isLiveImport = false) {
-        // --- Apply imported state directly ---
         console.log(`Applying state from ${isLiveImport ? 'LIVE source' : 'Import Code'}...`);
 
         // Apply toggle states FIRST from imported data (unless it's LIVE import)
         if (!isLiveImport) {
             fixedAlliancesActive = importedState.fixedActive; fixedAllianceToggle.checked = fixedAlliancesActive;
-            // assignmentOrderActive = false; assignmentOrderToggle.checked = false; // Removed
             labelsVisible = importedState.labelsVisible; labelVisibilityToggle.checked = labelsVisible;
-            // bodyElement.classList.remove('assignment-order-active');
             bodyElement.classList.toggle('labels-hidden', !labelsVisible);
         } else {
-             // For LIVE import, keep current view settings (fixed, labels)
              console.log("LIVE import: Keeping current view settings.");
         }
 
@@ -1360,7 +1366,9 @@ document.addEventListener('DOMContentLoaded', () => {
                  console.log("Regular import complete. Saved to auto-save. LIVE flags reset.");
                  alert("Map state imported successfully!");
              }
-         }, 0); // 0ms delay ensures it runs after current execution context
+             // Ensure sidebar/dock visual state matches after import
+             setSidebarAndDockState(bodyElement.classList.contains('sidebar-active'));
+         }, 0);
     }
 
 
@@ -1374,10 +1382,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const jsonString = atob(code.trim()); // Decode Base64
             const importedState = JSON.parse(jsonString);
 
-            // Validate imported structure (removed assignmentOrderViewActive)
+            // Validate imported structure
             if (!importedState || typeof importedState.assignments !== 'object' ||
                 typeof importedState.markers !== 'object' || typeof importedState.fixedActive !== 'boolean' ||
-                typeof importedState.labelsVisible !== 'boolean' || // Keep this
+                typeof importedState.labelsVisible !== 'boolean' ||
                 typeof importedState.summaryStates !== 'object') {
                 throw new Error("Invalid or incomplete code structure.");
             }
@@ -1397,47 +1405,39 @@ document.addEventListener('DOMContentLoaded', () => {
      // --- Get LIVE map data from the constant variable ---
     function getLiveMapData() {
         console.log("Getting LIVE map data from internal constant.");
-        // Simply return the value of the constant defined at the top
         return LIVE_MAP_DATA_B64;
     }
 
     // --- Handle LIVE Map Import ---
-    function handleLiveMapImport() { // No longer async
-        // Reset the dirty flag first, before attempting load
+    function handleLiveMapImport() {
         mapStateDirtyAfterLiveLoad = false;
-        liveMapLoaded = false; // Assume failure until success
-        updateLiveButtonState(); // Show button as normal
+        liveMapLoaded = false;
+        updateLiveButtonState();
 
         try {
-            // Get the code from the internal constant
             const code = getLiveMapData();
 
             if (code === null || code.trim() === "") {
-                 // Throw error if the constant is empty
                  throw new Error("LIVE_MAP_DATA_B64 constant is empty. Please update it in the script.");
             }
 
-            const jsonString = atob(code.trim()); // Decode Base64
+            const jsonString = atob(code.trim());
             const liveState = JSON.parse(jsonString);
 
-            // Basic validation of the structure expected from live map
-            // Typically just assignments and markers
              if (!liveState || typeof liveState.assignments !== 'object' ||
                 typeof liveState.markers !== 'object') {
                  throw new Error("Invalid structure in LIVE_MAP_DATA_B64 constant. Expected assignments and markers objects.");
             }
 
-             // No confirmation needed for LIVE update
             console.log("Applying LIVE map state from constant...");
             applyImportedState(liveState, true); // Apply as LIVE import
 
         } catch (e) {
             console.error("Error importing LIVE map from constant:", e);
-            // Display a more specific error message to the user
             alert(`Failed to import LIVE map: ${e.message}`);
-             mapStateDirtyAfterLiveLoad = false; // Ensure flags are reset on error
+             mapStateDirtyAfterLiveLoad = false;
              liveMapLoaded = false;
-             updateLiveButtonState(); // Reset button visuals on error
+             updateLiveButtonState();
         }
     }
 
@@ -1445,27 +1445,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add event listeners for Import/Export/Live buttons
     exportMapButton.addEventListener('click', handleExportMap);
     importMapButton.addEventListener('click', handleImportMap);
-    liveMapButton.addEventListener('click', handleLiveMapImport); // Listener remains the same
+    liveMapButton.addEventListener('click', handleLiveMapImport);
 
     // Improved Copy Button Logic
+    // (No changes needed)
     copyCodeButton.addEventListener('click', () => {
         const codeToCopy = codeModalTextarea.value;
         if (!codeToCopy) return;
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(codeToCopy).then(() => {
-                copyFeedbackElement.style.display = 'block'; // Show feedback
+                copyFeedbackElement.style.display = 'block';
                 copyCodeButton.innerHTML = '<i class="fa-solid fa-check me-1"></i>Copied!';
                 setTimeout(() => {
                      copyFeedbackElement.style.display = 'none';
                      copyCodeButton.innerHTML = '<i class="fa-regular fa-copy me-1"></i>Copy Code';
-                }, 2000); // Hide feedback after 2 seconds
+                }, 2000);
             }).catch(err => {
                 console.error('Clipboard API copy failed:', err);
                 alert("Could not copy code automatically. Please copy manually.");
             });
         } else {
-             // Fallback for older browsers (less reliable)
             try {
                 codeModalTextarea.select();
                 document.execCommand('copy');
@@ -1490,8 +1490,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAllSegmentsVisualState();
         updateAllianceSummary(); // Includes initial LIVE button state update
         initializePopovers();
+        // Set initial sidebar/dock state based on loaded/default body class
+        setSidebarAndDockState(bodyElement.classList.contains('sidebar-active'));
         console.log("Initial visual refresh complete.");
      }, 0);
-    setSidebarState(bodyElement.classList.contains('sidebar-active'));
 
 }); // End DOMContentLoaded

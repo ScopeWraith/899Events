@@ -15,29 +15,31 @@
     </div>
 
     <div id="sidebar-button-dock">
-         <button class="btn btn-secondary" id="sidebar-toggle" type="button" title="Toggle Alliance Summary">
+         <button class="btn btn-secondary" id="sidebar-toggle" type="button" title="Toggle Alliance Summary & Buttons">
             <i class="fa-solid fa-chevron-right"></i>
             <span class="button-text">Toggle</span>
         </button>
-        <button class="btn btn-warming" id="info-button" type="button" title="Information & Donate" data-bs-toggle="modal" data-bs-target="#infoModal">
-            <i class="fa-solid fa-circle-info"></i>
-             <span class="button-text">Info</span>
-        </button>
-        <button class="btn btn-dark" id="import-map-button" type="button" title="Import Map Data from Code">
-            <i class="fa-solid fa-file-import"></i>
-             <span class="button-text">Import</span>
-        </button>
-        <button class="btn btn-dark" id="export-map-button" type="button" title="Export Map Data as Code">
-            <i class="fa-solid fa-file-export"></i>
-             <span class="button-text">Export</span>
-        </button>
-        <button class="btn btn-success" id="live-map-button" type="button" title="Import Live Map Data">
-            <i class="fa-solid fa-satellite-dish"></i> <span class="button-text">LIVE</span>
-        </button>
-        <button class="btn btn-danger" id="clear-all-button" type="button" title="Clear All User Assignments">
-            <i class="fa-solid fa-trash"></i>
-             <span class="button-text">Clear</span>
-        </button>
+        <div id="action-buttons-container">
+            <button class="btn btn-warming" id="info-button" type="button" title="Information & Donate" data-bs-toggle="modal" data-bs-target="#infoModal">
+                <i class="fa-solid fa-circle-info"></i>
+                 <span class="button-text">Info</span>
+            </button>
+            <button class="btn btn-dark" id="import-map-button" type="button" title="Import Map Data from Code">
+                <i class="fa-solid fa-file-import"></i>
+                 <span class="button-text">Import</span>
+            </button>
+            <button class="btn btn-dark" id="export-map-button" type="button" title="Export Map Data as Code">
+                <i class="fa-solid fa-file-export"></i>
+                 <span class="button-text">Export</span>
+            </button>
+            <button class="btn btn-success" id="live-map-button" type="button" title="Import Live Map Data">
+                <i class="fa-solid fa-satellite-dish"></i> <span class="button-text">LIVE</span>
+            </button>
+            <button class="btn btn-danger" id="clear-all-button" type="button" title="Clear All User Assignments">
+                <i class="fa-solid fa-trash"></i>
+                 <span class="button-text">Clear</span>
+            </button>
+        </div>
     </div>
 
     <div id="alliance-summary">
@@ -57,7 +59,8 @@
         </div>
     </div>
 
-    <div class="modal fade" id="allianceSelectModal" tabindex="-1" aria-labelledby="allianceSelectModalLabel" aria-hidden="true">
+
+     <div class="modal fade" id="allianceSelectModal" tabindex="-1" aria-labelledby="allianceSelectModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header py-2">
