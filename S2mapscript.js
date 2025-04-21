@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             segmentDiv.innerHTML = `
                 <span class="segment-label">${segmentId}</span>
-                <span class="segment-level">Level ${segmentData.level}</span>
+                <span class="segment-level">LVL${segmentData.level}</span>
                 <div class="segment-content">
                     ${segmentData.originalHTMLContent}
                 </div>
