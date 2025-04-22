@@ -12,8 +12,8 @@ html, body {
     --sidebar-width: 300px;
     --base-bg-lightness: 15%;
     --mobile-bottom-buffer: 60px;
-    --conflict-border-color: rgba(255, 100, 0, 0.9); /* Orange-red */
-    --conflict-glow-color: rgba(255, 100, 0, 0.6);
+    --conflict-border-color: rgba(255, 72, 72, 0.9); /* Orange-red */
+    --conflict-glow-color: rgba(255, 0, 0, 0.6);
     --dropped-indicator-color: rgba(200, 0, 0, 0.7);
     --button-dock-width: 55px; /* Slightly smaller width */
     --live-active-color: #20c997; /* Bootstrap $success */
@@ -78,17 +78,17 @@ body.sidebar-active #map-container {
 .map-segment.conflict {
     border: 2px solid var(--conflict-border-color);
     box-shadow: 0 0 10px 3px var(--conflict-glow-color);
-    background-color: rgba(100, 40, 0, 0.25) !important; /* Dark orange transparent bg */
+    background-color: rgba(100, 0, 0, 0.25) !important; /* Dark orange transparent bg */
     color: #fff !important;
 }
 .segment-content .conflict-indicator {
     font-weight: bold;
-    font-size: 1.4rem;
+    font-size: 1rem;
     color: #ffddcc;
     text-shadow: 1px 1px 2px black;
     padding: 5px;
     line-height: 1.2;
-    margin: auto;
+    margin-top: -22px;
 }
 
 /* --- Dropped Styling --- */
@@ -244,7 +244,7 @@ body.labels-hidden .segment-boss-icon { opacity: 0.2; visibility: visible; }
 #alliance-summary.sidebar-collapsed { transform: translateX(100%); }
 
 
-/* Original Toggle Containers (Removed Assignment Order toggle) */
+/* Original Toggle Containers (Including the new one) */
 .fixed-toggle-container {
     min-height: 35px; background-color: var(--bs-tertiary-bg); flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; padding: 5px 10px;
@@ -258,7 +258,37 @@ body.labels-hidden .segment-boss-icon { opacity: 0.2; visibility: visible; }
 .summary-item-container {
     padding: 8px; display: flex; flex-direction: column; gap: 8px;
     flex-grow: 1; overflow-y: auto; padding-bottom: var(--mobile-bottom-buffer);
+    transition: opacity 0.3s ease-out; /* Keep transition for potential future use */
+    border-top: 1px solid var(--bs-border-color-translucent);
+    margin-top: 0;
 }
+
+/* ** START: Styles for Land Limits Info Text ** */
+.land-limits-info-text {
+    font-style: italic;
+    color: var(--bs-secondary-color); /* Use a secondary color for dimming */
+    text-align: center;
+    padding: 20px 10px;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    display: none; /* Hidden by default */
+    flex-grow: 1; /* Allow it to take space if needed */
+    line-height: 1.4;
+}
+
+/* Show info text and hide summary items when land limits mode is active */
+#alliance-summary.land-limits-active .summary-item {
+    display: none; /* Hide normal summary items */
+}
+#alliance-summary.land-limits-active .land-limits-info-text {
+    display: block; /* Show the info text */
+}
+/* Ensure container itself doesn't collapse visually */
+#alliance-summary.land-limits-active .summary-item-container {
+    border-top: none; /* Optional: remove border when only text is shown */
+}
+/* ** END: Styles for Land Limits Info Text ** */
+
 
 
 /* --- Main Button Dock --- */
@@ -359,8 +389,9 @@ body.sidebar-active #sidebar-button-dock {
     padding: 8px; border-radius: 5px;
     background-color: var(--bs-body-bg); border: 1px solid var(--bs-border-color-translucent);
     width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.15); flex-shrink: 0;
-    transition: order 0.3s ease, max-height 0.3s ease-out, padding 0.3s ease-out, margin 0.3s ease-out, border-color 0.3s ease;
+    transition: order 0.3s ease, max-height 0.3s ease-out, padding 0.3s ease-out, margin 0.3s ease-out, border-color 0.3s ease, display 0.3s ease; /* Added display transition */
     order: 10; overflow: hidden;
+    display: block; /* Default display */
 }
 .summary-item.pinned { order: 5; border-color: var(--bs-warning-border-subtle); }
 .summary-header { display: flex; align-items: center; margin-bottom: 6px; border-bottom: 1px solid var(--bs-border-color-translucent); padding-bottom: 4px; position: relative; }
@@ -434,6 +465,7 @@ body.sidebar-active #sidebar-button-dock {
      }
     body.sidebar-active #map-container { width: calc(100% - var(--sidebar-width)); }
     .summary-alliance-name { font-size: 0.9rem;} .summary-resources, .summary-counts, .summary-buffs-list { font-size: 0.75rem; }
+    .land-limits-info-text { font-size: 0.75rem; } /* Adjust info text size */
 
     #sidebar-button-dock { top: var(--map-padding); right: var(--map-padding); gap: 4px; padding: 6px 0; }
     #sidebar-button-dock .btn { width: calc(var(--button-dock-width) - 8px); min-height: calc(var(--button-dock-width) - 12px); }
@@ -465,6 +497,7 @@ body.sidebar-active #sidebar-button-dock {
     .summary-buffs-list li { padding: 1px 0; } .summary-buffs-list li i { width: 12px; margin-right: 3px; }
     .summary-buffs-list li .buff-value { min-width: 30px; }
     .summary-controls .btn { padding: 0.05rem 0.25rem; font-size: 0.65rem; }
+    .land-limits-info-text { font-size: 0.7rem; } /* Adjust info text size */
 
     #allianceSelectModal .modal-body { font-size: 0.8rem; }
     #allianceSelectModal .info-group strong { min-width: 60px; }

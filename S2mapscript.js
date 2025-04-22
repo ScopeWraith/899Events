@@ -5,6 +5,7 @@
  * - Conflict/Drop marking.
  * - Fixed War Palace assignments (toggleable).
  * - Label visibility (toggleable).
+ * - Land Limit override mode (toggleable) with informational text.
  * - Alliance summary sidebar with resource/buff calculation.
  * - Pin/Collapse alliance summaries.
  * - Import/Export map state via Base64 code.
@@ -16,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration & Data ---
 
     // !!! IMPORTANT: Manually update this constant with the Base64 encoded JSON string for the LIVE map data !!!
-    const LIVE_MAP_DATA_B64 = "eyJhc3NpZ25tZW50cyI6eyJBMiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6MX0sIkE0Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo2fSwiQTUiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjd9LCJBNiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6OH0sIkE4Ijp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjozfSwiQTEwIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo2fSwiQTExIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjoxfSwiQTEyIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjoyfSwiQTEzIjp7Im93bmVyIjoieWk2ciIsIm9yZGVyIjozfSwiQjEiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjF9LCJCMiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6Mn0sIkIzIjp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjozfSwiQjQiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjR9LCJCNSI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6NX0sIkI2Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo5fSwiQjciOnsib3duZXIiOiJDT0xEIiwib3JkZXIiOjF9LCJCOCI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6Mn0sIkI5Ijp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo0fSwiQjEwIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo1fSwiQjExIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo3fSwiQjEyIjp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjo4fSwiQjEzIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjoxfSwiQzEiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjJ9LCJDMiI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6OX0sIkMzIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjoxMH0sIkMxMSI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6OX0sIkMxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6Mn0sIkMxMyI6eyJvd25lciI6IkJSU0wiLCJvcmRlciI6NH0sIkQxIjp7Im93bmVyIjoiYWRIRCIsIm9yZGVyIjozfSwiRDIiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjZ9LCJEMTIiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjN9LCJEMTMiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjR9LCJFMSI6eyJvd25lciI6ImFkSEQiLCJvcmRlciI6NH0sIkUyIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjo3fSwiRTMiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjh9LCJFMTIiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjF9LCJFMTMiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjJ9LCJGMiI6eyJvd25lciI6ImFkSEQiLCJvcmRlciI6NX0sIkYxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6NX0sIkYxMyI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6Nn0sIkcyIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjo1fSwiRzMiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjZ9LCJHMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjd9LCJIMSI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6NH0sIkgxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6OH0sIkkxIjp7Im93bmVyIjoiVG9uZSIsIm9yZGVyIjozfSwiSTIiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjJ9LCJJMyI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6M30sIkkxMiI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6OX0sIkkxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6Mn0sIkoxIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjoxfSwiSjIiOnsib3duZXIiOiJUb25lIiwib3JkZXIiOjJ9LCJKNCI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6OH0sIko2Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo3fSwiSjEyIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjoxMH0sIkoxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6M30sIksxIjp7Im93bmVyIjoiVG9uZSIsIm9yZGVyIjoxfSwiSzIiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjEwfSwiSzUiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjZ9LCJLOSI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6Mn0sIksxMiI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6OX0sIksxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6NH0sIkwzIjp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo5fSwiTDUiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjV9LCJMNyI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6M30sIkw5Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjoxfSwiTDEwIjp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxMn0sIkwxMSI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6MTF9LCJMMTIiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjZ9LCJMMTMiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjd9LCJNNiI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6NH0sIk03Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNn0sIk04Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNX0sIk05Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNH0sIk0xMCI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6MTN9LCJNMTEiOnsib3duZXIiOiJWYUxUIiwib3JkZXIiOjEwfSwiTTEyIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjo5fSwiTTEzIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjo4fX0sIm1hcmtlcnMiOnt9LCJmaXhlZEFjdGl2ZSI6ZmFsc2UsImxhYmVsc1Zpc2libGUiOnRydWUsInN1bW1hcnlTdGF0ZXMiOnsiYURoRCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIlRIT1IiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJmQWZPIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiSGVSYSI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIkNPTEQiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJWYUxUIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiYWRIRCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIkJSU0wiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJUb25lIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiTUlOSSI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sInlpNnIiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9fX0="; // Example: "ewogICJhc3NpZ25tZW50cyI6IHsgIkExIjogeyAib3duZXIiOiAiVEhPUiIsICJvcmRlciI6IDEgfSB9LAogICJtYXJrZXJzIjogeyAiQTIiOiB7ICJpc0NvbmZsaWN0IjogZmFsc2UsICJjb25mbGljdEFsbGlhbmNlcyI6IFtdLCAiaXNEcm9wcGVkIjogdHJ1ZSB9IH0KfQ=="
+    const LIVE_MAP_DATA_B64 = "eyJhc3NpZ25tZW50cyI6eyJBMiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6MX0sIkE0Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo2fSwiQTYiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjh9LCJBOCI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6M30sIkExMCI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6Nn0sIkExMSI6eyJvd25lciI6InlpNnIiLCJvcmRlciI6MX0sIkExMiI6eyJvd25lciI6InlpNnIiLCJvcmRlciI6Mn0sIkExMyI6eyJvd25lciI6InlpNnIiLCJvcmRlciI6M30sIkIxIjp7Im93bmVyIjoiYWRIRCIsIm9yZGVyIjoxfSwiQjIiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjJ9LCJCMyI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6M30sIkI0Ijp7Im93bmVyIjoiSGVSYSIsIm9yZGVyIjo0fSwiQjUiOnsib3duZXIiOiJIZVJhIiwib3JkZXIiOjV9LCJCNiI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6OX0sIkI3Ijp7Im93bmVyIjoiQ09MRCIsIm9yZGVyIjoxfSwiQjgiOnsib3duZXIiOiJDT0xEIiwib3JkZXIiOjJ9LCJCOSI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6NH0sIkIxMCI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6NX0sIkIxMSI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6N30sIkIxMiI6eyJvd25lciI6IkJSU0wiLCJvcmRlciI6NX0sIkIxMyI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6MX0sIkMxIjp7Im93bmVyIjoiYWRIRCIsIm9yZGVyIjoyfSwiQzIiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjl9LCJDMyI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6MTB9LCJDNSI6eyJvd25lciI6IkhlUmEiLCJvcmRlciI6MTB9LCJDNyI6eyJvd25lciI6IkNPTEQiLCJvcmRlciI6MTB9LCJDMTEiOnsib3duZXIiOiJDT0xEIiwib3JkZXIiOjl9LCJDMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjJ9LCJDMTMiOnsib3duZXIiOiJCUlNMIiwib3JkZXIiOjR9LCJEMSI6eyJvd25lciI6ImFkSEQiLCJvcmRlciI6M30sIkQyIjp7Im93bmVyIjoiYWRIRCIsIm9yZGVyIjo2fSwiRDEyIjp7Im93bmVyIjoiQlJTTCIsIm9yZGVyIjozfSwiRDEzIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjo0fSwiRTEiOnsib3duZXIiOiJhZEhEIiwib3JkZXIiOjR9LCJFMiI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6N30sIkUzIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjo4fSwiRTExIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjoxMn0sIkUxMiI6eyJvd25lciI6IkJSU0wiLCJvcmRlciI6MX0sIkUxMyI6eyJvd25lciI6IkJSU0wiLCJvcmRlciI6Mn0sIkYyIjp7Im93bmVyIjoiYWRIRCIsIm9yZGVyIjo1fSwiRjEyIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjo1fSwiRjEzIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjo2fSwiRzIiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjV9LCJHMyI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6Nn0sIkcxMSI6eyJvd25lciI6ImZBZk8iLCJvcmRlciI6MTF9LCJHMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjd9LCJIMSI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6NH0sIkgyIjp7Im93bmVyIjoiVG9uZSIsIm9yZGVyIjo0fSwiSTEiOnsib3duZXIiOiJUb25lIiwib3JkZXIiOjN9LCJJMiI6eyJvd25lciI6IlRIT1IiLCJvcmRlciI6Mn0sIkkzIjp7Im93bmVyIjoiVEhPUiIsIm9yZGVyIjozfSwiSTEyIjp7Im93bmVyIjoiZkFmTyIsIm9yZGVyIjo5fSwiSTEzIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjoyfSwiSjEiOnsib3duZXIiOiJUSE9SIiwib3JkZXIiOjF9LCJKMiI6eyJvd25lciI6IlRvbmUiLCJvcmRlciI6Mn0sIko0Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo4fSwiSjYiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjd9LCJKOCI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6MTF9LCJKMTIiOnsib3duZXIiOiJmQWZPIiwib3JkZXIiOjEwfSwiSjEzIjp7Im93bmVyIjoiTUlOSSIsIm9yZGVyIjozfSwiSzEiOnsib3duZXIiOiJUb25lIiwib3JkZXIiOjF9LCJLMiI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6MTB9LCJLOSI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6Mn0sIksxMiI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6OX0sIksxMyI6eyJvd25lciI6Ik1JTkkiLCJvcmRlciI6NH0sIkwzIjp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjo5fSwiTDUiOnsib3duZXIiOiJhRGhEIiwib3JkZXIiOjV9LCJMNyI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6M30sIkw5Ijp7Im93bmVyIjoiYURoRCIsIm9yZGVyIjoxfSwiTDEwIjp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxMn0sIkwxMSI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6MTF9LCJMMTIiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjZ9LCJMMTMiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjd9LCJNNiI6eyJvd25lciI6ImFEaEQiLCJvcmRlciI6NH0sIk03Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNn0sIk04Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNX0sIk05Ijp7Im93bmVyIjoiVmFMVCIsIm9yZGVyIjoxNH0sIk0xMCI6eyJvd25lciI6IlZhTFQiLCJvcmRlciI6MTN9LCJNMTIiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjl9LCJNMTMiOnsib3duZXIiOiJNSU5JIiwib3JkZXIiOjh9fSwibWFya2VycyI6e30sImZpeGVkQWN0aXZlIjpmYWxzZSwibGFiZWxzVmlzaWJsZSI6dHJ1ZSwic3VtbWFyeVN0YXRlcyI6eyJhRGhEIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiVEhPUiI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sImZBZk8iOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJIZVJhIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiQ09MRCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIlZhTFQiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJhZEhEIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwiQlJTTCI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX0sIlRvbmUiOnsiaXNQaW5uZWQiOmZhbHNlLCJpc0NvbGxhcHNlZCI6ZmFsc2V9LCJNSU5JIjp7ImlzUGlubmVkIjpmYWxzZSwiaXNDb2xsYXBzZWQiOmZhbHNlfSwieWk2ciI6eyJpc1Bpbm5lZCI6ZmFsc2UsImlzQ29sbGFwc2VkIjpmYWxzZX19fQ=="
     // The above example assigns A1 to THOR and marks A2 as dropped. Replace with your actual data.
 
     const alliances = {
@@ -75,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State Variables ---
     let fixedAlliancesActive = true;
     let labelsVisible = true;
+    let landLimitsModeActive = false; // ** NEW STATE VARIABLE **
     let currentSegmentId = null;
     let isInConflictSelectionMode = false;
     let conflictSelection = [];
@@ -182,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearAllButton = document.getElementById('clear-all-button');
     const fixedAllianceToggle = document.getElementById('fixed-alliance-toggle');
     const labelVisibilityToggle = document.getElementById('label-visibility-toggle');
+    const landLimitsToggle = document.getElementById('land-limits-toggle'); // ** NEW ELEMENT **
     const summaryItemContainer = allianceSummaryDiv.querySelector('.summary-item-container');
     const infoButton = document.getElementById('info-button');
     const infoModalElement = document.getElementById('infoModal');
@@ -300,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (segmentData.isConflict) {
             segmentElement.classList.add('conflict');
-            segmentContentElement.innerHTML = `<span class="conflict-indicator">${segmentData.conflictAlliances.map(code => alliances[code]?.name || code).join(' vs ') || 'Conflict'}</span>`;
+            segmentContentElement.innerHTML = `<span class="conflict-indicator">${segmentData.conflictAlliances.map(code => alliances[code]?.name || code).join(' <br>VS<br> ') || 'Conflict'}</span>`;
         } else if (segmentData.isDropped) {
             segmentElement.classList.add('dropped');
             segmentContentElement.innerHTML = `<span class="dropped-indicator">X</span>`;
@@ -441,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Populate Alliance Buttons in Modal ---
-    // (No changes needed)
+    // (No changes needed from previous step)
     function populateAllianceButtons(segmentId) {
         const segmentData = landData[segmentId];
         allianceButtonsDiv.innerHTML = '';
@@ -483,15 +486,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (segmentData.owner === code) {
                      isDisabled = true; disabledReason = ` (Assigned)`;
                 } else {
-                     if (segmentData.type === 'City' && data.cityCount >= data.cityLimit) {
-                         isDisabled = true; disabledReason = ` (Limit: ${data.cityCount}/${data.cityLimit} Cities)`;
-                     } else if (segmentData.type === 'Dig Site' && data.digSiteCount >= data.digSiteLimit) {
-                         isDisabled = true; disabledReason = ` (Limit: ${data.digSiteCount}/${data.digSiteLimit} Digs)`;
+                     // ** START: Modified Limit Check **
+                     if (!landLimitsModeActive) { // Only check limits if mode is OFF
+                         if (segmentData.type === 'City' && data.cityCount >= data.cityLimit) {
+                             isDisabled = true; disabledReason = ` (Limit: ${data.cityCount}/${data.cityLimit} Cities)`;
+                         } else if (segmentData.type === 'Dig Site' && data.digSiteCount >= data.digSiteLimit) {
+                             isDisabled = true; disabledReason = ` (Limit: ${data.digSiteCount}/${data.digSiteLimit} Digs)`;
+                         }
                      }
+                     // ** END: Modified Limit Check **
                 }
-                 if (!isDisabled) {
+                 if (!isDisabled && !landLimitsModeActive) { // Only show counts if limits are active
                      if(segmentData.type === 'City') button.textContent += ` (${data.cityCount}/${data.cityLimit})`;
                      else if(segmentData.type === 'Dig Site') button.textContent += ` (${data.digSiteCount}/${data.digSiteLimit})`;
+                 } else if (!isDisabled && landLimitsModeActive) {
+                     button.textContent += ` (∞)`; // Indicate infinite limit
                  }
             }
 
@@ -607,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Handle Alliance Selection (Assignment/Clearing) ---
-    // (No changes needed)
+    // (No changes needed from previous step)
     function handleAllianceSelection(allianceCode) {
         if (!currentSegmentId || isInConflictSelectionMode) return;
         const segmentData = landData[currentSegmentId];
@@ -627,8 +636,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const newAlliance = alliances[allianceCode];
             if (!newAlliance) return;
 
-            if (segmentData.type === 'City' && newAlliance.cityCount >= newAlliance.cityLimit) { alert(`${newAlliance.name} City limit reached.`); return; }
-            if (segmentData.type === 'Dig Site' && newAlliance.digSiteCount >= newAlliance.digSiteLimit) { alert(`${newAlliance.name} Dig Site limit reached.`); return; }
+            // ** START: Modified Limit Check **
+            if (!landLimitsModeActive) { // Only check limits if mode is OFF
+                if (segmentData.type === 'City' && newAlliance.cityCount >= newAlliance.cityLimit) { alert(`${newAlliance.name} City limit reached.`); return; }
+                if (segmentData.type === 'Dig Site' && newAlliance.digSiteCount >= newAlliance.digSiteLimit) { alert(`${newAlliance.name} Dig Site limit reached.`); return; }
+            }
+            // ** END: Modified Limit Check **
 
             // Clear previous owner if exists, but don't save/update yet
             if (segmentData.owner) {
@@ -666,7 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Clear All Assignments ---
-    // (No changes needed)
+    // (No changes needed from previous step)
         function clearAllAssignments() {
         const confirmationMessage = fixedAlliancesActive
             ? "Are you sure you want to clear ALL user-assigned segments? Designated War Palace assignments and Conflict/Drop marks will REMAIN."
@@ -703,16 +716,13 @@ document.addEventListener('DOMContentLoaded', () => {
                  const alliance = alliances[fixedOwnerCode];
                  if (alliance) {
                      segmentData.owner = fixedOwnerCode; // Assign fixed owner
-                     // Increment fixed owner's count (check limits - though less critical here as we reset at start)
-                     let canAssignFixed = false;
-                      if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
-                      else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
-                      else { canAssignFixed = true; }
-                      if (!canAssignFixed) { console.warn(`Clear All: Limit for fixed ${fixedOwnerCode} at ${segmentId}. Cannot assign.`); segmentData.owner = null; }
-                      else {
-                           // If assigning fixed, ensure markers are cleared
-                           segmentData.isConflict = false; segmentData.conflictAlliances = []; segmentData.isDropped = false;
-                      }
+                     // Increment fixed owner's count (limits are checked *after* this loop)
+                     if (segmentData.type === 'City') alliance.cityCount++;
+                     else if (segmentData.type === 'Dig Site') alliance.digSiteCount++;
+
+                     // If assigning fixed, ensure markers are cleared
+                     segmentData.isConflict = false; segmentData.conflictAlliances = []; segmentData.isDropped = false;
+
                  } else { segmentData.owner = null; } // Invalid fixed alliance code?
             } else {
                 // If not fixed or fixed is off, clear the owner
@@ -722,15 +732,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Recalculate all counters based on final state (mainly for fixed assignments)
-        Object.keys(alliances).forEach(recalculateAllianceCounter);
+        recalculateAllAllianceCounts(); // ** NEW Function call **
         updateAllianceSummary();
         saveState(); // Save the cleared state (will trigger dirty flag if live map was loaded)
         console.log("Assignments cleared based on fixed toggle state.");
     }
     clearAllButton.addEventListener('click', clearAllAssignments);
 
+
+    // --- ** NEW Function: Recalculate ALL Alliance Counts ** ---
+    // Needed after operations that change many assignments at once (clear, toggles, imports)
+    function recalculateAllAllianceCounts() {
+        // Reset counts first
+        for (const code in alliances) {
+            alliances[code].cityCount = 0;
+            alliances[code].digSiteCount = 0;
+        }
+        // Iterate through all land data and recount based on current owners
+        for (const segmentId in landData) {
+            const segmentData = landData[segmentId];
+            if (segmentData.owner && alliances[segmentData.owner] && !segmentData.isConflict && !segmentData.isDropped) { // Only count if not conflict/dropped
+                const alliance = alliances[segmentData.owner];
+                if (segmentData.type === 'City') {
+                    alliance.cityCount++;
+                } else if (segmentData.type === 'Dig Site') {
+                    alliance.digSiteCount++;
+                }
+            }
+        }
+        console.log("Recalculated City/Dig counts for all alliances.");
+    }
+
     // --- Toggle Fixed Alliances ---
-    // (No changes needed)
+    // (No changes needed from previous step)
     function toggleFixedAlliances(isActive) {
         fixedAlliancesActive = isActive;
         const originalAssignments = {}; // Store owner and order
@@ -763,14 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      segmentData.assignmentOrder = null; // Fixed have no user order
                      segmentData.isConflict = false; segmentData.conflictAlliances = []; segmentData.isDropped = false; // Clear markers
 
-                     // Increment count for the fixed alliance (check limits)
-                     if (fixedAlliance) {
-                         let canAssignFixed = false;
-                         if (segmentData.type === 'City') { if (fixedAlliance.cityCount < fixedAlliance.cityLimit) { fixedAlliance.cityCount++; canAssignFixed = true; } }
-                         else if (segmentData.type === 'Dig Site') { if (fixedAlliance.digSiteCount < fixedAlliance.digSiteLimit) { fixedAlliance.digSiteCount++; canAssignFixed = true; } }
-                         else { canAssignFixed = true; }
-                         if (!canAssignFixed) { console.warn(`Toggle ON: Limit for fixed ${fixedAllianceCode} at ${segmentId}. Cannot assign.`); segmentData.owner = null; }
-                     } else { segmentData.owner = null; } // Invalid fixed alliance?
+                     // Count will be done in recalculateAllAllianceCounts
 
                 } else { // Turning Fixed OFF
                      // Revert to the state it had *before* the toggle action
@@ -802,14 +829,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Recount ALL assignments and rebuild ordered lists based on the NEW state ---
          for (const segmentId in landData) {
              const segmentData = landData[segmentId];
-             if (segmentData.owner && (!segmentData.isFixed || !fixedAlliancesActive)) { // Count only non-fixed owners (or all if toggle is OFF)
+             if (segmentData.owner && (!segmentData.isFixed || !fixedAlliancesActive)) { // Look at non-fixed owners (or all if toggle is OFF)
                  const currentOwner = segmentData.owner;
                  const alliance = alliances[currentOwner];
                  if (alliance) {
-                    // Increment counts for the current owner
-                    if (segmentData.type === 'City') alliance.cityCount++;
-                    else if (segmentData.type === 'Dig Site') alliance.digSiteCount++;
-
+                    // Counts recalculated below
                      // Re-add to ordered assignments if it has an order number
                      if (segmentData.assignmentOrder !== null) {
                          alliance.orderedAssignments.push({ segmentId: segmentId, order: segmentData.assignmentOrder });
@@ -820,11 +844,13 @@ document.addEventListener('DOMContentLoaded', () => {
              updateSegmentVisualState(segmentId);
          }
 
-         // Sort ordered assignments and recalculate counters for all alliances
+         // ** START: Recalculate counts and counters **
+         recalculateAllAllianceCounts(); // Recalculate City/Dig counts globally
          for (const code in alliances) {
              alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
-             recalculateAllianceCounter(code);
+             recalculateAllianceCounter(code); // Recalculate max order counter
          }
+         // ** END: Recalculate counts and counters **
 
         updateAllianceSummary();
         saveState(); // Save the state after toggle (will trigger dirty flag if live map was loaded)
@@ -842,6 +868,44 @@ document.addEventListener('DOMContentLoaded', () => {
     labelVisibilityToggle.addEventListener('change', (event) => {
         toggleLabelVisibility(event.target.checked);
     });
+
+
+    // --- ** NEW: Toggle Land Limits Mode ** ---
+    // *** MODIFIED: Calls updateAllianceSummary after state change ***
+    function toggleLandLimitsMode(event) {
+        const isActivating = event.target.checked;
+
+        if (isActivating) {
+            landLimitsModeActive = true;
+            allianceSummaryDiv.classList.add('land-limits-active');
+            console.log("Land Limits Mode: ACTIVATED");
+            // Update alliance buttons in modal if open
+            if (currentSegmentId && allianceSelectModalInstance._isShown) {
+                 populateAllianceButtons(currentSegmentId);
+            }
+            updateAllianceSummary(); // Update summary to show info text
+        } else {
+            // Confirmation required to deactivate
+            const confirmed = confirm("Once turned off, land will default to LIVE mode. Continue?");
+            if (confirmed) {
+                landLimitsModeActive = false;
+                allianceSummaryDiv.classList.remove('land-limits-active');
+                console.log("Land Limits Mode: DEACTIVATED. Reverting to LIVE map...");
+                handleLiveMapImport(); // Reload the LIVE map state (this calls updateAllianceSummary indirectly)
+                // Ensure toggle is visually unchecked after potential async operations in handleLiveMapImport
+                landLimitsToggle.checked = false;
+                // updateAllianceSummary(); // Called by handleLiveMapImport
+            } else {
+                // User cancelled, prevent toggle state change
+                event.preventDefault(); // Stop the checkbox from visually changing
+                console.log("Land Limits Mode: Deactivation cancelled by user.");
+                return; // Exit without changing state
+            }
+        }
+        // Note: We don't save landLimitsModeActive state to localStorage
+    }
+    landLimitsToggle.addEventListener('change', toggleLandLimitsMode);
+
 
     // --- Calculate Alliance Stats ---
     // (No changes needed)
@@ -923,11 +987,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Update Alliance Summary Display ---
-    // (No changes needed)
+    // *** MODIFIED: Adds info text when landLimitsModeActive is true ***
     function updateAllianceSummary() {
+        summaryItemContainer.innerHTML = ''; // Clear existing items
+
+        // ** START: Check for Land Limits Mode **
+        if (landLimitsModeActive) {
+             summaryItemContainer.innerHTML = `
+                 <div class="land-limits-info-text">
+                     While this mode is active you can select unlimited land for each alliance. Upon leaving, LIVE map will be loaded.
+                 </div>`;
+             // Ensure popovers from the info text aren't lingering if we add any later
+             initializePopovers();
+             return; // Stop here, don't show normal summary items
+        }
+        // ** END: Check for Land Limits Mode **
+
+        // If not in land limits mode, proceed with normal summary generation
         calculateAllianceBuffs();
         calculateAllianceResources();
-        summaryItemContainer.innerHTML = '';
 
         const pinnedAlliances = allianceDisplayOrder.filter(code => alliances[code]?.isPinned);
         const unpinnedAlliances = allianceDisplayOrder.filter(code => !alliances[code]?.isPinned);
@@ -962,7 +1040,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const countsDiv = document.createElement('div');
             countsDiv.className = 'summary-counts';
-            countsDiv.innerHTML = `Cities: ${data.cityCount}/${data.cityLimit} | Digs: ${data.digSiteCount}/${data.digSiteLimit}`;
+            // Show counts normally, limits only if landLimitsMode is OFF (already handled this way)
+            const cityLimitText = landLimitsModeActive ? '∞' : data.cityLimit;
+            const digLimitText = landLimitsModeActive ? '∞' : data.digSiteLimit;
+            countsDiv.innerHTML = `Cities: ${data.cityCount}/${cityLimitText} | Digs: ${data.digSiteCount}/${digLimitText}`;
 
             const buffsUl = document.createElement('ul');
             buffsUl.className = 'summary-buffs-list';
@@ -990,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Save State (Auto-save) ---
-    // (No changes needed)
+    // (No changes needed from previous step)
     function saveState() {
         // If live map was previously loaded (and maybe now dirty), mark as dirty.
         if (liveMapLoaded) {
@@ -1002,6 +1083,7 @@ document.addEventListener('DOMContentLoaded', () => {
             assignments: {}, markers: {}, fixedActive: fixedAlliancesActive,
             labelsVisible: labelsVisible,
             summaryStates: {}
+            // landLimitsModeActive is intentionally NOT saved
         };
 
         for (const segmentId in landData) {
@@ -1033,7 +1115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Apply Fixed Assignments on Load ---
-    // (No changes needed)
+    // (No changes needed from previous step)
     function applyFixedAssignmentsOnLoad() {
         if (fixedAlliancesActive) {
             for (const segmentId in FIXED_ASSIGNMENTS) {
@@ -1048,20 +1130,12 @@ document.addEventListener('DOMContentLoaded', () => {
                              console.warn(`Init/Load: Overwriting saved/current owner ${segmentData.owner} with fixed ${allianceCode} for ${segmentId}`);
                              clearAssignmentForSegment(segmentId, false); // Don't trigger save/update here
                         }
-                        // Check limits before assigning
-                        let canAssignFixed = false;
-                        if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignFixed = true; } }
-                        else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignFixed = true; } }
-                        else { canAssignFixed = true; }
 
-                        if (canAssignFixed) {
-                            segmentData.owner = allianceCode;
-                            segmentData.assignmentOrder = null; // Fixed assignments have no user order
-                            segmentData.isConflict = false; segmentData.isDropped = false; segmentData.conflictAlliances = []; // Clear markers
-                        } else {
-                             console.warn(`Init/Load: Limit for fixed ${allianceCode} at ${segmentId}. Cannot assign.`);
-                             segmentData.owner = null; // Ensure it's unowned if limit reached
-                        }
+                        segmentData.owner = allianceCode;
+                        segmentData.assignmentOrder = null; // Fixed assignments have no user order
+                        segmentData.isConflict = false; segmentData.isDropped = false; segmentData.conflictAlliances = []; // Clear markers
+
+                        // Counts are recalculated globally later
                     } else if (segmentData.owner === allianceCode) {
                          // If already owned by the correct fixed alliance, just ensure markers/order are cleared
                          segmentData.isConflict = false; segmentData.isDropped = false; segmentData.conflictAlliances = [];
@@ -1074,7 +1148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Initialize/Load Map State (Auto-load) ---
-    // (No changes needed)
+    // (No changes needed from previous step)
     function initializeMapState() {
         const savedStateRaw = localStorage.getItem(SAVE_KEY);
         let parsedState = { assignments: {}, markers: {}, fixedActive: true, labelsVisible: true, summaryStates: {} };
@@ -1102,10 +1176,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Apply toggle states FIRST
+        // Apply toggle states FIRST (excluding Land Limits Mode)
         fixedAlliancesActive = parsedState.fixedActive; fixedAllianceToggle.checked = fixedAlliancesActive;
         labelsVisible = parsedState.labelsVisible; labelVisibilityToggle.checked = labelsVisible;
         bodyElement.classList.toggle('labels-hidden', !labelsVisible);
+
+        // ** START: Reset Land Limits Mode **
+        landLimitsModeActive = false;
+        landLimitsToggle.checked = false;
+        allianceSummaryDiv.classList.remove('land-limits-active');
+        // ** END: Reset Land Limits Mode **
 
         // Reset Counts and Map State
         resetMapState();
@@ -1116,11 +1196,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Apply Fixed Assignments (based on the loaded fixedActive state)
         applyFixedAssignmentsOnLoad();
 
-        // Sort orders and recalc counters for all alliances
+        // ** START: Recalculate all counts and sort orders **
+        recalculateAllAllianceCounts(); // Recalculate City/Dig counts
         for (const code in alliances) {
             alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
-            recalculateAllianceCounter(code);
+            recalculateAllianceCounter(code); // Recalculate assignmentCounter
         }
+        // ** END: Recalculate all counts and sort orders **
 
         // Apply Saved Markers (respecting fixed toggle state)
         applyMarkers(parsedState.markers);
@@ -1141,6 +1223,7 @@ document.addEventListener('DOMContentLoaded', () => {
          for (const code in alliances) {
              alliances[code].cityCount = 0; alliances[code].digSiteCount = 0; alliances[code].buffs = {};
              alliances[code].totalCPH = 0; alliances[code].totalRSPH = 0; alliances[code].assignmentCounter = 0; alliances[code].orderedAssignments = [];
+             // Pin/Collapse state is NOT reset here, handled by applySummaryStates
          }
          for (const segmentId in landData) {
              landData[segmentId].owner = null; landData[segmentId].assignmentOrder = null;
@@ -1150,7 +1233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Helper: Apply User Assignments ---
-    // (No changes needed)
+    // (No changes needed from previous step)
     function applyUserAssignments(assignments) {
         const validAssignments = Object.entries(assignments || {})
             .filter(([id, data]) => data && data.owner && typeof data.order === 'number' && landData[id]);
@@ -1162,23 +1245,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Only apply if the segment is NOT fixed OR if the fixed toggle is currently OFF
             if (alliance && (!segmentData.isFixed || !fixedAlliancesActive)) {
-                let canAssignUser = false;
-                if (segmentData.type === 'City') { if (alliance.cityCount < alliance.cityLimit) { alliance.cityCount++; canAssignUser = true; } }
-                else if (segmentData.type === 'Dig Site') { if (alliance.digSiteCount < alliance.digSiteLimit) { alliance.digSiteCount++; canAssignUser = true; } }
-                else { canAssignUser = true; }
+                // Limits are checked *after* all assignments are initially placed by recalculateAllAllianceCounts
+                segmentData.owner = allianceCode;
+                segmentData.assignmentOrder = assignmentData.order;
+                alliance.orderedAssignments.push({ segmentId: segmentId, order: assignmentData.order });
 
-                if (canAssignUser) {
-                    segmentData.owner = allianceCode;
-                    segmentData.assignmentOrder = assignmentData.order;
-                    alliance.orderedAssignments.push({ segmentId: segmentId, order: assignmentData.order });
-                } else { console.warn(`Load/Import: Limit reached for ${allianceCode} at ${segmentId}. Assignment ignored.`); }
             } else if (!alliance) {
                  console.warn(`Load/Import: Unknown alliance code "${allianceCode}" found for ${segmentId}. Assignment ignored.`);
             } else if (segmentData.isFixed && fixedAlliancesActive) {
                  console.log(`Load/Import: Skipping saved assignment for ${segmentId} (${allianceCode}) because it is currently a fixed assignment.`);
             }
         });
-        console.log(`Attempted to apply ${validAssignments.length} user assignments (respecting fixed toggle).`);
+        console.log(`Attempted to apply ${validAssignments.length} user assignments (respecting fixed toggle). Counts will be recalculated.`);
     }
 
      // --- Helper: Apply Markers ---
@@ -1260,13 +1338,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Import/Export Logic ---
-    // (No changes needed in generateMapCode, handleExportMap, applyImportedState, handleImportMap, getLiveMapData, handleLiveMapImport)
+    // (No changes needed in generateMapCode, handleExportMap)
     function generateMapCode() {
         const stateToExport = {
              assignments: {}, markers: {},
              fixedActive: fixedAlliancesActive,
              labelsVisible: labelsVisible,
              summaryStates: {}
+             // landLimitsModeActive is intentionally NOT exported
         };
 
         for (const segmentId in landData) {
@@ -1307,6 +1386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // (No changes needed in applyImportedState from previous step)
     function applyImportedState(importedState, isLiveImport = false) {
         console.log(`Applying state from ${isLiveImport ? 'LIVE source' : 'Import Code'}...`);
 
@@ -1319,6 +1399,12 @@ document.addEventListener('DOMContentLoaded', () => {
              console.log("LIVE import: Keeping current view settings.");
         }
 
+         // ** START: Reset Land Limits Mode on any import **
+         landLimitsModeActive = false;
+         landLimitsToggle.checked = false;
+         allianceSummaryDiv.classList.remove('land-limits-active');
+         // ** END: Reset Land Limits Mode **
+
         // Reset internal counts/assignments
         resetMapState();
 
@@ -1328,11 +1414,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Apply fixed assignments (based on the *current* fixedAlliancesActive state)
         applyFixedAssignmentsOnLoad();
 
-        // Recalculate counters and sort orders
+        // ** START: Recalculate counts and sort orders **
+        recalculateAllAllianceCounts(); // Recalculate City/Dig counts
         for (const code in alliances) {
             alliances[code].orderedAssignments.sort((a, b) => a.order - b.order);
-            recalculateAllianceCounter(code);
+            recalculateAllianceCounter(code); // Recalculate assignmentCounter
         }
+        // ** END: Recalculate counts and sort orders **
 
         // Apply imported markers (respects *current* fixedAlliancesActive state)
         applyMarkers(importedState.markers);
@@ -1371,7 +1459,7 @@ document.addEventListener('DOMContentLoaded', () => {
          }, 0);
     }
 
-
+    // (No changes needed in handleImportMap from previous step)
     function handleImportMap() {
         const code = prompt("Paste the map code here to load a saved state:");
         if (code === null || code.trim() === "") {
@@ -1394,6 +1482,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+             // ** START: Reset Land Limits Mode **
+             landLimitsModeActive = false;
+             landLimitsToggle.checked = false;
+             allianceSummaryDiv.classList.remove('land-limits-active');
+             // ** END: Reset Land Limits Mode **
+
             applyImportedState(importedState, false); // Apply as regular import
 
         } catch (e) {
@@ -1405,17 +1499,25 @@ document.addEventListener('DOMContentLoaded', () => {
      // --- Get LIVE map data from the constant variable ---
     function getLiveMapData() {
         console.log("Getting LIVE map data from internal constant.");
-        return LIVE_MAP_DATA_B64;
+        // Conceptual fetch removed for simplicity, relying on constant
+        return LIVE_MAP_DATA_B64; // Return the embedded constant
     }
 
     // --- Handle LIVE Map Import ---
+    // (No changes needed from previous step)
     function handleLiveMapImport() {
         mapStateDirtyAfterLiveLoad = false;
         liveMapLoaded = false;
         updateLiveButtonState();
 
+         // ** START: Reset Land Limits Mode **
+         landLimitsModeActive = false;
+         landLimitsToggle.checked = false;
+         allianceSummaryDiv.classList.remove('land-limits-active');
+         // ** END: Reset Land Limits Mode **
+
         try {
-            const code = getLiveMapData();
+            const code = getLiveMapData(); // Get data (currently from constant)
 
             if (code === null || code.trim() === "") {
                  throw new Error("LIVE_MAP_DATA_B64 constant is empty. Please update it in the script.");
@@ -1488,7 +1590,7 @@ document.addEventListener('DOMContentLoaded', () => {
      setTimeout(() => { // Use setTimeout for initial render consistency
         console.log("Executing initial visual refresh...");
         updateAllSegmentsVisualState();
-        updateAllianceSummary(); // Includes initial LIVE button state update
+        updateAllianceSummary(); // Includes initial LIVE button state update and handles initial Land Limit mode (off)
         initializePopovers();
         // Set initial sidebar/dock state based on loaded/default body class
         setSidebarAndDockState(bodyElement.classList.contains('sidebar-active'));

@@ -55,6 +55,12 @@
                 <label class="form-check-label small mt-0" for="label-visibility-toggle"> Labels</label>
             </div>
         </div>
+        <div class="fixed-toggle-container p-1 border-bottom">
+            <div class="form-check form-switch">
+                <input class="form-check-input mt-1" type="checkbox" role="switch" id="land-limits-toggle">
+                <label class="form-check-label small mt-0" for="land-limits-toggle"> Toggle Land Limits</label>
+            </div>
+        </div>
         <div class="summary-item-container">
         </div>
     </div>
@@ -134,9 +140,10 @@
               <li>Click on a map segment to view its details (level, type, buff, production, boss type).</li>
               <li>Assign the segment to an alliance using the buttons in the modal.</li>
               <li>Use the toggles in the sidebar to view fixed War Palace assignments or hide segment labels.</li>
+              <li><b>New:</b> Use the "Toggle Land Limits" switch to allow unlimited land selection per alliance (disabling city/dig limits). Turning this OFF will prompt to revert to the LIVE map state.</li>
               <li>Mark segments for conflict (<i class="fa-solid fa-triangle-exclamation"></i>) or drop status (<i class="fa-solid fa-circle-xmark"></i>) using the buttons in the segment modal. Conflict marking now uses the alliance buttons for selection.</li>
               <li>The alliance name of the owner is displayed in the bottom-left of the segment.</li>
-              <li>The sidebar summarizes alliance progress, resource totals, and buffs. You can pin or collapse alliance summaries.</li>
+              <li>The alliance summary sidebar shows statistics. When "Toggle Land Limits" is ON, this section collapses.</li>
               <li>Assignments are saved automatically in your browser. Use the <i class="fa-solid fa-trash"></i> button to clear assignments (respects the 'Designated War Palace' toggle).</li>
               <li>Use <i class="fa-solid fa-file-export"></i> (Export) to generate a text code representing the current non-fixed assignments and markers.</li>
               <li>Use <i class="fa-solid fa-file-import"></i> (Import) to load a map state from a previously exported text code.</li>
