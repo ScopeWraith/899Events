@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applicant Information</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a clean, professional font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Use Inter as the default font for a clean look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-800">Applicant Data</h1>
+            <p class="mt-2 text-md text-slate-600">Live data fetched from the Google Sheet.</p>
+        </header>
+
+        <!-- Container for the table with a loading state -->
+        <div id="table-container" class="bg-white shadow-lg rounded-xl overflow-hidden">
+            <!-- Loading State -->
+            <div id="loading-state" class="p-8 text-center text-gray-500">
+                <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-lg font-medium">Loading data, please wait...</p>
+            </div>
+            <!-- This is where the table will be injected -->
+        </div>
+        <footer class="text-center mt-8 text-sm text-slate-500">
+            <p>Data is automatically updated from the source.</p>
+        </footer>
+    </div>
+
+    <script>
+        // The CSV URL from your Google Sheet
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRrI4LGHV2H2EWNBziVpx6T8jZ-VxYKfRXykxBw1l16KN23ogQuPou3H_0Xx_UwAcBGBk4x3qN4bag1/pub?output=csv';
+
+        // --- Core Application Logic ---
+
+        /**
+         * Fetches and parses CSV data from the published Google Sheet.
+         */
+        async function fetchSheetData() {
+            const tableContainer = document.getElementById('table-container');
+            const loadingState = document.getElementById('loading-state');
+
+            try {
+                const response = await fetch(csvUrl);
+                if (!response.ok) throw new Error(`Network response was not ok (status: ${response.status})`);
+                const csvText = await response.text();
+                
+                const lines = csvText.trim().split(/\r?\n/);
+                const headers = lines[0].split(',').map(header => header.trim());
+                const data = lines.slice(1).map(line => {
+                    const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
+                                     .map(value => value.replace(/"/g, '').trim());
+                    let entry = {};
+                    headers.forEach((header, i) => {
+                        entry[header] = values[i] || '';
+                    });
+                    return entry;
+                });
+
+                loadingState.style.display = 'none';
+                displayData(headers, data);
+
+            } catch (error) {
+                console.error('Error fetching or parsing data:', error);
+                loadingState.style.display = 'none';
+                tableContainer.innerHTML = `
+                    <div class="p-8 text-center bg-red-50 text-red-700 rounded-xl">
+                        <h3 class="font-bold text-lg">Error: Failed to load data</h3>
+                        <p class="mt-2 text-md text-red-600">Please check the Google Sheet URL and your internet connection.</p>
+                    </div>`;
+            }
+        }
+
+        /**
+         * Returns a style object for a given seat color.
+         */
+        function getSeatStyle(position = '') {
+            const p = position.toLowerCase();
+            if (p.includes('gold')) return { text: 'Gold', colorClass: 'text-amber-600' };
+            if (p.includes('purple')) return { text: 'Purple', colorClass: 'text-purple-600' };
+            if (p.includes('blue')) return { text: 'Blue', colorClass: 'text-blue-600' };
+            return { text: position, colorClass: 'text-slate-700' }; // Default
+        }
+        
+        /**
+         * Returns Tailwind CSS classes for a status badge.
+         */
+        function getStatusBadge(status = '') {
+            const s = status.toLowerCase();
+            let classes = 'bg-slate-100 text-slate-700'; // Default
+            if (s.includes('interviewing')) classes = 'bg-sky-100 text-sky-800';
+            if (s.includes('hired')) classes = 'bg-green-100 text-green-800';
+            if (s.includes('offer')) classes = 'bg-indigo-100 text-indigo-800';
+            if (s.includes('rejected')) classes = 'bg-red-100 text-red-800';
+            return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${classes}">${status}</span>`;
+        }
+
+        /**
+         * Renders the fetched data into a responsive Tailwind CSS table.
+         */
+        function displayData(headers, data) {
+            const tableContainer = document.getElementById('table-container');
+            if (!data.length) {
+                tableContainer.innerHTML = `<div class="p-8 text-center text-gray-500"><p>No data available to display.</p></div>`;
+                return;
+            }
+
+            let tableHTML = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-600">
+                        <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                            <tr>`;
+            
+            headers.forEach(header => {
+                if (header.toLowerCase() !== 'timestamp') {
+                    tableHTML += `<th scope="col" class="px-6 py-4 font-semibold tracking-wider">${header}</th>`;
+                }
+            });
+
+            tableHTML += `</tr></thead><tbody>`;
+
+            data.forEach(row => {
+                tableHTML += `<tr class="bg-white border-b last:border-b-0 border-slate-200 hover:bg-slate-50 transition-colors duration-200">`;
+                headers.forEach(header => {
+                    if (header.toLowerCase() !== 'timestamp') {
+                        const cellData = row[header] || '';
+                        
+                        if (header.toLowerCase().includes('position')) {
+                            const { text, colorClass } = getSeatStyle(cellData);
+                            tableHTML += `<td class="px-6 py-4 font-bold ${colorClass}">${text}</td>`;
+                        } else if (header.toLowerCase().includes('status')) {
+                             tableHTML += `<td class="px-6 py-4">${getStatusBadge(cellData)}</td>`;
+                        } else if (header.toLowerCase().includes('email')) {
+                            tableHTML += `<td class="px-6 py-4"><a href="mailto:${cellData}" class="text-blue-600 hover:text-blue-800 hover:underline">${cellData}</a></td>`;
+                        } else {
+                            tableHTML += `<td class="px-6 py-4 font-medium text-slate-800">${cellData}</td>`;
+                        }
+                    }
+                });
+                tableHTML += `</tr>`;
+            });
+
+            tableHTML += `</tbody></table></div>`;
+            
+            tableContainer.innerHTML = tableHTML;
+        }
+
+        // Run the script after the webpage's content has fully loaded
+        document.addEventListener('DOMContentLoaded', fetchSheetData);
+    </script>
+
+</body>
+</html>
