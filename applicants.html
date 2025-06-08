@@ -14,31 +14,40 @@
         /* Use Inter as the default font for a clean look */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a; /* slate-900 */
+            background-color: #0c0c14; /* Very dark blue/purple */
+            /* Subtle noise texture for the background */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23ffffff' fill-opacity='0.03' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+        }
+        .header-glow {
+            color: #67e8f9; /* light cyan */
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.4), 0 0 12px rgba(34, 211, 238, 0.2);
+        }
+        .container-glow {
+            box-shadow: 0 0 25px rgba(34, 211, 238, 0.1), inset 0 0 10px rgba(34, 211, 238, 0.1);
         }
     </style>
 </head>
 <body class="antialiased text-slate-300">
 
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-slate-100">Applicant Data</h1>
-            <p class="mt-2 text-md text-slate-400">Live data fetched from the Google Sheet.</p>
+    <div class="container mx-auto p-3 sm:p-5 lg:p-6">
+        <header class="mb-6">
+            <h1 class="text-2xl sm:text-3xl font-bold header-glow">Applicant Data</h1>
+            <p class="mt-2 text-sm text-cyan-400/80">Live data feed from source.</p>
         </header>
 
         <!-- Container for the table with a loading state -->
-        <div id="table-container" class="bg-slate-800 shadow-lg rounded-xl overflow-hidden">
+        <div id="table-container" class="bg-slate-900/50 border border-cyan-500/20 rounded-xl overflow-hidden container-glow">
             <!-- Loading State -->
-            <div id="loading-state" class="p-8 text-center text-slate-400">
-                <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div id="loading-state" class="p-6 text-center text-slate-400">
+                <svg class="animate-spin h-8 w-8 text-cyan-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <p class="text-lg font-medium">Loading data, please wait...</p>
+                <p class="text-base font-medium">Loading data, please wait...</p>
             </div>
             <!-- This is where the table will be injected -->
         </div>
-        <footer class="text-center mt-8 text-sm text-slate-500">
+        <footer class="text-center mt-6 text-xs text-slate-500">
             <p>Data is automatically updated from the source.</p>
         </footer>
     </div>
@@ -88,7 +97,7 @@
         }
 
         /**
-         * Returns a style object for a given seat color, adjusted for dark mode.
+         * Returns text and color class for a given seat.
          */
         function getSeatStyle(position = '') {
             const p = position.toLowerCase();
@@ -99,16 +108,16 @@
         }
         
         /**
-         * Returns Tailwind CSS classes for a status badge, adjusted for dark mode.
+         * Returns Tailwind CSS classes for a status badge.
          */
         function getStatusBadge(status = '') {
             const s = status.toLowerCase();
             let classes = 'bg-slate-700 text-slate-200'; // Default
-            if (s.includes('interviewing')) classes = 'bg-sky-500/20 text-sky-300';
+            if (s.includes('interviewing')) classes = 'bg-cyan-500/20 text-cyan-300';
             if (s.includes('hired')) classes = 'bg-green-500/20 text-green-300';
-            if (s.includes('offer')) classes = 'bg-indigo-500/20 text-indigo-300';
-            if (s.includes('rejected')) classes = 'bg-red-500/20 text-red-300';
-            return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${classes}">${status}</span>`;
+            if (s.includes('offer')) classes = 'bg-yellow-500/20 text-yellow-300';
+            if (s.includes('rejected')) classes = 'bg-red-500/20 text-red-400';
+            return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${classes}">${status}</span>`;
         }
 
         /**
@@ -123,36 +132,51 @@
             
             // Define which headers to hide
             const hiddenHeaders = ['timestamp', 'bringing players?', 'member details'];
+            
+            // Get the header names for the name and position columns by index
+            // This is more robust than searching for strings.
+            const playerNameHeader = headers[1]; // "Player Name" is the 2nd column (index 1)
+            const positionHeader = headers[4]; // "Position Applied For" is the 5th column (index 4)
+
 
             let tableHTML = `
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-slate-400">
-                        <thead class="text-xs text-slate-300 uppercase bg-slate-700/50">
+                    <table class="w-full text-xs text-left text-slate-400">
+                        <thead class="text-[11px] text-cyan-300/80 uppercase bg-slate-800/50">
                             <tr>`;
             
             headers.forEach(header => {
                 if (!hiddenHeaders.includes(header.toLowerCase())) {
-                    tableHTML += `<th scope="col" class="px-6 py-4 font-semibold tracking-wider">${header}</th>`;
+                    tableHTML += `<th scope="col" class="px-5 py-3 font-semibold tracking-wider">${header}</th>`;
                 }
             });
 
             tableHTML += `</tr></thead><tbody>`;
 
             data.forEach(row => {
-                tableHTML += `<tr class="border-b border-slate-700 hover:bg-slate-700/50 transition-colors duration-200">`;
+                tableHTML += `<tr class="border-b border-slate-700/50 hover:bg-slate-800/50 transition-colors duration-200">`;
+                
+                // Determine the seat style based on the value in the "Position Applied For" column
+                const seatStyle = getSeatStyle(row[positionHeader]);
+
                 headers.forEach(header => {
                     if (!hiddenHeaders.includes(header.toLowerCase())) {
                         const cellData = row[header] || '';
                         
-                        if (header.toLowerCase().includes('position')) {
-                            const { text, colorClass } = getSeatStyle(cellData);
-                            tableHTML += `<td class="px-6 py-4 font-bold ${colorClass}">${text}</td>`;
+                        // Check if the current header is the Player Name header
+                        if (header === playerNameHeader) {
+                            // Apply the seat color to the player's name
+                            tableHTML += `<td class="px-5 py-3 font-bold ${seatStyle.colorClass}">${cellData}</td>`;
+                        } else if (header === positionHeader) {
+                            // Display the simplified seat text (e.g., "Gold") without special color
+                            tableHTML += `<td class="px-5 py-3 font-medium text-slate-300">${seatStyle.text}</td>`;
                         } else if (header.toLowerCase().includes('status')) {
-                             tableHTML += `<td class="px-6 py-4">${getStatusBadge(cellData)}</td>`;
+                             tableHTML += `<td class="px-5 py-3">${getStatusBadge(cellData)}</td>`;
                         } else if (header.toLowerCase().includes('email')) {
-                            tableHTML += `<td class="px-6 py-4"><a href="mailto:${cellData}" class="text-blue-400 hover:text-blue-300 hover:underline">${cellData}</a></td>`;
+                            tableHTML += `<td class="px-5 py-3"><a href="mailto:${cellData}" class="text-cyan-400 hover:text-cyan-300 hover:underline">${cellData}</a></td>`;
                         } else {
-                            tableHTML += `<td class="px-6 py-4 font-medium text-slate-200">${cellData}</td>`;
+                            // Default cell for other data
+                            tableHTML += `<td class="px-5 py-3 font-medium text-slate-300">${cellData}</td>`;
                         }
                     }
                 });
