@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THOR Alliance - Renaming Poll</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Russo+One&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Russo One', sans-serif;
+            background-color: #1a202c; /* bg-gray-900 */
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('https://placehold.co/1920x1080/1a202c/FFFFFF?text=THOR');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .text-glow {
+            text-shadow: 0 0 8px rgba(255, 165, 0, 0.8), 0 0 20px rgba(255, 165, 0, 0.5);
+        }
+        .card {
+            background-color: rgba(26, 32, 44, 0.8); /* bg-gray-900 with opacity */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(245, 158, 11, 0.4); /* amber-500 with opacity */
+        }
+        .form-input {
+            background-color: rgba(45, 55, 72, 0.8); /* bg-gray-700 with opacity */
+            border: 1px solid rgba(74, 85, 104, 0.8); /* bg-gray-600 with opacity */
+            color: #E2E8F0; /* text-gray-300 */
+        }
+        .btn-submit {
+            background-color: #D97706; /* amber-600 */
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(217, 119, 6, 0.5);
+        }
+        .btn-submit:hover {
+            background-color: #B45309; /* amber-700 */
+            box-shadow: 0 0 25px rgba(217, 119, 6, 0.8);
+        }
+        .heart-icon.liked {
+            color: #EF4444; /* red-500 */
+        }
+        .heart-icon {
+            color: #9CA3AF; /* gray-400 */
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        .heart-icon:hover {
+            transform: scale(1.2);
+        }
+        #message-box {
+            transition: opacity 0.5s, transform 0.5s;
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-6xl font-orbitron font-bold text-amber-500 text-glow uppercase tracking-wider">Rename Alliance THOR</h1>
+            <p class="text-gray-400 mt-2">Submit and vote for a new name and tag for our alliance!</p>
+        </header>
+
+        <section id="creation-form" class="card rounded-lg p-6 mb-8 shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2 text-amber-400">Propose a New Name</h2>
+            <form id="alliance-form" class="space-y-4">
+                <div>
+                    <label for="alliance-tag" class="block text-sm font-medium text-gray-300 mb-1">New Alliance Tag (4 characters)</label>
+                    <input type="text" id="alliance-tag" name="alliance-tag" class="form-input w-full rounded-md p-3 uppercase" placeholder="ABCD" maxlength="4" required pattern="[a-zA-Z0-9]{4}">
+                </div>
+                <div>
+                    <label for="alliance-name" class="block text-sm font-medium text-gray-300 mb-1">New Alliance Name</label>
+                    <input type="text" id="alliance-name" name="alliance-name" class="form-input w-full rounded-md p-3" placeholder="Titans of the Wasteland" required>
+                </div>
+                <button type="submit" class="btn-submit w-full font-bold py-3 px-4 rounded-md text-white uppercase tracking-wider">
+                    <span id="submit-spinner" class="hidden">
+                        <svg class="animate-spin h-5 w-5 mr-3 inline-block" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </span>
+                    <span id="submit-text">Submit Proposal</span>
+                </button>
+            </form>
+        </section>
+        
+        <div id="message-box" class="fixed top-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform -translate-y-10">
+            <p id="message-text"></p>
+        </div>
+
+        <section id="alliance-list-section" class="card rounded-lg p-6 shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2 text-amber-400">Current Proposals</h2>
+            <div id="loader" class="text-center py-8">
+                 <svg class="animate-spin h-8 w-8 text-amber-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <p class="mt-2 text-gray-400">Loading Proposals...</p>
+            </div>
+            <ul id="alliance-list" class="space-y-3">
+                <!-- Proposals will be dynamically inserted here -->
+            </ul>
+        </section>
+
+    </div>
+
+    <script>
+        // --- Configuration ---
+        // PASTE YOUR GOOGLE APPS SCRIPT URL HERE
+        const googleWebAppUrl = 'https://script.google.com/macros/s/AKfycbyvMtiAO5AIXifBuAMg26wTqnGyNP1otYSlpIY2n0v6J2MK0_Hvit-JheUhxdZD1PQ/exec'; 
+        // -------------------
+
+        const allianceForm = document.getElementById('alliance-form');
+        const allianceTagInput = document.getElementById('alliance-tag');
+        const allianceNameInput = document.getElementById('alliance-name');
+        const allianceList = document.getElementById('alliance-list');
+        const loader = document.getElementById('loader');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const submitSpinner = document.getElementById('submit-spinner');
+        const submitText = document.getElementById('submit-text');
+        
+        let likedProposals = new Set(JSON.parse(localStorage.getItem('likedProposals') || '[]'));
+
+        function showMessage(message, isError = true) {
+            messageText.textContent = message;
+            messageBox.className = `fixed top-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg opacity-100 transform translate-y-0 ${isError ? 'bg-red-600' : 'bg-green-600'}`;
+            setTimeout(() => {
+                messageBox.className = messageBox.className.replace('opacity-100 transform translate-y-0', 'opacity-0 transform -translate-y-10');
+            }, 3000);
+        }
+
+        async function loadProposals() {
+            if (!googleWebAppUrl) {
+                loader.style.display = 'none';
+                allianceList.innerHTML = `<li class="text-center text-red-400 py-4">Error: Google Apps Script URL is not set in the HTML.</li>`;
+                return;
+            }
+
+            loader.style.display = 'block';
+            allianceList.innerHTML = '';
+
+            try {
+                const response = await fetch(`${googleWebAppUrl}?action=get`);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                loader.style.display = 'none';
+                if (data.proposals.length === 0) {
+                    allianceList.innerHTML = `<li class="text-center text-gray-500 py-4">No proposals have been submitted yet. Be the first!</li>`;
+                    return;
+                }
+                
+                // Sort by likes (descending), then by name (ascending)
+                data.proposals.sort((a, b) => {
+                    if (b.likes !== a.likes) {
+                        return b.likes - a.likes;
+                    }
+                    return a.name.localeCompare(b.name);
+                });
+
+                renderProposals(data.proposals);
+            } catch (error) {
+                console.error("Error fetching proposals:", error);
+                showMessage("Failed to load proposals. Check the URL and sheet permissions.");
+                loader.style.display = 'none';
+            }
+        }
+
+        function renderProposals(proposals) {
+            allianceList.innerHTML = '';
+            proposals.forEach(p => {
+                const isLiked = likedProposals.has(p.id);
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between bg-gray-800 p-4 rounded-md border border-gray-700';
+                li.dataset.id = p.id;
+                li.innerHTML = `
+                    <div class="flex-grow">
+                        <p class="font-bold text-lg text-amber-400">[${p.tag}]</p>
+                        <p class="text-gray-300">${p.name}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="like-count text-xl font-bold text-white">${p.likes || 0}</span>
+                        <svg data-id="${p.id}" class="heart-icon w-8 h-8 cursor-pointer ${isLiked ? 'liked' : ''}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </div>
+                `;
+                allianceList.appendChild(li);
+            });
+        }
+
+        allianceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!googleWebAppUrl) {
+                 showMessage("Error: Google Apps Script URL is not set.");
+                 return;
+            }
+
+            const tag = allianceTagInput.value.toUpperCase().trim();
+            const name = allianceNameInput.value.trim();
+
+            if (!/^[A-Z0-9]{4}$/.test(tag)) {
+                showMessage("Tag must be exactly 4 letters and numbers.");
+                return;
+            }
+
+            submitSpinner.classList.remove('hidden');
+            submitText.textContent = 'Submitting...';
+            allianceForm.querySelector('button').disabled = true;
+
+            try {
+                const response = await fetch(googleWebAppUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ action: 'submit', tag, name })
+                });
+                const result = await response.json();
+
+                if (result.error) throw new Error(result.error);
+                
+                if (result.status === 'success') {
+                    showMessage("Proposal submitted successfully!", false);
+                    allianceForm.reset();
+                    loadProposals(); // Refresh the list
+                } else if (result.status === 'exists') {
+                    showMessage(`The tag [${tag}] has already been proposed.`);
+                }
+            } catch (error) {
+                console.error("Error submitting proposal:", error);
+                showMessage(error.message || "Failed to submit proposal. Please try again.");
+            } finally {
+                submitSpinner.classList.add('hidden');
+                submitText.textContent = 'Submit Proposal';
+                allianceForm.querySelector('button').disabled = false;
+            }
+        });
+
+        allianceList.addEventListener('click', async (e) => {
+            const heart = e.target.closest('.heart-icon');
+            if (!heart || !googleWebAppUrl) return;
+
+            const proposalId = heart.dataset.id;
+            if (likedProposals.has(proposalId)) {
+                showMessage("You have already voted for this proposal.");
+                return;
+            }
+            
+            try {
+                const response = await fetch(googleWebAppUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ action: 'like', id: proposalId })
+                });
+
+                const result = await response.json();
+                if (result.error) throw new Error(result.error);
+                
+                if (result.status === 'success') {
+                    likedProposals.add(proposalId);
+                    localStorage.setItem('likedProposals', JSON.stringify([...likedProposals]));
+                    heart.classList.add('liked');
+
+                    // Update the like count on the page immediately
+                    const listItem = heart.closest('li');
+                    const likeCountEl = listItem.querySelector('.like-count');
+                    likeCountEl.textContent = parseInt(likeCountEl.textContent) + 1;
+                }
+            } catch (error) {
+                console.error("Error registering vote:", error);
+                showMessage("Could not register your vote. Please try again.");
+            }
+        });
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadProposals);
+
+    </script>
+</body>
+</html>
