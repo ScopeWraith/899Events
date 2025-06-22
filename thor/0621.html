@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6/21 Bottom Players</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for the dropdown arrow background */
+        /* To ensure the SVG arrow is visible over the select background */
+        .select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 2.5rem; /* Match px-2 of icon container plus some width */
+            background-color: var(--tw-bg-opacity, #334155); /* bg-slate-700 */
+            z-index: -1; /* Place behind the SVG icon */
+            border-top-right-radius: 0.375rem; /* rounded-md */
+            border-bottom-right-radius: 0.375rem; /* rounded-md */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center py-8 px-4 bg-gradient-to-br from-slate-950 to-slate-900 text-slate-100 antialiased">
+    <div id="root"></div>
+
+    <!-- React and ReactDOM CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX transformation in the browser (for development/single-file demos) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        // Hardcoded data
+        const allRankingsData = {
+          weeklyDonations: {
+            title: "Weekly Donation",
+            headers: ["Player Name", "Donation Points"],
+            data: [
+              { playerName: 'foxzilla', donationPoints: 27350 },
+              { playerName: 'Chefjuanpi', donationPoints: 25950 },
+              { playerName: 'SniperXT3', donationPoints: 25900 },
+              { playerName: 'MotoM0t0', donationPoints: 25650 },
+              { playerName: 'NyahNyah메롱', donationPoints: 23750 },
+              { playerName: 'Lugnut6', donationPoints: 22500 },
+              { playerName: 'JTWolf', donationPoints: 17050 },
+            ],
+          },
+          powerRankings: {
+            title: "Power",
+            headers: ["Player Name", "Power"],
+            data: [
+              { playerName: 'The Palette', power: 86510041 },
+              { playerName: 'Hadrianswall', power: 84252412 },
+              { playerName: 'scrap11', power: 84129079 },
+              { playerName: 'CaeTaka', power: 79041889 },
+              { playerName: 'Chefjuanpi', power: 77368894 },
+              { playerName: 'Aheleosthe2nd', power: 75488022 },
+              { playerName: 'Bellaroo', power: 68292726 },
+            ],
+          },
+          killRankings: {
+            title: "Kills",
+            headers: ["Player Name", "Kills"],
+            data: [
+              { playerName: 'VENOM THENEW CARNAGE', kills: 121420 },
+              { playerName: 'Jmelo1686', kills: 110838 },
+              { playerName: 'Whedonite92', kills: 63288 },
+              { playerName: 'Mr Peaches', kills: 58919 },
+              { playerName: 'scrap11', kills: 48721 },
+              { playerName: 'UrSwigBoaBro', kills: 43051 },
+              { playerName: 'Mayhem007', kills: 43048 },
+            ],
+          },
+          weeklyPointsRankings: {
+            title: "Weekly VS Points",
+            headers: ["Player Name", "Points"],
+            data: [
+              { playerName: 'ozziell', points: 32226951 },
+              { playerName: 'Lugnut6', points: 31395295 },
+              { playerName: 'JTWolf', points: 27310949 },
+              { playerName: 'UrSwigBoaBro', points: 23395298 },
+              { playerName: 'foxzilla', points: 21201198 },
+              { playerName: 'VENOM THENEW CARNAGE', points: 12379899 },
+            ],
+          },
+        };
+
+        // Component to display a single ranking table
+        const RankingTable = ({ title, data, headers }) => {
+          // Determine which column is the numeric value for formatting (always the last one in this setup)
+          const valueColumnIndex = headers.length - 1;
+
+          return (
+            // Darker, more rugged card style for the tables
+            <div className="mb-6 p-4 md:p-6 bg-slate-800 rounded-lg shadow-2xl border border-cyan-700">
+              <h2 className="text-xl md:text-2xl font-bold text-cyan-400 mb-4 pb-2 border-b-2 border-slate-700">
+                {title} Rankings
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-700 rounded-lg overflow-hidden border border-slate-700">
+                  {/* Table header with a subtle blue/purple gradient for an edgy look */}
+                  <thead className="bg-gradient-to-r from-slate-900 to-slate-800">
+                    <tr>
+                      {headers.map((header, index) => (
+                        <th
+                          key={index}
+                          className={`px-4 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider ${index === valueColumnIndex ? 'text-right' : ''}`}
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  {/* Table body with alternating row colors for readability */}
+                  <tbody className="bg-slate-800 divide-y divide-slate-700">
+                    {data.map((row, index) => (
+                      <tr key={index} className="odd:bg-slate-800 even:bg-slate-700 hover:bg-slate-600 transition-colors duration-200">
+                        {/* Iterate through values based on the order of headers */}
+                        {headers.map((header, idx) => {
+                          let displayValue;
+                          if (header === "Player Name") {
+                            displayValue = row.playerName;
+                          } else if (header === "Donation Points") {
+                            displayValue = row.donationPoints;
+                          } else if (header === "Power") {
+                            displayValue = row.power;
+                          } else if (header === "Kills") {
+                            displayValue = row.kills;
+                          } else if (header === "Points") {
+                            displayValue = row.points;
+                          }
+
+                          // Format numeric values with commas if it's the value column
+                          const formattedValue = (idx === valueColumnIndex && typeof displayValue === 'number')
+                            ? displayValue.toLocaleString('en-US')
+                            : displayValue;
+
+                          return (
+                            <td
+                              key={idx}
+                              className={`px-4 py-2 whitespace-nowrap text-sm ${idx === valueColumnIndex ? 'text-right text-cyan-300 font-mono' : 'text-slate-200'}`}
+                            >
+                              {formattedValue}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        };
+
+        function App() {
+          const [selectedRanking, setSelectedRanking] = React.useState('weeklyDonations');
+          const currentRanking = allRankingsData[selectedRanking];
+
+          return (
+            <div className="max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-5xl mx-auto bg-slate-900 bg-opacity-95 p-6 md:p-8 rounded-xl shadow-2xl border border-cyan-800">
+                <h1 className="text-3xl md:text-4xl font-extrabold text-center text-cyan-400 mb-8 drop-shadow-lg [text-shadow:_0_0_8px_rgb(0_255_255_/_40%)]">
+                    6/21 Bottom Players
+                </h1>
+
+                {/* Dropdown for selecting ranking category */}
+                <div className="mb-8 flex justify-center">
+                    <label htmlFor="ranking-select" className="sr-only">Select Ranking Category</label>
+                    <div className="relative w-full max-w-sm select-wrapper"> {/* Added select-wrapper for custom arrow background */}
+                        <select
+                            id="ranking-select"
+                            className="block w-full px-4 py-2 pr-10 border border-cyan-600 rounded-md shadow-sm bg-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-base appearance-none cursor-pointer hover:bg-slate-600 transition-colors"
+                            value={selectedRanking}
+                            onChange={(e) => setSelectedRanking(e.target.value)}
+                        >
+                            {Object.keys(allRankingsData).map((key) => (
+                                <option key={key} value={key} className="bg-slate-800 text-slate-100">
+                                    {allRankingsData[key].title}
+                                </option>
+                            ))}
+                        </select>
+                        {/* Custom SVG icon for the dropdown arrow */}
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-300">
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Render only one RankingTable based on the selectedRanking state */}
+                {currentRanking && (
+                    <RankingTable
+                        title={currentRanking.title}
+                        data={currentRanking.data}
+                        headers={currentRanking.headers}
+                    />
+                )}
+            </div>
+          );
+        }
+
+        // Render the App component into the root div
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
