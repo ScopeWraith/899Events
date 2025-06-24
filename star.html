@@ -352,7 +352,15 @@
         /* Styles for the mobile dropdown */
         .mobile-dropdown-container {
             padding: 1rem;
-            display: none; /* Hidden by default */
+            display: none; /* Hidden by default on desktop */
+        }
+
+        .mobile-dropdown-description {
+            font-size: 0.85rem; /* Adjusted for mobile readability */
+            color: var(--text-light);
+            margin-bottom: 0.5rem; /* Space between text and dropdown */
+            text-align: center;
+            display: none; /* Hidden by default, shown on mobile */
         }
 
         .mobile-achievement-select {
@@ -403,10 +411,10 @@
                 padding: 1rem;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
                 border-radius: 0;
-                /* max-height: 60vh; Removed as we now use a dropdown */
             }
             .sidebar-title {
-                margin-bottom: 0.5rem;
+                font-size: 1.5rem; /* Increased on mobile from original 1.3rem */
+                margin-bottom: 0.5rem; /* Adjusted for tighter spacing */
             }
 
             /* Hide regular nav tabs on mobile */
@@ -414,9 +422,13 @@
                 display: none;
             }
 
-            /* Show mobile dropdown on mobile */
+            /* Show mobile dropdown and its description on mobile */
             .mobile-dropdown-container {
                 display: block; /* Show the dropdown container */
+                margin-top: 0.5rem; /* Adjusted for tighter spacing */
+            }
+            .mobile-dropdown-description {
+                display: block; /* Show the descriptive text */
             }
 
             .main-content {
@@ -426,48 +438,59 @@
                 padding: 1.5rem;
             }
             .section-title {
-                font-size: 1.36rem; /* Reduced by 15% from 1.6rem */
+                font-size: 1.36rem; /* Reduced by 15% from original 1.6rem (mobile) */
             }
             .section-description {
-                font-size: 0.68rem; /* Reduced by 15% from 0.8rem */
+                font-size: 0.68rem; /* Reduced by 15% from original 0.8rem (mobile) */
             }
             .player-row-card {
-                flex-direction: column;
-                align-items: flex-start;
+                flex-direction: row; /* Changed to row for compact display */
+                align-items: center; /* Center vertically in row */
+                justify-content: space-between; /* Distribute items with space between */
                 padding: 0.75rem 1rem;
+                flex-wrap: nowrap; /* Prevent content from wrapping to next line */
+                overflow-x: hidden; /* Hide horizontal overflow within the card */
             }
             .player-name {
-                width: 100%;
-                margin-bottom: 0.5rem;
-                margin-right: 0;
-                font-size: 0.85rem; /* Reduced by 15% from 1rem */
+                flex-grow: 1; /* Allow to take available space */
+                flex-shrink: 1; /* Allow it to shrink */
+                min-width: 0; /* Important for flex items with overflow: hidden */
+                white-space: nowrap; /* Keep name on single line */
+                overflow: hidden; /* Hide overflow */
+                text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+                margin-bottom: 0; /* Remove vertical margin */
+                margin-right: 0.5rem; /* Small right margin for separation from scores */
             }
             .score-details-group {
-                width: 100%;
-                justify-content: space-between;
-                margin-left: 0;
-                gap: 1.2rem;
+                flex-shrink: 0; /* Prevent this group from shrinking */
+                /* width: auto; Let flexbox manage width */
+                justify-content: flex-end; /* Align score details to the right within their group */
+                gap: 0.8rem; /* Adjusted gap to save space */
+                margin-left: 0.5rem; /* Small left margin to separate from player name */
             }
             .score-points-group {
-                gap: 0.8rem;
+                gap: 0.5rem; /* Reduced gap to make scores tighter */
+            }
+            .player-main-score, .player-points, .player-event {
+                white-space: nowrap; /* Ensure scores and event number stay on one line */
             }
             .player-main-score, .player-points {
-                font-size: 0.85rem; /* Reduced by 15% from 1rem */
+                font-size: 0.85rem; /* Reduced by 15% from original 1rem (mobile) */
             }
             .player-event {
-                font-size: 0.7225rem; /* Reduced by 15% from 0.85rem */
+                font-size: 0.7225rem; /* Reduced by 15% from original 0.85rem (mobile) */
             }
             .wall-of-fame-card h3 {
-                font-size: 1.19rem; /* Reduced by 15% from 1.4rem */
+                font-size: 1.19rem; /* Reduced by 15% from original 1.4rem (mobile) */
             }
             .wall-of-fame-card .player-name {
-                font-size: 1.02rem; /* Reduced by 15% from 1.2rem */
+                font-size: 1.02rem; /* Reduced by 15% from original 1.2rem (mobile) */
             }
             .wall-of-fame-stats {
                 gap: 0.8rem;
             }
             .wall-of-fame-stat-item {
-                font-size: 0.8075rem; /* Reduced by 15% from 0.95rem */
+                font-size: 0.8075rem; /* Reduced by 15% from original 0.95rem (mobile) */
             }
             .wall-of-fame-stat-item .icon {
                 font-size: 1.1em;
@@ -537,6 +560,7 @@
 
         <!-- Mobile dropdown for navigation -->
         <div class="mobile-dropdown-container">
+            <p class="mobile-dropdown-description">Select an award to view its winners and their scores!</p>
             <label for="achievement-select" class="visually-hidden">Select Achievement</label>
             <select id="achievement-select" class="mobile-achievement-select form-select">
                 <!-- Options will be dynamically populated by JavaScript -->
@@ -1140,7 +1164,10 @@
         // Function to render the content for a given achievement tab
         function renderAchievementTab(achievementId) {
             const tabPane = document.getElementById(achievementId);
-            if (!tabPane) return;
+            if (!tabPane) {
+                console.error(`Tab pane with ID ${achievementId} not found.`);
+                return;
+            }
 
             // Update the section title and description based on the achievement data
             const sectionTitleElement = tabPane.querySelector('.section-title');
@@ -1151,11 +1178,17 @@
             if (achievementInfo) {
                 sectionTitleElement.textContent = `${achievementInfo.achievementName} Winners`;
                 sectionDescriptionElement.textContent = achievementInfo.description;
+            } else {
+                // Fallback if achievementInfo is not found (shouldn't happen with valid IDs)
+                sectionTitleElement.textContent = `Unknown Achievement`;
+                sectionDescriptionElement.textContent = `No description available.`;
             }
 
-
             const playersListContainer = tabPane.querySelector('.players-list');
-            if (!playersListContainer) return;
+            if (!playersListContainer) {
+                console.error(`Players list container for tab ${achievementId} not found.`);
+                return;
+            }
 
             // Clear previous content
             playersListContainer.innerHTML = '';
@@ -1197,18 +1230,22 @@
 
             // Display Wall of Fame if a top player is identified and has multiple entries
             if (topPlayer && maxCount > 1) { // Only show Wall of Fame if player appears more than once
-                const wallOfFamePlayer = playerAllStats[topPlayer][0]; // Take the first instance for general info
+                // Find the latest instance of the top player to show their most recent stats
+                const latestTopPlayerInstance = playerAllStats[topPlayer].reduce((latest, current) => {
+                    return (latest.eventNum > current.eventNum) ? latest : current;
+                });
+
                 const wallOfFameElement = document.createElement('div');
                 wallOfFameElement.classList.add('wall-of-fame-card', 'mb-4');
                 wallOfFameElement.innerHTML = `
                     <h3>⭐ Wall of Fame ⭐</h3>
-                    <span class="player-name">${wallOfFamePlayer.playerName}</span>
+                    <span class="player-name">${latestTopPlayerInstance.playerName}</span>
                     <div class="wall-of-fame-stats">
-                        <div class="wall-of-fame-stat-item"><span class="icon">❤️</span> <span class="value">${wallOfFamePlayer.heartPoints}</span></div>
-                        <div class="wall-of-fame-stat-item"><span class="icon">🪙</span> <span class="value">${wallOfFamePlayer.coin}</span></div>
-                        <div class="wall-of-fame-stat-item"><span class="icon">⚔️</span> <span class="value">${wallOfFamePlayer.sword}</span></div>
-                        <div class="wall-of-fame-stat-item"><span class="icon">🛡️</span> <span class="value">${wallOfFamePlayer.shield}</span></div>
-                        <div class="wall-of-fame-stat-item"><span class="icon">👤</span> <span class="value">${wallOfFamePlayer.face}</span></div>
+                        <div class="wall-of-fame-stat-item"><span class="icon">❤️</span> <span class="value">${latestTopPlayerInstance.heartPoints}</span></div>
+                        <div class="wall-of-fame-stat-item"><span class="icon">🪙</span> <span class="value">${latestTopPlayerInstance.coin}</span></div>
+                        <div class="wall-of-fame-stat-item"><span class="icon">⚔️</span> <span class="value">${latestTopPlayerInstance.sword}</span></div>
+                        <div class="wall-of-fame-stat-item"><span class="icon">🛡️</span> <span class="value">${latestTopPlayerInstance.shield}</span></div>
+                        <div class="wall-of-fame-stat-item"><span class="icon">👤</span> <span class="value">${latestTopPlayerInstance.face}</span></div>
                     </div>
                     <p class="wall-of-fame-event">Recognized ${maxCount} times for this award across various events.</p>
                 `;
@@ -1274,82 +1311,65 @@
                 mobileAchievementSelect.appendChild(option);
             });
 
-            // Handle dropdown change event
-            mobileAchievementSelect.addEventListener('change', function() {
-                const selectedAchievementId = this.value;
-                // Activate the corresponding Bootstrap tab
-                const targetTab = document.getElementById(`${selectedAchievementId}-tab`);
-                if (targetTab) {
-                    const bsTab = new bootstrap.Tab(targetTab);
-                    bsTab.show();
-                    // Manually render the content as tab.show() doesn't trigger click listener
-                    renderAchievementTab(selectedAchievementId);
-                }
-            });
-
-            // --- Initial Load Logic ---
-            const mediaQuery = window.matchMedia('(max-width: 768px)');
+            // --- Initial Load & Tab/Dropdown Sync Logic ---
             const defaultAchievementId = 'alliance-champion'; // The ID for "Alliance Champion Winners"
 
-            function handleInitialDisplay() {
-                // Determine the initial achievement to show
-                let initialAchievementToShow = defaultAchievementId;
-
-                if (mediaQuery.matches) { // Mobile view
-                    // Set dropdown value to default achievement
-                    mobileAchievementSelect.value = initialAchievementToShow;
-                    // Ensure the dropdown's selected option is set correctly
-                    // This might be redundant if renderAchievementTab is called right after,
-                    // but good for explicit state management.
-                    mobileAchievementSelect.selectedIndex = Array.from(mobileAchievementSelect.options).findIndex(option => option.value === initialAchievementToShow);
-
-                } else { // Desktop view
-                    // Simulate click on the default desktop tab
-                    const defaultNavLink = document.getElementById(`${initialAchievementToShow}-tab`);
-                    if (defaultNavLink) {
-                        const bsTab = new bootstrap.Tab(defaultNavLink);
-                        bsTab.show();
-                    }
+            // Function to set active tab and render content
+            function setActiveTabAndRender(achievementId) {
+                // Activate the Bootstrap tab
+                const targetTabButton = document.getElementById(`${achievementId}-tab`);
+                if (targetTabButton) {
+                    const bsTab = new bootstrap.Tab(targetTabButton);
+                    bsTab.show(); // Activates the tab
                 }
-                // Render the content for the initial achievement
-                renderAchievementTab(initialAchievementToShow);
+
+                // Render the content for the activated tab
+                renderAchievementTab(achievementId);
+
+                // Sync the mobile dropdown if it's active
+                const mediaQuery = window.matchMedia('(max-width: 768px)');
+                if (mediaQuery.matches && mobileAchievementSelect.value !== achievementId) {
+                    mobileAchievementSelect.value = achievementId;
+                }
             }
 
-            // Set up initial display
-            handleInitialDisplay();
+            // On initial load, set the default tab and render its content
+            setActiveTabAndRender(defaultAchievementId);
+            
+            // Sync mobile dropdown on page load
+            const initialMediaQuery = window.matchMedia('(max-width: 768px)');
+            if (initialMediaQuery.matches) {
+                mobileAchievementSelect.value = defaultAchievementId;
+            }
 
-            // Listen for window resize to switch between mobile/desktop modes
-            mediaQuery.addEventListener('change', handleInitialDisplay);
-
-            // Add event listeners for subsequent desktop tab clicks
+            // Add event listeners for desktop tab clicks
             navLinks.forEach(link => {
                 link.addEventListener('click', function(event) {
                     const clickedAchievementId = this.dataset.bsTarget.substring(1);
-                    renderAchievementTab(clickedAchievementId);
-                    // If desktop tab is clicked, ensure mobile dropdown is updated
-                    if (mobileAchievementSelect) {
-                        mobileAchievementSelect.value = clickedAchievementId;
-                    }
+                    setActiveTabAndRender(clickedAchievementId);
                 });
             });
 
-            // Ensure the correct desktop tab is active when a dropdown option is selected (for seamless transition)
+            // Add event listener for mobile dropdown change
             mobileAchievementSelect.addEventListener('change', function() {
                 const selectedAchievementId = this.value;
-                // Deactivate all desktop tabs
-                navLinks.forEach(link => link.classList.remove('active'));
-                // Activate the corresponding desktop tab if it exists
-                const targetTab = document.getElementById(`${selectedAchievementId}-tab`);
-                if (targetTab) {
-                    const bsTab = new bootstrap.Tab(targetTab);
-                    bsTab.show(); // This also triggers content rendering via Bootstrap's own mechanism
-                } else {
-                     // Fallback to manually rendering if Bootstrap tab logic isn't fully integrated
-                    renderAchievementTab(selectedAchievementId);
+                setActiveTabAndRender(selectedAchievementId);
+            });
+
+            // Listen for window resize to handle transitions between desktop and mobile views
+            // and ensure the correct tab/dropdown state is maintained.
+            window.matchMedia('(max-width: 768px)').addEventListener('change', (e) => {
+                if (e.matches) { // Switched to mobile view
+                    // Set dropdown to currently active desktop tab, or default
+                    const activeDesktopTabId = document.querySelector('.nav-tabs-sidebar .nav-link.active')?.dataset.bsTarget.substring(1) || defaultAchievementId;
+                    setActiveTabAndRender(activeDesktopTabId);
+                } else { // Switched to desktop view
+                    // Set desktop tab to currently selected dropdown item, or default
+                    const selectedMobileDropdownId = mobileAchievementSelect.value || defaultAchievementId;
+                    setActiveTabAndRender(selectedMobileDropdownId);
                 }
             });
         });
     </script>
 </body>
 </html>
-
