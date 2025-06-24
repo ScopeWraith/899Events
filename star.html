@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alliance Event Leaderboards</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts: Poppins (for headings) & Roboto (for body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* Define Theme CSS Variables */
+        :root {
+            --bg-dark-1: #1a1a2e; /* Deep blue-purple */
+            --bg-dark-2: #16213e; /* Slightly lighter blue-purple for gradients */
+            --card-bg-dark: rgba(27, 38, 59, 0.9); /* Semi-transparent dark blue */
+            --card-bg-light: rgba(35, 48, 73, 0.85); /* Lighter semi-transparent for inner cards */
+            --text-light: #e0e0f0; /* Soft white/light purple for general text */
+            --text-muted: #a0a0c0; /* Muted purple-gray */
+            --accent-primary: #00bcd4; /* Cyan for primary accents */
+            --accent-primary-dark: #0097a7; /* Darker cyan for active states */
+            --accent-orange: #fd7e14; /* Orange for secondary accents (Wall of Fame) */
+            --score-color: #00bcd4; /* Cyan for main scores */
+            --heart-red: #dc3545; /* Standard red for heart points */
+            --border-color: rgba(60, 80, 110, 0.5); /* Soft border color */
+            --sidebar-width: 260px; /* Slightly wider sidebar */
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif; /* Body text font */
+            background: linear-gradient(135deg, var(--bg-dark-1) 0%, var(--bg-dark-2) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            padding-left: var(--sidebar-width); /* Space for fixed sidebar */
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 40, 60, 0.4);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 188, 212, 0.6); /* Cyan thumb */
+            border-radius: 10px;
+            border: 2px solid var(--bg-dark-2);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--accent-primary);
+        }
+
+        /* Fixed Left Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #121226 0%, #0d0d1e 100%); /* Very dark, subtle gradient */
+            padding: 1.5rem 0.5rem;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.4);
+        }
+        .sidebar-title {
+            font-family: 'Poppins', sans-serif; /* Heading font */
+            font-size: 1.3rem; /* Slightly smaller title */
+            font-weight: 700;
+            color: #ffffff; /* White title */
+            padding: 0.5rem 1rem;
+            margin-bottom: 1.5rem; /* More space below title */
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3); /* Soft white glow */
+        }
+
+        /* Navigation Buttons (Tabs) - "Slides" style */
+        .nav-tabs-sidebar {
+            flex-direction: column;
+            border-bottom: none;
+        }
+        .nav-tabs-sidebar .nav-item {
+            margin-bottom: 0.7rem; /* Slightly less space between buttons */
+        }
+        .nav-tabs-sidebar .nav-link {
+            font-family: 'Poppins', sans-serif; /* Poppins for nav links */
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.1rem; /* Slightly smaller padding */
+            border-radius: 0.6rem; /* More rounded */
+            background: transparent;
+            color: var(--text-light);
+            border: none;
+            font-weight: 500;
+            transition: all 0.3s ease-in-out;
+            white-space: nowrap;
+            box-shadow: none;
+            text-align: left;
+            position: relative;
+            overflow: hidden; /* Hide overflow for gradient effect */
+            font-size: 0.95rem; /* Slightly smaller font size */
+        }
+        .nav-tabs-sidebar .nav-link i { /* Icon styling */
+            margin-right: 0.7rem; /* Slightly less margin */
+            font-size: 1em; /* Adjusted icon size */
+            color: var(--text-muted); /* Muted icon color */
+            transition: color 0.3s ease-in-out;
+        }
+        .nav-tabs-sidebar .nav-link::before { /* Subtle background gradient effect */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(50, 60, 90, 0.3) 0%, rgba(50, 60, 90, 0) 100%);
+            z-index: -1;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0; /* Hidden by default */
+        }
+        .nav-tabs-sidebar .nav-link::after { /* Left border accent */
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px; /* Thinner border */
+            background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-primary-dark) 100%);
+            border-radius: 0.2rem;
+            transform: translateX(-100%); /* Slide out to the left */
+            transition: transform 0.3s ease-in-out;
+        }
+        .nav-tabs-sidebar .nav-link:hover {
+            color: #ffffff;
+            transform: translateX(3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .nav-tabs-sidebar .nav-link:hover i {
+            color: var(--accent-primary); /* Cyan icon on hover */
+        }
+        .nav-tabs-sidebar .nav-link:hover::before {
+            opacity: 1; /* Show background gradient on hover */
+        }
+        .nav-tabs-sidebar .nav-link:hover::after {
+            transform: translateX(0); /* Slide in accent border on hover */
+        }
+        .nav-tabs-sidebar .nav-link.active {
+            color: #ffffff;
+            background: linear-gradient(90deg, var(--accent-primary-dark) 0%, var(--accent-primary) 100%); /* Solid cyan gradient for active */
+            font-weight: 600;
+            box-shadow: 0 0 15px rgba(0, 188, 212, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.2);
+            transform: translateX(5px); /* More pronounced slide for active */
+        }
+        .nav-tabs-sidebar .nav-link.active i {
+            color: #ffffff; /* White icon when active */
+        }
+        .nav-tabs-sidebar .nav-link.active::after {
+            transform: translateX(0); /* Ensure accent border is visible */
+            background: var(--accent-primary); /* Solid cyan */
+        }
+        .nav-tabs-sidebar .nav-link.active::before {
+             opacity: 0; /* Hide subtle background for active */
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex-grow: 1;
+            padding: 2.2rem; /* Slightly less padding */
+        }
+        .main-content-card {
+            background-color: var(--card-bg-dark);
+            backdrop-filter: blur(8px);
+            border-radius: 1.5rem; /* Slightly less rounded */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35); /* Slightly softer shadow */
+            padding: 2.2rem; /* Slightly less inner padding */
+            margin-bottom: 2.2rem; /* Slightly less margin */
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.1rem; /* Smaller title font */
+            font-weight: 700;
+            color: var(--text-light); /* White title */
+            margin-bottom: 0.7rem; /* Adjusted margin */
+            text-shadow: 0 0 5px rgba(224, 224, 240, 0.3); /* Soft white glow */
+            text-align: center; /* Centered title */
+        }
+        .section-description {
+            font-size: 0.95rem; /* Smaller description font */
+            color: var(--text-muted);
+            margin-bottom: 1.8rem; /* Adjusted margin */
+            line-height: 1.5;
+            text-align: center; /* Centered description */
+        }
+
+        /* Wall of Fame Styling */
+        .wall-of-fame-card {
+            background: linear-gradient(135deg, #2b2b40 0%, #3a3a5a 100%);
+            border: 2px solid var(--accent-orange);
+            border-radius: 1.5rem; /* Consistent roundedness */
+            padding: 1.8rem; /* Adjusted padding */
+            margin-bottom: 2.2rem; /* Adjusted margin */
+            box-shadow: 0 0 20px rgba(253, 126, 20, 0.5), inset 0 0 12px rgba(255, 255, 255, 0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            color: #fff;
+            animation: pulse-border 2s infinite alternate;
+        }
+        @keyframes pulse-border {
+            from { border-color: var(--accent-orange); box-shadow: 0 0 18px rgba(253, 126, 20, 0.4); }
+            to { border-color: rgba(253, 126, 20, 0.6); box-shadow: 0 0 25px rgba(253, 126, 20, 0.7); }
+        }
+        .wall-of-fame-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px; /* Thinner accent line */
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-primary));
+            border-radius: 1.5rem 1.5rem 0 0;
+        }
+        .wall-of-fame-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.7rem; /* Smaller title */
+            font-weight: 700;
+            color: #ffe082;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 8px rgba(255, 224, 130, 0.6);
+        }
+        .wall-of-fame-card .player-name {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem; /* Smaller player name */
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .wall-of-fame-stats {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.2rem; /* Adjusted gap */
+            margin-top: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        .wall-of-fame-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* Adjusted gap */
+            font-size: 1.05rem; /* Smaller stat items */
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        .wall-of-fame-stat-item .icon {
+            font-size: 1.2em; /* Adjusted icon size */
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+        .wall-of-fame-stat-item .value {
+            color: var(--heart-red);
+            font-weight: 700;
+        }
+        .wall-of-fame-event {
+            font-size: 0.9rem; /* Smaller font size */
+            color: var(--text-muted);
+            margin-top: 0.8rem;
+            font-style: italic;
+        }
+
+
+        /* Player Rows (Cards) */
+        .player-row-card {
+            background-color: var(--card-bg-light);
+            border-radius: 1rem; /* Slightly less rounded */
+            padding: 0.8rem 1.5rem; /* Adjusted padding */
+            margin-bottom: 0.6rem; /* Adjusted space */
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+        .player-row-card:hover {
+            transform: translateY(-5px) scale(1.005);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.45);
+            border-color: var(--accent-primary);
+            background-color: rgba(35, 48, 73, 0.95);
+        }
+        .player-name {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 1.05rem; /* Smaller name font */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+            margin-right: 1.5rem;
+        }
+        .score-details-group {
+            display: flex;
+            align-items: center;
+            gap: 1.8rem; /* Adjusted gap */
+            flex-shrink: 0;
+        }
+        .score-points-group {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .player-main-score {
+            font-weight: 700;
+            color: var(--score-color); /* Cyan for main score */
+            font-size: 1.05rem; /* Adjusted font size */
+            white-space: nowrap;
+        }
+        .player-points {
+            font-weight: 700;
+            color: var(--heart-red); /* Red for heart points */
+            font-size: 1.05rem; /* Adjusted font size */
+            white-space: nowrap;
+        }
+        .player-event {
+            font-family: 'Roboto', sans-serif;
+            color: var(--text-muted);
+            font-size: 0.9rem; /* Adjusted font size */
+            white-space: nowrap;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                padding-left: 0;
+            }
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1rem;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                border-radius: 0;
+                max-height: 60vh;
+            }
+            .sidebar-title {
+                margin-bottom: 0.5rem;
+            }
+            .nav-tabs-sidebar {
+                flex-direction: row;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 0;
+                justify-content: flex-start;
+            }
+            .nav-tabs-sidebar .nav-item {
+                flex-shrink: 0;
+                margin-right: 0.5rem;
+            }
+            .nav-tabs-sidebar .nav-link {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.85rem; /* Smaller font on mobile */
+                border-radius: 0.5rem;
+            }
+            .nav-tabs-sidebar .nav-link::before {
+                width: 0;
+            }
+            .nav-tabs-sidebar .nav-link.active {
+                transform: none;
+                box-shadow: 0 2px 8px rgba(0, 188, 212, 0.4);
+                border: 1px solid var(--accent-primary);
+            }
+            .nav-tabs-sidebar .nav-link i {
+                margin-right: 0.5rem;
+                font-size: 0.9em;
+            }
+            .main-content {
+                padding: 1rem;
+            }
+            .main-content-card {
+                padding: 1.5rem;
+            }
+            .section-title {
+                font-size: 1.6rem; /* Smaller on mobile */
+            }
+            .section-description {
+                font-size: 0.8rem; /* Smaller on mobile */
+            }
+            .player-row-card {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0.75rem 1rem;
+            }
+            .player-name {
+                width: 100%;
+                margin-bottom: 0.5rem;
+                margin-right: 0;
+                font-size: 1rem;
+            }
+            .score-details-group {
+                width: 100%;
+                justify-content: space-between;
+                margin-left: 0;
+                gap: 1.2rem;
+            }
+            .score-points-group {
+                gap: 0.8rem;
+            }
+            .player-main-score, .player-points {
+                font-size: 1rem;
+            }
+            .player-event {
+                font-size: 0.85rem;
+            }
+            .wall-of-fame-card h3 {
+                font-size: 1.4rem;
+            }
+            .wall-of-fame-card .player-name {
+                font-size: 1.2rem;
+            }
+            .wall-of-fame-stats {
+                gap: 0.8rem;
+            }
+            .wall-of-fame-stat-item {
+                font-size: 0.95rem;
+            }
+            .wall-of-fame-stat-item .icon {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Navigation Sidebar -->
+    <nav class="sidebar">
+        <h2 class="sidebar-title">Awards</h2>
+        <ul class="nav nav-tabs-sidebar" id="achievementNav" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="alliance-champion-tab" data-bs-toggle="tab" data-bs-target="#alliance-champion" type="button" role="tab" aria-controls="alliance-champion" aria-selected="true"><i class="fas fa-crown"></i> Alliance Champion</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="star-of-desert-storm-tab" data-bs-toggle="tab" data-bs-target="#star-of-desert-storm" type="button" role="tab" aria-controls="star-of-desert-storm" aria-selected="false"><i class="fas fa-star"></i> Star of Desert Storm</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="soldier-crusher-tab" data-bs-toggle="tab" data-bs-target="#soldier-crusher" type="button" role="tab" aria-controls="soldier-crusher" aria-selected="false"><i class="fas fa-fist-raised"></i> Soldier Crusher</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="divine-healer-tab" data-bs-toggle="tab" data-bs-target="#divine-healer" type="button" role="tab" aria-controls="divine-healer" aria-selected="false"><i class="fas fa-hand-holding-heart"></i> Divine Healer</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="devil-trainer-tab" data-bs-toggle="tab" data-bs-target="#devil-trainer" type="button" role="tab" aria-controls="devil-trainer" aria-selected="false"><i class="fas fa-dragon"></i> Devil Trainer</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="gather-fanatic-tab" data-bs-toggle="tab" data-bs-target="#gather-fanatic" type="button" role="tab" aria-controls="gather-fanatic" aria-selected="false"><i class="fas fa-leaf"></i> Gather Fanatic</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="alliance-exercise-mvp-tab" data-bs-toggle="tab" data-bs-target="#alliance-exercise-mvp" type="button" role="tab" aria-controls="alliance-exercise-mvp" aria-selected="false"><i class="fas fa-trophy"></i> Alliance Exercise MVP</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="trial-assist-king-tab" data-bs-toggle="tab" data-bs-target="#trial-assist-king" type="button" role="tab" aria-controls="trial-assist-king" aria-selected="false"><i class="fas fa-hands-helping"></i> Trial Assist King</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="best-manager-tab" data-bs-toggle="tab" data-bs-target="#best-manager" type="button" role="tab" aria-controls="best-manager" aria-selected="false"><i class="fas fa-user-tie"></i> Best Manager</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="alliance-sponsor-tab" data-bs-toggle="tab" data-bs-target="#alliance-sponsor" type="button" role="tab" aria-controls="alliance-sponsor" aria-selected="false"><i class="fas fa-hand-holding-dollar"></i> Alliance Sponsor</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="firefighting-leader-tab" data-bs-toggle="tab" data-bs-target="#firefighting-leader" type="button" role="tab" aria-controls="firefighting-leader" aria-selected="false"><i class="fas fa-fire-extinguisher"></i> Firefighting Leader</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="excavator-radar-tab" data-bs-toggle="tab" data-bs-target="#excavator-radar" type="button" role="tab" aria-controls="excavator-radar" aria-selected="false"><i class="fas fa-magnifying-glass"></i> Excavator Radar</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="doom-elite-slayer-tab" data-bs-toggle="tab" data-bs-target="#doom-elite-slayer" type="button" role="tab" aria-controls="doom-elite-slayer" aria-selected="false"><i class="fas fa-skull-crossbones"></i> Doom Elite Slayer</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="good-helper-tab" data-bs-toggle="tab" data-bs-target="#good-helper" type="button" role="tab" aria-controls="good-helper" aria-selected="false"><i class="fas fa-hands-helping"></i> Good Helper</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="grind-king-tab" data-bs-toggle="tab" data-bs-target="#grind-king" type="button" role="tab" aria-controls="grind-king" aria-selected="false"><i class="fas fa-hourglass-half"></i> Grind King</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="guardian-defender-tab" data-bs-toggle="tab" data-bs-target="#guardian-defender" type="button" role="tab" aria-controls="guardian-defender" aria-selected="false"><i class="fas fa-shield-alt"></i> Guardian Defender</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="great-destroyer-tab" data-bs-toggle="tab" data-bs-target="#great-destroyer" type="button" role="tab" aria-controls="great-destroyer" aria-selected="false"><i class="fas fa-hammer"></i> Great Destroyer</button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Removed h1 "Alliance Event Leaderboards" -->
+
+        <div class="tab-content" id="achievementTabContent">
+            <!-- Tab pane HTML structure is mostly static, content dynamically inserted by JS -->
+            <!-- Alliance Champion Tab Content -->
+            <div class="tab-pane fade" id="alliance-champion" role="tabpanel" aria-labelledby="alliance-champion-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Alliance Champion Winners</h2>
+                    <p class="section-description">Awarded to the player who secured No. 1 in the Alliance Duel.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Star of Desert Storm Tab Content -->
+            <div class="tab-pane fade" id="star-of-desert-storm" role="tabpanel" aria-labelledby="star-of-desert-storm-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Star of Desert Storm Winners</h2>
+                    <p class="section-description">Awarded for exceptional performance in the Desert Storm battlefield.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Soldier Crusher Tab Content -->
+            <div class="tab-pane fade" id="soldier-crusher" role="tabpanel" aria-labelledby="soldier-crusher-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Soldier Crusher Winners</h2>
+                    <p class="section-description">Awarded for defeating enemy units.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divine Healer Tab Content -->
+            <div class="tab-pane fade" id="divine-healer" role="tabpanel" aria-labelledby="divine-healer-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Divine Healer Winners</h2>
+                    <p class="section-description">Awarded for healing units.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Devil Trainer Tab Content -->
+            <div class="tab-pane fade" id="devil-trainer" role="tabpanel" aria-labelledby="devil-trainer-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Devil Trainer Winners</h2>
+                    <p class="section-description">Awarded for training units.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gather Fanatic Tab Content -->
+            <div class="tab-pane fade" id="gather-fanatic" role="tabpanel" aria-labelledby="gather-fanatic-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Gather Fanatic Winners</h2>
+                    <p class="section-description">Awarded for gathering resources.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alliance Exercise MVP Tab Content -->
+            <div class="tab-pane fade" id="alliance-exercise-mvp" role="tabpanel" aria-labelledby="alliance-exercise-mvp-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Alliance Exercise MVP Winners</h2>
+                    <p class="section-description">Awarded for dealing significant damage in the Alliance Exercise.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trial Assist King Tab Content -->
+            <div class="tab-pane fade" id="trial-assist-king" role="tabpanel" aria-labelledby="trial-assist-king-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Trial Assist King Winners</h2>
+                    <p class="section-description">Awarded for assisting allies in completing the General's Trial.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Best Manager Tab Content -->
+            <div class="tab-pane fade" id="best-manager" role="tabpanel" aria-labelledby="best-manager-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Best Manager Winners</h2>
+                    <p class="section-description">Awarded for active management of Alliance affairs and performance score.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alliance Sponsor Tab Content -->
+            <div class="tab-pane fade" id="alliance-sponsor" role="tabpanel" aria-labelledby="alliance-sponsor-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Alliance Sponsor Winners</h2>
+                    <p class="section-description">Awarded for donating points to the Alliance.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Firefighting Leader Tab Content -->
+            <div class="tab-pane fade" id="firefighting-leader" role="tabpanel" aria-labelledby="firefighting-leader-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Firefighting Leader Winners</h2>
+                    <p class="section-description">Awarded for helping put out fires.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Excavator Radar Tab Content -->
+            <div class="tab-pane fade" id="excavator-radar" role="tabpanel" aria-labelledby="excavator-radar-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Excavator Radar Winners</h2>
+                    <p class="section-description">Awarded for finding Excavation Tasks.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doom Elite Slayer Tab Content -->
+            <div class="tab-pane fade" id="doom-elite-slayer" role="tabpanel" aria-labelledby="doom-elite-slayer-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Doom Elite Slayer Winners</h2>
+                    <p class="section-description">Awarded for launching rallies and eliminating Doom Elite.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Good Helper Tab Content -->
+            <div class="tab-pane fade" id="good-helper" role="tabpanel" aria-labelledby="good-helper-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Good Helper Winners</h2>
+                    <p class="section-description">Awarded for helping allies.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grind King Tab Content -->
+            <div class="tab-pane fade" id="grind-king" role="tabpanel" aria-labelledby="grind-king-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Grind King Winners</h2>
+                    <p class="section-description">Awarded for consuming Stamina points.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guardian Defender Tab Content -->
+            <div class="tab-pane fade" id="guardian-defender" role="tabpanel" aria-labelledby="guardian-defender-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Guardian Defender Winners</h2>
+                    <p class="section-description">Awarded for defending with allies and winning battles.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Great Destroyer Tab Content -->
+            <div class="tab-pane fade" id="great-destroyer" role="tabpanel" aria-labelledby="great-destroyer-tab">
+                <div class="main-content-card">
+                    <h2 class="section-title">Great Destroyer Winners</h2>
+                    <p class="section-description">Awarded for dealing durability damage.</p>
+                    <div class="players-list d-flex flex-column gap-2">
+                        <!-- Player data will be inserted here by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Consolidated and structured data for all achievements
+        const allAchievementsData = [
+            // Alliance Champion
+            {
+                achievementId: 'alliance-champion', achievementName: 'Alliance Champion',
+                description: 'Awarded to the player who secured No. 1 in the Alliance Duel.',
+                playerName: 'Cindelll', mainScore: 'Rank #1', heartPoints: 56, coin: 11, sword: 3, shield: 3, face: 7, eventNum: 1
+            },
+            {
+                achievementId: 'alliance-champion', achievementName: 'Alliance Champion',
+                description: 'Awarded to the player who secured No. 1 in the Alliance Duel.',
+                playerName: 'ScopeWraith', mainScore: 'Rank #1', heartPoints: 62, coin: 9, sword: 6, shield: 5, face: 4, eventNum: 2
+            },
+            {
+                achievementId: 'alliance-champion', achievementName: 'Alliance Champion',
+                description: 'Awarded to the player who secured No. 1 in the Alliance Duel.',
+                playerName: 'Reb13', mainScore: 'Rank #1', heartPoints: 55, coin: 11, sword: 1, shield: 2, face: 3, eventNum: 3
+            },
+            {
+                achievementId: 'alliance-champion', achievementName: 'Alliance Champion',
+                description: 'Awarded to the player who secured No. 1 in the Alliance Duel.',
+                playerName: 'DollyNho', mainScore: 'Rank #1', heartPoints: 61, coin: 6, sword: 1, shield: 2, face: 2, eventNum: 4
+            },
+            {
+                achievementId: 'alliance-champion', achievementName: 'Alliance Champion',
+                description: 'Awarded to the player who secured No. 1 in the Alliance Duel.',
+                playerName: 'KBL50', mainScore: 'Rank #1', heartPoints: 72, coin: 7, sword: 2, shield: 2, face: 1, eventNum: 5
+            },
+            {
+                achievementId: 'alliance-champion', achievementName: 'Alliance Champion',
+                description: 'Awarded to the player who secured No. 1 in the Alliance Duel.',
+                playerName: 'PewnurScope', mainScore: 'Rank #1', heartPoints: 73, coin: 9, sword: 1, shield: 1, face: 1, eventNum: 6
+            },
+
+            // Star of Desert Storm
+            {
+                achievementId: 'star-of-desert-storm', achievementName: 'Star of Desert Storm',
+                description: 'Awarded for exceptional performance in the Desert Storm battlefield.',
+                playerName: 'Cindelll', mainScore: '5,327,833', heartPoints: 40, coin: 19, sword: 7, shield: 3, face: 2, eventNum: 1
+            },
+            {
+                achievementId: 'star-of-desert-storm', achievementName: 'Star of Desert Storm',
+                description: 'Awarded for exceptional performance in the Desert Storm battlefield.',
+                playerName: 'KBL50', mainScore: '4,078,116', heartPoints: 48, coin: 14, sword: 4, shield: 3, face: 4, eventNum: 2
+            },
+            {
+                achievementId: 'star-of-desert-storm', achievementName: 'Star of Desert Storm',
+                description: 'Awarded for exceptional performance in the Desert Storm battlefield.',
+                playerName: 'techwrath', mainScore: '4,322,242', heartPoints: 47, coin: 10, sword: 5, shield: 1, face: 1, eventNum: 3
+            },
+            {
+                achievementId: 'star-of-desert-storm', achievementName: 'Star of Desert Storm',
+                description: 'Awarded for exceptional performance in the Desert Storm battlefield.',
+                playerName: 'KBL50', mainScore: '3,374,184', heartPoints: 55, coin: 9, sword: 3, shield: 3, face: 1, eventNum: 4
+            },
+            {
+                achievementId: 'star-of-desert-storm', achievementName: 'Star of Desert Storm',
+                description: 'Awarded for exceptional performance in the Desert Storm battlefield.',
+                playerName: 'techwrath', mainScore: '3,929,995', heartPoints: 63, coin: 14, sword: 1, shield: 1, face: 2, eventNum: 5
+            },
+            {
+                achievementId: 'star-of-desert-storm', achievementName: 'Star of Desert Storm',
+                description: 'Awarded for exceptional performance in the Desert Storm battlefield.',
+                playerName: 'Cindelll', mainScore: '3,594,958', heartPoints: 62, coin: 19, sword: 1, shield: 1, face: 1, eventNum: 6
+            },
+
+            // Soldier Crusher
+            {
+                achievementId: 'soldier-crusher', achievementName: 'Soldier Crusher',
+                description: 'Awarded for defeating enemy units.',
+                playerName: 'DollyNho', mainScore: '630,022', heartPoints: 40, coin: 18, sword: 7, shield: 4, face: 10, eventNum: 1
+            },
+            {
+                achievementId: 'soldier-crusher', achievementName: 'Soldier Crusher',
+                description: 'Awarded for defeating enemy units.',
+                playerName: 'techwrath', mainScore: '921,236', heartPoints: 50, coin: 8, sword: 2, shield: 1, face: 8, eventNum: 2
+            },
+            {
+                achievementId: 'soldier-crusher', achievementName: 'Soldier Crusher',
+                description: 'Awarded for defeating enemy units.',
+                playerName: 'KBL50', mainScore: '650,199', heartPoints: 49, coin: 9, sword: 2, shield: 1, face: 3, eventNum: 3
+            },
+            {
+                achievementId: 'soldier-crusher', achievementName: 'Soldier Crusher',
+                description: 'Awarded for defeating enemy units.',
+                playerName: 'KBL50', mainScore: '920,385', heartPoints: 51, coin: 11, sword: 1, shield: 1, face: 1, eventNum: 4
+            },
+            {
+                achievementId: 'soldier-crusher', achievementName: 'Soldier Crusher',
+                description: 'Awarded for defeating enemy units.',
+                playerName: 'Gangster 25', mainScore: '887,711', heartPoints: 60, coin: 20, sword: 5, shield: 3, face: 3, eventNum: 6
+            },
+
+            // Divine Healer
+            {
+                achievementId: 'divine-healer', achievementName: 'Divine Healer',
+                description: 'Awarded for healing units.',
+                playerName: 'KBL50', mainScore: '119,272', heartPoints: 46, coin: 16, sword: 3, shield: 2, face: 3, eventNum: 1
+            },
+            {
+                achievementId: 'divine-healer', achievementName: 'Divine Healer',
+                description: 'Awarded for healing units.',
+                playerName: 'KBL50', mainScore: '135,543', heartPoints: 45, coin: 9, sword: 3, shield: 1, face: 3, eventNum: 3
+            },
+            {
+                achievementId: 'divine-healer', achievementName: 'Divine Healer',
+                description: 'Awarded for healing units.',
+                playerName: 'KBL50', mainScore: '150,983', heartPoints: 50, coin: 10, sword: 3, shield: 3, face: 3, eventNum: 4
+            },
+            {
+                achievementId: 'divine-healer', achievementName: 'Divine Healer',
+                description: 'Awarded for healing units.',
+                playerName: 'Cindelll', mainScore: '109,519', heartPoints: 61, coin: 11, sword: 4, shield: 1, face: 2, eventNum: 5
+            },
+            {
+                achievementId: 'divine-healer', achievementName: 'Divine Healer',
+                description: 'Awarded for healing units.',
+                playerName: 'KBL50', mainScore: '107,344', heartPoints: 59, coin: 17, sword: 2, shield: 1, face: 4, eventNum: 6
+            },
+
+            // Devil Trainer
+            {
+                achievementId: 'devil-trainer', achievementName: 'Devil Trainer',
+                description: 'Awarded for training units.',
+                playerName: 'KBL50', mainScore: '57,468', heartPoints: 40, coin: 10, sword: 5, shield: 5, face: 5, eventNum: 3
+            },
+
+            // Gather Fanatic
+            {
+                achievementId: 'gather-fanatic', achievementName: 'Gather Fanatic',
+                description: 'Awarded for gathering resources.',
+                playerName: 'GPêê', mainScore: '29,213,589', heartPoints: 43, coin: 11, sword: 2, shield: 2, face: 2, eventNum: 2
+            },
+            {
+                achievementId: 'gather-fanatic', achievementName: 'Gather Fanatic',
+                description: 'Awarded for gathering resources.',
+                playerName: 'techwrath', mainScore: '28,240,748', heartPoints: 45, coin: 6, sword: 2, shield: 2, face: 2, eventNum: 3
+            },
+            {
+                achievementId: 'gather-fanatic', achievementName: 'Gather Fanatic',
+                description: 'Awarded for gathering resources.',
+                playerName: 'Vuladi', mainScore: '38,580,413', heartPoints: 45, coin: 8, sword: 2, shield: 2, face: 6, eventNum: 4
+            },
+            {
+                achievementId: 'gather-fanatic', achievementName: 'Gather Fanatic',
+                description: 'Awarded for gathering resources.',
+                playerName: 'Drewstroyer', mainScore: '34,086,627', heartPoints: 56, coin: 13, sword: 1, shield: 4, face: 4, eventNum: 5
+            },
+            {
+                achievementId: 'gather-fanatic', achievementName: 'Gather Fanatic',
+                description: 'Awarded for gathering resources.',
+                playerName: 'Vuladi', mainScore: '39,743,009', heartPoints: 60, coin: 16, sword: 1, shield: 1, face: 3, eventNum: 6
+            },
+
+            // Alliance Exercise MVP
+            {
+                achievementId: 'alliance-exercise-mvp', achievementName: 'Alliance Exercise MVP',
+                description: 'Awarded for dealing significant damage in the Alliance Exercise.',
+                playerName: 'Cindelll', mainScore: '388,925,942,121', heartPoints: 35, coin: 11, sword: 4, shield: 1, face: 4, eventNum: 1
+            },
+            {
+                achievementId: 'alliance-exercise-mvp', achievementName: 'Alliance Exercise MVP',
+                description: 'Awarded for dealing significant damage in the Alliance Exercise.',
+                playerName: 'Cindelll', mainScore: '1,066,992,691,699', heartPoints: 40, coin: 8, sword: 4, shield: 5, face: 5, eventNum: 2
+            },
+            {
+                achievementId: 'alliance-exercise-mvp', achievementName: 'Alliance Exercise MVP',
+                description: 'Awarded for dealing significant damage in the Alliance Exercise.',
+                playerName: 'KBL50', mainScore: '610,613,628,599', heartPoints: 38, coin: 11, sword: 4, shield: 1, face: 1, eventNum: 3
+            },
+            {
+                achievementId: 'alliance-exercise-mvp', achievementName: 'Alliance Exercise MVP',
+                description: 'Awarded for dealing significant damage in the Alliance Exercise.',
+                playerName: 'Cindelll', mainScore: '963,401,741,515', heartPoints: 54, coin: 12, sword: 4, shield: 3, face: 3, eventNum: 5
+            },
+
+            // Trial Assist King
+            {
+                achievementId: 'trial-assist-king', achievementName: 'Trial Assist King',
+                description: 'Awarded for assisting allies in completing the General\'s Trial.',
+                playerName: 'Warrior Poet', mainScore: '46 time(s)', heartPoints: 42, coin: 8, sword: 1, shield: 3, face: 3, eventNum: 2
+            },
+            {
+                achievementId: 'trial-assist-king', achievementName: 'Trial Assist King',
+                description: 'Awarded for assisting allies in completing the General\'s Trial.',
+                playerName: 'DumpSimba', mainScore: '31 time(s)', heartPoints: 48, coin: 7, sword: 4, shield: 2, face: 2, eventNum: 4
+            },
+            {
+                achievementId: 'trial-assist-king', achievementName: 'Trial Assist King',
+                description: 'Awarded for assisting allies in completing the General\'s Trial.',
+                playerName: 'Chan', mainScore: '88 time(s)', heartPoints: 58, coin: 17, sword: 1, shield: 3, face: 3, eventNum: 6
+            },
+
+            // Best Manager
+            {
+                achievementId: 'best-manager', achievementName: 'Best Manager',
+                description: 'Awarded for active management of Alliance affairs and performance score.',
+                playerName: 'ColdWraith', mainScore: '1,240', heartPoints: 39, coin: 11, sword: 2, shield: 1, face: 1, eventNum: 1
+            },
+            {
+                achievementId: 'best-manager', achievementName: 'Best Manager',
+                description: 'Awarded for active management of Alliance affairs and performance score.',
+                playerName: 'Drewstroyer', mainScore: '1,230', heartPoints: 45, coin: 5, sword: 2, shield: 1, face: 2, eventNum: 2
+            },
+            {
+                achievementId: 'best-manager', achievementName: 'Best Manager',
+                description: 'Awarded for active management of Alliance affairs and performance score.',
+                playerName: 'ScopeWraith', mainScore: '990', heartPoints: 43, coin: 10, sword: 4, shield: 0, face: 0, eventNum: 3
+            },
+            {
+                achievementId: 'best-manager', achievementName: 'Best Manager',
+                description: 'Awarded for active management of Alliance affairs and performance score.',
+                playerName: 'ScopeWraith', mainScore: '1,150', heartPoints: 52, coin: 6, sword: 2, shield: 1, face: 1, eventNum: 4
+            },
+            {
+                achievementId: 'best-manager', achievementName: 'Best Manager',
+                description: 'Awarded for active management of Alliance affairs and performance score.',
+                playerName: 'Drewstroyer', mainScore: '1,380', heartPoints: 60, coin: 17, sword: 1, shield: 1, face: 1, eventNum: 6
+            },
+
+            // Alliance Sponsor
+            {
+                achievementId: 'alliance-sponsor', achievementName: 'Alliance Sponsor',
+                description: 'Awarded for donating points to the Alliance.',
+                playerName: 'PewnurScope', mainScore: '89,150', heartPoints: 34, coin: 10, sword: 5, shield: 8, face: 8, eventNum: 1
+            },
+            {
+                achievementId: 'alliance-sponsor', achievementName: 'Alliance Sponsor',
+                description: 'Awarded for donating points to the Alliance.',
+                playerName: 'Mr Peaches', mainScore: '78,600', heartPoints: 40, coin: 9, sword: 6, shield: 2, face: 2, eventNum: 2
+            },
+            {
+                achievementId: 'alliance-sponsor', achievementName: 'Alliance Sponsor',
+                description: 'Awarded for donating points to the Alliance.',
+                playerName: 'PewnurScope', mainScore: '100,800', heartPoints: 40, coin: 10, sword: 2, shield: 3, face: 3, eventNum: 3
+            },
+            {
+                achievementId: 'alliance-sponsor', achievementName: 'Alliance Sponsor',
+                description: 'Awarded for donating points to the Alliance.',
+                playerName: 'PewnurScope', mainScore: '86,400', heartPoints: 47, coin: 11, sword: 2, shield: 2, face: 1, eventNum: 4
+            },
+            {
+                achievementId: 'alliance-sponsor', achievementName: 'Alliance Sponsor',
+                description: 'Awarded for donating points to the Alliance.',
+                playerName: 'atalon', mainScore: '83,800', heartPoints: 53, coin: 12, sword: 1, shield: 6, face: 6, eventNum: 5
+            },
+            {
+                achievementId: 'alliance-sponsor', achievementName: 'Alliance Sponsor',
+                description: 'Awarded for donating points to the Alliance.',
+                playerName: 'PewnurScope', mainScore: '86,850', heartPoints: 60, coin: 14, sword: 5, shield: 1, face: 1, eventNum: 6
+            },
+
+            // Firefighting Leader
+            {
+                achievementId: 'firefighting-leader', achievementName: 'Firefighting Leader',
+                description: 'Awarded for helping put out fires.',
+                playerName: 'DuckO311', mainScore: '24 time(s)', heartPoints: 41, coin: 9, sword: 4, shield: 2, face: 2, eventNum: 2
+            },
+            {
+                achievementId: 'firefighting-leader', achievementName: 'Firefighting Leader',
+                description: 'Awarded for helping put out fires.',
+                playerName: 'JojoBans', mainScore: '25 time(s)', heartPoints: 57, coin: 11, sword: 2, shield: 1, face: 2, eventNum: 5
+            },
+
+            // Excavator Radar
+            {
+                achievementId: 'excavator-radar', achievementName: 'Excavator Radar',
+                description: 'Awarded for finding Excavation Tasks.',
+                playerName: 'Chefjuanpi', mainScore: '3 time(s)', heartPoints: 34, coin: 13, sword: 4, shield: 4, face: 5, eventNum: 1
+            },
+            {
+                achievementId: 'excavator-radar', achievementName: 'Excavator Radar',
+                description: 'Awarded for finding Excavation Tasks.',
+                playerName: 'LION 1937', mainScore: '5 time(s)', heartPoints: 42, coin: 9, sword: 4, shield: 2, face: 1, eventNum: 2
+            },
+            {
+                achievementId: 'excavator-radar', achievementName: 'Excavator Radar',
+                description: 'Awarded for finding Excavation Tasks.',
+                playerName: 'General Ben1', mainScore: '3 time(s)', heartPoints: 43, coin: 10, sword: 2, shield: 0, face: 0, eventNum: 3
+            },
+            {
+                achievementId: 'excavator-radar', achievementName: 'Excavator Radar',
+                description: 'Awarded for finding Excavation Tasks.',
+                playerName: 'MotoM0t0', mainScore: '3 time(s)', heartPoints: 48, coin: 9, sword: 1, shield: 1, face: 1, eventNum: 4
+            },
+            {
+                achievementId: 'excavator-radar', achievementName: 'Excavator Radar',
+                description: 'Awarded for finding Excavation Tasks.',
+                playerName: 'DumpSimba', mainScore: '4 time(s)', heartPoints: 55, coin: 13, sword: 4, shield: 2, face: 2, eventNum: 5
+            },
+            {
+                achievementId: 'excavator-radar', achievementName: 'Excavator Radar',
+                description: 'Awarded for finding Excavation Tasks.',
+                playerName: 'Risssy', mainScore: '4 time(s)', heartPoints: 58, coin: 12, sword: 2, shield: 1, face: 4, eventNum: 6
+            },
+
+            // Doom Elite Slayer
+            {
+                achievementId: 'doom-elite-slayer', achievementName: 'Doom Elite Slayer',
+                description: 'Awarded for launching rallies and eliminating Doom Elite.',
+                playerName: 'techwrath', mainScore: '158 time(s)', heartPoints: 37, coin: 10, sword: 5, shield: 4, face: 1, eventNum: 1
+            },
+            {
+                achievementId: 'doom-elite-slayer', achievementName: 'Doom Elite Slayer',
+                description: 'Awarded for launching rallies and eliminating Doom Elite.',
+                playerName: 'leoyutian', mainScore: '132 time(s)', heartPoints: 42, coin: 7, sword: 4, shield: 2, face: 3, eventNum: 3
+            },
+            {
+                achievementId: 'doom-elite-slayer', achievementName: 'Doom Elite Slayer',
+                description: 'Awarded for launching rallies and eliminating Doom Elite.',
+                playerName: 'leoyutian', mainScore: '151 time(s)', heartPoints: 54, coin: 13, sword: 7, shield: 1, face: 3, eventNum: 5
+            },
+            {
+                achievementId: 'doom-elite-slayer', achievementName: 'Doom Elite Slayer',
+                description: 'Awarded for launching rallies and eliminating Doom Elite.',
+                playerName: '에녹 - Enoch', mainScore: '222 time(s)', heartPoints: 59, coin: 14, sword: 5, shield: 1, face: 6, eventNum: 6
+            },
+
+            // Good Helper
+            {
+                achievementId: 'good-helper', achievementName: 'Good Helper',
+                description: 'Awarded for helping allies.',
+                playerName: 'Warrior Poet', mainScore: '3,604 time(s)', heartPoints: 36, coin: 15, sword: 4, shield: 3, face: 2, eventNum: 1
+            },
+            {
+                achievementId: 'good-helper', achievementName: 'Good Helper',
+                description: 'Awarded for helping allies.',
+                playerName: 'Warrior Poet', mainScore: '3,946 time(s)', heartPoints: 38, coin: 11, sword: 2, shield: 5, face: 0, eventNum: 3
+            },
+            {
+                achievementId: 'good-helper', achievementName: 'Good Helper',
+                description: 'Awarded for helping allies.',
+                playerName: 'Warrior Poet', mainScore: '3,310 time(s)', heartPoints: 46, coin: 10, sword: 1, shield: 2, face: 2, eventNum: 4
+            },
+            {
+                achievementId: 'good-helper', achievementName: 'Good Helper',
+                description: 'Awarded for helping allies.',
+                playerName: 'Warrior Poet', mainScore: '3,224 time(s)', heartPoints: 58, coin: 9, sword: 1, shield: 3, face: 2, eventNum: 5
+            },
+            {
+                achievementId: 'good-helper', achievementName: 'Good Helper',
+                description: 'Awarded for helping allies.',
+                playerName: 'Chan', mainScore: '3,775 time(s)', heartPoints: 59, coin: 13, sword: 1, shield: 2, face: 4, eventNum: 6
+            },
+
+            // Grind King
+            {
+                achievementId: 'grind-king', achievementName: 'Grind King',
+                description: 'Awarded for consuming Stamina points.',
+                playerName: 'Drewstroyer', mainScore: '10,955', heartPoints: 39, coin: 19, sword: 4, shield: 2, face: 2, eventNum: 1
+            },
+            {
+                achievementId: 'grind-king', achievementName: 'Grind King',
+                description: 'Awarded for consuming Stamina points.',
+                playerName: 'DumpSimba', mainScore: '6,175', heartPoints: 47, coin: 7, sword: 3, shield: 3, face: 6, eventNum: 4
+            },
+
+            // Guardian Defender
+            {
+                achievementId: 'guardian-defender', achievementName: 'Guardian Defender',
+                description: 'Awarded for defending with allies and winning battles.',
+                playerName: 'KBL50', mainScore: '66 times', heartPoints: 45, coin: 15, sword: 3, shield: 4, face: 2, eventNum: 2
+            },
+            {
+                achievementId: 'guardian-defender', achievementName: 'Guardian Defender',
+                description: 'Awarded for defending with allies and winning battles.',
+                playerName: 'Dino1311', mainScore: '72 times', heartPoints: 59, coin: 16, sword: 2, shield: 2, face: 2, eventNum: 5
+            },
+
+            // Great Destroyer
+            {
+                achievementId: 'great-destroyer', achievementName: 'Great Destroyer',
+                description: 'Awarded for dealing durability damage.',
+                playerName: 'DollyNho', mainScore: '363,241', heartPoints: 38, coin: 16, sword: 7, shield: 3, face: 4, eventNum: 1
+            },
+            {
+                achievementId: 'great-destroyer', achievementName: 'Great Destroyer',
+                description: 'Awarded for dealing durability damage.',
+                playerName: 'DollyNho', mainScore: '594,065', heartPoints: 47, coin: 7, sword: 5, shield: 4, face: 4, eventNum: 2
+            },
+            {
+                achievementId: 'great-destroyer', achievementName: 'Great Destroyer',
+                description: 'Awarded for dealing durability damage.',
+                playerName: 'DollyNho', mainScore: '389,379', heartPoints: 48, coin: 8, sword: 4, shield: 1, face: 2, eventNum: 4
+            },
+            {
+                achievementId: 'great-destroyer', achievementName: 'Great Destroyer',
+                description: 'Awarded for dealing durability damage.',
+                playerName: 'Gangster 25', mainScore: '275,866', heartPoints: 58, coin: 13, sword: 2, shield: 2, face: 2, eventNum: 5
+            },
+            {
+                achievementId: 'great-destroyer', achievementName: 'Great Destroyer',
+                description: 'Awarded for dealing durability damage.',
+                playerName: 'Gangster 25', mainScore: '463,194', heartPoints: 56, coin: 17, sword: 3, shield: 2, face: 4, eventNum: 6
+            },
+        ];
+
+        // Function to render the content for a given achievement tab
+        function renderAchievementTab(achievementId) {
+            const tabPane = document.getElementById(achievementId);
+            if (!tabPane) return;
+
+            const playersListContainer = tabPane.querySelector('.players-list');
+            if (!playersListContainer) return;
+
+            // Clear previous content
+            playersListContainer.innerHTML = '';
+
+            const filteredPlayers = allAchievementsData.filter(item => item.achievementId === achievementId);
+
+            // Sort players by Event # (oldest on bottom, so ascending order)
+            filteredPlayers.sort((a, b) => a.eventNum - b.eventNum);
+
+            // --- Wall of Fame Logic ---
+            const playerCounts = {};
+            const playerScores = {}; // To store total heart points for tie-breaking
+            const playerAllStats = {}; // To store all stats for Wall of Fame player
+
+            filteredPlayers.forEach(player => {
+                playerCounts[player.playerName] = (playerCounts[player.playerName] || 0) + 1;
+                playerScores[player.playerName] = (playerScores[player.playerName] || 0) + player.heartPoints;
+                playerAllStats[player.playerName] = playerAllStats[player.playerName] || [];
+                playerAllStats[player.playerName].push(player); // Store all instances for a player
+            });
+
+            let topPlayer = null;
+            let maxCount = 0;
+            let maxScore = -1; // For tie-breaking
+
+            for (const playerName in playerCounts) {
+                if (playerCounts[playerName] > maxCount) {
+                    maxCount = playerCounts[playerName];
+                    topPlayer = playerName;
+                    maxScore = playerScores[playerName];
+                } else if (playerCounts[playerName] === maxCount) {
+                    // Tie-breaker: if counts are equal, pick the one with higher total heart points
+                    if (playerScores[playerName] > maxScore) {
+                        topPlayer = playerName;
+                        maxScore = playerScores[playerName];
+                    }
+                }
+            }
+
+            // Display Wall of Fame if a top player is identified and has multiple entries
+            if (topPlayer && maxCount > 1) { // Only show Wall of Fame if player appears more than once
+                const wallOfFamePlayer = playerAllStats[topPlayer][0]; // Take the first instance for general info
+                const wallOfFameElement = document.createElement('div');
+                wallOfFameElement.classList.add('wall-of-fame-card', 'mb-4');
+                wallOfFameElement.innerHTML = `
+                    <h3>⭐ Wall of Fame ⭐</h3>
+                    <span class="player-name">${wallOfFamePlayer.playerName}</span>
+                    <div class="wall-of-fame-stats">
+                        <div class="wall-of-fame-stat-item"><span class="icon">❤️</span> <span class="value">${wallOfFamePlayer.heartPoints}</span></div>
+                        <div class="wall-of-fame-stat-item"><span class="icon">🪙</span> <span class="value">${wallOfFamePlayer.coin}</span></div>
+                        <div class="wall-of-fame-stat-item"><span class="icon">⚔️</span> <span class="value">${wallOfFamePlayer.sword}</span></div>
+                        <div class="wall-of-fame-stat-item"><span class="icon">🛡️</span> <span class="value">${wallOfFamePlayer.shield}</span></div>
+                        <div class="wall-of-fame-stat-item"><span class="icon">👤</span> <span class="value">${wallOfFamePlayer.face}</span></div>
+                    </div>
+                    <p class="wall-of-fame-event">Recognized ${maxCount} times for this award across various events.</p>
+                `;
+                playersListContainer.appendChild(wallOfFameElement);
+            }
+            // --- End Wall of Fame Logic ---
+
+            // Render all players (including top player if they are in the list)
+            filteredPlayers.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.classList.add('player-row-card');
+
+                let mainScoreHtml = '';
+                // Only show main score if not Alliance Champion
+                if (player.achievementId !== 'alliance-champion') {
+                    mainScoreHtml = `<span class="player-main-score">${player.mainScore}</span>`;
+                }
+
+                playerCard.innerHTML = `
+                    <span class="player-name">${player.playerName}</span>
+                    <div class="score-details-group">
+                        <div class="score-points-group">
+                            ${mainScoreHtml}
+                            <span class="player-points">❤️ ${player.heartPoints}</span>
+                        </div>
+                        <span class="player-event">Event #${player.eventNum}</span>
+                    </div>
+                `;
+                playersListContainer.appendChild(playerCard);
+            });
+        }
+
+        // Initialize Bootstrap tabs and render content on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const achievementNav = document.getElementById('achievementNav');
+            const navLinks = achievementNav.querySelectorAll('.nav-link');
+
+            // Find the first nav-link and simulate a click to activate it and render its content
+            const firstNavLink = achievementNav.querySelector('.nav-link');
+            if (firstNavLink) {
+                const bsTab = new bootstrap.Tab(firstNavLink);
+                bsTab.show(); // Activates the tab and triggers content rendering
+                renderAchievementTab(firstNavLink.dataset.bsTarget.substring(1)); // Manually call render for the first tab
+            }
+
+            // Add event listeners for subsequent tab clicks
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    renderAchievementTab(this.dataset.bsTarget.substring(1));
+                });
+            });
+        });
+    </script>
+</body>
+</html>
