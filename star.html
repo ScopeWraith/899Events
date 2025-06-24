@@ -26,6 +26,10 @@
             --heart-red: #dc3545; /* Standard red for heart points */
             --border-color: rgba(60, 80, 110, 0.5); /* Soft border color */
             --sidebar-width: 260px; /* Slightly wider sidebar */
+
+            /* New variable for sidebar background in fades */
+            --sidebar-bg-start: #121226; /* Matches sidebar top gradient */
+            --sidebar-bg-end: #0d0d1e; /* Matches sidebar bottom gradient */
         }
 
         body {
@@ -36,6 +40,7 @@
             display: flex;
             padding-left: var(--sidebar-width); /* Space for fixed sidebar */
             overflow-x: hidden;
+            font-size: 0.85rem; /* Reduced by 15% from assumed 1rem base */
         }
 
         /* Custom Scrollbar Styles */
@@ -60,7 +65,7 @@
         .sidebar {
             width: var(--sidebar-width);
             flex-shrink: 0;
-            background: linear-gradient(180deg, #121226 0%, #0d0d1e 100%); /* Very dark, subtle gradient */
+            background: linear-gradient(180deg, var(--sidebar-bg-start) 0%, var(--sidebar-bg-end) 100%); /* Very dark, subtle gradient */
             padding: 1.5rem 0.5rem;
             border-right: 1px solid var(--border-color);
             display: flex;
@@ -75,7 +80,7 @@
         }
         .sidebar-title {
             font-family: 'Poppins', sans-serif; /* Heading font */
-            font-size: 1.3rem; /* Slightly smaller title */
+            font-size: 1.105rem; /* Reduced by 15% from 1.3rem */
             font-weight: 700;
             color: #ffffff; /* White title */
             padding: 0.5rem 1rem;
@@ -110,7 +115,7 @@
             text-align: left;
             position: relative;
             overflow: hidden; /* Hide overflow for gradient effect */
-            font-size: 0.95rem; /* Slightly smaller font size */
+            font-size: 0.8075rem; /* Reduced by 15% from 0.95rem */
         }
         .nav-tabs-sidebar .nav-link i { /* Icon styling */
             margin-right: 0.7rem; /* Slightly less margin */
@@ -191,7 +196,7 @@
 
         .section-title {
             font-family: 'Poppins', sans-serif;
-            font-size: 2.1rem; /* Smaller title font */
+            font-size: 1.785rem; /* Reduced by 15% from 2.1rem */
             font-weight: 700;
             color: var(--text-light); /* White title */
             margin-bottom: 0.7rem; /* Adjusted margin */
@@ -199,7 +204,7 @@
             text-align: center; /* Centered title */
         }
         .section-description {
-            font-size: 0.95rem; /* Smaller description font */
+            font-size: 0.8075rem; /* Reduced by 15% from 0.95rem */
             color: var(--text-muted);
             margin-bottom: 1.8rem; /* Adjusted margin */
             line-height: 1.5;
@@ -236,7 +241,7 @@
         }
         .wall-of-fame-card h3 {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.7rem; /* Smaller title */
+            font-size: 1.445rem; /* Reduced by 15% from 1.7rem */
             font-weight: 700;
             color: #ffe082;
             margin-bottom: 1rem;
@@ -244,7 +249,7 @@
         }
         .wall-of-fame-card .player-name {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem; /* Smaller player name */
+            font-size: 1.275rem; /* Reduced by 15% from 1.5rem */
             font-weight: 800;
             color: #ffffff;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
@@ -263,7 +268,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem; /* Adjusted gap */
-            font-size: 1.05rem; /* Smaller stat items */
+            font-size: 0.8925rem; /* Reduced by 15% from 1.05rem */
             font-weight: 600;
             color: var(--text-light);
         }
@@ -276,7 +281,7 @@
             font-weight: 700;
         }
         .wall-of-fame-event {
-            font-size: 0.9rem; /* Smaller font size */
+            font-size: 0.765rem; /* Reduced by 15% from 0.9rem */
             color: var(--text-muted);
             margin-top: 0.8rem;
             font-style: italic;
@@ -307,7 +312,7 @@
             font-family: 'Poppins', sans-serif;
             font-weight: 600;
             color: #ffffff;
-            font-size: 1.05rem; /* Smaller name font */
+            font-size: 0.8925rem; /* Reduced by 15% from 1.05rem */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -328,21 +333,60 @@
         .player-main-score {
             font-weight: 700;
             color: var(--score-color); /* Cyan for main score */
-            font-size: 1.05rem; /* Adjusted font size */
+            font-size: 0.8925rem; /* Reduced by 15% from 1.05rem */
             white-space: nowrap;
         }
         .player-points {
             font-weight: 700;
             color: var(--heart-red); /* Red for heart points */
-            font-size: 1.05rem; /* Adjusted font size */
+            font-size: 0.8925rem; /* Reduced by 15% from 1.05rem */
             white-space: nowrap;
         }
         .player-event {
             font-family: 'Roboto', sans-serif;
             color: var(--text-muted);
-            font-size: 0.9rem; /* Adjusted font size */
+            font-size: 0.765rem; /* Reduced by 15% from 0.9rem */
             white-space: nowrap;
         }
+
+        /* Styles for the mobile dropdown */
+        .mobile-dropdown-container {
+            padding: 1rem;
+            display: none; /* Hidden by default */
+        }
+
+        .mobile-achievement-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background-color: var(--card-bg-light);
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem; /* Reduced by 15% from 1rem */
+            appearance: none; /* Remove default system dropdown arrow */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0f0'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2em;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .mobile-achievement-select:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 0.25rem rgba(0, 188, 212, 0.25);
+        }
+
+        .mobile-achievement-select option {
+            background-color: var(--sidebar-bg-end); /* Darker background for options */
+            color: var(--text-light);
+            padding: 0.5rem 1rem;
+        }
+
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -359,39 +403,22 @@
                 padding: 1rem;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
                 border-radius: 0;
-                max-height: 60vh;
+                /* max-height: 60vh; Removed as we now use a dropdown */
             }
             .sidebar-title {
                 margin-bottom: 0.5rem;
             }
+
+            /* Hide regular nav tabs on mobile */
             .nav-tabs-sidebar {
-                flex-direction: row;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                padding-bottom: 0;
-                justify-content: flex-start;
+                display: none;
             }
-            .nav-tabs-sidebar .nav-item {
-                flex-shrink: 0;
-                margin-right: 0.5rem;
+
+            /* Show mobile dropdown on mobile */
+            .mobile-dropdown-container {
+                display: block; /* Show the dropdown container */
             }
-            .nav-tabs-sidebar .nav-link {
-                padding: 0.6rem 0.8rem;
-                font-size: 0.85rem; /* Smaller font on mobile */
-                border-radius: 0.5rem;
-            }
-            .nav-tabs-sidebar .nav-link::before {
-                width: 0;
-            }
-            .nav-tabs-sidebar .nav-link.active {
-                transform: none;
-                box-shadow: 0 2px 8px rgba(0, 188, 212, 0.4);
-                border: 1px solid var(--accent-primary);
-            }
-            .nav-tabs-sidebar .nav-link i {
-                margin-right: 0.5rem;
-                font-size: 0.9em;
-            }
+
             .main-content {
                 padding: 1rem;
             }
@@ -399,10 +426,10 @@
                 padding: 1.5rem;
             }
             .section-title {
-                font-size: 1.6rem; /* Smaller on mobile */
+                font-size: 1.36rem; /* Reduced by 15% from 1.6rem */
             }
             .section-description {
-                font-size: 0.8rem; /* Smaller on mobile */
+                font-size: 0.68rem; /* Reduced by 15% from 0.8rem */
             }
             .player-row-card {
                 flex-direction: column;
@@ -413,7 +440,7 @@
                 width: 100%;
                 margin-bottom: 0.5rem;
                 margin-right: 0;
-                font-size: 1rem;
+                font-size: 0.85rem; /* Reduced by 15% from 1rem */
             }
             .score-details-group {
                 width: 100%;
@@ -425,22 +452,22 @@
                 gap: 0.8rem;
             }
             .player-main-score, .player-points {
-                font-size: 1rem;
+                font-size: 0.85rem; /* Reduced by 15% from 1rem */
             }
             .player-event {
-                font-size: 0.85rem;
+                font-size: 0.7225rem; /* Reduced by 15% from 0.85rem */
             }
             .wall-of-fame-card h3 {
-                font-size: 1.4rem;
+                font-size: 1.19rem; /* Reduced by 15% from 1.4rem */
             }
             .wall-of-fame-card .player-name {
-                font-size: 1.2rem;
+                font-size: 1.02rem; /* Reduced by 15% from 1.2rem */
             }
             .wall-of-fame-stats {
                 gap: 0.8rem;
             }
             .wall-of-fame-stat-item {
-                font-size: 0.95rem;
+                font-size: 0.8075rem; /* Reduced by 15% from 0.95rem */
             }
             .wall-of-fame-stat-item .icon {
                 font-size: 1.1em;
@@ -453,6 +480,7 @@
     <!-- Left Navigation Sidebar -->
     <nav class="sidebar">
         <h2 class="sidebar-title">Awards</h2>
+        <!-- Existing desktop navigation -->
         <ul class="nav nav-tabs-sidebar" id="achievementNav" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="alliance-champion-tab" data-bs-toggle="tab" data-bs-target="#alliance-champion" type="button" role="tab" aria-controls="alliance-champion" aria-selected="true"><i class="fas fa-crown"></i> Alliance Champion</button>
@@ -506,12 +534,18 @@
                 <button class="nav-link" id="great-destroyer-tab" data-bs-toggle="tab" data-bs-target="#great-destroyer" type="button" role="tab" aria-controls="great-destroyer" aria-selected="false"><i class="fas fa-hammer"></i> Great Destroyer</button>
             </li>
         </ul>
+
+        <!-- Mobile dropdown for navigation -->
+        <div class="mobile-dropdown-container">
+            <label for="achievement-select" class="visually-hidden">Select Achievement</label>
+            <select id="achievement-select" class="mobile-achievement-select form-select">
+                <!-- Options will be dynamically populated by JavaScript -->
+            </select>
+        </div>
     </nav>
 
     <!-- Main Content Area -->
     <main class="main-content">
-        <!-- Removed h1 "Alliance Event Leaderboards" -->
-
         <div class="tab-content" id="achievementTabContent">
             <!-- Tab pane HTML structure is mostly static, content dynamically inserted by JS -->
             <!-- Alliance Champion Tab Content -->
@@ -1108,6 +1142,18 @@
             const tabPane = document.getElementById(achievementId);
             if (!tabPane) return;
 
+            // Update the section title and description based on the achievement data
+            const sectionTitleElement = tabPane.querySelector('.section-title');
+            const sectionDescriptionElement = tabPane.querySelector('.section-description');
+            
+            // Find the corresponding achievement in the data to get its name and description
+            const achievementInfo = allAchievementsData.find(item => item.achievementId === achievementId);
+            if (achievementInfo) {
+                sectionTitleElement.textContent = `${achievementInfo.achievementName} Winners`;
+                sectionDescriptionElement.textContent = achievementInfo.description;
+            }
+
+
             const playersListContainer = tabPane.querySelector('.players-list');
             if (!playersListContainer) return;
 
@@ -1199,22 +1245,111 @@
         document.addEventListener('DOMContentLoaded', () => {
             const achievementNav = document.getElementById('achievementNav');
             const navLinks = achievementNav.querySelectorAll('.nav-link');
+            const mobileAchievementSelect = document.getElementById('achievement-select');
 
-            // Find the first nav-link and simulate a click to activate it and render its content
-            const firstNavLink = achievementNav.querySelector('.nav-link');
-            if (firstNavLink) {
-                const bsTab = new bootstrap.Tab(firstNavLink);
-                bsTab.show(); // Activates the tab and triggers content rendering
-                renderAchievementTab(firstNavLink.dataset.bsTarget.substring(1)); // Manually call render for the first tab
+            // --- Populate and manage mobile dropdown ---
+            // Get unique achievement types from the data
+            const uniqueAchievements = [];
+            const achievementIdsAdded = new Set();
+
+            allAchievementsData.forEach(item => {
+                if (!achievementIdsAdded.has(item.achievementId)) {
+                    uniqueAchievements.push({
+                        id: item.achievementId,
+                        name: item.achievementName // Assuming achievementName is consistent for each ID
+                    });
+                    achievementIdsAdded.add(item.achievementId);
+                }
+            });
+
+            // Sort unique achievements alphabetically by name for the dropdown
+            uniqueAchievements.sort((a, b) => a.name.localeCompare(b.name));
+
+            // Populate the dropdown
+            mobileAchievementSelect.innerHTML = ''; // Clear existing options
+            uniqueAchievements.forEach(ach => {
+                const option = document.createElement('option');
+                option.value = ach.id;
+                option.textContent = ach.name;
+                mobileAchievementSelect.appendChild(option);
+            });
+
+            // Handle dropdown change event
+            mobileAchievementSelect.addEventListener('change', function() {
+                const selectedAchievementId = this.value;
+                // Activate the corresponding Bootstrap tab
+                const targetTab = document.getElementById(`${selectedAchievementId}-tab`);
+                if (targetTab) {
+                    const bsTab = new bootstrap.Tab(targetTab);
+                    bsTab.show();
+                    // Manually render the content as tab.show() doesn't trigger click listener
+                    renderAchievementTab(selectedAchievementId);
+                }
+            });
+
+            // --- Initial Load Logic ---
+            const mediaQuery = window.matchMedia('(max-width: 768px)');
+            const defaultAchievementId = 'alliance-champion'; // The ID for "Alliance Champion Winners"
+
+            function handleInitialDisplay() {
+                // Determine the initial achievement to show
+                let initialAchievementToShow = defaultAchievementId;
+
+                if (mediaQuery.matches) { // Mobile view
+                    // Set dropdown value to default achievement
+                    mobileAchievementSelect.value = initialAchievementToShow;
+                    // Ensure the dropdown's selected option is set correctly
+                    // This might be redundant if renderAchievementTab is called right after,
+                    // but good for explicit state management.
+                    mobileAchievementSelect.selectedIndex = Array.from(mobileAchievementSelect.options).findIndex(option => option.value === initialAchievementToShow);
+
+                } else { // Desktop view
+                    // Simulate click on the default desktop tab
+                    const defaultNavLink = document.getElementById(`${initialAchievementToShow}-tab`);
+                    if (defaultNavLink) {
+                        const bsTab = new bootstrap.Tab(defaultNavLink);
+                        bsTab.show();
+                    }
+                }
+                // Render the content for the initial achievement
+                renderAchievementTab(initialAchievementToShow);
             }
 
-            // Add event listeners for subsequent tab clicks
+            // Set up initial display
+            handleInitialDisplay();
+
+            // Listen for window resize to switch between mobile/desktop modes
+            mediaQuery.addEventListener('change', handleInitialDisplay);
+
+            // Add event listeners for subsequent desktop tab clicks
             navLinks.forEach(link => {
                 link.addEventListener('click', function(event) {
-                    renderAchievementTab(this.dataset.bsTarget.substring(1));
+                    const clickedAchievementId = this.dataset.bsTarget.substring(1);
+                    renderAchievementTab(clickedAchievementId);
+                    // If desktop tab is clicked, ensure mobile dropdown is updated
+                    if (mobileAchievementSelect) {
+                        mobileAchievementSelect.value = clickedAchievementId;
+                    }
                 });
+            });
+
+            // Ensure the correct desktop tab is active when a dropdown option is selected (for seamless transition)
+            mobileAchievementSelect.addEventListener('change', function() {
+                const selectedAchievementId = this.value;
+                // Deactivate all desktop tabs
+                navLinks.forEach(link => link.classList.remove('active'));
+                // Activate the corresponding desktop tab if it exists
+                const targetTab = document.getElementById(`${selectedAchievementId}-tab`);
+                if (targetTab) {
+                    const bsTab = new bootstrap.Tab(targetTab);
+                    bsTab.show(); // This also triggers content rendering via Bootstrap's own mechanism
+                } else {
+                     // Fallback to manually rendering if Bootstrap tab logic isn't fully integrated
+                    renderAchievementTab(selectedAchievementId);
+                }
             });
         });
     </script>
 </body>
 </html>
+
