@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2 Interactive Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            overscroll-behavior: none;
+            cursor: default; /* Ensure default cursor unless overridden */
+        }
+        .map-container {
+            touch-action: none; 
+        }
+        .plot {
+            cursor: pointer; /* Hand pointer for clickable plots */
+        }
+    </style>
+</head>
+<body class="bg-gray-800 text-white overflow-hidden">
+
+    <div id="app" class="w-screen h-screen"></div>
+
+    <div id="alliance-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-xs text-center text-black">
+            <h3 class="font-bold text-lg mb-1">Set Alliance</h3>
+            <p id="modal-plot-id" class="mb-4 text-gray-600">Plot: </p>
+            <div id="modal-buttons" class="grid grid-cols-2 gap-2"></div>
+            <button id="modal-clear-btn" class="w-full mt-4 bg-gray-500 text-white p-2 rounded-md font-semibold hover:bg-gray-600">
+                Clear Alliance
+            </button>
+            <button id="modal-close-btn" class="w-full mt-2 text-sm text-gray-500 hover:text-gray-800">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- CONFIGURATION ---
+        const alliances = {
+            THOR: { name: 'THOR', color: 'bg-blue-600', textColor: 'text-white' },
+            fafo: { name: 'fafo', color: 'bg-red-600', textColor: 'text-white' },
+            HERA: { name: 'HERA', color: 'bg-yellow-400', textColor: 'text-black' },
+            pHNx: { name: 'pHNx', color: 'bg-purple-600', textColor: 'text-white' },
+        };
+        const defaultMainPlotClasses = ['bg-gray-200', 'text-black'];
+        const defaultMainPlotHover = ['bg-gray-500', 'text-white'];
+        const defaultCornerPlotClasses = ['bg-yellow-200', 'text-black'];
+        const defaultCornerPlotHover = ['bg-amber-300', 'text-black'];
+
+        const rows = 11, cols = 13, cellWidth = 100, cellHeight = 80, cornerPlotSizeRatio = 0.55;
+
+        // --- STATE & REFERENCES ---
+        let view = { x: 0, y: 0, zoom: 1 };
+        let plotAlliances = {};
+        let selectedCell = null;
+        let hoveredCell = null;
+        const plotElements = new Map();
+        const dragInfo = { isDragging: false, startX: 0, startY: 0, viewStartX: 0, viewStartY: 0 };
+
+        // --- DOM REFERENCES ---
+        const app = document.getElementById('app');
+        const modal = document.getElementById('alliance-modal');
+        const modalPlotId = document.getElementById('modal-plot-id');
+        const modalButtons = document.getElementById('modal-buttons');
+        const modalClearBtn = document.getElementById('modal-clear-btn');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        let gridContainer;
+
+        // --- EFFICIENT UPDATE FUNCTIONS ---
+        function updateElementStyle(key) {
+            const el = plotElements.get(key);
+            if (!el) return;
+
+            const isHovered = hoveredCell === key;
+            const allianceName = plotAlliances[key];
+            const allianceInfo = allianceName ? alliances[allianceName] : null;
+            const isMainPlot = !key.startsWith('C');
+            
+            let classesToAdd = [];
+            let classesToRemove = [
+                ...Object.values(alliances).map(a => a.color),
+                ...Object.values(alliances).map(a => a.textColor),
+                ...defaultMainPlotClasses, ...defaultMainPlotHover,
+                ...defaultCornerPlotClasses, ...defaultCornerPlotHover
+            ];
+
+            if (isHovered) {
+                classesToAdd = isMainPlot ? defaultMainPlotHover : defaultCornerPlotHover;
+            } else if (allianceInfo) {
+                classesToAdd = [allianceInfo.color, allianceInfo.textColor];
+            } else {
+                classesToAdd = isMainPlot ? defaultMainPlotClasses : defaultCornerPlotClasses;
+            }
+            
+            el.classList.remove(...classesToRemove);
+            el.classList.add(...classesToAdd);
+        }
+
+        function updateAllStyles() {
+            for (const key of plotElements.keys()) {
+                updateElementStyle(key);
+            }
+        }
+
+        function updateViewTransform() {
+            if (gridContainer) {
+                gridContainer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.zoom})`;
+            }
+        }
+
+        // --- INITIALIZATION ---
+        function initializeMap() {
+            gridContainer = document.createElement('div');
+            gridContainer.className = 'relative w-full h-full';
+            gridContainer.style.transformOrigin = '0 0';
+
+            const mainPlotGrid = document.createElement('div');
+            mainPlotGrid.className = 'relative grid';
+            mainPlotGrid.style.cssText = `display: grid; grid-template-columns: repeat(${cols}, ${cellWidth}px); grid-template-rows: repeat(${rows}, ${cellHeight}px);`;
+
+            const cornerPlotContainer = document.createElement('div');
+            cornerPlotContainer.className = 'absolute top-0 left-0';
+            
+            // Create main plots
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const key = `${j + 1},${i + 1}`;
+                    const el = document.createElement('div');
+                    el.className = 'plot flex items-center justify-center text-xs outline outline-1 outline-gray-600';
+                    el.style.cssText = `grid-column: ${j + 1}; grid-row: ${i + 1};`;
+                    el.innerHTML = `<span>(${j + 1}, ${i + 1})</span>`;
+                    el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
+                    el.addEventListener('mouseenter', () => handleMouseEnter(key));
+                    el.addEventListener('mouseleave', () => handleMouseLeave());
+                    plotElements.set(key, el);
+                    mainPlotGrid.appendChild(el);
+                }
+            }
+            
+            // Create corner plots
+            for (let i = 0; i < rows - 1; i++) {
+                for (let j = 0; j < cols - 1; j++) {
+                    const key = `C(${j + 1.5},${i + 1.5})`;
+                    const el = document.createElement('div');
+                    el.className = 'plot absolute z-30 flex items-center justify-center text-xs outline outline-2 outline-gray-800';
+                    const cornerPlotWidth = cellWidth * cornerPlotSizeRatio;
+                    const cornerPlotHeight = cellHeight * cornerPlotSizeRatio;
+                    el.style.cssText = `top: ${(i + 1) * cellHeight}px; left: ${(j + 1) * cellWidth}px; transform: translate(-50%, -50%); width: ${cornerPlotWidth}px; height: ${cornerPlotHeight}px;`;
+                    el.textContent = 'C';
+                    el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
+                    el.addEventListener('mouseenter', () => handleMouseEnter(key));
+                    el.addEventListener('mouseleave', () => handleMouseLeave());
+                    plotElements.set(key, el);
+                    cornerPlotContainer.appendChild(el);
+                }
+            }
+
+            gridContainer.append(mainPlotGrid, cornerPlotContainer);
+            app.innerHTML = ''; // Clear app before adding
+            app.appendChild(gridContainer);
+            updateAllStyles();
+            updateViewTransform();
+        }
+
+        // --- EVENT HANDLERS ---
+        function handleMouseEnter(key) {
+            if (dragInfo.isDragging) return;
+            const oldHovered = hoveredCell;
+            hoveredCell = key;
+            if(oldHovered) updateElementStyle(oldHovered);
+            updateElementStyle(key);
+        }
+        
+        function handleMouseLeave() {
+            if (dragInfo.isDragging) return;
+            const oldHovered = hoveredCell;
+            hoveredCell = null;
+            if(oldHovered) updateElementStyle(oldHovered);
+        }
+
+        function handleMouseDown(e, key = null) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            Object.assign(dragInfo, {
+                isDragging: false,
+                startX: e.pageX,
+                startY: e.pageY,
+                viewStartX: view.x,
+                viewStartY: view.y,
+                clickedCell: key
+            });
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        function handleMouseMove(e) {
+            e.preventDefault();
+            if (!dragInfo.isDragging && (Math.abs(e.pageX - dragInfo.startX) > 5 || Math.abs(e.pageY - dragInfo.startY) > 5)) {
+                dragInfo.isDragging = true;
+                document.body.style.cursor = 'move';
+                if(hoveredCell) handleMouseLeave();
+            }
+
+            if (dragInfo.isDragging) {
+                view.x = dragInfo.viewStartX + (e.pageX - dragInfo.startX);
+                view.y = dragInfo.viewStartY + (e.pageY - dragInfo.startY);
+                updateViewTransform();
+            }
+        }
+
+        function handleMouseUp() {
+            document.body.style.cursor = 'default';
+            if (!dragInfo.isDragging && dragInfo.clickedCell) {
+                selectedCell = dragInfo.clickedCell;
+                updateModal();
+            }
+            dragInfo.isDragging = false;
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        }
+
+        function handleWheel(e) {
+            const rect = app.getBoundingClientRect();
+            const x = (e.clientX - rect.left - view.x) / view.zoom;
+            const y = (e.clientY - rect.top - view.y) / view.zoom;
+            const delta = -e.deltaY * 0.001;
+            const newZoom = Math.max(0.5, Math.min(view.zoom + delta, 3));
+            
+            view.x -= x * (newZoom - view.zoom);
+            view.y -= y * (newZoom - view.zoom);
+            view.zoom = newZoom;
+            
+            updateViewTransform();
+        }
+
+        function updateModal() {
+            if (selectedCell) {
+                modalPlotId.textContent = `Plot: ${selectedCell}`;
+                modalButtons.innerHTML = '';
+                Object.values(alliances).forEach(ally => {
+                    const btn = document.createElement('button');
+                    btn.textContent = ally.name;
+                    btn.className = `p-3 rounded-md font-semibold transition-transform duration-150 ease-in-out hover:scale-105 ${ally.color} ${ally.textColor}`;
+                    btn.onclick = () => {
+                        plotAlliances[selectedCell] = ally.name;
+                        updateElementStyle(selectedCell);
+                        selectedCell = null;
+                        updateModal();
+                    };
+                    modalButtons.appendChild(btn);
+                });
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+        
+        modalClearBtn.onclick = () => {
+             if (selectedCell) {
+                delete plotAlliances[selectedCell];
+                updateElementStyle(selectedCell);
+                selectedCell = null;
+                updateModal();
+            }
+        };
+
+        modalCloseBtn.onclick = () => {
+            selectedCell = null;
+            updateModal();
+        };
+
+        // --- STARTUP ---
+        app.addEventListener('wheel', handleWheel);
+        app.addEventListener('mousedown', (e) => handleMouseDown(e, null));
+        
+        initializeMap();
+    </script>
+</body>
+</html>
