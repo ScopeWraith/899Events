@@ -3,34 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S2 Interactive Map</title>
+    <title>S3 Interactive Map</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             overscroll-behavior: none;
-            cursor: default; /* Ensure default cursor unless overridden */
-        }
-        .map-container {
-            touch-action: none; 
+            cursor: default;
+            font-family: 'Poppins', sans-serif;
         }
         .plot {
-            cursor: pointer; /* Hand pointer for clickable plots */
+            cursor: pointer;
+            overflow: hidden;
+            line-height: 1.2;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out, background-color 0.2s ease-out;
+            border-width: 3px; /* Increased border width */
+        }
+        .plot:hover {
+             transform: scale(1.05);
+        }
+        #tooltip {
+            pointer-events: none;
+            transition: opacity 0.1s ease-in-out;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #alliance-modal .modal-content {
+             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Custom class for inner glow hover effect */
+        .hover-glow:hover {
+            box-shadow: inset 0 0 12px 2px var(--glow-color, rgba(255, 255, 255, 0.5));
         }
     </style>
 </head>
-<body class="bg-gray-800 text-white overflow-hidden">
+<body class="bg-black text-white overflow-hidden">
 
     <div id="app" class="w-screen h-screen"></div>
 
-    <div id="alliance-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-xs text-center text-black">
-            <h3 class="font-bold text-lg mb-1">Set Alliance</h3>
-            <p id="modal-plot-id" class="mb-4 text-gray-600">Plot: </p>
-            <div id="modal-buttons" class="grid grid-cols-2 gap-2"></div>
-            <button id="modal-clear-btn" class="w-full mt-4 bg-gray-500 text-white p-2 rounded-md font-semibold hover:bg-gray-600">
+    <!-- Tooltip for hover information -->
+    <div id="tooltip" class="hidden absolute bg-black/50 text-white text-xs p-3 rounded-lg shadow-2xl opacity-0 z-50">
+        <h4 id="tooltip-title" class="font-bold text-sm text-sky-300"></h4>
+        <p><span class="font-semibold opacity-80">Level:</span> <span id="tooltip-level"></span></p>
+        <p><span class="font-semibold opacity-80">Resources:</span> <span id="tooltip-resources"></span></p>
+    </div>
+
+    <!-- Modal for Alliance Selection -->
+    <div id="alliance-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+        <div class="modal-content bg-gray-900/50 p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center text-white">
+            <h3 id="modal-title" class="font-bold text-xl mb-1 text-sky-300"></h3>
+            <p id="modal-plot-id" class="text-xs text-slate-400"></p>
+            <div id="modal-details" class="my-4 text-left bg-black/50 p-4 rounded-lg">
+                 <p><span class="font-semibold opacity-80">Level:</span> <span id="modal-level" class="font-bold"></span></p>
+            </div>
+            <div id="modal-buttons" class="grid grid-cols-2 gap-3"></div>
+            <button id="modal-clear-btn" class="w-full mt-4 bg-gray-700 text-slate-200 p-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors">
                 Clear Alliance
             </button>
-            <button id="modal-close-btn" class="w-full mt-2 text-sm text-gray-500 hover:text-gray-800">
+            <button id="modal-close-btn" class="w-full mt-2 text-sm text-slate-400 hover:text-white transition-colors">
                 Close
             </button>
         </div>
@@ -39,172 +74,215 @@
     <script type="module">
         // --- CONFIGURATION ---
         const alliances = {
-            THOR: { name: 'THOR', color: 'bg-blue-600', textColor: 'text-white' },
-            fafo: { name: 'fafo', color: 'bg-red-600', textColor: 'text-white' },
-            HERA: { name: 'HERA', color: 'bg-yellow-400', textColor: 'text-black' },
-            pHNx: { name: 'pHNx', color: 'bg-purple-600', textColor: 'text-white' },
+            THOR: { name: 'THOR', color: 'bg-blue-600', textColor: 'text-white', hover: 'hover-glow' },
+            fafo: { name: 'fafo', color: 'bg-red-600', textColor: 'text-white', hover: 'hover-glow' },
+            HERA: { name: 'HERA', color: 'bg-yellow-400', textColor: 'text-slate-900', hover: 'hover-glow' },
+            pHNx: { name: 'pHNx', color: 'bg-purple-600', textColor: 'text-white', hover: 'hover-glow' },
         };
-        const defaultMainPlotClasses = ['bg-gray-200', 'text-black'];
-        const defaultMainPlotHover = ['bg-gray-500', 'text-white'];
-        const defaultCornerPlotClasses = ['bg-yellow-200', 'text-black'];
-        const defaultCornerPlotHover = ['bg-amber-300', 'text-black'];
+        const cityLevelBorders = {
+            1: 'border-purple-500', 2: 'border-blue-500', 3: 'border-green-500',
+            4: 'border-yellow-500', 5: 'border-orange-500', 6: 'border-red-500',
+            7: 'border-pink-500' 
+        };
+        const defaultMainPlotClasses = { base: 'bg-gray-900/50 border-gray-700', hover: 'hover-glow' };
+        const defaultCornerPlotClasses = { base: 'bg-gray-800', hover: 'hover-glow' };
 
-        const rows = 11, cols = 13, cellWidth = 100, cellHeight = 80, cornerPlotSizeRatio = 0.55;
+        const rows = 13, cols = 13, cellWidth = 100, cellHeight = 80, cornerPlotSizeRatio = 0.55;
 
         // --- STATE & REFERENCES ---
         let view = { x: 0, y: 0, zoom: 1 };
-        let plotAlliances = {};
+        let plotData = {}; 
         let selectedCell = null;
         let hoveredCell = null;
         const plotElements = new Map();
         const dragInfo = { isDragging: false, startX: 0, startY: 0, viewStartX: 0, viewStartY: 0 };
+        let hideTooltipTimer; 
 
         // --- DOM REFERENCES ---
         const app = document.getElementById('app');
-        const modal = document.getElementById('alliance-modal');
-        const modalPlotId = document.getElementById('modal-plot-id');
-        const modalButtons = document.getElementById('modal-buttons');
-        const modalClearBtn = document.getElementById('modal-clear-btn');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const tooltip = document.getElementById('tooltip'), tooltipTitle = document.getElementById('tooltip-title'), tooltipLevel = document.getElementById('tooltip-level'), tooltipResources = document.getElementById('tooltip-resources');
+        const modal = document.getElementById('alliance-modal'), modalTitle = document.getElementById('modal-title'), modalPlotId = document.getElementById('modal-plot-id'), modalDetails = document.getElementById('modal-details'), modalLevel = document.getElementById('modal-level'), modalButtons = document.getElementById('modal-buttons'), modalClearBtn = document.getElementById('modal-clear-btn'), modalCloseBtn = document.getElementById('modal-close-btn');
         let gridContainer;
 
+        // --- LEVEL CALCULATION ---
+        function calculatePlotData() {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const key = `${j + 1},${i + 1}`;
+                    const level = Math.min(i, rows - 1 - i, j, cols - 1 - j) + 1;
+                    plotData[key] = { type: 'Stronghold', level: level, resources: 'N/A', alliance: null };
+                }
+            }
+            const cornerRows = rows - 1, cornerCols = cols - 1;
+            for (let i = 0; i < cornerRows; i++) {
+                for (let j = 0; j < cornerCols; j++) {
+                    const key = `C(${j + 1.5},${i + 1.5})`;
+                    const level = Math.min(i, cornerRows - 1 - i, j, cornerCols - 1 - j) + 1;
+                    plotData[key] = { type: 'City', level: level, resources: 'N/A', alliance: null };
+                }
+            }
+        }
+        
         // --- EFFICIENT UPDATE FUNCTIONS ---
         function updateElementStyle(key) {
             const el = plotElements.get(key);
             if (!el) return;
 
-            const isHovered = hoveredCell === key;
-            const allianceName = plotAlliances[key];
+            const data = plotData[key] || {};
+            const allianceName = data.alliance;
             const allianceInfo = allianceName ? alliances[allianceName] : null;
-            const isMainPlot = !key.startsWith('C');
             
-            let classesToAdd = [];
-            let classesToRemove = [
-                ...Object.values(alliances).map(a => a.color),
-                ...Object.values(alliances).map(a => a.textColor),
-                ...defaultMainPlotClasses, ...defaultMainPlotHover,
-                ...defaultCornerPlotClasses, ...defaultCornerPlotHover
+            const allClassesToRemove = [
+                ...Object.values(alliances).flatMap(a => [a.color, a.textColor]),
+                ...Object.values(cityLevelBorders),
+                defaultMainPlotClasses.base.split(' ')[0],
+                defaultCornerPlotClasses.base
             ];
+            el.classList.remove(...allClassesToRemove);
 
-            if (isHovered) {
-                classesToAdd = isMainPlot ? defaultMainPlotHover : defaultCornerPlotHover;
-            } else if (allianceInfo) {
-                classesToAdd = [allianceInfo.color, allianceInfo.textColor];
-            } else {
-                classesToAdd = isMainPlot ? defaultMainPlotClasses : defaultCornerPlotClasses;
+            if (data.type === 'Stronghold') {
+                 if (allianceInfo) {
+                    el.classList.add(allianceInfo.color, allianceInfo.textColor);
+                 } else {
+                    el.classList.add(...defaultMainPlotClasses.base.split(' '));
+                 }
+            } else if (data.type === 'City') {
+                const levelBorder = cityLevelBorders[data.level] || 'border-gray-600';
+                 el.classList.add(levelBorder);
+
+                if (allianceInfo) {
+                    el.classList.add(allianceInfo.color, allianceInfo.textColor);
+                } else {
+                    el.classList.add(defaultCornerPlotClasses.base);
+                }
             }
-            
-            el.classList.remove(...classesToRemove);
-            el.classList.add(...classesToAdd);
         }
-
+        
         function updateAllStyles() {
-            for (const key of plotElements.keys()) {
-                updateElementStyle(key);
-            }
+            plotElements.forEach((el, key) => updateElementStyle(key));
         }
 
         function updateViewTransform() {
-            if (gridContainer) {
-                gridContainer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.zoom})`;
-            }
+            if (gridContainer) gridContainer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.zoom})`;
         }
 
         // --- INITIALIZATION ---
         function initializeMap() {
+            calculatePlotData();
             gridContainer = document.createElement('div');
             gridContainer.className = 'relative w-full h-full';
             gridContainer.style.transformOrigin = '0 0';
 
             const mainPlotGrid = document.createElement('div');
-            mainPlotGrid.className = 'relative grid';
+            mainPlotGrid.className = 'relative grid z-10';
             mainPlotGrid.style.cssText = `display: grid; grid-template-columns: repeat(${cols}, ${cellWidth}px); grid-template-rows: repeat(${rows}, ${cellHeight}px);`;
 
             const cornerPlotContainer = document.createElement('div');
-            cornerPlotContainer.className = 'absolute top-0 left-0';
+            cornerPlotContainer.className = 'absolute top-0 left-0 z-20';
             
-            // Create main plots
+            const createPlotHTML = (key) => {
+                const data = plotData[key];
+                if (!data) return '';
+                if (data.type === 'Stronghold') {
+                     return `<div class="relative w-full h-full">
+                                <span class="absolute top-1 left-1/2 -translate-x-1/2 font-semibold text-xs">${data.level || ''} SH</span>
+                            </div>`;
+                } else {
+                    return `<div class="relative w-full h-full flex items-center justify-center">
+                                <span class="font-semibold text-[10px]">${data.type}</span>
+                            </div>`;
+                }
+            };
+            
             for (let i = 0; i < rows; i++) {
                 for (let j = 0; j < cols; j++) {
                     const key = `${j + 1},${i + 1}`;
                     const el = document.createElement('div');
-                    el.className = 'plot flex items-center justify-center text-xs outline outline-1 outline-gray-600';
+                    el.className = 'plot text-xs rounded-md hover-glow';
                     el.style.cssText = `grid-column: ${j + 1}; grid-row: ${i + 1};`;
-                    el.innerHTML = `<span>(${j + 1}, ${i + 1})</span>`;
+                    el.innerHTML = createPlotHTML(key);
                     el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
-                    el.addEventListener('mouseenter', () => handleMouseEnter(key));
+                    el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
+                    el.addEventListener('mousemove', (e) => handleMouseMove(e));
                     el.addEventListener('mouseleave', () => handleMouseLeave());
                     plotElements.set(key, el);
                     mainPlotGrid.appendChild(el);
                 }
             }
             
-            // Create corner plots
             for (let i = 0; i < rows - 1; i++) {
                 for (let j = 0; j < cols - 1; j++) {
                     const key = `C(${j + 1.5},${i + 1.5})`;
                     const el = document.createElement('div');
-                    el.className = 'plot absolute z-30 flex items-center justify-center text-xs outline outline-2 outline-gray-800';
-                    const cornerPlotWidth = cellWidth * cornerPlotSizeRatio;
-                    const cornerPlotHeight = cellHeight * cornerPlotSizeRatio;
-                    el.style.cssText = `top: ${(i + 1) * cellHeight}px; left: ${(j + 1) * cellWidth}px; transform: translate(-50%, -50%); width: ${cornerPlotWidth}px; height: ${cornerPlotHeight}px;`;
-                    el.textContent = 'C';
+                    el.className = 'plot absolute text-xs rounded-lg hover-glow';
+                    el.style.cssText = `top: ${(i + 1) * cellHeight}px; left: ${(j + 1) * cellWidth}px; transform: translate(-50%, -50%); width: ${cellWidth * cornerPlotSizeRatio}px; height: ${cellHeight * cornerPlotSizeRatio}px;`;
+                    el.innerHTML = createPlotHTML(key);
                     el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
-                    el.addEventListener('mouseenter', () => handleMouseEnter(key));
+                    el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
+                    el.addEventListener('mousemove', (e) => handleMouseMove(e));
                     el.addEventListener('mouseleave', () => handleMouseLeave());
                     plotElements.set(key, el);
                     cornerPlotContainer.appendChild(el);
                 }
             }
-
             gridContainer.append(mainPlotGrid, cornerPlotContainer);
-            app.innerHTML = ''; // Clear app before adding
+            app.innerHTML = '';
             app.appendChild(gridContainer);
             updateAllStyles();
             updateViewTransform();
         }
 
         // --- EVENT HANDLERS ---
-        function handleMouseEnter(key) {
+        function handleMouseEnter(e, key) {
+            clearTimeout(hideTooltipTimer);
             if (dragInfo.isDragging) return;
-            const oldHovered = hoveredCell;
             hoveredCell = key;
-            if(oldHovered) updateElementStyle(oldHovered);
-            updateElementStyle(key);
+            const data = plotData[key] || {};
+
+            const el = plotElements.get(key);
+            if(el) {
+                // Set glow color to white for all plots
+                el.style.setProperty('--glow-color', 'rgba(255, 255, 255, 0.7)');
+            }
+
+            tooltipTitle.textContent = data.type || "Plot";
+            tooltipLevel.textContent = data.level || "N/A";
+            tooltipResources.textContent = data.resources || "N/A";
+            tooltip.classList.remove('hidden');
+            tooltip.style.opacity = '1';
+            handleMouseMove(e);
         }
         
         function handleMouseLeave() {
-            if (dragInfo.isDragging) return;
-            const oldHovered = hoveredCell;
             hoveredCell = null;
-            if(oldHovered) updateElementStyle(oldHovered);
+            hideTooltipTimer = setTimeout(() => {
+                tooltip.style.opacity = '0';
+                setTimeout(() => tooltip.classList.add('hidden'), 100);
+            }, 50);
         }
 
         function handleMouseDown(e, key = null) {
-            e.stopPropagation();
-            e.preventDefault();
-            
-            Object.assign(dragInfo, {
-                isDragging: false,
-                startX: e.pageX,
-                startY: e.pageY,
-                viewStartX: view.x,
-                viewStartY: view.y,
-                clickedCell: key
-            });
-
-            document.addEventListener('mousemove', handleMouseMove);
+            e.stopPropagation(); e.preventDefault();
+            Object.assign(dragInfo, { isDragging: false, startX: e.pageX, startY: e.pageY, viewStartX: view.x, viewStartY: view.y, clickedCell: key });
+            document.addEventListener('mousemove', handleDragMove);
             document.addEventListener('mouseup', handleMouseUp);
+            clearTimeout(hideTooltipTimer);
+            tooltip.classList.add('hidden');
+        }
+        
+        function handleMouseMove(e) {
+            if(hoveredCell && !dragInfo.isDragging) {
+                tooltip.style.left = `${e.pageX + 20}px`;
+                tooltip.style.top = `${e.pageY + 20}px`;
+            }
         }
 
-        function handleMouseMove(e) {
+        function handleDragMove(e) {
             e.preventDefault();
             if (!dragInfo.isDragging && (Math.abs(e.pageX - dragInfo.startX) > 5 || Math.abs(e.pageY - dragInfo.startY) > 5)) {
                 dragInfo.isDragging = true;
                 document.body.style.cursor = 'move';
-                if(hoveredCell) handleMouseLeave();
             }
-
             if (dragInfo.isDragging) {
                 view.x = dragInfo.viewStartX + (e.pageX - dragInfo.startX);
                 view.y = dragInfo.viewStartY + (e.pageY - dragInfo.startY);
@@ -219,7 +297,7 @@
                 updateModal();
             }
             dragInfo.isDragging = false;
-            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mousemove', handleDragMove);
             document.removeEventListener('mouseup', handleMouseUp);
         }
 
@@ -229,24 +307,27 @@
             const y = (e.clientY - rect.top - view.y) / view.zoom;
             const delta = -e.deltaY * 0.001;
             const newZoom = Math.max(0.5, Math.min(view.zoom + delta, 3));
-            
             view.x -= x * (newZoom - view.zoom);
             view.y -= y * (newZoom - view.zoom);
             view.zoom = newZoom;
-            
             updateViewTransform();
         }
 
         function updateModal() {
             if (selectedCell) {
+                const data = plotData[selectedCell] || {};
+                modalTitle.textContent = `${data.type} Details`;
+                modalDetails.style.display = 'block';
+                modalLevel.textContent = data.level || 'N/A';
                 modalPlotId.textContent = `Plot: ${selectedCell}`;
                 modalButtons.innerHTML = '';
                 Object.values(alliances).forEach(ally => {
                     const btn = document.createElement('button');
                     btn.textContent = ally.name;
-                    btn.className = `p-3 rounded-md font-semibold transition-transform duration-150 ease-in-out hover:scale-105 ${ally.color} ${ally.textColor}`;
+                    btn.className = `p-3 rounded-lg font-semibold transition-all duration-150 ease-in-out hover:scale-105 ${ally.color} ${ally.textColor} ${ally.hover}`;
                     btn.onclick = () => {
-                        plotAlliances[selectedCell] = ally.name;
+                        if(!plotData[selectedCell]) plotData[selectedCell] = { type: data.type || 'City' };
+                        plotData[selectedCell].alliance = ally.name;
                         updateElementStyle(selectedCell);
                         selectedCell = null;
                         updateModal();
@@ -261,7 +342,7 @@
         
         modalClearBtn.onclick = () => {
              if (selectedCell) {
-                delete plotAlliances[selectedCell];
+                if(plotData[selectedCell]) plotData[selectedCell].alliance = null;
                 updateElementStyle(selectedCell);
                 selectedCell = null;
                 updateModal();
