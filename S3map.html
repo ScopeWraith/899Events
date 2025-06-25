@@ -87,7 +87,7 @@
         const defaultMainPlotClasses = { base: 'bg-gray-900/50 border-gray-700', hover: 'hover-glow' };
         const defaultCornerPlotClasses = { base: 'bg-gray-800', hover: 'hover-glow' };
 
-        const rows = 13, cols = 13, cellWidth = 100, cellHeight = 80, cornerPlotSizeRatio = 0.55;
+        const rows = 13, cols = 13, cellWidth = 100, cellHeight = 80, cornerPlotSizeRatio = 0.58; 
 
         // --- STATE & REFERENCES ---
         let view = { x: 0, y: 0, zoom: 1 };
@@ -110,7 +110,8 @@
                 for (let j = 0; j < cols; j++) {
                     const key = `${j + 1},${i + 1}`;
                     const level = Math.min(i, rows - 1 - i, j, cols - 1 - j) + 1;
-                    plotData[key] = { type: 'Stronghold', level: level, resources: 'N/A', alliance: null };
+                    const customId = `S${String.fromCharCode(65 + i)}${(j + 1).toString().padStart(2, '0')}`;
+                    plotData[key] = { type: 'Stronghold', level: level, resources: 'N/A', alliance: null, customId: customId };
                 }
             }
             const cornerRows = rows - 1, cornerCols = cols - 1;
@@ -118,7 +119,8 @@
                 for (let j = 0; j < cornerCols; j++) {
                     const key = `C(${j + 1.5},${i + 1.5})`;
                     const level = Math.min(i, cornerRows - 1 - i, j, cornerCols - 1 - j) + 1;
-                    plotData[key] = { type: 'City', level: level, resources: 'N/A', alliance: null };
+                    const customId = `C${String.fromCharCode(65 + i)}${(j + 1).toString().padStart(2, '0')}`;
+                    plotData[key] = { type: 'City', level: level, resources: 'N/A', alliance: null, customId: customId };
                 }
             }
         }
@@ -186,10 +188,12 @@
                 if (data.type === 'Stronghold') {
                      return `<div class="relative w-full h-full">
                                 <span class="absolute top-1 left-1/2 -translate-x-1/2 font-semibold text-xs">${data.level || ''} SH</span>
+                                <span class="absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span>
                             </div>`;
-                } else {
+                } else { // City
                     return `<div class="relative w-full h-full flex items-center justify-center">
                                 <span class="font-semibold text-[10px]">${data.type}</span>
+                                <span class="absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span>
                             </div>`;
                 }
             };
@@ -198,7 +202,13 @@
                 for (let j = 0; j < cols; j++) {
                     const key = `${j + 1},${i + 1}`;
                     const el = document.createElement('div');
-                    el.className = 'plot text-xs rounded-md hover-glow';
+                    let borderRadiusClass = '';
+                    if (i === 0 && j === 0) borderRadiusClass = 'rounded-tl-lg';
+                    else if (i === 0 && j === cols - 1) borderRadiusClass = 'rounded-tr-lg';
+                    else if (i === rows - 1 && j === 0) borderRadiusClass = 'rounded-bl-lg';
+                    else if (i === rows - 1 && j === cols - 1) borderRadiusClass = 'rounded-br-lg';
+                    
+                    el.className = `plot text-xs hover-glow ${borderRadiusClass}`;
                     el.style.cssText = `grid-column: ${j + 1}; grid-row: ${i + 1};`;
                     el.innerHTML = createPlotHTML(key);
                     el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
@@ -245,7 +255,7 @@
                 el.style.setProperty('--glow-color', 'rgba(255, 255, 255, 0.7)');
             }
 
-            tooltipTitle.textContent = data.type || "Plot";
+            tooltipTitle.textContent = `${data.type || "Plot"} (${data.customId || ""})`;
             tooltipLevel.textContent = data.level || "N/A";
             tooltipResources.textContent = data.resources || "N/A";
             tooltip.classList.remove('hidden');
@@ -319,7 +329,7 @@
                 modalTitle.textContent = `${data.type} Details`;
                 modalDetails.style.display = 'block';
                 modalLevel.textContent = data.level || 'N/A';
-                modalPlotId.textContent = `Plot: ${selectedCell}`;
+                modalPlotId.textContent = `${data.customId || ''} (${selectedCell})`;
                 modalButtons.innerHTML = '';
                 Object.values(alliances).forEach(ally => {
                     const btn = document.createElement('button');
