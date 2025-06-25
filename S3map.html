@@ -50,7 +50,7 @@
     <div id="tooltip" class="hidden absolute bg-black/50 text-white text-xs p-3 rounded-lg shadow-2xl opacity-0 z-50">
         <h4 id="tooltip-title" class="font-bold text-sm text-sky-300"></h4>
         <p><span class="font-semibold opacity-80">Level:</span> <span id="tooltip-level"></span></p>
-        <p><span class="font-semibold opacity-80">Resources:</span> <span id="tooltip-resources"></span></p>
+        <p><span class="font-semibold opacity-80">Buff:</span> <span id="tooltip-buff"></span></p>
     </div>
 
     <!-- Modal for Alliance Selection -->
@@ -60,6 +60,7 @@
             <p id="modal-plot-id" class="text-xs text-slate-400"></p>
             <div id="modal-details" class="my-4 text-left bg-black/50 p-4 rounded-lg">
                  <p><span class="font-semibold opacity-80">Level:</span> <span id="modal-level" class="font-bold"></span></p>
+                 <p><span class="font-semibold opacity-80">Buff:</span> <span id="modal-buff" class="font-bold"></span></p>
             </div>
             <div id="modal-buttons" class="grid grid-cols-2 gap-3"></div>
             <button id="modal-clear-btn" class="w-full mt-4 bg-gray-700 text-slate-200 p-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors">
@@ -88,6 +89,321 @@
         const defaultCornerPlotClasses = { base: 'bg-gray-800', hover: 'hover-glow' };
 
         const rows = 13, cols = 13, cellWidth = 100, cellHeight = 80, cornerPlotSizeRatio = 0.58; 
+        
+        const externalDataCSV = `ID,Name,Type,Buff%,BuffType
+SA01,Stronghold,Stronghold,1%,Iron
+SA02,Stronghold,Stronghold,1%,Iron
+SA03,Stronghold,Stronghold,1%,Iron
+SA04,Stronghold,Stronghold,1%,Iron
+SA05,Stronghold,Stronghold,1%,Iron
+SA06,Stronghold,Stronghold,1%,Iron
+SA07,Stronghold,Stronghold,1%,Iron
+SA08,Stronghold,Stronghold,1%,Iron
+SA09,Stronghold,Stronghold,1%,Iron
+SA10,Stronghold,Stronghold,1%,Iron
+SA11,Stronghold,Stronghold,1%,Iron
+SA12,Stronghold,Stronghold,1%,Iron
+SA13,Stronghold,Stronghold,1%,Iron
+CA01,City,Trade Post,NA,NA
+CA02,City,Village,7.5%,Food
+CA03,City,Village,7.5%,Iron
+CA04,City,Village,7.5%,Food
+CA05,City,Village,7.5%,Iron
+CA06,City,Village,7.5%,Food
+CA07,City,Village,7.5%,Food
+CA08,City,Village,7.5%,Iron
+CA09,City,Village,7.5%,Food
+CA10,City,Village,7.5%,Iron
+CA11,City,Village,7.5%,Food
+CA12,City,Trade Post,NA,NA
+SB01,Stronghold,Stronghold,1%,Iron
+SB02,Stronghold,Stronghold,2%,Iron
+SB03,Stronghold,Stronghold,2%,Iron
+SB04,Stronghold,Stronghold,2%,Iron
+SB05,Stronghold,Stronghold,2%,Iron
+SB06,Stronghold,Stronghold,2%,Iron
+SB07,Stronghold,Stronghold,2%,Iron
+SB08,Stronghold,Stronghold,2%,Iron
+SB09,Stronghold,Stronghold,2%,Iron
+SB10,Stronghold,Stronghold,2%,Iron
+SB11,Stronghold,Stronghold,2%,Iron
+SB12,Stronghold,Stronghold,2%,Iron
+SB13,Stronghold,Stronghold,1%,Iron
+CB01,City,Village,7.5%,Iron
+CB02,City,Trade Post,NA,NA
+CB03,City,Altar,7.5%,Coin
+CB04,City,Altar,7.5%,Gathering Speed
+CB05,City,Altar,7.5%,Coin
+CB06,City,Altar,7.5%,Gathering Speed
+CB07,City,Altar,7.5%,Coin
+CB08,City,Altar,7.5%,Gathering Speed
+CB09,City,Altar,7.5%,Coin
+CB10,City,Altar,7.5%,Gathering Speed
+CB11,City,Trade Post,NA,NA
+CB12,City,Village,7.5%,Iron
+SC01,Stronghold,Stronghold,1%,Iron
+SC02,Stronghold,Stronghold,2%,Iron
+SC03,Stronghold,Stronghold,3%,Iron
+SC04,Stronghold,Stronghold,3%,Iron
+SC05,Stronghold,Stronghold,3%,Iron
+SC06,Stronghold,Stronghold,3%,Iron
+SC07,Stronghold,Stronghold,3%,Iron
+SC08,Stronghold,Stronghold,3%,Iron
+SC09,Stronghold,Stronghold,3%,Iron
+SC10,Stronghold,Stronghold,3%,Iron
+SC11,Stronghold,Stronghold,3%,Iron
+SC12,Stronghold,Stronghold,2%,Iron
+SC13,Stronghold,Stronghold,1%,Iron
+CC01,City,Village,7.5%,Food
+CC02,City,Altar,7.5%,Gathering Speed
+CC03,City,Trade Post,NA,NA
+CC04,City,Town,15%,Food
+CC05,City,Town,15%,Iron
+CC06,City,Town,15%,Food
+CC07,City,Town,15%,Food
+CC08,City,Town,15%,Iron
+CC09,City,Town,15%,Food
+CC10,City,Trade Post,NA,NA
+CC11,City,Altar,7.5%,Gathering Speed
+CC12,City,Village,7.5%,Food
+SD01,Stronghold,Stronghold,1%,Iron
+SD02,Stronghold,Stronghold,2%,Iron
+SD03,Stronghold,Stronghold,3%,Iron
+SD04,Stronghold,Stronghold,4%,Iron
+SD05,Stronghold,Stronghold,4%,Iron
+SD06,Stronghold,Stronghold,4%,Iron
+SD07,Stronghold,Stronghold,4%,Iron
+SD08,Stronghold,Stronghold,4%,Iron
+SD09,Stronghold,Stronghold,4%,Iron
+SD10,Stronghold,Stronghold,4%,Iron
+SD11,Stronghold,Stronghold,3%,Iron
+SD12,Stronghold,Stronghold,2%,Iron
+SD13,Stronghold,Stronghold,1%,Iron
+CD01,City,Village,7.5%,Iron
+CD02,City,Altar,7.5%,Coin
+CD03,City,Town,15%,Iron
+CD04,City,Trade Post,NA,NA
+CD05,City,Temple of the Sun,15%,Coin
+CD06,City,Temple of the Sun,15%,Gathering Speed
+CD07,City,Temple of the Sun,15%,Coin
+CD08,City,Temple of the Sun,15%,Gathering Speed
+CD09,City,Trade Post,NA,NA
+CD10,City,Town,15%,Iron
+CD11,City,Altar,7.5%,Coin
+CD12,City,Village,7.5%,Iron
+SE01,Stronghold,Stronghold,1%,Iron
+SE02,Stronghold,Stronghold,2%,Iron
+SE03,Stronghold,Stronghold,3%,Iron
+SE04,Stronghold,Stronghold,4%,Iron
+SE05,Stronghold,Stronghold,5%,Iron
+SE06,Stronghold,Stronghold,5%,Iron
+SE07,Stronghold,Stronghold,5%,Iron
+SE08,Stronghold,Stronghold,5%,Iron
+SE09,Stronghold,Stronghold,5%,Iron
+SE10,Stronghold,Stronghold,4%,Iron
+SE11,Stronghold,Stronghold,3%,Iron
+SE12,Stronghold,Stronghold,2%,Iron
+SE13,Stronghold,Stronghold,1%,Iron
+CE01,City,Village,7.5%,Food
+CE02,City,Altar,7.5%,Gathering Speed
+CE03,City,Town,15%,Food
+CE04,City,Temple of the Sun,15%,Gathering Speed
+CE05,City,Trade Post,NA,NA
+CE06,City,Ancient Tombs,25%,Food
+CE07,City,Ancient Tombs,25%,Food
+CE08,City,Trade Post,NA,NA
+CE09,City,Temple of the Sun,15%,Gathering Speed
+CE10,City,Town,15%,Food
+CE11,City,Altar,7.5%,Gathering Speed
+CE12,City,Village,7.5%,Food
+SF01,Stronghold,Stronghold,1%,Iron
+SF02,Stronghold,Stronghold,2%,Iron
+SF03,Stronghold,Stronghold,3%,Iron
+SF04,Stronghold,Stronghold,4%,Iron
+SF05,Stronghold,Stronghold,5%,Iron
+SF06,Stronghold,Stronghold,6%,Iron
+SF07,Stronghold,Stronghold,6%,Iron
+SF08,Stronghold,Stronghold,6%,Iron
+SF09,Stronghold,Stronghold,5%,Iron
+SF10,Stronghold,Stronghold,4%,Iron
+SF11,Stronghold,Stronghold,3%,Iron
+SF12,Stronghold,Stronghold,2%,Iron
+SF13,Stronghold,Stronghold,1%,Iron
+CF01,City,Village,7.5%,Iron
+CF02,City,Altar,7.5%,Coin
+CF03,City,Town,15%,Iron
+CF04,City,Temple of the Sun,15%,Coin
+CF05,City,Ancient Tombs,25%,Iron
+CF06,City,Square of Judgment,20%,Construction
+CF07,City,Square of Judgment,10%,Healing
+CF08,City,Ancient Tombs,25%,Iron
+CF09,City,Temple of the Sun,15%,Coin
+CF10,City,Town,15%,Iron
+CF11,City,Altar,7.5%,Coin
+CF12,City,Village,7.5%,Iron
+SG01,Stronghold,Stronghold,1%,Iron
+SG02,Stronghold,Stronghold,2%,Iron
+SG03,Stronghold,Stronghold,4%,Iron
+SG04,Stronghold,Stronghold,8%,Iron
+SG05,Stronghold,Stronghold,16%,Iron
+SG06,Stronghold,Stronghold,16%,Realm
+SG07,Stronghold,Great Pyramid,10%,March
+SG08,Stronghold,Stronghold,16%,Realm
+SG09,Stronghold,Stronghold,16%,Iron
+SG10,Stronghold,Stronghold,8%,Iron
+SG11,Stronghold,Stronghold,4%,Iron
+SG12,Stronghold,Stronghold,2%,Iron
+SG13,Stronghold,Stronghold,1%,Iron
+CG01,City,Village,7.5%,Food
+CG02,City,Altar,7.5%,Gathering Speed
+CG03,City,Town,15%,Food
+CG04,City,Temple of the Sun,15%,Gathering Speed
+CG05,City,Ancient Tombs,25%,Food
+CG06,City,Square of Judgment,20%,Research
+CG07,City,Square of Judgment,5%,Training
+CG08,City,Ancient Tombs,25%,Food
+CG09,City,Temple of the Sun,15%,Gathering Speed
+CG10,City,Town,15%,Food
+CG11,City,Altar,7.5%,Coin
+CG12,City,Village,7.5%,Food
+SH01,Stronghold,Stronghold,1%,Iron
+SH02,Stronghold,Stronghold,2%,Iron
+SH03,Stronghold,Stronghold,4%,Iron
+SH04,Stronghold,Stronghold,8%,Iron
+SH05,Stronghold,Stronghold,16%,Iron
+SH06,Stronghold,Stronghold,16%,Iron
+SH07,Stronghold,Stronghold,16%,Iron
+SH08,Stronghold,Stronghold,16%,Iron
+SH09,Stronghold,Stronghold,16%,Iron
+SH10,Stronghold,Stronghold,8%,Iron
+SH11,Stronghold,Stronghold,4%,Iron
+SH12,Stronghold,Stronghold,2%,Iron
+SH13,Stronghold,Stronghold,1%,Iron
+CH01,City,Village,7.5%,Iron
+CH02,City,Altar,7.5%,Coin
+CH03,City,Town,15%,Iron
+CH04,City,Temple of the Sun,15%,Coin
+CH05,City,Trade Post,NA,NA
+CH06,City,Ancient Tombs,25%,Iron
+CH07,City,Ancient Tombs,25%,Iron
+CH08,City,Trade Post,NA,NA
+CH09,City,Temple of the Sun,15%,Coin
+CH10,City,Town,15%,Iron
+CH11,City,Altar,7.5%,Gathering Speed
+CH12,City,Village,7.5%,Iron
+SI01,Stronghold,Stronghold,1%,Iron
+SI02,Stronghold,Stronghold,2%,Iron
+SI03,Stronghold,Stronghold,4%,Iron
+SI04,Stronghold,Stronghold,8%,Iron
+SI05,Stronghold,Stronghold,8%,Iron
+SI06,Stronghold,Stronghold,8%,Iron
+SI07,Stronghold,Stronghold,8%,Iron
+SI08,Stronghold,Stronghold,8%,Iron
+SI09,Stronghold,Stronghold,8%,Iron
+SI10,Stronghold,Stronghold,8%,Iron
+SI11,Stronghold,Stronghold,4%,Iron
+SI12,Stronghold,Stronghold,2%,Iron
+SI13,Stronghold,Stronghold,1%,Iron
+CI01,City,Village,7.5%,Food
+CI02,City,Altar,7.5%,Gathering Speed
+CI03,City,Town,15%,Food
+CI04,City,Trade Post,NA,NA
+CI05,City,Temple of the Sun,15%,Coin
+CI06,City,Temple of the Sun,15%,Gathering Speed
+CI07,City,Temple of the Sun,15%,Coin
+CI08,City,Temple of the Sun,15%,Gathering Speed
+CI09,City,Trade Post,NA,NA
+CI10,City,Town,15%,Food
+CI11,City,Altar,7.5%,Coin
+CI12,City,Village,7.5%,Food
+SJ01,Stronghold,Stronghold,1%,Iron
+SJ02,Stronghold,Stronghold,2%,Iron
+SJ03,Stronghold,Stronghold,3%,Iron
+SJ04,Stronghold,Stronghold,4%,Iron
+SJ05,Stronghold,Stronghold,4%,Iron
+SJ06,Stronghold,Stronghold,4%,Iron
+SJ07,Stronghold,Stronghold,4%,Iron
+SJ08,Stronghold,Stronghold,4%,Iron
+SJ09,Stronghold,Stronghold,4%,Iron
+SJ10,Stronghold,Stronghold,4%,Iron
+SJ11,Stronghold,Stronghold,3%,Iron
+SJ12,Stronghold,Stronghold,2%,Iron
+SJ13,Stronghold,Stronghold,1%,Iron
+CJ01,City,Village,7.5%,Iron
+CJ02,City,Altar,7.5%,Coin
+CJ03,City,Trade Post,NA,NA
+CJ04,City,Town,15%,Iron
+CJ05,City,Town,15%,Food
+CJ06,City,Town,15%,Iron
+CJ07,City,Town,15%,Iron
+CJ08,City,Town,15%,Food
+CJ09,City,Town,15%,Iron
+CJ10,City,Trade Post,NA,NA
+CJ11,City,Altar,7.5%,Gathering Speed
+CJ12,City,Village,7.5%,Iron
+SK01,Stronghold,Stronghold,1%,Iron
+SK02,Stronghold,Stronghold,2%,Iron
+SK03,Stronghold,Stronghold,3%,Iron
+SK04,Stronghold,Stronghold,3%,Iron
+SK05,Stronghold,Stronghold,3%,Iron
+SK06,Stronghold,Stronghold,3%,Iron
+SK07,Stronghold,Stronghold,3%,Iron
+SK08,Stronghold,Stronghold,3%,Iron
+SK09,Stronghold,Stronghold,3%,Iron
+SK10,Stronghold,Stronghold,3%,Iron
+SK11,Stronghold,Stronghold,3%,Iron
+SK12,Stronghold,Stronghold,2%,Iron
+SK13,Stronghold,Stronghold,1%,Iron
+CK01,City,Village,7.5%,Food
+CK02,City,Trade Post,NA,NA
+CK03,City,Altar,7.5%,Coin
+CK04,City,Altar,7.5%,Gathering Speed
+CK05,City,Altar,7.5%,Coin
+CK06,City,Altar,7.5%,Gathering Speed
+CK07,City,Altar,7.5%,Coin
+CK08,City,Altar,7.5%,Gathering Speed
+CK09,City,Altar,7.5%,Coin
+CK10,City,Altar,7.5%,Gathering Speed
+CK11,City,Trade Post,NA,NA
+CK12,City,Village,7.5%,Food
+SL01,Stronghold,Stronghold,1%,Iron
+SL02,Stronghold,Stronghold,2%,Iron
+SL03,Stronghold,Stronghold,2%,Iron
+SL04,Stronghold,Stronghold,2%,Iron
+SL05,Stronghold,Stronghold,2%,Iron
+SL06,Stronghold,Stronghold,2%,Iron
+SL07,Stronghold,Stronghold,2%,Iron
+SL08,Stronghold,Stronghold,2%,Iron
+SL09,Stronghold,Stronghold,2%,Iron
+SL10,Stronghold,Stronghold,2%,Iron
+SL11,Stronghold,Stronghold,2%,Iron
+SL12,Stronghold,Stronghold,2%,Iron
+SL13,Stronghold,Stronghold,1%,Iron
+CL01,City,Trade Post,NA,NA
+CL02,City,Village,7.5%,Iron
+CL03,City,Village,7.5%,Food
+CL04,City,Village,7.5%,Iron
+CL05,City,Village,7.5%,Food
+CL06,City,Village,7.5%,Iron
+CL07,City,Village,7.5%,Iron
+CL08,City,Village,7.5%,Food
+CL09,City,Village,7.5%,Iron
+CL10,City,Village,7.5%,Food
+CL11,City,Village,7.5%,Iron
+CL12,City,Trade Post,NA,NA
+SM01,Stronghold,Stronghold,1%,Iron
+SM02,Stronghold,Stronghold,1%,Iron
+SM03,Stronghold,Stronghold,1%,Iron
+SM04,Stronghold,Stronghold,1%,Iron
+SM05,Stronghold,Stronghold,1%,Iron
+SM06,Stronghold,Stronghold,1%,Iron
+SM07,Stronghold,Stronghold,1%,Iron
+SM08,Stronghold,Stronghold,1%,Iron
+SM09,Stronghold,Stronghold,1%,Iron
+SM10,Stronghold,Stronghold,1%,Iron
+SM11,Stronghold,Stronghold,1%,Iron
+SM12,Stronghold,Stronghold,1%,Iron
+SM13,Stronghold,Stronghold,1%,Iron`;
 
         // --- STATE & REFERENCES ---
         let view = { x: 0, y: 0, zoom: 1 };
@@ -100,27 +416,52 @@
 
         // --- DOM REFERENCES ---
         const app = document.getElementById('app');
-        const tooltip = document.getElementById('tooltip'), tooltipTitle = document.getElementById('tooltip-title'), tooltipLevel = document.getElementById('tooltip-level'), tooltipResources = document.getElementById('tooltip-resources');
-        const modal = document.getElementById('alliance-modal'), modalTitle = document.getElementById('modal-title'), modalPlotId = document.getElementById('modal-plot-id'), modalDetails = document.getElementById('modal-details'), modalLevel = document.getElementById('modal-level'), modalButtons = document.getElementById('modal-buttons'), modalClearBtn = document.getElementById('modal-clear-btn'), modalCloseBtn = document.getElementById('modal-close-btn');
+        const tooltip = document.getElementById('tooltip'), tooltipTitle = document.getElementById('tooltip-title'), tooltipLevel = document.getElementById('tooltip-level'), tooltipBuff = document.getElementById('tooltip-buff');
+        const modal = document.getElementById('alliance-modal'), modalTitle = document.getElementById('modal-title'), modalPlotId = document.getElementById('modal-plot-id'), modalDetails = document.getElementById('modal-details'), modalLevel = document.getElementById('modal-level'), modalBuffModal = document.querySelector('#modal-details #modal-buff'), modalButtons = document.getElementById('modal-buttons'), modalClearBtn = document.getElementById('modal-clear-btn'), modalCloseBtn = document.getElementById('modal-close-btn');
         let gridContainer;
 
-        // --- LEVEL CALCULATION ---
+        // --- DATA & LEVEL CALCULATION ---
         function calculatePlotData() {
+            const externalData = new Map(
+                externalDataCSV.trim().split('\n').slice(1).map(line => {
+                    const [ID, Name, Type, BuffPercent, BuffType] = line.split(',');
+                    return [ID, { Name, Type, Buff: `${BuffPercent} ${BuffType}` }];
+                })
+            );
+
+            // Strongholds
             for (let i = 0; i < rows; i++) {
                 for (let j = 0; j < cols; j++) {
                     const key = `${j + 1},${i + 1}`;
-                    const level = Math.min(i, rows - 1 - i, j, cols - 1 - j) + 1;
                     const customId = `S${String.fromCharCode(65 + i)}${(j + 1).toString().padStart(2, '0')}`;
-                    plotData[key] = { type: 'Stronghold', level: level, resources: 'N/A', alliance: null, customId: customId };
+                    const data = externalData.get(customId) || {};
+                    const level = Math.min(i, rows - 1 - i, j, cols - 1 - j) + 1;
+                    plotData[key] = { 
+                        type: 'Stronghold', 
+                        name: 'Stronghold',
+                        level: level, 
+                        buff: data.Buff, 
+                        alliance: null, 
+                        customId: customId 
+                    };
                 }
             }
+            // Cities
             const cornerRows = rows - 1, cornerCols = cols - 1;
             for (let i = 0; i < cornerRows; i++) {
                 for (let j = 0; j < cornerCols; j++) {
                     const key = `C(${j + 1.5},${i + 1.5})`;
-                    const level = Math.min(i, cornerRows - 1 - i, j, cornerCols - 1 - j) + 1;
                     const customId = `C${String.fromCharCode(65 + i)}${(j + 1).toString().padStart(2, '0')}`;
-                    plotData[key] = { type: 'City', level: level, resources: 'N/A', alliance: null, customId: customId };
+                    const data = externalData.get(customId) || {};
+                    const level = Math.min(i, cornerRows - 1 - i, j, cornerCols - 1 - j) + 1;
+                    plotData[key] = { 
+                        type: 'City', 
+                        name: data.Type || 'City', // Use the 'Type' column from CSV for the city's name
+                        level: level, 
+                        buff: data.Buff, 
+                        alliance: null, 
+                        customId: customId 
+                    };
                 }
             }
         }
@@ -187,12 +528,12 @@
                 if (!data) return '';
                 if (data.type === 'Stronghold') {
                      return `<div class="relative w-full h-full">
-                                <span class="absolute top-0 left-1/2 -translate-x-1/2 font-semibold text-xs">${data.level || ''} SH</span>
+                                <span class="absolute top-1 left-1/2 -translate-x-1/2 font-semibold text-xs">${data.level || ''} SH</span>
                                 <span class="absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span>
                             </div>`;
                 } else { // City
                     return `<div class="relative w-full h-full flex items-center justify-center">
-                                <span class="font-semibold text-[10px]">${data.type}</span>
+                                <span class="font-semibold text-center text-[9px] leading-tight">${data.name}</span>
                                 <span class="absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span>
                             </div>`;
                 }
@@ -220,8 +561,10 @@
                 }
             }
             
-            for (let i = 0; i < rows - 1; i++) {
-                for (let j = 0; j < cols - 1; j++) {
+            const cornerRows = rows - 1;
+            const cornerCols = cols - 1;
+            for (let i = 0; i < cornerRows; i++) {
+                for (let j = 0; j < cornerCols; j++) {
                     const key = `C(${j + 1.5},${i + 1.5})`;
                     const el = document.createElement('div');
                     el.className = 'plot absolute text-xs rounded-lg hover-glow';
@@ -251,13 +594,19 @@
 
             const el = plotElements.get(key);
             if(el) {
-                // Set glow color to white for all plots
                 el.style.setProperty('--glow-color', 'rgba(255, 255, 255, 0.7)');
             }
 
-            tooltipTitle.textContent = `${data.type || "Plot"} (${data.customId || ""})`;
+            const tooltipBuffP = tooltipBuff.parentElement;
+            if (data.name === 'Trade Post') {
+                tooltipBuffP.classList.add('hidden');
+            } else {
+                tooltipBuffP.classList.remove('hidden');
+                tooltipBuff.textContent = data.buff || "N/A";
+            }
+
+            tooltipTitle.textContent = `${data.name || "Plot"} (${data.customId || ""})`;
             tooltipLevel.textContent = data.level || "N/A";
-            tooltipResources.textContent = data.resources || "N/A";
             tooltip.classList.remove('hidden');
             tooltip.style.opacity = '1';
             handleMouseMove(e);
@@ -326,7 +675,16 @@
         function updateModal() {
             if (selectedCell) {
                 const data = plotData[selectedCell] || {};
-                modalTitle.textContent = `${data.type} Details`;
+                const buffParentModal = modalBuffModal.parentElement;
+
+                if (data.name === 'Trade Post') {
+                    buffParentModal.classList.add('hidden');
+                } else {
+                    buffParentModal.classList.remove('hidden');
+                    modalBuffModal.textContent = data.buff || 'N/A';
+                }
+
+                modalTitle.textContent = `${data.name} Details`;
                 modalDetails.style.display = 'block';
                 modalLevel.textContent = data.level || 'N/A';
                 modalPlotId.textContent = `${data.customId || ''} (${selectedCell})`;
