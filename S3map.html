@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Set base font size to scale the entire UI down */
@@ -158,6 +159,7 @@
 
     <div id="app" class="w-screen h-screen"></div>
 
+    <!-- Sidebar for Stats and Controls - Collapsed by default -->
     <div id="sidebar" class="collapsed">
         <div id="alliance-summary">
             <h4 class="text-lg font-bold border-b border-gray-700 pb-2 mb-4">Alliance Statistics</h4>
@@ -173,7 +175,7 @@
             <button class="dock-button">
                 <span><i class="fa-solid fa-layer-group"></i>Show City Levels</span>
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="level-toggle-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="level-toggle-switch" checked>
                 </div>
             </button>
             <button class="dock-button">
@@ -185,6 +187,7 @@
         </div>
     </div>
 
+    <!-- Action Dock -->
     <div id="action-dock">
         <button id="sidebar-toggle" class="action-button" title="Toggle Sidebar">
             <i class="fa-solid fa-chevron-right"></i>
@@ -200,12 +203,14 @@
         </button>
     </div>
 
+    <!-- Tooltip for hover information -->
     <div id="tooltip" class="hidden absolute bg-black/50 text-white text-xs p-3 rounded-lg shadow-2xl opacity-0 z-50">
         <h4 id="tooltip-title" class="font-bold text-sm text-sky-300"></h4>
         <p><span class="font-semibold opacity-80">Level:</span> <span id="tooltip-level"></span></p>
         <p><span class="font-semibold opacity-80">Buff:</span> <span id="tooltip-buff"></span></p>
     </div>
 
+    <!-- Modal for Alliance Selection -->
     <div id="alliance-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center z-50">
         <div class="modal-content bg-gray-900/50 p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center text-white">
             <h3 id="modal-title" class="font-bold text-xl mb-1 text-sky-300"></h3>
@@ -224,6 +229,7 @@
         </div>
     </div>
     
+    <!-- Modal for Import/Export -->
     <div id="code-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center z-50">
         <div class="modal-content bg-gray-900/50 p-6 rounded-2xl shadow-2xl w-full max-w-lg text-white">
             <h3 id="code-modal-title" class="font-bold text-xl mb-4"></h3>
@@ -235,6 +241,7 @@
         </div>
     </div>
     
+    <!-- Confirmation Modal -->
     <div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center z-50">
         <div class="modal-content bg-gray-900/50 p-6 rounded-2xl shadow-2xl w-full max-w-sm text-white">
             <h3 id="confirm-modal-title" class="font-bold text-xl mb-4">Are you sure?</h3>
@@ -594,7 +601,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         const dragInfo = { isDragging: false, startX: 0, startY: 0, viewStartX: 0, viewStartY: 0 };
         let hideTooltipTimer; 
         let showCityBuffs = false;
-        let showCityLevels = false; // Disabled by default
+        let showCityLevels = true; // Enabled by default
         let showLandIds = false; // Disabled by default
 
         // --- DOM REFERENCES ---
@@ -672,7 +679,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 ...Object.values(cityLevelBorders),
                 defaultMainPlotClasses.base,
                 defaultCornerPlotClasses.base,
-                'border-white', // Add new class to removal list
+                'border-white', 
                 'border-gray-500', 
                 'gradient-iron', 'gradient-gold', 'gradient-food'
             ].flatMap(c => c.split(' '));
@@ -686,15 +693,13 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     el.classList.add(...defaultMainPlotClasses.base.split(' '));
                  }
             } else if (data.type === 'City') {
-                if(showCityLevels) {
+                if (data.name === 'Trade Post') {
+                    el.classList.add('border-white'); // Always white for Trade Posts
+                } else if (showCityLevels) {
                     const levelBorder = cityLevelBorders[data.level] || 'border-gray-600';
                     el.classList.add(levelBorder);
                 } else {
-                    if (data.name === 'Trade Post') {
-                        el.classList.add('border-white');
-                    } else {
-                        el.classList.add('border-gray-500');
-                    }
+                    el.classList.add('border-gray-500');
                 }
 
                 if (allianceInfo) {
@@ -803,9 +808,16 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 const data = plotData[key];
                 if (!data) return '';
                 if (data.type === 'Stronghold') {
-                     return `<div class="relative w-full h-full"><span class="absolute top-1 left-1/2 -translate-x-1/2 font-semibold text-xs">${data.level || ''} SH</span><span class="plot-id-label absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span></div>`;
+                     return `<div class="relative w-full h-full flex items-center justify-center">
+                                <span class="absolute top-1 left-1/2 -translate-x-1/2 font-semibold text-xs">Lv${data.level || ''}</span>
+                                <span class="text-xs opacity-20 font-semibold select-none pointer-events-none">Stronghold</span>
+                                <span class="plot-id-label absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span>
+                            </div>`;
                 } else {
-                    return `<div class="relative w-full h-full flex items-center justify-center"><span class="font-semibold text-center text-[8px] leading-none">${data.name}</span><span class="plot-id-label absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span></div>`;
+                    return `<div class="relative w-full h-full flex items-center justify-center">
+                                <span class="font-semibold text-center text-[8px] leading-none">${data.name}</span>
+                                <span class="plot-id-label absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span>
+                            </div>`;
                 }
             };
             
