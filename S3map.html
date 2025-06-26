@@ -8,7 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        /* Set base font size to scale the entire UI down */
+        html {
+            font-size: 75%;
+        }
         body {
             overscroll-behavior: none;
             cursor: default;
@@ -19,7 +24,7 @@
             cursor: pointer;
             overflow: hidden;
             line-height: 1.2;
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out, background-color 0.2s ease-out;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out, background-color 0.2s ease-out, background-image 0.2s ease-out;
             border-width: 3px;
         }
         .plot:hover {
@@ -32,29 +37,175 @@
             -webkit-backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        #alliance-modal .modal-content {
+        #alliance-modal .modal-content, #code-modal .modal-content, #confirm-modal .modal-content {
              backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
              border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        /* Updated hover glow to be larger and more subtle */
         .hover-glow:hover {
-            box-shadow: inset 0 0 25px 8px var(--glow-color, rgba(255, 255, 255, 0.4));
+            box-shadow: inset 0 0 25px 8px var(--glow-color, rgba(190, 220, 255, 0.25));
         }
+        /* Styles for sidebar, dock, and stats */
+        #sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 210px; /* Scaled down from 280px */
+            background-color: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transform: translateX(0);
+            transition: transform 0.3s ease-in-out;
+        }
+        #sidebar.collapsed {
+            transform: translateX(100%);
+        }
+        #action-dock {
+            position: fixed;
+            top: 50%;
+            right: 210px; /* Scaled down from 280px */
+            transform: translateY(-50%);
+            z-index: 101;
+            display: flex;
+            flex-direction: column;
+            gap: 6px; /* Scaled down from 8px */
+            transition: right 0.3s ease-in-out;
+        }
+        #sidebar.collapsed ~ #action-dock {
+            right: 0px; /* Move to edge when collapsed */
+        }
+        .action-button {
+            width: 24px;  /* Scaled down from 32px */
+            height: 36px; /* Scaled down from 48px */
+            background-color: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d1d5db;
+        }
+        #sidebar-toggle {
+             border-radius: 6px 0 0 6px; /* Scaled down */
+        }
+        .action-button:hover {
+            background-color: rgba(55, 65, 81, 0.8);
+        }
+        #sidebar-toggle .fa-solid {
+            transition: transform 0.3s ease-in-out;
+        }
+        #sidebar.collapsed ~ #action-dock #sidebar-toggle .fa-solid {
+            transform: rotate(180deg);
+        }
+        #alliance-summary {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        #button-dock {
+            padding: 0.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .dock-button {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #e5e7eb;
+            transition: background-color 0.2s;
+        }
+        .dock-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .dock-button .fa-solid {
+            margin-right: 0.75rem;
+        }
+        .form-switch .form-check-input {
+            cursor: pointer;
+        }
+        .summary-item {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+        }
+        .summary-item h5 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .summary-item p {
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+        /* Gradients for city buffs (used by toggle) */
+        .gradient-iron { background-image: linear-gradient(to bottom right, #9ca3af, #4b5563); }
+        .gradient-gold { background-image: linear-gradient(to bottom right, #facc15, #ca8a04); }
+        .gradient-food { background-image: linear-gradient(to bottom right, #a16207, #422006); }
     </style>
 </head>
 <body class="text-white overflow-hidden">
 
     <div id="app" class="w-screen h-screen"></div>
 
-    <!-- Tooltip for hover information -->
+    <div id="sidebar" class="collapsed">
+        <div id="alliance-summary">
+            <h4 class="text-lg font-bold border-b border-gray-700 pb-2 mb-4">Alliance Statistics</h4>
+            <div id="stats-container"></div>
+        </div>
+        <div id="button-dock">
+             <button class="dock-button">
+                <span><i class="fa-solid fa-palette"></i>Show City Buffs</span>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="buff-toggle-switch">
+                </div>
+            </button>
+            <button class="dock-button">
+                <span><i class="fa-solid fa-layer-group"></i>Show City Levels</span>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="level-toggle-switch">
+                </div>
+            </button>
+            <button class="dock-button">
+                <span><i class="fa-solid fa-tag"></i>Show Land ID</span>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="id-toggle-switch">
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <div id="action-dock">
+        <button id="sidebar-toggle" class="action-button" title="Toggle Sidebar">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <button id="export-btn" class="action-button" title="Export Map Data">
+            <i class="fa-solid fa-file-export"></i>
+        </button>
+        <button id="import-btn" class="action-button" title="Import Map Data">
+            <i class="fa-solid fa-file-import"></i>
+        </button>
+        <button id="clear-btn" class="action-button" title="Clear All Assignments">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </div>
+
     <div id="tooltip" class="hidden absolute bg-black/50 text-white text-xs p-3 rounded-lg shadow-2xl opacity-0 z-50">
         <h4 id="tooltip-title" class="font-bold text-sm text-sky-300"></h4>
         <p><span class="font-semibold opacity-80">Level:</span> <span id="tooltip-level"></span></p>
         <p><span class="font-semibold opacity-80">Buff:</span> <span id="tooltip-buff"></span></p>
     </div>
 
-    <!-- Modal for Alliance Selection -->
     <div id="alliance-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center z-50">
         <div class="modal-content bg-gray-900/50 p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center text-white">
             <h3 id="modal-title" class="font-bold text-xl mb-1 text-sky-300"></h3>
@@ -72,6 +223,29 @@
             </button>
         </div>
     </div>
+    
+    <div id="code-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+        <div class="modal-content bg-gray-900/50 p-6 rounded-2xl shadow-2xl w-full max-w-lg text-white">
+            <h3 id="code-modal-title" class="font-bold text-xl mb-4"></h3>
+            <textarea id="code-modal-textarea" class="w-full h-40 bg-gray-800 text-white p-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-500"></textarea>
+            <div class="flex justify-end gap-4 mt-4">
+                <button id="code-modal-action-btn" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-lg"></button>
+                <button id="code-modal-close-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+        <div class="modal-content bg-gray-900/50 p-6 rounded-2xl shadow-2xl w-full max-w-sm text-white">
+            <h3 id="confirm-modal-title" class="font-bold text-xl mb-4">Are you sure?</h3>
+            <p id="confirm-modal-body" class="mb-6">This action cannot be undone.</p>
+            <div class="flex justify-end gap-4">
+                <button id="confirm-modal-cancel-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+                <button id="confirm-modal-confirm-btn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-lg">Confirm</button>
+            </div>
+        </div>
+    </div>
+
 
     <script type="module">
         // --- CONFIGURATION ---
@@ -81,15 +255,20 @@
             HERA: { name: 'HERA', color: 'bg-yellow-400', textColor: 'text-slate-900', hover: 'hover-glow' },
             pHNx: { name: 'pHNx', color: 'bg-purple-600', textColor: 'text-white', hover: 'hover-glow' },
         };
+        const landLimits = {
+            Stronghold: 4,
+            City: 6
+        };
         const cityLevelBorders = {
             1: 'border-purple-500', 2: 'border-blue-500', 3: 'border-green-500',
             4: 'border-yellow-500', 5: 'border-orange-500', 6: 'border-red-500',
             7: 'border-pink-500' 
         };
-        const defaultMainPlotClasses = { base: 'bg-gray-900/50 border-gray-700', hover: 'hover-glow' };
+        const defaultMainPlotClasses = { base: 'bg-gray-900/50 border-gray-800', hover: 'hover-glow' }; // Darkened border
         const defaultCornerPlotClasses = { base: 'bg-gray-800', hover: 'hover-glow' };
 
-        const rows = 13, cols = 13, cellWidth = 100, cellHeight = 80, cornerPlotSizeRatio = 0.58; 
+        // Scaled down map dimensions
+        const rows = 13, cols = 13, cellWidth = 75, cellHeight = 60, cornerPlotSizeRatio = 0.67; 
         
         const externalDataCSV = `ID,Name,Type,Buff%,BuffType
 SA01,Stronghold,Stronghold,1%,Iron
@@ -414,12 +593,26 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         const plotElements = new Map();
         const dragInfo = { isDragging: false, startX: 0, startY: 0, viewStartX: 0, viewStartY: 0 };
         let hideTooltipTimer; 
+        let showCityBuffs = false;
+        let showCityLevels = false; // Disabled by default
+        let showLandIds = false; // Disabled by default
 
         // --- DOM REFERENCES ---
         const app = document.getElementById('app');
         const tooltip = document.getElementById('tooltip'), tooltipTitle = document.getElementById('tooltip-title'), tooltipLevel = document.getElementById('tooltip-level'), tooltipBuff = document.getElementById('tooltip-buff');
-        const modal = document.getElementById('alliance-modal'), modalTitle = document.getElementById('modal-title'), modalPlotId = document.getElementById('modal-plot-id'), modalDetails = document.getElementById('modal-details'), modalLevel = document.getElementById('modal-level'), modalBuffModal = document.querySelector('#modal-details #modal-buff'), modalButtons = document.getElementById('modal-buttons'), modalClearBtn = document.getElementById('modal-clear-btn'), modalCloseBtn = document.getElementById('modal-close-btn');
-        let transformWrapper; // This will hold all transformable elements
+        const allianceModal = document.getElementById('alliance-modal'), modalTitle = document.getElementById('modal-title'), modalPlotId = document.getElementById('modal-plot-id'), modalDetails = document.getElementById('modal-details'), modalLevel = document.getElementById('modal-level'), modalBuffModal = document.querySelector('#modal-details #modal-buff'), modalButtons = document.getElementById('modal-buttons'), modalClearBtn = document.getElementById('modal-clear-btn'), modalCloseBtn = document.getElementById('modal-close-btn');
+        const codeModal = document.getElementById('code-modal'), codeModalTitle = document.getElementById('code-modal-title'), codeModalTextarea = document.getElementById('code-modal-textarea'), codeModalActionButton = document.getElementById('code-modal-action-btn'), codeModalCloseButton = document.getElementById('code-modal-close-btn');
+        const confirmModal = document.getElementById('confirm-modal'), confirmModalTitle = document.getElementById('confirm-modal-title'), confirmModalBody = document.getElementById('confirm-modal-body'), confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm-btn'), confirmModalCancelBtn = document.getElementById('confirm-modal-cancel-btn');
+        let transformWrapper;
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const statsContainer = document.getElementById('stats-container');
+        const buffToggleSwitch = document.getElementById('buff-toggle-switch');
+        const levelToggleSwitch = document.getElementById('level-toggle-switch');
+        const idToggleSwitch = document.getElementById('id-toggle-switch');
+        const exportBtn = document.getElementById('export-btn');
+        const importBtn = document.getElementById('import-btn');
+        const clearBtn = document.getElementById('clear-btn');
 
         // --- DATA & LEVEL CALCULATION ---
         function calculatePlotData() {
@@ -430,24 +623,15 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 })
             );
 
-            // Strongholds
             for (let i = 0; i < rows; i++) {
                 for (let j = 0; j < cols; j++) {
                     const key = `${j + 1},${i + 1}`;
                     const customId = `S${String.fromCharCode(65 + i)}${(j + 1).toString().padStart(2, '0')}`;
                     const data = externalData.get(customId) || {};
                     const level = Math.min(i, rows - 1 - i, j, cols - 1 - j) + 1;
-                    plotData[key] = { 
-                        type: 'Stronghold', 
-                        name: 'Stronghold',
-                        level: level, 
-                        buff: data.Buff, 
-                        alliance: null, 
-                        customId: customId 
-                    };
+                    plotData[key] = { type: 'Stronghold', name: 'Stronghold', level: level, buff: data.Buff, alliance: null, customId: customId };
                 }
             }
-            // Cities
             const cornerRows = rows - 1, cornerCols = cols - 1;
             for (let i = 0; i < cornerRows; i++) {
                 for (let j = 0; j < cornerCols; j++) {
@@ -455,19 +639,26 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     const customId = `C${String.fromCharCode(65 + i)}${(j + 1).toString().padStart(2, '0')}`;
                     const data = externalData.get(customId) || {};
                     const level = Math.min(i, cornerRows - 1 - i, j, cornerCols - 1 - j) + 1;
-                    plotData[key] = { 
-                        type: 'City', 
-                        name: data.Type || 'City', // Use the 'Type' column from CSV for the city's name
-                        level: level, 
-                        buff: data.Buff, 
-                        alliance: null, 
-                        customId: customId 
-                    };
+                    plotData[key] = { type: 'City', name: data.Type || 'City', level: level, buff: data.Buff, alliance: null, customId: customId };
                 }
             }
         }
         
         // --- EFFICIENT UPDATE FUNCTIONS ---
+        function getPlotCounts() {
+            const counts = {};
+            for (const allyName in alliances) {
+                counts[allyName] = { Stronghold: 0, City: 0 };
+            }
+            for (const key in plotData) {
+                const plot = plotData[key];
+                if (plot.alliance && counts[plot.alliance]) {
+                    counts[plot.alliance][plot.type]++;
+                }
+            }
+            return counts;
+        }
+
         function updateElementStyle(key) {
             const el = plotElements.get(key);
             if (!el) return;
@@ -479,9 +670,13 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             const allClassesToRemove = [
                 ...Object.values(alliances).flatMap(a => [a.color, a.textColor]),
                 ...Object.values(cityLevelBorders),
-                defaultMainPlotClasses.base.split(' ')[0],
-                defaultCornerPlotClasses.base
-            ];
+                defaultMainPlotClasses.base,
+                defaultCornerPlotClasses.base,
+                'border-white', // Add new class to removal list
+                'border-gray-500', 
+                'gradient-iron', 'gradient-gold', 'gradient-food'
+            ].flatMap(c => c.split(' '));
+
             el.classList.remove(...allClassesToRemove);
 
             if (data.type === 'Stronghold') {
@@ -491,52 +686,112 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     el.classList.add(...defaultMainPlotClasses.base.split(' '));
                  }
             } else if (data.type === 'City') {
-                const levelBorder = cityLevelBorders[data.level] || 'border-gray-600';
-                 el.classList.add(levelBorder);
+                if(showCityLevels) {
+                    const levelBorder = cityLevelBorders[data.level] || 'border-gray-600';
+                    el.classList.add(levelBorder);
+                } else {
+                    if (data.name === 'Trade Post') {
+                        el.classList.add('border-white');
+                    } else {
+                        el.classList.add('border-gray-500');
+                    }
+                }
 
                 if (allianceInfo) {
                     el.classList.add(allianceInfo.color, allianceInfo.textColor);
                 } else {
-                    el.classList.add(defaultCornerPlotClasses.base);
+                    if (showCityBuffs) {
+                        if (data.buff?.includes('Iron')) el.classList.add('gradient-iron');
+                        else if (data.buff?.includes('Coin')) el.classList.add('gradient-gold');
+                        else if (data.buff?.includes('Food')) el.classList.add('gradient-food');
+                        else el.classList.add(defaultCornerPlotClasses.base);
+                    } else {
+                        el.classList.add(defaultCornerPlotClasses.base);
+                    }
                 }
             }
         }
-        
+
         function updateAllStyles() {
             plotElements.forEach((el, key) => updateElementStyle(key));
         }
 
+        function updateIdVisibility() {
+            const idElements = document.querySelectorAll('.plot-id-label');
+            idElements.forEach(el => {
+                if (showLandIds) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+        }
+        
+        function updateAllianceStats() {
+            const stats = {};
+            for (const allyName in alliances) {
+                stats[allyName] = { Stronghold: 0, City: 0, buffs: {} };
+            }
+
+            for (const key in plotData) {
+                const plot = plotData[key];
+                if (plot.alliance && stats[plot.alliance]) {
+                    stats[plot.alliance][plot.type]++;
+                    if (plot.buff && plot.buff !== 'NA NA') {
+                        const buffParts = plot.buff.split(' ');
+                        const value = parseFloat(buffParts[0]);
+                        const type = buffParts.slice(1).join(' ');
+                        if (!isNaN(value)) {
+                            stats[plot.alliance].buffs[type] = (stats[plot.alliance].buffs[type] || 0) + value;
+                        }
+                    }
+                }
+            }
+
+            statsContainer.innerHTML = '';
+            for (const allyName in stats) {
+                const allyData = stats[allyName];
+                const allyInfo = alliances[allyName];
+                
+                if (allyData.Stronghold === 0 && allyData.City === 0) continue;
+
+                let buffHTML = '';
+                for (const buffType in allyData.buffs) {
+                    buffHTML += `<p class="opacity-80"><strong>${buffType}:</strong> ${allyData.buffs[buffType].toFixed(1)}%</p>`;
+                }
+
+                const summaryHTML = `
+                    <div class="summary-item">
+                        <h5 class="${allyInfo.textColor} ${allyInfo.color} px-2 py-1 rounded-md">${allyName}</h5>
+                        <p><strong>Strongholds:</strong> ${allyData.Stronghold} / ${landLimits.Stronghold}</p>
+                        <p><strong>Cities:</strong> ${allyData.City} / ${landLimits.City}</p>
+                        ${buffHTML}
+                    </div>
+                `;
+                statsContainer.innerHTML += summaryHTML;
+            }
+        }
+
         function updateViewTransform() {
-            // This function now transforms the single wrapper element
             if (transformWrapper) {
                 transformWrapper.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.zoom})`;
             }
         }
 
-        // --- INITIALIZATION ---
         function initializeMap() {
             calculatePlotData();
-            app.innerHTML = ''; // Clear app container
+            app.innerHTML = '';
 
-            // Create a single wrapper for all transformable elements
             transformWrapper = document.createElement('div');
             transformWrapper.style.transformOrigin = '0 0';
             
-            // Create and style the background layer, sized to the grid
             const totalWidth = cols * cellWidth;
             const totalHeight = rows * cellHeight;
             const mapBackground = document.createElement('div');
-            mapBackground.className = 'rounded-lg'; // Match corner radius of plots
-            mapBackground.style.cssText = `
-                position: absolute;
-                width: ${totalWidth}px;
-                height: ${totalHeight}px;
-                background-image: radial-gradient(ellipse at center, #4b5563 0%, #111827 80%);
-                z-index: 1; /* Place it below the plots */
-            `;
+            mapBackground.className = 'rounded-lg';
+            mapBackground.style.cssText = `position: absolute; width: ${totalWidth}px; height: ${totalHeight}px; background-image: radial-gradient(ellipse at center, #4b5563 0%, #111827 80%); z-index: 1;`;
             transformWrapper.appendChild(mapBackground);
 
-            // Create and style the grid containers
             const mainPlotGrid = document.createElement('div');
             mainPlotGrid.className = 'relative grid z-10';
             mainPlotGrid.style.cssText = `display: grid; grid-template-columns: repeat(${cols}, ${cellWidth}px); grid-template-rows: repeat(${rows}, ${cellHeight}px);`;
@@ -548,15 +803,9 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 const data = plotData[key];
                 if (!data) return '';
                 if (data.type === 'Stronghold') {
-                     return `<div class="relative w-full h-full">
-                                <span class="absolute top-1 left-1/2 -translate-x-1/2 font-semibold text-xs">${data.level || ''} SH</span>
-                                <span class="absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span>
-                            </div>`;
-                } else { // City
-                    return `<div class="relative w-full h-full flex items-center justify-center">
-                                <span class="font-semibold text-center text-[9px] leading-tight">${data.name}</span>
-                                <span class="absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span>
-                            </div>`;
+                     return `<div class="relative w-full h-full"><span class="absolute top-1 left-1/2 -translate-x-1/2 font-semibold text-xs">${data.level || ''} SH</span><span class="plot-id-label absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span></div>`;
+                } else {
+                    return `<div class="relative w-full h-full flex items-center justify-center"><span class="font-semibold text-center text-[8px] leading-none">${data.name}</span><span class="plot-id-label absolute left-1/2 -translate-x-1/2 text-[8px] italic opacity-50" style="bottom: -3px;">${data.customId}</span></div>`;
                 }
             };
             
@@ -603,6 +852,8 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             app.appendChild(transformWrapper);
             updateAllStyles();
             updateViewTransform();
+            updateAllianceStats();
+            updateIdVisibility();
         }
 
         // --- EVENT HANDLERS ---
@@ -611,13 +862,10 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             if (dragInfo.isDragging) return;
             hoveredCell = key;
             const data = plotData[key] || {};
-
             const el = plotElements.get(key);
             if(el) {
-                // Lighter, more transparent glow color
-                el.style.setProperty('--glow-color', 'rgba(255, 255, 255, 0.4)');
+                el.style.setProperty('--glow-color', 'rgba(190, 220, 255, 0.25)');
             }
-
             const tooltipBuffP = tooltipBuff.parentElement;
             if (data.name === 'Trade Post') {
                 tooltipBuffP.classList.add('hidden');
@@ -625,7 +873,6 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 tooltipBuffP.classList.remove('hidden');
                 tooltipBuff.textContent = data.buff || "N/A";
             }
-
             tooltipTitle.textContent = `${data.name || "Plot"} (${data.customId || ""})`;
             tooltipLevel.textContent = data.level || "N/A";
             tooltip.classList.remove('hidden');
@@ -674,7 +921,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             document.body.style.cursor = 'default';
             if (!dragInfo.isDragging && dragInfo.clickedCell) {
                 selectedCell = dragInfo.clickedCell;
-                updateModal();
+                updateModal(allianceModal);
             }
             dragInfo.isDragging = false;
             document.removeEventListener('mousemove', handleDragMove);
@@ -693,18 +940,18 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             updateViewTransform();
         }
 
-        function updateModal() {
-            if (selectedCell) {
+        function updateModal(modalToUpdate) {
+            if (selectedCell && modalToUpdate === allianceModal) {
                 const data = plotData[selectedCell] || {};
-                const buffParentModal = modalBuffModal.parentElement;
+                const plotCounts = getPlotCounts();
 
+                const buffParentModal = modalBuffModal.parentElement;
                 if (data.name === 'Trade Post') {
                     buffParentModal.classList.add('hidden');
                 } else {
                     buffParentModal.classList.remove('hidden');
                     modalBuffModal.textContent = data.buff || 'N/A';
                 }
-
                 modalTitle.textContent = `${data.name} Details`;
                 modalDetails.style.display = 'block';
                 modalLevel.textContent = data.level || 'N/A';
@@ -714,18 +961,26 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     const btn = document.createElement('button');
                     btn.textContent = ally.name;
                     btn.className = `p-3 rounded-lg font-semibold transition-all duration-150 ease-in-out hover:scale-105 ${ally.color} ${ally.textColor} ${ally.hover}`;
+                    
+                    const isAtLimit = (plotCounts[ally.name][data.type] >= landLimits[data.type]);
+                    if (isAtLimit) {
+                        btn.disabled = true;
+                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+
                     btn.onclick = () => {
-                        if(!plotData[selectedCell]) plotData[selectedCell] = { type: data.type || 'City' };
+                        if (btn.disabled) return;
                         plotData[selectedCell].alliance = ally.name;
                         updateElementStyle(selectedCell);
+                        updateAllianceStats();
                         selectedCell = null;
-                        updateModal();
+                        updateModal(allianceModal);
                     };
                     modalButtons.appendChild(btn);
                 });
-                modal.classList.remove('hidden');
+                allianceModal.classList.remove('hidden');
             } else {
-                modal.classList.add('hidden');
+                allianceModal.classList.add('hidden');
             }
         }
         
@@ -733,15 +988,103 @@ SM13,Stronghold,Stronghold,1%,Iron`;
              if (selectedCell) {
                 if(plotData[selectedCell]) plotData[selectedCell].alliance = null;
                 updateElementStyle(selectedCell);
+                updateAllianceStats();
                 selectedCell = null;
-                updateModal();
+                updateModal(allianceModal);
             }
         };
 
         modalCloseBtn.onclick = () => {
             selectedCell = null;
-            updateModal();
+            updateModal(allianceModal);
         };
+        
+        codeModalCloseButton.onclick = () => {
+            codeModal.classList.add('hidden');
+        };
+
+        buffToggleSwitch.addEventListener('change', (e) => {
+            showCityBuffs = e.target.checked;
+            updateAllStyles();
+        });
+        
+        levelToggleSwitch.addEventListener('change', (e) => {
+            showCityLevels = e.target.checked;
+            updateAllStyles();
+        });
+
+        idToggleSwitch.addEventListener('change', (e) => {
+            showLandIds = e.target.checked;
+            updateIdVisibility();
+        });
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        clearBtn.addEventListener('click', () => {
+            confirmModal.classList.remove('hidden');
+        });
+
+        confirmModalCancelBtn.addEventListener('click', () => {
+            confirmModal.classList.add('hidden');
+        });
+
+        confirmModalConfirmBtn.addEventListener('click', () => {
+            for (const key in plotData) {
+                plotData[key].alliance = null;
+            }
+            updateAllStyles();
+            updateAllianceStats();
+            confirmModal.classList.add('hidden');
+        });
+
+        exportBtn.addEventListener('click', () => {
+            const assignments = [];
+            for (const key in plotData) {
+                if (plotData[key].alliance) {
+                    assignments.push(`${plotData[key].customId}:${plotData[key].alliance}`);
+                }
+            }
+            codeModalTitle.textContent = 'Export Map Code';
+            codeModalTextarea.value = assignments.join(',');
+            codeModalTextarea.readOnly = true;
+            codeModalActionButton.textContent = 'Copy Code';
+            codeModalActionButton.onclick = () => {
+                codeModalTextarea.select();
+                document.execCommand('copy');
+            };
+            codeModal.classList.remove('hidden');
+        });
+
+        importBtn.addEventListener('click', () => {
+            codeModalTitle.textContent = 'Import Map Code';
+            codeModalTextarea.value = '';
+            codeModalTextarea.readOnly = false;
+            codeModalActionButton.textContent = 'Apply Import';
+            codeModalActionButton.onclick = () => {
+                const code = codeModalTextarea.value;
+                if (code) {
+                    // Clear existing assignments first
+                    for (const key in plotData) {
+                        plotData[key].alliance = null;
+                    }
+                    // Apply imported assignments
+                    const assignments = code.split(',');
+                    const plotDataByCustomId = Object.fromEntries(Object.entries(plotData).map(([key, data]) => [data.customId, data]));
+                    assignments.forEach(assignment => {
+                        const [customId, allyName] = assignment.split(':');
+                        if (plotDataByCustomId[customId] && alliances[allyName]) {
+                            plotDataByCustomId[customId].alliance = allyName;
+                        }
+                    });
+                    updateAllStyles();
+                    updateAllianceStats();
+                    codeModal.classList.add('hidden');
+                }
+            };
+            codeModal.classList.remove('hidden');
+        });
 
         // --- STARTUP ---
         app.addEventListener('wheel', handleWheel);
