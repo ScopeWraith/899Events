@@ -198,19 +198,14 @@
         .summary-item .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.75rem; /* Increased gap */
-            padding: 0.75rem; /* Increased padding */
+            gap: 0.5rem; 
+            padding: 0.75rem;
             font-size: 0.8rem;
             background-color: rgba(0,0,0,0.2);
         }
         .summary-item .stat-item {
             display: flex;
-            align-items: center;
-            gap: 0.5rem; /* Gap between icon and text */
-        }
-        .summary-item .stat-item .fa-solid {
-            width: 1.2em;
-            text-align: center;
+            justify-content: space-between;
         }
         .summary-item .stat-label {
             font-weight: 600;
@@ -365,6 +360,10 @@
         .tool-dock-button.danger:hover {
             background-color: #ef4444; /* red-500 */
             color: #fff;
+        }
+        .tool-dock-button.conflict {
+            padding: 0 0.75rem;
+            width: auto;
         }
         .tool-dock-button.conflict:hover {
             background-color: #f97316; /* orange-500 */
@@ -1442,10 +1441,10 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     <div class="summary-item">
                         <h5 class="${allyInfo.textColor} ${allyInfo.color} text-center text-sm">${allyInfo.name}</h5>
                         <div class="stats-grid">
-                            <div class="stat-item" title="Strongholds"><i class="fa-solid fa-chess-rook text-slate-300"></i><span class="stat-label">Strongholds:</span><span class="stat-value">${counts.Stronghold}/${landLimits.Stronghold}</span></div>
-                            <div class="stat-item" title="Cities"><i class="fa-solid fa-city text-slate-300"></i><span class="stat-label">Cities:</span><span class="stat-value">${counts.City}/${landLimits.City}</span></div>
-                            <div class="stat-item" title="Mithril per hour"><i class="fa-solid fa-gem text-sky-400"></i><span class="stat-label">Mithril:</span><span class="stat-value">${allyData.totalMithril.toLocaleString()} pH</span></div>
-                            <div class="stat-item" title="Spice per hour"><i class="fa-solid fa-pepper-hot text-amber-400"></i><span class="stat-label">Spice:</span><span class="stat-value">${allyData.totalSpice.toLocaleString()} pH</span></div>
+                            <div class="stat-item"><span class="stat-label">Strongholds:</span><span class="stat-value">${counts.Stronghold}/${landLimits.Stronghold}</span></div>
+                            <div class="stat-item"><span class="stat-label">Cities:</span><span class="stat-value">${counts.City}/${landLimits.City}</span></div>
+                            <div class="stat-item"><span class="stat-label">Mithril:</span><span class="stat-value">${allyData.totalMithril.toLocaleString()} pH</span></div>
+                            <div class="stat-item"><span class="stat-label">Spice:</span><span class="stat-value">${allyData.totalSpice.toLocaleString()} pH</span></div>
                         </div>
                         ${buffText ? `<div class="buff-list text-slate-400"><strong>Buffs:</strong> ${buffText}</div>` : ''}
                     </div>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Conductor Selector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #0f172a; /* bg-slate-900 */
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .card {
+            background-color: rgba(30, 41, 59, 0.5); /* bg-slate-800/50 */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(51, 65, 85, 0.5); /* border-slate-700/50 */
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .conductor-reveal {
+            animation: reveal 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+        @keyframes reveal {
+            0% { letter-spacing: -0.5em; opacity: 0; }
+            40% { opacity: 0.6; }
+            100% { letter-spacing: normal; opacity: 1; }
+        }
+        .item-enter {
+            animation: item-enter 0.5s ease-out;
+        }
+        @keyframes item-enter {
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #334155; /* border-slate-700 */
+            border-top: 4px solid #06b6d4; /* border-cyan-500 */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            padding-bottom: 0.5rem;
+            color: #94a3b8; /* text-slate-400 */
+        }
+        .tab-btn:hover {
+             color: #e2e8f0; /* text-slate-200 */
+        }
+        .tab-btn.active {
+            color: #06b6d4; /* text-cyan-500 */
+            border-bottom-color: #06b6d4;
+            font-weight: 700;
+        }
+        .text-glow {
+            text-shadow: 0 0 8px rgba(250, 204, 21, 0.7), 0 0 20px rgba(250, 204, 21, 0.5);
+        }
+    </style>
+</head>
+<body class="text-slate-300">
+
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-900/80 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
+        <div class="loader"></div>
+        <p class="mt-4 text-lg text-slate-300">Connecting to Database...</p>
+    </div>
+
+    <div class="min-h-screen p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+        <header class="text-center w-full max-w-2xl mx-auto mb-8">
+            <h1 class="font-orbitron text-4xl md:text-5xl font-bold text-cyan-400">CONDUCTOR APP</h1>
+        </header>
+
+        <main class="w-full max-w-2xl mx-auto">
+            <div class="card p-6 md:p-8">
+                <!-- Conductor Display -->
+                <h2 class="text-2xl font-bold text-yellow-400 mb-4 text-center text-glow">Today's Conductor</h2>
+                <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-8 min-h-[150px] flex items-center justify-center text-center">
+                    <span id="conductor-name" class="font-orbitron text-4xl md:text-5xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
+                        CHOOSE RANDOMLY
+                    </button>
+                    <button id="leader-select-button" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-purple-300/50">
+                        CHOOSE LEADER
+                    </button>
+                </div>
+
+                <!-- Tabbed Lists -->
+                <div class="mt-8">
+                    <!-- Tab Buttons -->
+                    <div class="border-b border-slate-700 flex space-x-4">
+                        <button id="tab-manual-pick" class="tab-btn active text-lg">Manual Pick</button>
+                        <button id="tab-history" class="tab-btn text-lg">History</button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="mt-4">
+                        <!-- Manual Pick Content -->
+                        <div id="content-manual-pick">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold text-white">Alliance Members (<span id="member-count">0</span>)</h3>
+                                <button id="add-member-button" class="text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
+                                   <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                            </div>
+                            <div id="manual-pick-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 300px;"></div>
+                        </div>
+
+                        <!-- History Content -->
+                        <div id="content-history" class="hidden">
+                             <div id="history-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 350px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // --- ELEMENTS ---
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const historyListContainer = document.getElementById('history-list-container');
+            const conductorNameSpan = document.getElementById('conductor-name');
+            const randomSelectButton = document.getElementById('random-select-button');
+            const leaderSelectButton = document.getElementById('leader-select-button');
+            const addMemberButton = document.getElementById('add-member-button');
+            const manualPickListContainer = document.getElementById('manual-pick-list-container');
+            const memberCountSpan = document.getElementById('member-count');
+            const tabManualPick = document.getElementById('tab-manual-pick');
+            const tabHistory = document.getElementById('tab-history');
+            const contentManualPick = document.getElementById('content-manual-pick');
+            const contentHistory = document.getElementById('content-history');
+
+            // --- LOCAL STATE ---
+            let allianceMembers = [];
+            let selectionHistory = [];
+            const leadershipTeam = [
+                "Cindelll", "Ms Andrea", "Squeeze1", "Drewstroyer", "Dumpchicken",
+                "MattCat 맷 더 캣", "KBL50", "SimBLÅNK", "BLÅNK", "LÅDY", "ScopeWraith"
+            ];
+            let db, docRef;
+
+            // --- FIREBASE SETUP ---
+            async function initializeFirebase() {
+                try {
+                    const firebaseConfig = {
+                      apiKey: "AIzaSyBL9GRWKf15wDTYdguYnQtU28WblgqT5jE",
+                      authDomain: "allianceconductor.firebaseapp.com",
+                      projectId: "allianceconductor",
+                      storageBucket: "allianceconductor.appspot.com",
+                      messagingSenderId: "650853696222",
+                      appId: "1:650853696222:web:a3c418857558336bee384f"
+                    };
+                    
+                    const docId = 'conductor-selector-data';
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    const auth = getAuth(app);
+                    
+                    await signInAnonymously(auth);
+
+                    const collectionPath = `conductors`;
+                    docRef = doc(db, collectionPath, docId);
+
+                    onSnapshot(docRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            allianceMembers = data.members || [];
+                            // Ensure all history items have a unique ID for reliable deletion
+                            selectionHistory = (data.history || []).map((item, index) => ({
+                                ...item,
+                                id: item.id || Date.now() + index 
+                            }));
+                        } else {
+                            console.log("No data found in Firestore. Initializing with default data.");
+                            initializeDefaultData();
+                        }
+                        renderAll();
+                        loadingOverlay.style.opacity = '0';
+                        setTimeout(() => loadingOverlay.style.display = 'none', 300);
+                    });
+
+                } catch (error) {
+                    console.error("Firebase Initialization Error:", error);
+                    loadingOverlay.innerHTML = `<p class="text-red-400 text-center">Connection Failed.<br>Please check console for errors.</p>`;
+                }
+            }
+
+            // --- DATA MANAGEMENT ---
+            async function updateFirestore() {
+                if (!docRef) return;
+                try {
+                    // Create a clean version of history without the temporary 'id' if you don't want to store it
+                    // const historyToSave = selectionHistory.map(({ id, ...rest }) => rest);
+                    await setDoc(docRef, { 
+                        members: allianceMembers, 
+                        history: selectionHistory // Storing with ID for consistency
+                    });
+                } catch (error) {
+                    console.error("Error updating Firestore:", error);
+                }
+            }
+
+            function initializeDefaultData() {
+                allianceMembers = ["13Edy13", "Aceman12", "Aheleosthe2nd", "AirForester", "Andre Rabelo", "Anthony 69", "Arghonut 모험가", "atalon", "aZzIel", "Bamslang", "Basow", "Beezees", "Belleroo", "Bettel nerd", "B L Ä N K", "bobo1987 보보", "CaeTaka", "CaptainObviouss", "Chan 찬", "Chefjuanpi", "Churchill JAPABR", "Cindelll", "Curty Mc", "Dauntethemechanic", "DARS MILK", "Dino1311", "Dollystroyer", "DontWorryDaddysHere", "Drewstroyer", "Duck0311", "Dumpchicken", "Ender", "foxzilla", "Gangster 25", "General Bjam", "Grande Anão", "GPêê", "Guerneros del Chaco", "Gunbarista", "Hadrianswall", "ilovecafs", "Isorryl", "jessictia", "Jmelo1686", "JojoBans", "JTWolf", "KAYRONMAN", "KBL50", "Keylonis", "Kitt3nnnn", "LÄDY", "Leccarré", "leoyutian", "likes2ride", "LION 1937", "MÄXIMÜS", "MattCat 맷 더 캣", "Mayhem007", "Maz·Ibrahim.ч", "MICH3773", "MotoM0t0", "Mr Peaches", "Ms Andrea", "n3tt1k", "NinerGang211", "NikolaiVolkoff", "NoShtSherlock 셜록", "NyahNyah메롱", "Peacekëeper", "PewnurScope", "Ratatoui11e", "Reb13", "Risssy", "Robert ツ", "ScopeWraith", "scrap11", "SHAMAN ЛЮТЬ", "Shbeda", "SimBLÄ NK", "SimplyMom", "SniperXT3", "SN0WMan", "Squeeze1", "st ALBA", "SuperElectron Bioman", "techwrath", "TeeOhiNwhY", "The Palette", "Tigerfan1", "turtletime 거북이", "uJeam", "UrSwigBoaBro", "VENOM THENEW CARNAGE", "Vuladi", "Warrior Poet", "Whedonite92", "Xelaesor", "Zerrrro", "윤스 oops", "에녹 · Enoch"];
+                selectionHistory = [{ player: "Rat", date: "06-26", id: Date.now()+1 }, { player: "Lecarre", date: "06-25", id: Date.now()+2 }, { player: "MagicalMike (AllDayDad)", date: "06-24", id: Date.now()+3 }];
+                updateFirestore();
+            }
+
+            // --- RENDER FUNCTIONS ---
+            const renderManualPickList = () => {
+                manualPickListContainer.innerHTML = '';
+                const sortedMembers = [...allianceMembers].sort((a, b) => a.localeCompare(b));
+
+                sortedMembers.forEach((member) => {
+                    const div = document.createElement('div');
+                    div.className = 'item-enter flex justify-between items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group';
+                    div.innerHTML = `
+                        <button class="flex-grow text-left manual-pick-btn" data-name="${member}">${member}</button>
+                        <button class="delete-member-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-name="${member}" title="Delete member">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    `;
+                    manualPickListContainer.appendChild(div);
+                });
+
+                memberCountSpan.textContent = allianceMembers.length;
+            };
+
+            const renderHistory = () => {
+                historyListContainer.innerHTML = '';
+                 const sortedHistory = [...selectionHistory].sort((a, b) => {
+                    const dateA = new Date(`2000-${a.date.replace('-', '/')}`);
+                    const dateB = new Date(`2000-${b.date.replace('-', '/')}`);
+                    return dateB - dateA;
+                 });
+                sortedHistory.forEach((item) => {
+                    const div = document.createElement('div');
+                    div.className = 'item-enter flex justify-between items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group';
+                    div.innerHTML = `
+                        <p class="font-semibold text-white truncate pr-4">${item.player}</p>
+                        <div class="flex items-center space-x-4 flex-shrink-0">
+                            <p class="text-sm text-slate-400">${item.date}</p>
+                            <button class="delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    `;
+                    historyListContainer.appendChild(div);
+                });
+            };
+
+            const renderAll = () => {
+                renderManualPickList();
+                renderHistory();
+            }
+
+            // --- CORE LOGIC & EVENT HANDLERS ---
+            const setConductor = (name) => {
+                conductorNameSpan.textContent = name;
+                conductorNameSpan.classList.remove('text-slate-500');
+                conductorNameSpan.classList.add('text-yellow-400', 'conductor-reveal', 'text-glow');
+                conductorNameSpan.addEventListener('animationend', () => conductorNameSpan.classList.remove('conductor-reveal'), { once: true });
+            };
+
+            const selectRandomly = (pool, buttonToUpdate) => {
+                if (pool.length === 0) return;
+                
+                randomSelectButton.disabled = true;
+                leaderSelectButton.disabled = true;
+                buttonToUpdate.textContent = 'CHOOSING...';
+
+                let drumRollCount = 0;
+                const drumRollInterval = setInterval(() => {
+                    const randomIndex = Math.floor(Math.random() * pool.length);
+                    conductorNameSpan.textContent = pool[randomIndex];
+                    conductorNameSpan.classList.remove('text-yellow-400', 'text-glow');
+                    conductorNameSpan.classList.add('text-slate-500');
+                    if (++drumRollCount > 15) {
+                        clearInterval(drumRollInterval);
+                        
+                        const recentConductors = selectionHistory.slice(0, 15).map(h => h.player);
+                        const filteredPool = pool.filter(m => !recentConductors.includes(m));
+                        const selectionPool = filteredPool.length > 0 ? filteredPool : pool;
+                        const newConductor = selectionPool[Math.floor(Math.random() * selectionPool.length)];
+                        
+                        setConductor(newConductor);
+                        
+                        const today = new Date();
+                        const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                        selectionHistory.unshift({ player: newConductor, date: dateStr, id: Date.now() });
+                        
+                        updateFirestore();
+                        
+                        randomSelectButton.disabled = false;
+                        leaderSelectButton.disabled = false;
+                        randomSelectButton.textContent = 'CHOOSE RANDOMLY';
+                        leaderSelectButton.textContent = 'CHOOSE LEADER';
+                    }
+                }, 100);
+            };
+            
+            addMemberButton.addEventListener('click', () => {
+                const newMember = prompt("Enter the name of the new alliance member:");
+                if (newMember && newMember.trim() !== "" && !allianceMembers.includes(newMember.trim())) {
+                    allianceMembers.push(newMember.trim());
+                    updateFirestore();
+                }
+            });
+
+            manualPickListContainer.addEventListener('click', (e) => {
+                const pickBtn = e.target.closest('.manual-pick-btn');
+                if (pickBtn) {
+                    setConductor(pickBtn.dataset.name);
+                }
+
+                const deleteBtn = e.target.closest('.delete-member-btn');
+                if (deleteBtn) {
+                    const nameToDelete = deleteBtn.dataset.name;
+                    allianceMembers = allianceMembers.filter(m => m !== nameToDelete);
+                    updateFirestore();
+                }
+            });
+            
+            historyListContainer.addEventListener('click', (e) => {
+                 const deleteButton = e.target.closest('.delete-history-btn');
+                 if (deleteButton) {
+                    const idToDelete = parseFloat(deleteButton.dataset.id);
+                    selectionHistory = selectionHistory.filter(item => item.id !== idToDelete);
+                    updateFirestore();
+                 }
+            });
+
+            tabManualPick.addEventListener('click', () => {
+                tabManualPick.classList.add('active');
+                tabHistory.classList.remove('active');
+                contentManualPick.classList.remove('hidden');
+                contentHistory.classList.add('hidden');
+            });
+
+            tabHistory.addEventListener('click', () => {
+                tabHistory.classList.add('active');
+                tabManualPick.classList.remove('active');
+                contentHistory.classList.remove('hidden');
+                contentManualPick.classList.add('hidden');
+            });
+
+            randomSelectButton.addEventListener('click', () => selectRandomly(allianceMembers, randomSelectButton));
+            leaderSelectButton.addEventListener('click', () => selectRandomly(leadershipTeam, leaderSelectButton));
+
+            // --- INITIALIZATION ---
+            initializeFirebase();
+        });
+    </script>
+</body>
+</html>
