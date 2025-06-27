@@ -1164,10 +1164,6 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     plotElements.set(key, el); 
                     updatePlotLabel(key); 
                     el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
-                    el.addEventListener('touchstart', (e) => {
-                         e.stopPropagation();
-                         handleMouseDown(e.touches[0], key);
-                    }, { passive: false });
                     el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
                     el.addEventListener('mousemove', (e) => handleMouseMove(e));
                     el.addEventListener('mouseleave', () => handleMouseLeave());
@@ -1187,10 +1183,6 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     plotElements.set(key, el);
                     updatePlotLabel(key); 
                     el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
-                     el.addEventListener('touchstart', (e) => {
-                         e.stopPropagation();
-                         handleMouseDown(e.touches[0], key);
-                    }, { passive: false });
                     el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
                     el.addEventListener('mousemove', (e) => handleMouseMove(e));
                     el.addEventListener('mouseleave', () => handleMouseLeave());
@@ -1249,13 +1241,18 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         }
         
         function handleTouchStart(e) {
-            if (e.touches.length === 2) { // Pinch
+            const key = findKeyFromElement(e.target);
+            if(key) e.stopPropagation();
+
+            if (e.touches.length === 1) {
+                handleMouseDown(e.touches[0], key);
+            } else if (e.touches.length === 2) {
                 e.preventDefault();
+                dragInfo.isDragging = false;
+                dragInfo.clickedCell = null;
                 touchState.isPinching = true;
                 touchState.initialPinchDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                 touchState.viewStartZoom = view.zoom;
-            } else if (e.touches.length === 1) { // Background drag
-                handleMouseDown(e.touches[0], null);
             }
         }
         function handleTouchMove(e) {
@@ -1271,7 +1268,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 view.y -= y * (newZoom - view.zoom);
                 view.zoom = newZoom;
                 updateViewTransform();
-            } else if (!touchState.isPinching && e.touches.length > 0) {
+            } else if (!touchState.isPinching && e.touches.length === 1) {
                 handleDragMove(e.touches[0]);
             }
         }
@@ -1283,13 +1280,9 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         }
 
         function handleMouseDown(e, key = null) {
-            e.stopPropagation(); 
-            if (e.preventDefault) e.preventDefault();
             Object.assign(dragInfo, { isDragging: false, startX: e.pageX, startY: e.pageY, viewStartX: view.x, viewStartY: view.y, clickedCell: key });
             document.addEventListener('mousemove', handleDragMove);
             document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('touchmove', handleTouchMove, { passive: false });
-            document.addEventListener('touchend', handleTouchEnd);
             clearTimeout(hideTooltipTimer);
             tooltip.classList.add('hidden');
         }
@@ -1299,13 +1292,10 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 tooltip.style.left = `${e.pageX + 20}px`;
                 tooltip.style.top = `${e.pageY + 20}px`;
             }
-        }
-
-        function handleDragMove(e) {
-            if (e.preventDefault) e.preventDefault();
             if (!dragInfo.isDragging && (Math.abs(e.pageX - dragInfo.startX) > 5 || Math.abs(e.pageY - dragInfo.startY) > 5)) {
                 dragInfo.isDragging = true;
                 if (!touchState.isPinching) document.body.style.cursor = 'move';
+                dragInfo.clickedCell = null; // It's a drag, not a tap
             }
             if (dragInfo.isDragging) {
                 view.x = dragInfo.viewStartX + (e.pageX - dragInfo.startX);
@@ -1321,13 +1311,13 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 openModal();
             }
             dragInfo.isDragging = false;
+            dragInfo.clickedCell = null;
             document.removeEventListener('mousemove', handleDragMove);
             document.removeEventListener('mouseup', handleMouseUp);
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleTouchEnd);
         }
 
         function handleWheel(e) {
+            e.preventDefault();
             const rect = app.getBoundingClientRect();
             const x = (e.clientX - rect.left - view.x) / view.zoom;
             const y = (e.clientY - rect.top - view.y) / view.zoom;
@@ -1337,6 +1327,17 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             view.y -= y * (newZoom - view.zoom);
             view.zoom = newZoom;
             updateViewTransform();
+        }
+
+        function findKeyFromElement(target) {
+            const plotElement = target.closest('.plot');
+            if (!plotElement) return null;
+            for (const [key, el] of plotElements.entries()) {
+                if (el === plotElement) {
+                    return key;
+                }
+            }
+            return null;
         }
 
         function openModal() {
@@ -1629,8 +1630,13 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             sidebar.classList.add('collapsed');
         }
         app.addEventListener('wheel', handleWheel, { passive: false });
-        app.addEventListener('mousedown', (e) => handleMouseDown(e, null));
+        // Mouse Listeners
+        app.addEventListener('mousedown', (e) => handleMouseDown(e, findKeyFromElement(e.target)));
+        // Touch Listeners
         app.addEventListener('touchstart', handleTouchStart, { passive: false });
+        app.addEventListener('touchmove', handleTouchMove, { passive: false });
+        app.addEventListener('touchend', handleTouchEnd);
+        app.addEventListener('touchcancel', handleTouchEnd);
         
         setupServerSelection();
         initializeMap();
