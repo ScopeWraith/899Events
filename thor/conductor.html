@@ -60,8 +60,8 @@
         }
         .tab-btn {
             transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-            padding-bottom: 0.5rem;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
             color: #94a3b8; /* text-slate-400 */
         }
         .tab-btn:hover {
@@ -70,10 +70,10 @@
         .tab-btn.active {
             color: #06b6d4; /* text-cyan-500 */
             border-bottom-color: #06b6d4;
-            font-weight: 700;
+            font-weight: 600;
         }
         .text-glow {
-            text-shadow: 0 0 8px rgba(250, 204, 21, 0.7), 0 0 20px rgba(250, 204, 21, 0.5);
+            text-shadow: 0 0 5px rgba(250, 204, 21, 0.6), 0 0 15px rgba(250, 204, 21, 0.4);
         }
     </style>
 </head>
@@ -84,53 +84,53 @@
         <p class="mt-4 text-lg text-slate-300">Connecting to Database...</p>
     </div>
 
-    <div class="min-h-screen p-4 sm:p-6 lg:p-8 flex flex-col items-center">
-        <header class="text-center w-full max-w-2xl mx-auto mb-8">
-            <h1 class="font-orbitron text-4xl md:text-5xl font-bold text-cyan-400">CONDUCTOR APP</h1>
+    <div class="min-h-screen p-4 flex flex-col items-center">
+        <header class="text-center w-full max-w-xl mx-auto mb-6">
+            <h1 class="font-orbitron text-3xl md:text-4xl font-bold text-cyan-400">CONDUCTOR APP</h1>
         </header>
 
-        <main class="w-full max-w-2xl mx-auto">
-            <div class="card p-6 md:p-8">
+        <main class="w-full max-w-xl mx-auto">
+            <div class="card p-4 md:p-6">
                 <!-- Conductor Display -->
-                <h2 class="text-2xl font-bold text-yellow-400 mb-4 text-center text-glow">Today's Conductor</h2>
-                <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-8 min-h-[150px] flex items-center justify-center text-center">
-                    <span id="conductor-name" class="font-orbitron text-4xl md:text-5xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
+                <h2 class="text-xl font-bold text-yellow-400 mb-3 text-center text-glow">Today's Conductor</h2>
+                <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-4 min-h-[100px] flex items-center justify-center text-center">
+                    <span id="conductor-name" class="font-orbitron text-2xl md:text-3xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
                         CHOOSE RANDOMLY
                     </button>
-                    <button id="leader-select-button" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-purple-300/50">
+                    <button id="leader-select-button" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-purple-300/50">
                         CHOOSE LEADER
                     </button>
                 </div>
 
                 <!-- Tabbed Lists -->
-                <div class="mt-8">
+                <div class="mt-6">
                     <!-- Tab Buttons -->
                     <div class="border-b border-slate-700 flex space-x-4">
-                        <button id="tab-manual-pick" class="tab-btn active text-lg">Manual Pick</button>
-                        <button id="tab-history" class="tab-btn text-lg">History</button>
+                        <button id="tab-manual-pick" class="tab-btn active">Manual Pick</button>
+                        <button id="tab-history" class="tab-btn">History</button>
                     </div>
 
                     <!-- Tab Content -->
-                    <div class="mt-4">
+                    <div class="mt-3">
                         <!-- Manual Pick Content -->
                         <div id="content-manual-pick">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-bold text-white">Alliance Members (<span id="member-count">0</span>)</h3>
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-base font-bold text-white">Alliance Members (<span id="member-count">0</span>)</h3>
                                 <button id="add-member-button" class="text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
-                                   <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 </button>
                             </div>
-                            <div id="manual-pick-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 300px;"></div>
+                            <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 200px;"></div>
                         </div>
 
                         <!-- History Content -->
                         <div id="content-history" class="hidden">
-                             <div id="history-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 350px;"></div>
+                             <div id="history-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 220px;"></div>
                         </div>
                     </div>
                 </div>
@@ -218,11 +218,9 @@
             async function updateFirestore() {
                 if (!docRef) return;
                 try {
-                    // Create a clean version of history without the temporary 'id' if you don't want to store it
-                    // const historyToSave = selectionHistory.map(({ id, ...rest }) => rest);
                     await setDoc(docRef, { 
                         members: allianceMembers, 
-                        history: selectionHistory // Storing with ID for consistency
+                        history: selectionHistory 
                     });
                 } catch (error) {
                     console.error("Error updating Firestore:", error);
@@ -242,11 +240,11 @@
 
                 sortedMembers.forEach((member) => {
                     const div = document.createElement('div');
-                    div.className = 'item-enter flex justify-between items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group';
+                    div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
                     div.innerHTML = `
                         <button class="flex-grow text-left manual-pick-btn" data-name="${member}">${member}</button>
                         <button class="delete-member-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-name="${member}" title="Delete member">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                     `;
                     manualPickListContainer.appendChild(div);
@@ -264,13 +262,13 @@
                  });
                 sortedHistory.forEach((item) => {
                     const div = document.createElement('div');
-                    div.className = 'item-enter flex justify-between items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group';
+                    div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
                     div.innerHTML = `
-                        <p class="font-semibold text-white truncate pr-4">${item.player}</p>
-                        <div class="flex items-center space-x-4 flex-shrink-0">
-                            <p class="text-sm text-slate-400">${item.date}</p>
+                        <p class="font-semibold text-white truncate pr-2">${item.player}</p>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <p class="text-xs text-slate-400">${item.date}</p>
                             <button class="delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
                     `;
