@@ -113,12 +113,9 @@
 
                 <!-- Action Buttons -->
                 <div id="action-buttons-container" class="mt-4">
-                    <div id="random-buttons-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div id="random-buttons-container" class="grid grid-cols-1">
                         <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
-                            CHOOSE RANDOMLY
-                        </button>
-                        <button id="leader-select-button" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-purple-300/50">
-                            CHOOSE LEADER
+                            CHOOSE CONDUCTOR
                         </button>
                     </div>
                      <div id="pending-buttons-container" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -302,7 +299,6 @@
             const historyListContainer = document.getElementById('history-list-container');
             const conductorNameSpan = document.getElementById('conductor-name');
             const randomSelectButton = document.getElementById('random-select-button');
-            const leaderSelectButton = document.getElementById('leader-select-button');
             const lockInButton = document.getElementById('lock-in-button');
             const substituteButton = document.getElementById('substitute-button');
             const pendingButtonsContainer = document.getElementById('pending-buttons-container');
@@ -576,7 +572,6 @@
                 if (pool.length === 0) return;
                 
                 randomSelectButton.disabled = true;
-                leaderSelectButton.disabled = true;
                 if (buttonToUpdate) buttonToUpdate.textContent = 'CHOOSING...';
 
                 const now = new Date();
@@ -608,9 +603,7 @@
                 if (selectionPool.length === 0) {
                     alert("No eligible members found based on current rules.");
                      randomSelectButton.disabled = false;
-                     leaderSelectButton.disabled = false;
-                     if(buttonToUpdate) buttonToUpdate.textContent = 'CHOOSE RANDOMLY';
-                     leaderSelectButton.textContent = 'CHOOSE LEADER';
+                     if(buttonToUpdate) buttonToUpdate.textContent = 'CHOOSE CONDUCTOR';
                     return;
                 }
 
@@ -643,9 +636,7 @@
                         clearInterval(drumRollInterval);
                         showPendingMode(winner.name);
                         randomSelectButton.disabled = false;
-                        leaderSelectButton.disabled = false;
-                        if(buttonToUpdate) buttonToUpdate.textContent = 'CHOOSE RANDOMLY';
-                        leaderSelectButton.textContent = 'CHOOSE LEADER';
+                        if(buttonToUpdate) buttonToUpdate.textContent = 'CHOOSE CONDUCTOR';
                     }
                 }, 100);
             };
@@ -783,7 +774,6 @@
             
             historySearchInput.addEventListener('input', renderHistory);
             randomSelectButton.addEventListener('click', () => selectRandomly(allianceMembers, randomSelectButton));
-            leaderSelectButton.addEventListener('click', () => selectRandomly(leadershipTeam, leaderSelectButton));
 
             // --- INITIALIZATION ---
             populateMedalSelect();
