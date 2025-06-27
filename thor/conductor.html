@@ -85,22 +85,26 @@
     </div>
 
     <div class="min-h-screen p-4 flex flex-col items-center">
-        <header class="text-center w-full max-w-xl mx-auto mb-6 relative">
+        <header class="text-center w-full max-w-xl mx-auto mb-6">
             <h1 class="font-orbitron text-3xl md:text-4xl font-bold text-cyan-400">CONDUCTOR APP</h1>
-            <button id="info-button" class="absolute top-0 right-0 text-slate-400 hover:text-cyan-400 transition-colors" title="Luck System Info">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </button>
         </header>
 
         <main class="w-full max-w-xl mx-auto">
             <div class="card p-4 md:p-6">
-                <h2 class="text-xl font-bold text-yellow-400 mb-3 text-center text-glow">Today's Conductor</h2>
+                <!-- Conductor Display -->
+                <div class="relative mb-3">
+                    <h2 class="text-xl font-bold text-yellow-400 text-center text-glow">Today's Conductor</h2>
+                     <button id="info-button" class="absolute top-0 right-0 text-slate-400 hover:text-cyan-400 transition-colors" title="Luck System Info">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                </div>
                 <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-4 min-h-[100px] flex items-center justify-center text-center">
                     <span id="conductor-name" class="font-orbitron text-2xl md:text-3xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
                 </div>
 
+                <!-- Action Buttons -->
                 <div id="action-buttons-container" class="mt-4">
                     <div id="random-buttons-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
@@ -110,18 +114,27 @@
                             CHOOSE LEADER
                         </button>
                     </div>
-                     <button id="lock-in-button" class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">
-                        LOCK IN CONDUCTOR
-                    </button>
+                     <div id="lock-in-container" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button id="cancel-lock-in-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
+                            CANCEL
+                        </button>
+                        <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">
+                            LOCK IN CONDUCTOR
+                        </button>
+                    </div>
                 </div>
 
+                <!-- Tabbed Lists -->
                 <div class="mt-6">
+                    <!-- Tab Buttons -->
                     <div class="border-b border-slate-700 flex space-x-4">
                         <button id="tab-manual-pick" class="tab-btn active">Manual Pick</button>
                         <button id="tab-history" class="tab-btn">History</button>
                     </div>
 
+                    <!-- Tab Content -->
                     <div class="mt-3">
+                        <!-- Manual Pick Content -->
                         <div id="content-manual-pick">
                             <div class="flex justify-between items-center mb-2">
                                 <h3 class="text-base font-bold text-white">Alliance Members</h3>
@@ -132,6 +145,7 @@
                             <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 200px;"></div>
                         </div>
 
+                        <!-- History Content -->
                         <div id="content-history" class="hidden">
                              <div class="mb-2">
                                 <input type="text" id="history-search-input" placeholder="Search player history..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
@@ -144,6 +158,7 @@
         </main>
     </div>
 
+    <!-- Modals -->
     <div id="info-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
         <div class="card p-6 w-full max-w-md relative">
              <button id="close-info-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white">&times;</button>
@@ -258,6 +273,8 @@
             const randomSelectButton = document.getElementById('random-select-button');
             const leaderSelectButton = document.getElementById('leader-select-button');
             const lockInButton = document.getElementById('lock-in-button');
+            const cancelLockInButton = document.getElementById('cancel-lock-in-button');
+            const lockInContainer = document.getElementById('lock-in-container');
             const randomButtonsContainer = document.getElementById('random-buttons-container');
             const addMemberButton = document.getElementById('add-member-button');
             const manualPickListContainer = document.getElementById('manual-pick-list-container');
@@ -498,13 +515,13 @@
                 conductorNameSpan.classList.remove('text-yellow-400', 'text-glow', 'text-slate-500');
                 conductorNameSpan.classList.add('text-cyan-400');
                 randomButtonsContainer.classList.add('hidden');
-                lockInButton.classList.remove('hidden');
+                lockInContainer.classList.remove('hidden');
             }
             function showRandomMode() {
                 previewConductor = null;
                 renderConductor();
                 randomButtonsContainer.classList.remove('hidden');
-                lockInButton.classList.add('hidden');
+                lockInContainer.classList.add('hidden');
             }
 
             // --- CORE LOGIC & EVENT HANDLERS ---
@@ -614,6 +631,7 @@
                     showRandomMode();
                 }
             });
+            cancelLockInButton.addEventListener('click', showRandomMode);
             historyListContainer.addEventListener('click', (e) => {
                  const deleteButton = e.target.closest('.delete-history-btn');
                  if (deleteButton) {
