@@ -801,7 +801,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         let selectedCell = null;
         let hoveredCell = null;
         const plotElements = new Map();
-        const dragInfo = { isDragging: false, startX: 0, startY: 0, viewStartX: 0, viewStartY: 0 };
+        const dragInfo = { isMouseDown: false, startX: 0, startY: 0, viewStartX: 0, viewStartY: 0, isDragging: false, clickedCell: null };
         let touchState = {
             isPinching: false,
             initialPinchDistance: 0,
@@ -1164,10 +1164,8 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     el.innerHTML = createPlotHTML(key);
                     plotElements.set(key, el); 
                     updatePlotLabel(key); 
-                    el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
                     el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
-                    el.addEventListener('mousemove', (e) => handleMouseMove(e));
-                    el.addEventListener('mouseleave', () => handleMouseLeave());
+                    el.addEventListener('mouseleave', () => handleMouseLeave(e));
                     mainPlotGrid.appendChild(el);
                 }
             }
@@ -1183,15 +1181,18 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     el.innerHTML = createPlotHTML(key);
                     plotElements.set(key, el);
                     updatePlotLabel(key); 
-                    el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
                     el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
-                    el.addEventListener('mousemove', (e) => handleMouseMove(e));
-                    el.addEventListener('mouseleave', () => handleMouseLeave());
+                    el.addEventListener('mouseleave', () => handleMouseLeave(e));
                     cornerPlotContainer.appendChild(el);
                 }
             }
             transformWrapper.append(mainPlotGrid, cornerPlotContainer);
             app.appendChild(transformWrapper);
+            
+            // Center map on initial load
+            view.x = (app.clientWidth - totalWidth * view.zoom) / 2;
+            view.y = (app.clientHeight - totalHeight * view.zoom) / 2;
+
             updateAllStyles();
             updateViewTransform();
             updateAllianceStats();
@@ -1207,6 +1208,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             const el = plotElements.get(key);
             if(el) {
                 el.style.setProperty('--glow-color', 'rgba(190, 220, 255, 0.25)');
+                 el.addEventListener('mousemove', updateTooltipPosition);
             }
             
             const tooltipBuffP = tooltipBuff.parentElement;
@@ -1230,24 +1232,32 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             tooltipLevel.textContent = data.level || "N/A";
             tooltip.classList.remove('hidden');
             tooltip.style.opacity = '1';
-            handleMouseMove(e);
+            updateTooltipPosition(e);
         }
         
-        function handleMouseLeave() {
+        function handleMouseLeave(e) {
             hoveredCell = null;
             hideTooltipTimer = setTimeout(() => {
                 tooltip.style.opacity = '0';
                 setTimeout(() => tooltip.classList.add('hidden'), 100);
             }, 50);
+             if (e.currentTarget) {
+                e.currentTarget.removeEventListener('mousemove', updateTooltipPosition);
+            }
+        }
+        
+        function updateTooltipPosition(e) {
+            if (tooltip.classList.contains('hidden')) return;
+            tooltip.style.left = `${e.pageX + 20}px`;
+            tooltip.style.top = `${e.pageY + 20}px`;
         }
         
         function handleTouchStart(e) {
+            e.preventDefault();
             if (e.touches.length === 1) {
                 handleMouseDown(e.touches[0], findKeyFromElement(e.target));
             } else if (e.touches.length === 2) {
-                e.preventDefault();
-                dragInfo.isDragging = false;
-                dragInfo.clickedCell = null;
+                dragInfo.isMouseDown = false; // Prevent drag from firing
                 touchState.isPinching = true;
                 touchState.initialPinchDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                 touchState.viewStartZoom = view.zoom;
@@ -1266,7 +1276,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 view.y -= y * (newZoom - view.zoom);
                 view.zoom = newZoom;
                 updateViewTransform();
-            } else if (!touchState.isPinching && e.touches.length === 1) {
+            } else if (dragInfo.isMouseDown && e.touches.length === 1) {
                 handleMouseMove(e.touches[0]);
             }
         }
@@ -1278,6 +1288,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         }
 
         function handleMouseDown(e, key = null) {
+            dragInfo.isMouseDown = true;
             Object.assign(dragInfo, { 
                 isDragging: false, 
                 startX: e.pageX, 
@@ -1288,16 +1299,14 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             });
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('touchmove', handleTouchMove, { passive: false });
-            document.addEventListener('touchend', handleTouchEnd);
-            clearTimeout(hideTooltipTimer);
-            tooltip.classList.add('hidden');
         }
         
         function handleMouseMove(e) {
+            if (!dragInfo.isMouseDown) return;
             if (!dragInfo.isDragging && (Math.abs(e.pageX - dragInfo.startX) > 5 || Math.abs(e.pageY - dragInfo.startY) > 5)) {
                 dragInfo.isDragging = true;
                 dragInfo.clickedCell = null; // It's a drag, not a tap
+                tooltip.classList.add('hidden');
             }
             if (dragInfo.isDragging) {
                 document.body.style.cursor = 'move';
@@ -1308,16 +1317,15 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         }
 
         function handleMouseUp() {
-            document.body.style.cursor = 'default';
-            if (!dragInfo.isDragging && dragInfo.clickedCell && !touchState.isPinching) {
+            if (!dragInfo.isDragging && dragInfo.clickedCell) {
                 openModalForCell(dragInfo.clickedCell);
             }
+            document.body.style.cursor = 'default';
+            dragInfo.isMouseDown = false;
             dragInfo.isDragging = false;
             dragInfo.clickedCell = null;
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleTouchEnd);
         }
 
         function handleWheel(e) {
@@ -1649,6 +1657,9 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         app.addEventListener('mousedown', (e) => handleMouseDown(e, findKeyFromElement(e.target)));
         // Touch Listeners
         app.addEventListener('touchstart', handleTouchStart, { passive: false });
+        app.addEventListener('touchmove', handleTouchMove, { passive: false });
+        app.addEventListener('touchend', handleTouchEnd);
+        app.addEventListener('touchcancel', handleTouchEnd);
         
         setupServerSelection();
         initializeMap();
