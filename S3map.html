@@ -1164,6 +1164,10 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     plotElements.set(key, el); 
                     updatePlotLabel(key); 
                     el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
+                    el.addEventListener('touchstart', (e) => {
+                         e.stopPropagation();
+                         handleMouseDown(e.touches[0], key);
+                    }, { passive: false });
                     el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
                     el.addEventListener('mousemove', (e) => handleMouseMove(e));
                     el.addEventListener('mouseleave', () => handleMouseLeave());
@@ -1183,6 +1187,10 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     plotElements.set(key, el);
                     updatePlotLabel(key); 
                     el.addEventListener('mousedown', (e) => handleMouseDown(e, key));
+                     el.addEventListener('touchstart', (e) => {
+                         e.stopPropagation();
+                         handleMouseDown(e.touches[0], key);
+                    }, { passive: false });
                     el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
                     el.addEventListener('mousemove', (e) => handleMouseMove(e));
                     el.addEventListener('mouseleave', () => handleMouseLeave());
@@ -1241,48 +1249,47 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         }
         
         function handleTouchStart(e) {
-            if (e.touches.length === 1) {
-                handleMouseDown(e.touches[0]);
-            } else if (e.touches.length === 2) {
+            if (e.touches.length === 2) { // Pinch
                 e.preventDefault();
                 touchState.isPinching = true;
                 touchState.initialPinchDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                 touchState.viewStartZoom = view.zoom;
+            } else if (e.touches.length === 1) { // Background drag
+                handleMouseDown(e.touches[0], null);
             }
         }
         function handleTouchMove(e) {
-            if (e.touches.length === 1 && !touchState.isPinching) {
-                handleDragMove(e.touches[0]);
-            } else if (e.touches.length === 2 && touchState.isPinching) {
-                e.preventDefault();
+            e.preventDefault();
+            if (touchState.isPinching && e.touches.length === 2) {
                 const newDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                 const zoomFactor = newDist / touchState.initialPinchDistance;
                 const newZoom = Math.max(0.5, Math.min(touchState.viewStartZoom * zoomFactor, 3));
-
                 const rect = app.getBoundingClientRect();
                 const x = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left - view.x) / view.zoom;
                 const y = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top - view.y) / view.zoom;
-
                 view.x -= x * (newZoom - view.zoom);
                 view.y -= y * (newZoom - view.zoom);
                 view.zoom = newZoom;
                 updateViewTransform();
+            } else if (!touchState.isPinching) {
+                handleDragMove(e.touches[0]);
             }
         }
         function handleTouchEnd(e) {
             if (e.touches.length < 2) {
                 touchState.isPinching = false;
             }
-            if (dragInfo.isDragging || e.touches.length > 0) {
-                 handleMouseUp();
-            }
+            handleMouseUp();
         }
 
         function handleMouseDown(e, key = null) {
-            e.stopPropagation(); e.preventDefault();
+            e.stopPropagation(); 
+            if (e.preventDefault) e.preventDefault();
             Object.assign(dragInfo, { isDragging: false, startX: e.pageX, startY: e.pageY, viewStartX: view.x, viewStartY: view.y, clickedCell: key });
             document.addEventListener('mousemove', handleDragMove);
             document.addEventListener('mouseup', handleMouseUp);
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd);
             clearTimeout(hideTooltipTimer);
             tooltip.classList.add('hidden');
         }
@@ -1295,7 +1302,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         }
 
         function handleDragMove(e) {
-            e.preventDefault();
+            if (e.preventDefault) e.preventDefault();
             if (!dragInfo.isDragging && (Math.abs(e.pageX - dragInfo.startX) > 5 || Math.abs(e.pageY - dragInfo.startY) > 5)) {
                 dragInfo.isDragging = true;
                 if (!touchState.isPinching) document.body.style.cursor = 'move';
@@ -1309,13 +1316,15 @@ SM13,Stronghold,Stronghold,1%,Iron`;
 
         function handleMouseUp() {
             document.body.style.cursor = 'default';
-            if (!dragInfo.isDragging && dragInfo.clickedCell) {
+            if (!dragInfo.isDragging && dragInfo.clickedCell && !touchState.isPinching) {
                 selectedCell = dragInfo.clickedCell;
                 openModal();
             }
             dragInfo.isDragging = false;
             document.removeEventListener('mousemove', handleDragMove);
             document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
         }
 
         function handleWheel(e) {
@@ -1358,7 +1367,6 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     }
                     btn.onclick = () => {
                         selectedTradePostAlliance = allyKey;
-                        // Update button visual state
                         const allBtns = tradePostAllianceButtons.querySelectorAll('button');
                         allBtns.forEach(b => b.classList.remove('ring-2', 'ring-white'));
                         btn.classList.add('ring-2', 'ring-white');
