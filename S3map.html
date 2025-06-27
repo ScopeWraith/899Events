@@ -1241,11 +1241,8 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         }
         
         function handleTouchStart(e) {
-            const key = findKeyFromElement(e.target);
-            if(key) e.stopPropagation();
-
             if (e.touches.length === 1) {
-                handleMouseDown(e.touches[0], key);
+                handleMouseDown(e.touches[0], findKeyFromElement(e.target));
             } else if (e.touches.length === 2) {
                 e.preventDefault();
                 dragInfo.isDragging = false;
@@ -1269,7 +1266,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 view.zoom = newZoom;
                 updateViewTransform();
             } else if (!touchState.isPinching && e.touches.length === 1) {
-                handleDragMove(e.touches[0]);
+                handleMouseMove(e.touches[0]);
             }
         }
         function handleTouchEnd(e) {
@@ -1280,24 +1277,27 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         }
 
         function handleMouseDown(e, key = null) {
-            Object.assign(dragInfo, { isDragging: false, startX: e.pageX, startY: e.pageY, viewStartX: view.x, viewStartY: view.y, clickedCell: key });
-            document.addEventListener('mousemove', handleDragMove);
+            Object.assign(dragInfo, { 
+                isDragging: false, 
+                startX: e.pageX, 
+                startY: e.pageY, 
+                viewStartX: view.x, 
+                viewStartY: view.y, 
+                clickedCell: key 
+            });
+            document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
             clearTimeout(hideTooltipTimer);
             tooltip.classList.add('hidden');
         }
         
         function handleMouseMove(e) {
-            if(hoveredCell && !dragInfo.isDragging) {
-                tooltip.style.left = `${e.pageX + 20}px`;
-                tooltip.style.top = `${e.pageY + 20}px`;
-            }
             if (!dragInfo.isDragging && (Math.abs(e.pageX - dragInfo.startX) > 5 || Math.abs(e.pageY - dragInfo.startY) > 5)) {
                 dragInfo.isDragging = true;
-                if (!touchState.isPinching) document.body.style.cursor = 'move';
                 dragInfo.clickedCell = null; // It's a drag, not a tap
             }
             if (dragInfo.isDragging) {
+                document.body.style.cursor = 'move';
                 view.x = dragInfo.viewStartX + (e.pageX - dragInfo.startX);
                 view.y = dragInfo.viewStartY + (e.pageY - dragInfo.startY);
                 updateViewTransform();
@@ -1307,12 +1307,11 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         function handleMouseUp() {
             document.body.style.cursor = 'default';
             if (!dragInfo.isDragging && dragInfo.clickedCell && !touchState.isPinching) {
-                selectedCell = dragInfo.clickedCell;
-                openModal();
+                openModalForCell(dragInfo.clickedCell);
             }
             dragInfo.isDragging = false;
             dragInfo.clickedCell = null;
-            document.removeEventListener('mousemove', handleDragMove);
+            document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
         }
 
@@ -1340,12 +1339,9 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             return null;
         }
 
-        function openModal() {
-            if (!selectedCell) {
-                allianceModal.classList.add('hidden');
-                return;
-            }
-
+        function openModalForCell(cellKey) {
+            if (!cellKey) return;
+            selectedCell = cellKey;
             const data = plotData[selectedCell] || {};
             modalPlotId.textContent = `${data.customId || ''} (${selectedCell})`;
 
@@ -1634,9 +1630,6 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         app.addEventListener('mousedown', (e) => handleMouseDown(e, findKeyFromElement(e.target)));
         // Touch Listeners
         app.addEventListener('touchstart', handleTouchStart, { passive: false });
-        app.addEventListener('touchmove', handleTouchMove, { passive: false });
-        app.addEventListener('touchend', handleTouchEnd);
-        app.addEventListener('touchcancel', handleTouchEnd);
         
         setupServerSelection();
         initializeMap();
