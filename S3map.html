@@ -31,12 +31,27 @@
         .plot:hover {
              transform: scale(1.05);
         }
-        #tooltip, #action-tooltip {
+        #action-tooltip {
             pointer-events: none;
             transition: opacity 0.1s ease-in-out;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* New Tooltip Style */
+        #tooltip {
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(17, 24, 39, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+            opacity: 0;
+        }
+        #tooltip.visible {
+            opacity: 1;
+            transform: scale(1);
         }
         .modal-content {
              backdrop-filter: blur(12px);
@@ -83,14 +98,16 @@
         .action-button {
             width: 36px;
             height: 54px;
-            background-color: rgba(31, 41, 55, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-right: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #d1d5db; /* Softer icon color */
+            color: #e5e7eb;
             font-size: 1.25rem;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
             transition: all 0.2s ease-out;
@@ -116,19 +133,19 @@
             padding: 1rem;
         }
         /* Custom Scrollbar Styling */
-        #alliance-summary::-webkit-scrollbar, .modal-scroll-content::-webkit-scrollbar {
+        #alliance-summary::-webkit-scrollbar, .modal-scroll-content::-webkit-scrollbar, #modal-body-content::-webkit-scrollbar {
             width: 8px;
         }
-        #alliance-summary::-webkit-scrollbar-track, .modal-scroll-content::-webkit-scrollbar-track {
+        #alliance-summary::-webkit-scrollbar-track, .modal-scroll-content::-webkit-scrollbar-track, #modal-body-content::-webkit-scrollbar-track {
             background: rgba(0,0,0,0.2);
         }
-        #alliance-summary::-webkit-scrollbar-thumb, .modal-scroll-content::-webkit-scrollbar-thumb {
+        #alliance-summary::-webkit-scrollbar-thumb, .modal-scroll-content::-webkit-scrollbar-thumb, #modal-body-content::-webkit-scrollbar-thumb {
             background-color: rgba(255,255,255,0.2);
             border-radius: 4px;
             border: 2px solid transparent;
             background-clip: content-box;
         }
-        #alliance-summary::-webkit-scrollbar-thumb:hover, .modal-scroll-content::-webkit-scrollbar-thumb:hover {
+        #alliance-summary::-webkit-scrollbar-thumb:hover, .modal-scroll-content::-webkit-scrollbar-thumb:hover, #modal-body-content::-webkit-scrollbar-thumb:hover {
             background-color: rgba(255,255,255,0.4);
         }
         #button-dock {
@@ -170,22 +187,30 @@
         .summary-item .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-            padding: 0.5rem;
+            gap: 0.75rem; /* Increased gap */
+            padding: 0.75rem; /* Increased padding */
             font-size: 0.8rem;
             background-color: rgba(0,0,0,0.2);
         }
         .summary-item .stat-item {
             display: flex;
             align-items: center;
+            gap: 0.5rem; /* Gap between icon and text */
         }
         .summary-item .stat-item .fa-solid {
-            margin-right: 0.4rem;
             width: 1.2em;
             text-align: center;
         }
+        .summary-item .stat-label {
+            font-weight: 600;
+            color: #9ca3af; /* Lighter gray for label */
+        }
+        .summary-item .stat-value {
+            font-weight: 700;
+            color: #e5e7eb;
+        }
         .summary-item .buff-list {
-            padding: 0.5rem;
+            padding: 0.5rem 0.75rem;
             font-size: 0.75rem;
             background-color: rgba(0,0,0,0.1);
         }
@@ -226,6 +251,82 @@
 
         .plot .plot-label {
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Alliance Modal Overhaul */
+        #alliance-modal .modal-content {
+            width: 100%;
+            max-width: 28rem;
+            background: linear-gradient(145deg, rgba(23, 30, 46, 0.9), rgba(10, 14, 23, 0.95));
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+        #modal-header {
+            text-align: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+        #modal-body-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 0.5rem; /* For scrollbar */
+        }
+        #modal-alliance-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        .alliance-assign-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .alliance-assign-button:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        .alliance-assign-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            background-image: none !important;
+            background-color: rgba(75, 85, 99, 0.5) !important;
+            color: #9ca3af !important;
+        }
+        #modal-tool-dock {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+        .tool-dock-button {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+        }
+        .tool-dock-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .tool-dock-button.danger:hover {
+            background-color: #ef4444; /* red-500 */
+            color: #fff;
         }
         
         @media (max-width: 768px) {
@@ -294,9 +395,6 @@
 
     <!-- Action Dock -->
     <div id="action-dock">
-        <button id="help-btn" class="action-button" title="S3 Guide" style="border-radius: 8px 0 0 8px; color: #facc15;">
-            <i class="fa-solid fa-circle-question"></i>
-        </button>
         <button id="sidebar-toggle" class="action-button" title="Toggle Sidebar">
             <i class="fa-solid fa-chevron-right"></i>
         </button>
@@ -306,17 +404,45 @@
         <button id="import-btn" class="action-button" title="Import Map Data">
             <i class="fa-solid fa-file-import"></i>
         </button>
-        <button id="clear-btn" class="action-button" title="Clear All Assignments">
+        <button id="clear-btn" class="action-button" title="Clear All Assignments" style="border-radius: 0 0 0 8px;">
             <i class="fa-solid fa-trash"></i>
+        </button>
+        <button id="help-btn" class="action-button" title="S3 Guide" style="color: #facc15;">
+            <i class="fa-solid fa-circle-question"></i>
         </button>
     </div>
 
     <!-- Tooltips -->
-    <div id="tooltip" class="hidden absolute bg-black/50 text-white text-xs p-3 rounded-lg shadow-2xl opacity-0 z-50">
-        <h4 id="tooltip-title" class="font-bold text-sm text-sky-300"></h4>
-        <p><span class="font-semibold opacity-80">Level:</span> <span id="tooltip-level"></span></p>
-        <p><span class="font-semibold opacity-80">Buff:</span> <span id="tooltip-buff"></span></p>
-        <p id="tooltip-owner-p" class="hidden"><span class="font-semibold opacity-80">Owner:</span> <span id="tooltip-owner"></span></p>
+    <div id="tooltip" class="hidden absolute text-white text-sm rounded-xl shadow-2xl z-50 max-w-xs">
+        <!-- Tooltip Header -->
+        <div class="px-4 py-2 border-b border-slate-700/50">
+            <h4 id="tooltip-title" class="font-bold text-base text-sky-300 truncate"></h4>
+        </div>
+        <!-- Tooltip Body -->
+        <div class="p-4 space-y-3">
+            <div class="flex items-center justify-between gap-4">
+                <span class="font-semibold text-slate-400">Level</span>
+                <span id="tooltip-level" class="font-bold text-slate-100"></span>
+            </div>
+            <div id="tooltip-buff-p" class="flex items-center justify-between gap-4">
+                <span class="font-semibold text-slate-400">Buff</span>
+                <span id="tooltip-buff" class="font-bold text-slate-100 text-right"></span>
+            </div>
+            <div id="tooltip-owner-p" class="hidden flex items-center justify-between gap-4">
+                <span class="font-semibold text-slate-400">Owner</span>
+                <span id="tooltip-owner" class="font-bold text-slate-100"></span>
+            </div>
+            <!-- Divider for resources -->
+            <hr id="tooltip-resource-divider" class="hidden border-slate-700/50 my-2">
+            <div id="tooltip-mithril-p" class="hidden flex items-center justify-between gap-4">
+                <span class="font-semibold text-slate-400 flex items-center"><i class="fa-solid fa-gem text-sky-400 fa-fw mr-2"></i>Mithril/hr</span>
+                <span id="tooltip-mithril" class="font-bold text-sky-300"></span>
+            </div>
+            <div id="tooltip-spice-p" class="hidden flex items-center justify-between gap-4">
+                <span class="font-semibold text-slate-400 flex items-center"><i class="fa-solid fa-pepper-hot text-amber-400 fa-fw mr-2"></i>Spice/hr</span>
+                <span id="tooltip-spice" class="font-bold text-amber-300"></span>
+            </div>
+        </div>
     </div>
     <div id="action-tooltip" class="hidden absolute bg-gray-900/80 text-white text-xs p-2 rounded-md shadow-2xl opacity-0 z-50"></div>
 
@@ -357,40 +483,45 @@
     </div>
     
     <div id="alliance-modal" class="hidden fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
-        <div class="modal-content bg-gray-900/50 p-6 rounded-2xl shadow-2xl w-full max-w-sm text-white relative">
-            <button id="alliance-modal-close-x" class="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
-            <h3 id="modal-title" class="font-bold text-xl mb-1 text-sky-300"></h3>
-            <p id="modal-plot-id" class="text-xs text-slate-400 mb-4"></p>
+        <div class="modal-content p-6 rounded-2xl shadow-2xl text-white relative">
+            <button id="alliance-modal-close-x" class="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl z-10">&times;</button>
             
-            <div id="regular-plot-section">
-                <div id="modal-details" class="my-4 text-left bg-black/50 p-4 rounded-lg">
-                     <p><span class="font-semibold opacity-80">Level:</span> <span id="modal-level" class="font-bold"></span></p>
-                     <p><span class="font-semibold opacity-80">Buff:</span> <span id="modal-buff" class="font-bold"></span></p>
+            <div id="modal-header">
+                <h3 id="modal-title" class="font-bold text-xl text-sky-300"></h3>
+                <p id="modal-plot-id" class="text-xs text-slate-400"></p>
+            </div>
+            
+            <div id="modal-body-content">
+                <div id="regular-plot-section">
+                    <div id="modal-details" class="mb-4 text-left bg-black/30 p-4 rounded-lg border border-slate-700/50">
+                        <p><span class="font-semibold opacity-80 w-20 inline-block">Level:</span> <span id="modal-level" class="font-bold"></span></p>
+                        <p><span class="font-semibold opacity-80 w-20 inline-block">Buff:</span> <span id="modal-buff" class="font-bold"></span></p>
+                        <p id="modal-mithril-p"><i class="fa-solid fa-gem text-sky-400 fa-fw mr-1"></i><span class="font-semibold opacity-80 w-16 inline-block">Mithril/hr:</span> <span id="modal-mithril" class="font-bold"></span></p>
+                        <p id="modal-spice-p"><i class="fa-solid fa-pepper-hot text-amber-400 fa-fw mr-1"></i><span class="font-semibold opacity-80 w-16 inline-block">Spice/hr:</span> <span id="modal-spice" class="font-bold"></span></p>
+                    </div>
+                    <h4 class="text-center font-semibold text-slate-300 mb-3">Assign to Alliance</h4>
+                    <div id="modal-alliance-list"></div>
                 </div>
-                <div id="modal-buttons" class="grid grid-cols-2 gap-3"></div>
+
+                <div id="trade-post-section" class="hidden">
+                    <div class="my-4 text-left">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Owner Alliance</label>
+                        <div id="trade-post-alliance-buttons" class="grid grid-cols-2 gap-3 mb-4"></div>
+                        <label for="player-name-input" class="block text-sm font-medium text-slate-300 mb-2">Owner Player Name</label>
+                        <input type="text" id="player-name-input" class="w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Enter player name...">
+                    </div>
+                    <button id="save-trade-post-btn" class="w-full bg-sky-600 text-white p-2 rounded-lg font-semibold hover:bg-sky-500 transition-colors">
+                        Save Owner
+                    </button>
+                    <button id="trade-post-help-btn" class="w-full mt-4 bg-amber-600/80 text-white p-2 rounded-lg font-bold hover:bg-amber-500/90 transition-all shadow-lg hover:shadow-amber-500/50 transform hover:scale-105">
+                        <i class="fa-solid fa-circle-info mr-2"></i>Trade Post Help
+                    </button>
+                </div>
             </div>
 
-            <div id="trade-post-section" class="hidden">
-                <div class="my-4 text-left">
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Owner Alliance</label>
-                    <div id="trade-post-alliance-buttons" class="grid grid-cols-2 gap-3 mb-4"></div>
-                    <label for="player-name-input" class="block text-sm font-medium text-slate-300 mb-2">Owner Player Name</label>
-                    <input type="text" id="player-name-input" class="w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Enter player name...">
-                </div>
-                <button id="save-trade-post-btn" class="w-full bg-sky-600 text-white p-2 rounded-lg font-semibold hover:bg-sky-500 transition-colors">
-                    Save Owner
-                </button>
-                 <button id="trade-post-help-btn" class="w-full mt-4 bg-amber-600/80 text-white p-2 rounded-lg font-bold hover:bg-amber-500/90 transition-all shadow-lg hover:shadow-amber-500/50 transform hover:scale-105">
-                    <i class="fa-solid fa-circle-info mr-2"></i>Trade Post Help
-                </button>
-            </div>
-
-            <div class="flex gap-3 mt-4">
-                 <button id="modal-clear-btn" class="w-full bg-red-800/80 text-slate-200 p-2 rounded-lg font-semibold hover:bg-red-700/90 transition-colors">
-                    Clear
-                </button>
-                <button id="modal-close-btn" class="w-full bg-gray-700 text-slate-200 p-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors">
-                    Close
+            <div id="modal-tool-dock">
+                 <button id="modal-clear-btn" class="tool-dock-button danger" title="Clear Assignment">
+                    <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
         </div>
@@ -816,14 +947,14 @@ SM13,Stronghold,Stronghold,1%,Iron`;
 
         // --- DOM REFERENCES ---
         const app = document.getElementById('app');
-        const tooltip = document.getElementById('tooltip'), tooltipTitle = document.getElementById('tooltip-title'), tooltipLevel = document.getElementById('tooltip-level'), tooltipBuff = document.getElementById('tooltip-buff'), tooltipOwnerP = document.getElementById('tooltip-owner-p'), tooltipOwner = document.getElementById('tooltip-owner');
+        const tooltip = document.getElementById('tooltip'), tooltipTitle = document.getElementById('tooltip-title'), tooltipLevel = document.getElementById('tooltip-level'), tooltipBuff = document.getElementById('tooltip-buff'), tooltipOwnerP = document.getElementById('tooltip-owner-p'), tooltipOwner = document.getElementById('tooltip-owner'), tooltipMithril = document.getElementById('tooltip-mithril'), tooltipSpice = document.getElementById('tooltip-spice'), tooltipBuffP = document.getElementById('tooltip-buff-p'), tooltipMithrilP = document.getElementById('tooltip-mithril-p'), tooltipSpiceP = document.getElementById('tooltip-spice-p');
         const actionTooltip = document.getElementById('action-tooltip');
         
         // Modals
         const allianceModal = document.getElementById('alliance-modal'), modalTitle = document.getElementById('modal-title'), modalPlotId = document.getElementById('modal-plot-id');
         const regularPlotSection = document.getElementById('regular-plot-section');
-        const modalDetails = document.getElementById('modal-details'), modalLevel = document.getElementById('modal-level'), modalBuffEl = document.getElementById('modal-buff');
-        const modalButtons = document.getElementById('modal-buttons'), modalClearBtn = document.getElementById('modal-clear-btn'), modalCloseBtn = document.getElementById('modal-close-btn');
+        const modalDetails = document.getElementById('modal-details'), modalLevel = document.getElementById('modal-level'), modalBuffEl = document.getElementById('modal-buff'), modalMithrilEl = document.getElementById('modal-mithril'), modalSpiceEl = document.getElementById('modal-spice');
+        const modalAllianceList = document.getElementById('modal-alliance-list'), modalClearBtn = document.getElementById('modal-clear-btn');
         const tradePostSection = document.getElementById('trade-post-section');
         const tradePostAllianceButtons = document.getElementById('trade-post-alliance-buttons');
         const playerNameInput = document.getElementById('player-name-input');
@@ -882,7 +1013,8 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                         buff: data.Buff, 
                         alliance: null, 
                         customId: customId,
-                        mithril: MITHRIL_RATES[level] || 0
+                        mithril: MITHRIL_RATES[level] || 0,
+                        spice: 0
                     };
                 }
             }
@@ -901,7 +1033,8 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                         buff: data.Buff, 
                         alliance: null, 
                         customId: customId,
-                        spice: SPICE_RATES[level] || 0,
+                        spice: data.Type === 'Trade Post' ? 0 : SPICE_RATES[level] || 0,
+                        mithril: 0,
                         playerName: ''
                     };
                 }
@@ -1100,10 +1233,10 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     <div class="summary-item">
                         <h5 class="${allyInfo.textColor} ${allyInfo.color} text-center text-sm">${allyInfo.name}</h5>
                         <div class="stats-grid">
-                            <div class="stat-item" title="Strongholds"><i class="fa-solid fa-chess-rook text-slate-400"></i> ${counts.Stronghold}/${landLimits.Stronghold}</div>
-                            <div class="stat-item" title="Cities"><i class="fa-solid fa-city text-slate-400"></i> ${counts.City}/${landLimits.City}</div>
-                            <div class="stat-item" title="Mithril per hour"><i class="fa-solid fa-gem text-sky-400"></i> ${allyData.totalMithril.toLocaleString()}</div>
-                            <div class="stat-item" title="Spice per hour"><i class="fa-solid fa-pepper-hot text-amber-400"></i> ${allyData.totalSpice.toLocaleString()}</div>
+                            <div class="stat-item" title="Strongholds"><i class="fa-solid fa-chess-rook text-slate-300"></i><span class="stat-label">Strongholds:</span><span class="stat-value">${counts.Stronghold}/${landLimits.Stronghold}</span></div>
+                            <div class="stat-item" title="Cities"><i class="fa-solid fa-city text-slate-300"></i><span class="stat-label">Cities:</span><span class="stat-value">${counts.City}/${landLimits.City}</span></div>
+                            <div class="stat-item" title="Mithril per hour"><i class="fa-solid fa-gem text-sky-400"></i><span class="stat-label">Mithril:</span><span class="stat-value">${allyData.totalMithril.toLocaleString()} pH</span></div>
+                            <div class="stat-item" title="Spice per hour"><i class="fa-solid fa-pepper-hot text-amber-400"></i><span class="stat-label">Spice:</span><span class="stat-value">${allyData.totalSpice.toLocaleString()} pH</span></div>
                         </div>
                         ${buffText ? `<div class="buff-list text-slate-400"><strong>Buffs:</strong> ${buffText}</div>` : ''}
                     </div>
@@ -1165,7 +1298,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     plotElements.set(key, el); 
                     updatePlotLabel(key); 
                     el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
-                    el.addEventListener('mouseleave', () => handleMouseLeave(e));
+                    el.addEventListener('mouseleave', (e) => handleMouseLeave(e));
                     mainPlotGrid.appendChild(el);
                 }
             }
@@ -1182,7 +1315,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                     plotElements.set(key, el);
                     updatePlotLabel(key); 
                     el.addEventListener('mouseenter', (e) => handleMouseEnter(e, key));
-                    el.addEventListener('mouseleave', () => handleMouseLeave(e));
+                    el.addEventListener('mouseleave', (e) => handleMouseLeave(e));
                     cornerPlotContainer.appendChild(el);
                 }
             }
@@ -1211,11 +1344,14 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                  el.addEventListener('mousemove', updateTooltipPosition);
             }
             
-            const tooltipBuffP = tooltipBuff.parentElement;
+            tooltipTitle.textContent = `${data.name || "Plot"} (${data.customId || ""})`;
+            tooltipLevel.textContent = data.level || "N/A";
+            
             if (data.name === 'Trade Post') {
                 tooltipBuffP.classList.add('hidden');
                 const allyInfo = data.alliance ? activeAlliances[data.alliance] : null;
-                tooltipTitle.textContent = allyInfo ? allyInfo.name : 'Trade Post';
+                if (allyInfo) tooltipTitle.textContent = `${allyInfo.name}'s Trade Post`;
+                
                 if (data.playerName) {
                     tooltipOwner.textContent = data.playerName;
                     tooltipOwnerP.classList.remove('hidden');
@@ -1226,28 +1362,46 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 tooltipBuffP.classList.remove('hidden');
                 tooltipOwnerP.classList.add('hidden');
                 tooltipBuff.textContent = data.buff || "N/A";
-                tooltipTitle.textContent = `${data.name || "Plot"} (${data.customId || ""})`;
             }
 
-            tooltipLevel.textContent = data.level || "N/A";
+            const hasResources = data.mithril > 0 || data.spice > 0;
+            document.getElementById('tooltip-resource-divider').classList.toggle('hidden', !hasResources);
+
+            if (data.mithril > 0) {
+                tooltipMithril.textContent = data.mithril.toLocaleString();
+                tooltipMithrilP.classList.remove('hidden');
+            } else {
+                tooltipMithrilP.classList.add('hidden');
+            }
+
+            if (data.spice > 0) {
+                tooltipSpice.textContent = data.spice.toLocaleString();
+                tooltipSpiceP.classList.remove('hidden');
+            } else {
+                tooltipSpiceP.classList.add('hidden');
+            }
+
             tooltip.classList.remove('hidden');
-            tooltip.style.opacity = '1';
+            setTimeout(() => {
+                tooltip.classList.add('visible');
+            }, 10);
             updateTooltipPosition(e);
         }
         
         function handleMouseLeave(e) {
             hoveredCell = null;
+            tooltip.classList.remove('visible');
             hideTooltipTimer = setTimeout(() => {
-                tooltip.style.opacity = '0';
-                setTimeout(() => tooltip.classList.add('hidden'), 100);
-            }, 50);
+                tooltip.classList.add('hidden');
+            }, 200); // Match the CSS transition duration
+
              if (e.currentTarget) {
                 e.currentTarget.removeEventListener('mousemove', updateTooltipPosition);
             }
         }
         
         function updateTooltipPosition(e) {
-            if (tooltip.classList.contains('hidden')) return;
+            if (tooltip.classList.contains('hidden') && !tooltip.classList.contains('visible')) return;
             tooltip.style.left = `${e.pageX + 20}px`;
             tooltip.style.top = `${e.pageY + 20}px`;
         }
@@ -1356,10 +1510,10 @@ SM13,Stronghold,Stronghold,1%,Iron`;
             if (!cellKey) return;
             selectedCell = cellKey;
             const data = plotData[selectedCell] || {};
-            modalPlotId.textContent = `${data.customId || ''} (${selectedCell})`;
+            modalPlotId.textContent = `ID: ${data.customId || ''} (${selectedCell})`;
 
             if (data.name === 'Trade Post') {
-                modalTitle.textContent = `Trade Post Owner`;
+                modalTitle.textContent = `Assign Trade Post`;
                 regularPlotSection.classList.add('hidden');
                 tradePostSection.classList.remove('hidden');
                 modalClearBtn.classList.remove('hidden');
@@ -1371,41 +1525,45 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 Object.entries(activeAlliances).forEach(([allyKey, allyData]) => {
                     const btn = document.createElement('button');
                     btn.textContent = allyData.name;
-                    btn.className = `p-3 rounded-lg font-semibold transition-all duration-150 ease-in-out hover:scale-105 ${allyData.color} ${allyData.textColor}`;
+                    btn.className = `alliance-assign-button ${allyData.color} ${allyData.textColor}`;
                     if (allyKey === selectedTradePostAlliance) {
-                        btn.classList.add('ring-2', 'ring-white');
+                        btn.classList.add('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-gray-800');
                     }
                     btn.onclick = () => {
                         selectedTradePostAlliance = allyKey;
                         const allBtns = tradePostAllianceButtons.querySelectorAll('button');
-                        allBtns.forEach(b => b.classList.remove('ring-2', 'ring-white'));
-                        btn.classList.add('ring-2', 'ring-white');
+                        allBtns.forEach(b => b.classList.remove('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-gray-800'));
+                        btn.classList.add('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-gray-800');
                     };
                     tradePostAllianceButtons.appendChild(btn);
                 });
 
             } else { // Regular Plots
-                modalTitle.textContent = `${data.name} Details`;
+                modalTitle.textContent = `Assign ${data.name}`;
                 tradePostSection.classList.add('hidden');
                 regularPlotSection.classList.remove('hidden');
                 modalClearBtn.classList.remove('hidden');
 
                 modalLevel.textContent = data.level || 'N/A';
                 modalBuffEl.textContent = data.buff || 'N/A';
+                modalMithrilEl.textContent = data.mithril?.toLocaleString() || '0';
+                modalSpiceEl.textContent = data.spice?.toLocaleString() || '0';
+                
+                document.getElementById('modal-mithril-p').style.display = data.mithril > 0 ? 'flex' : 'none';
+                document.getElementById('modal-spice-p').style.display = data.spice > 0 ? 'flex' : 'none';
                 
                 const plotCounts = getPlotCounts();
-                modalButtons.innerHTML = '';
+                modalAllianceList.innerHTML = '';
                 Object.entries(activeAlliances).forEach(([allyKey, allyData]) => {
                     const btn = document.createElement('button');
                     btn.textContent = allyData.name;
-                    btn.className = `p-3 rounded-lg font-semibold transition-all duration-150 ease-in-out hover:scale-105 ${allyData.color} ${allyData.textColor}`;
+                    btn.className = `alliance-assign-button ${allyData.color} ${allyData.textColor}`;
                     
                     const counts = plotCounts[allyKey];
                     if (counts) {
                         const isAtLimit = (counts[data.type] >= landLimits[data.type]);
                         if (isAtLimit && data.alliance !== allyKey) {
                             btn.disabled = true;
-                            btn.classList.add('opacity-50', 'cursor-not-allowed');
                         }
                     }
 
@@ -1417,7 +1575,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                         updateAllianceStats();
                         closeModal();
                     };
-                    modalButtons.appendChild(btn);
+                    modalAllianceList.appendChild(btn);
                 });
             }
             allianceModal.classList.remove('hidden');
@@ -1446,7 +1604,6 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         };
         
         allianceModalCloseX.onclick = closeModal;
-        modalCloseBtn.onclick = closeModal;
 
         // Trade Post Listeners
         saveTradePostBtn.onclick = () => {
