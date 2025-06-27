@@ -1271,7 +1271,7 @@ SM13,Stronghold,Stronghold,1%,Iron`;
                 view.y -= y * (newZoom - view.zoom);
                 view.zoom = newZoom;
                 updateViewTransform();
-            } else if (!touchState.isPinching) {
+            } else if (!touchState.isPinching && e.touches.length > 0) {
                 handleDragMove(e.touches[0]);
             }
         }
@@ -1628,11 +1628,9 @@ SM13,Stronghold,Stronghold,1%,Iron`;
         if (window.innerWidth <= 768) {
             sidebar.classList.add('collapsed');
         }
-        app.addEventListener('wheel', handleWheel);
+        app.addEventListener('wheel', handleWheel, { passive: false });
         app.addEventListener('mousedown', (e) => handleMouseDown(e, null));
         app.addEventListener('touchstart', handleTouchStart, { passive: false });
-        app.addEventListener('touchmove', handleTouchMove, { passive: false });
-        app.addEventListener('touchend', handleTouchEnd);
         
         setupServerSelection();
         initializeMap();
