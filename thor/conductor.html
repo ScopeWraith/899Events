@@ -94,11 +94,18 @@
                 <!-- Conductor Display -->
                 <div class="relative mb-3">
                     <h2 class="text-xl font-bold text-yellow-400 text-center text-glow">Today's Conductor</h2>
-                     <button id="info-button" class="absolute top-0 right-0 text-slate-400 hover:text-cyan-400 transition-colors" title="Luck System Info">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </button>
+                     <div class="absolute top-0 right-0 flex space-x-2">
+                        <button id="help-button" class="text-slate-400 hover:text-cyan-400 transition-colors" title="Selection Rules">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </button>
+                        <button id="info-button" class="text-slate-400 hover:text-cyan-400 transition-colors" title="Luck System Info">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-4 min-h-[100px] flex items-center justify-center text-center">
                     <span id="conductor-name" class="font-orbitron text-2xl md:text-3xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
@@ -114,9 +121,9 @@
                             CHOOSE LEADER
                         </button>
                     </div>
-                     <div id="lock-in-container" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button id="cancel-lock-in-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
-                            CANCEL
+                     <div id="pending-buttons-container" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button id="substitute-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
+                            CHOOSE SUBSTITUTE
                         </button>
                         <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">
                             LOCK IN CONDUCTOR
@@ -159,6 +166,32 @@
     </div>
 
     <!-- Modals -->
+     <div id="confirmation-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
+        <div class="card p-6 w-full max-w-sm text-center">
+            <h2 id="confirmation-title" class="text-lg font-bold text-white mb-4">Are you sure?</h2>
+            <p id="confirmation-message" class="text-sm text-slate-300 mb-6">This action cannot be undone.</p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirm-cancel-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-6 rounded-lg text-sm">Cancel</button>
+                <button id="confirm-action-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg text-sm">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <div id="help-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
+        <div class="card p-6 w-full max-w-md relative">
+             <button id="close-help-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white">&times;</button>
+            <h2 class="text-xl font-bold text-white mb-4">Selection Rules</h2>
+            <div class="text-sm space-y-4 text-slate-300">
+                <p>The algorithm follows these cooldown periods to ensure fair distribution:</p>
+                <ul class="list-disc list-inside space-y-1">
+                    <li><span class="font-semibold">R1 Members:</span> Cannot be chosen more than once every 120 days.</li>
+                    <li><span class="font-semibold">R2 Members:</span> Cannot be chosen more than once every 90 days.</li>
+                    <li><span class="font-semibold">R3 Members:</span> Cannot be chosen more than once every 60 days.</li>
+                    <li><span class="font-semibold">R4 Members:</span> Cannot be chosen more than once every 45 days.</li>
+                </ul>
+                <p class="pt-2 italic">Note: If all members in a selection pool are on cooldown, these rules will be temporarily ignored to ensure a conductor can always be selected.</p>
+            </div>
+        </div>
+    </div>
     <div id="info-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
         <div class="card p-6 w-full max-w-md relative">
              <button id="close-info-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white">&times;</button>
@@ -262,9 +295,7 @@
                 'Alliance Star - Gold': 15, 'Alliance Star - Silver': 12, 'Alliance Star - Bronze': 10,
                 'Alliance Donator - 1st': 10, 'Alliance Donator - 2nd': 8, 'Alliance Donator - 3rd': 5,
             };
-            const leadershipTeam = ["Cindelll", "Ms Andrea", "Squeeze1", "Drewstroyer", "Dumpchicken", "MattCat 맷 더 캣", "KBL50", "SimBLÅNK", "BLÅNK", "LÅDY", "ScopeWraith"];
-            const leadershipCooldownDays = 14;
-            const memberCooldownDays = 30;
+            const RANK_COOLDOWN = { 'R1': 120, 'R2': 90, 'R3': 60, 'R4': 45, 'R5': 14 };
 
             // --- ELEMENTS ---
             const loadingOverlay = document.getElementById('loading-overlay');
@@ -273,8 +304,8 @@
             const randomSelectButton = document.getElementById('random-select-button');
             const leaderSelectButton = document.getElementById('leader-select-button');
             const lockInButton = document.getElementById('lock-in-button');
-            const cancelLockInButton = document.getElementById('cancel-lock-in-button');
-            const lockInContainer = document.getElementById('lock-in-container');
+            const substituteButton = document.getElementById('substitute-button');
+            const pendingButtonsContainer = document.getElementById('pending-buttons-container');
             const randomButtonsContainer = document.getElementById('random-buttons-container');
             const addMemberButton = document.getElementById('add-member-button');
             const manualPickListContainer = document.getElementById('manual-pick-list-container');
@@ -299,14 +330,23 @@
             const infoButton = document.getElementById('info-button');
             const infoModal = document.getElementById('info-modal');
             const closeInfoModalBtn = document.getElementById('close-info-modal-btn');
+            const helpButton = document.getElementById('help-button');
+            const helpModal = document.getElementById('help-modal');
+            const closeHelpModalBtn = document.getElementById('close-help-modal-btn');
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const confirmationTitle = document.getElementById('confirmation-title');
+            const confirmationMessage = document.getElementById('confirmation-message');
+            const confirmActionBtn = document.getElementById('confirm-action-btn');
+            const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
 
             // --- LOCAL STATE ---
             let allianceMembers = [];
             let selectionHistory = [];
             let currentConductor = 'SELECT A CONDUCTOR';
-            let previewConductor = null;
+            let pendingConductor = null;
             let memberToEditId = null;
             let db, docRef;
+            let confirmCallback = null;
 
             // --- FIREBASE SETUP ---
             async function initializeFirebase() {
@@ -509,46 +549,70 @@
             };
 
             // --- UI STATE MANAGEMENT ---
-            function showLockInMode(name) {
-                previewConductor = name;
+            function showPendingMode(name) {
+                pendingConductor = name;
                 conductorNameSpan.textContent = name;
                 conductorNameSpan.classList.remove('text-yellow-400', 'text-glow', 'text-slate-500');
                 conductorNameSpan.classList.add('text-cyan-400');
                 randomButtonsContainer.classList.add('hidden');
-                lockInContainer.classList.remove('hidden');
+                pendingButtonsContainer.classList.remove('hidden');
             }
             function showRandomMode() {
-                previewConductor = null;
+                pendingConductor = null;
                 renderConductor();
                 randomButtonsContainer.classList.remove('hidden');
-                lockInContainer.classList.add('hidden');
+                pendingButtonsContainer.classList.add('hidden');
+            }
+            function showConfirmationModal(title, message, onConfirm) {
+                confirmationTitle.textContent = title;
+                confirmationMessage.textContent = message;
+                confirmCallback = onConfirm;
+                confirmationModal.classList.remove('hidden');
             }
 
             // --- CORE LOGIC & EVENT HANDLERS ---
-            const selectRandomly = (pool, buttonToUpdate) => {
+            const selectRandomly = (pool, buttonToUpdate, excludedMember = null) => {
                 showRandomMode();
                 if (pool.length === 0) return;
                 
                 randomSelectButton.disabled = true;
                 leaderSelectButton.disabled = true;
-                buttonToUpdate.textContent = 'CHOOSING...';
+                if (buttonToUpdate) buttonToUpdate.textContent = 'CHOOSING...';
 
                 const now = new Date();
                 const eligibleByCooldown = pool.filter(member => {
-                    const memberName = typeof member === 'object' ? member.name : member;
+                    const memberObject = typeof member === 'object' ? member : allianceMembers.find(m => m.name === member);
+                    if (!memberObject) return false;
+                    if(excludedMember && memberObject.name === excludedMember.name) return false;
+
+                    const memberName = memberObject.name;
+                    const memberRank = memberObject.rank;
+
                     const memberHistory = selectionHistory.filter(h => h.player === memberName).sort((a, b) => new Date(`2000-${b.date.replace('-', '/')}`) - new Date(`2000-${a.date.replace('-', '/')}`));
                     if (memberHistory.length === 0) return true;
+                    
                     const lastSelection = memberHistory[0];
                     const lastDate = new Date(now.getFullYear(), parseInt(lastSelection.date.split('-')[0]) - 1, parseInt(lastSelection.date.split('-')[1]));
                     if (now < lastDate) lastDate.setFullYear(now.getFullYear() - 1);
+                    
                     const diffTime = now - lastDate;
                     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                    const isLeader = leadershipTeam.includes(memberName);
-                    const cooldown = isLeader ? leadershipCooldownDays : memberCooldownDays;
+                    
+                    const cooldown = RANK_COOLDOWN[memberRank] || 30;
+
                     return diffDays >= cooldown;
                 });
                 
-                const selectionPool = eligibleByCooldown.length > 0 ? eligibleByCooldown : pool;
+                const selectionPool = eligibleByCooldown.length > 0 ? eligibleByCooldown : pool.filter(m => excludedMember ? m.name !== excludedMember.name : true);
+
+                if (selectionPool.length === 0) {
+                    alert("No eligible members found based on current rules.");
+                     randomSelectButton.disabled = false;
+                     leaderSelectButton.disabled = false;
+                     if(buttonToUpdate) buttonToUpdate.textContent = 'CHOOSE RANDOMLY';
+                     leaderSelectButton.textContent = 'CHOOSE LEADER';
+                    return;
+                }
 
                 const weightedPool = selectionPool.map(member => {
                     const memberObject = typeof member === 'object' ? member : allianceMembers.find(m => m.name === member);
@@ -577,18 +641,10 @@
                     conductorNameSpan.classList.add('text-cyan-400');
                     if (++drumRollCount > 15) {
                         clearInterval(drumRollInterval);
-                        
-                        currentConductor = winner.name;
-                        
-                        const today = new Date();
-                        const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                        selectionHistory.unshift({ player: winner.name, date: dateStr, id: Date.now() });
-                        
-                        updateFirestore();
-                        
+                        showPendingMode(winner.name);
                         randomSelectButton.disabled = false;
                         leaderSelectButton.disabled = false;
-                        randomSelectButton.textContent = 'CHOOSE RANDOMLY';
+                        if(buttonToUpdate) buttonToUpdate.textContent = 'CHOOSE RANDOMLY';
                         leaderSelectButton.textContent = 'CHOOSE LEADER';
                     }
                 }, 100);
@@ -601,7 +657,7 @@
             });
             manualPickListContainer.addEventListener('click', (e) => {
                 const pickBtn = e.target.closest('.manual-pick-btn');
-                if (pickBtn) showLockInMode(pickBtn.dataset.name);
+                if (pickBtn) showPendingMode(pickBtn.dataset.name);
 
                 const editBtn = e.target.closest('.edit-member-btn');
                 if (editBtn) {
@@ -622,16 +678,23 @@
                 }
             });
             lockInButton.addEventListener('click', () => {
-                if(previewConductor) {
-                    currentConductor = previewConductor;
-                    const today = new Date();
-                    const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                    selectionHistory.unshift({ player: currentConductor, date: dateStr, id: Date.now() });
-                    updateFirestore();
-                    showRandomMode();
-                }
+                showConfirmationModal('Lock In Conductor?', `Are you sure you want to lock in ${pendingConductor}?`, () => {
+                    if(pendingConductor) {
+                        currentConductor = pendingConductor;
+                        const today = new Date();
+                        const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                        selectionHistory.unshift({ player: currentConductor, date: dateStr, id: Date.now() });
+                        updateFirestore();
+                        showRandomMode();
+                    }
+                });
             });
-            cancelLockInButton.addEventListener('click', showRandomMode);
+            substituteButton.addEventListener('click', () => {
+                showConfirmationModal('Choose Substitute?', `This will return ${pendingConductor} to the pool and pick a new conductor.`, () => {
+                    const originalPick = allianceMembers.find(m => m.name === pendingConductor);
+                    selectRandomly(allianceMembers, null, originalPick);
+                });
+            });
             historyListContainer.addEventListener('click', (e) => {
                  const deleteButton = e.target.closest('.delete-history-btn');
                  if (deleteButton) {
@@ -692,6 +755,18 @@
             infoButton.addEventListener('click', () => infoModal.classList.remove('hidden'));
             closeInfoModalBtn.addEventListener('click', () => infoModal.classList.add('hidden'));
             infoModal.addEventListener('click', (e) => { if (e.target.id === 'info-modal') infoModal.classList.add('hidden'); });
+
+            helpButton.addEventListener('click', () => helpModal.classList.remove('hidden'));
+            closeHelpModalBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+            helpModal.addEventListener('click', (e) => { if (e.target.id === 'help-modal') helpModal.classList.add('hidden'); });
+
+            confirmCancelBtn.addEventListener('click', () => confirmationModal.classList.add('hidden'));
+            confirmActionBtn.addEventListener('click', () => {
+                if(typeof confirmCallback === 'function') {
+                    confirmCallback();
+                }
+                confirmationModal.classList.add('hidden');
+            });
 
             tabManualPick.addEventListener('click', () => {
                 tabManualPick.classList.add('active');
