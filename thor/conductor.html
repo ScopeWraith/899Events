@@ -98,12 +98,17 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
-                        CHOOSE RANDOMLY
-                    </button>
-                    <button id="leader-select-button" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-purple-300/50">
-                        CHOOSE LEADER
+                <div id="action-buttons-container" class="mt-4">
+                    <div id="random-buttons-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
+                            CHOOSE RANDOMLY
+                        </button>
+                        <button id="leader-select-button" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-purple-300/50">
+                            CHOOSE LEADER
+                        </button>
+                    </div>
+                     <button id="lock-in-button" class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">
+                        LOCK IN CONDUCTOR
                     </button>
                 </div>
 
@@ -120,7 +125,7 @@
                         <!-- Manual Pick Content -->
                         <div id="content-manual-pick">
                             <div class="flex justify-between items-center mb-2">
-                                <h3 class="text-base font-bold text-white">Alliance Members (<span id="member-count">0</span>)</h3>
+                                <h3 class="text-base font-bold text-white">Alliance Members</h3>
                                 <button id="add-member-button" class="text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 </button>
@@ -130,6 +135,9 @@
 
                         <!-- History Content -->
                         <div id="content-history" class="hidden">
+                             <div class="mb-2">
+                                <input type="text" id="history-search-input" placeholder="Search player history..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                             </div>
                              <div id="history-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 220px;"></div>
                         </div>
                     </div>
@@ -137,6 +145,61 @@
             </div>
         </main>
     </div>
+
+    <!-- Add Member Modal -->
+    <div id="add-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
+        <div class="card p-6 w-full max-w-sm">
+            <h2 class="text-xl font-bold text-white mb-4">Add New Member</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="add-name-input" class="block text-sm font-medium text-slate-300">Name</label>
+                    <input type="text" id="add-name-input" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                </div>
+                <div>
+                    <label for="add-rank-select" class="block text-sm font-medium text-slate-300">Rank</label>
+                    <select id="add-rank-select" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                        <option>R1</option>
+                        <option>R2</option>
+                        <option>R3</option>
+                        <option>R4</option>
+                        <option>R5</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancel-add-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                <button id="save-add-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Save Member</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Member Modal -->
+    <div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
+        <div class="card p-6 w-full max-w-sm">
+            <h2 class="text-xl font-bold text-white mb-4">Edit Member</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="edit-name-input" class="block text-sm font-medium text-slate-300">Name</label>
+                    <input type="text" id="edit-name-input" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                </div>
+                <div>
+                    <label for="edit-rank-select" class="block text-sm font-medium text-slate-300">Rank</label>
+                    <select id="edit-rank-select" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                        <option>R1</option>
+                        <option>R2</option>
+                        <option>R3</option>
+                        <option>R4</option>
+                        <option>R5</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancel-edit-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                <button id="save-edit-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
 
     <script type="module">
         // Import Firebase modules
@@ -151,21 +214,38 @@
             const conductorNameSpan = document.getElementById('conductor-name');
             const randomSelectButton = document.getElementById('random-select-button');
             const leaderSelectButton = document.getElementById('leader-select-button');
+            const lockInButton = document.getElementById('lock-in-button');
+            const randomButtonsContainer = document.getElementById('random-buttons-container');
             const addMemberButton = document.getElementById('add-member-button');
             const manualPickListContainer = document.getElementById('manual-pick-list-container');
-            const memberCountSpan = document.getElementById('member-count');
             const tabManualPick = document.getElementById('tab-manual-pick');
             const tabHistory = document.getElementById('tab-history');
             const contentManualPick = document.getElementById('content-manual-pick');
             const contentHistory = document.getElementById('content-history');
+            const historySearchInput = document.getElementById('history-search-input');
+            const addModal = document.getElementById('add-modal');
+            const addNameInput = document.getElementById('add-name-input');
+            const addRankSelect = document.getElementById('add-rank-select');
+            const saveAddBtn = document.getElementById('save-add-btn');
+            const cancelAddBtn = document.getElementById('cancel-add-btn');
+            const editModal = document.getElementById('edit-modal');
+            const editNameInput = document.getElementById('edit-name-input');
+            const editRankSelect = document.getElementById('edit-rank-select');
+            const saveEditBtn = document.getElementById('save-edit-btn');
+            const cancelEditBtn = document.getElementById('cancel-edit-btn');
 
             // --- LOCAL STATE ---
-            let allianceMembers = [];
+            let allianceMembers = []; // Now an array of objects: {id, name, rank}
             let selectionHistory = [];
+            let currentConductor = 'SELECT A CONDUCTOR';
+            let previewConductor = null;
+            let memberToEditId = null;
             const leadershipTeam = [
                 "Cindelll", "Ms Andrea", "Squeeze1", "Drewstroyer", "Dumpchicken",
                 "MattCat 맷 더 캣", "KBL50", "SimBLÅNK", "BLÅNK", "LÅDY", "ScopeWraith"
             ];
+            const leadershipCooldownDays = 14;
+            const memberCooldownDays = 30;
             let db, docRef;
 
             // --- FIREBASE SETUP ---
@@ -193,12 +273,18 @@
                     onSnapshot(docRef, (docSnap) => {
                         if (docSnap.exists()) {
                             const data = docSnap.data();
-                            allianceMembers = data.members || [];
-                            // Ensure all history items have a unique ID for reliable deletion
+                            // Handle legacy string data and ensure all members are objects with id, name, rank
+                            allianceMembers = (data.members || []).map((member, index) => {
+                                if (typeof member === 'string') {
+                                    return { id: Date.now() + index, name: member, rank: 'R1' };
+                                }
+                                return { ...member, id: member.id || Date.now() + index };
+                            });
                             selectionHistory = (data.history || []).map((item, index) => ({
                                 ...item,
                                 id: item.id || Date.now() + index 
                             }));
+                            currentConductor = data.currentConductor || 'SELECT A CONDUCTOR';
                         } else {
                             console.log("No data found in Firestore. Initializing with default data.");
                             initializeDefaultData();
@@ -220,7 +306,8 @@
                 try {
                     await setDoc(docRef, { 
                         members: allianceMembers, 
-                        history: selectionHistory 
+                        history: selectionHistory,
+                        currentConductor: currentConductor
                     });
                 } catch (error) {
                     console.error("Error updating Firestore:", error);
@@ -228,39 +315,53 @@
             }
 
             function initializeDefaultData() {
-                allianceMembers = ["13Edy13", "Aceman12", "Aheleosthe2nd", "AirForester", "Andre Rabelo", "Anthony 69", "Arghonut 모험가", "atalon", "aZzIel", "Bamslang", "Basow", "Beezees", "Belleroo", "Bettel nerd", "B L Ä N K", "bobo1987 보보", "CaeTaka", "CaptainObviouss", "Chan 찬", "Chefjuanpi", "Churchill JAPABR", "Cindelll", "Curty Mc", "Dauntethemechanic", "DARS MILK", "Dino1311", "Dollystroyer", "DontWorryDaddysHere", "Drewstroyer", "Duck0311", "Dumpchicken", "Ender", "foxzilla", "Gangster 25", "General Bjam", "Grande Anão", "GPêê", "Guerneros del Chaco", "Gunbarista", "Hadrianswall", "ilovecafs", "Isorryl", "jessictia", "Jmelo1686", "JojoBans", "JTWolf", "KAYRONMAN", "KBL50", "Keylonis", "Kitt3nnnn", "LÄDY", "Leccarré", "leoyutian", "likes2ride", "LION 1937", "MÄXIMÜS", "MattCat 맷 더 캣", "Mayhem007", "Maz·Ibrahim.ч", "MICH3773", "MotoM0t0", "Mr Peaches", "Ms Andrea", "n3tt1k", "NinerGang211", "NikolaiVolkoff", "NoShtSherlock 셜록", "NyahNyah메롱", "Peacekëeper", "PewnurScope", "Ratatoui11e", "Reb13", "Risssy", "Robert ツ", "ScopeWraith", "scrap11", "SHAMAN ЛЮТЬ", "Shbeda", "SimBLÄ NK", "SimplyMom", "SniperXT3", "SN0WMan", "Squeeze1", "st ALBA", "SuperElectron Bioman", "techwrath", "TeeOhiNwhY", "The Palette", "Tigerfan1", "turtletime 거북이", "uJeam", "UrSwigBoaBro", "VENOM THENEW CARNAGE", "Vuladi", "Warrior Poet", "Whedonite92", "Xelaesor", "Zerrrro", "윤스 oops", "에녹 · Enoch"];
+                allianceMembers = ["13Edy13", "Aceman12", "Aheleosthe2nd", "AirForester", "Andre Rabelo", "Anthony 69", "Arghonut 모험가", "atalon", "aZzIel", "Bamslang", "Basow", "Beezees", "Belleroo", "Bettel nerd", "B L Ä N K", "bobo1987 보보", "CaeTaka", "CaptainObviouss", "Chan 찬", "Chefjuanpi", "Churchill JAPABR", "Cindelll", "Curty Mc", "Dauntethemechanic", "DARS MILK", "Dino1311", "Dollystroyer", "DontWorryDaddysHere", "Drewstroyer", "Duck0311", "Dumpchicken", "Ender", "foxzilla", "Gangster 25", "General Bjam", "Grande Anão", "GPêê", "Guerneros del Chaco", "Gunbarista", "Hadrianswall", "ilovecafs", "Isorryl", "jessictia", "Jmelo1686", "JojoBans", "JTWolf", "KAYRONMAN", "KBL50", "Keylonis", "Kitt3nnnn", "LÄDY", "Leccarré", "leoyutian", "likes2ride", "LION 1937", "MÄXIMÜS", "MattCat 맷 더 캣", "Mayhem007", "Maz·Ibrahim.ч", "MICH3773", "MotoM0t0", "Mr Peaches", "Ms Andrea", "n3tt1k", "NinerGang211", "NikolaiVolkoff", "NoShtSherlock 셜록", "NyahNyah메롱", "Peacekëeper", "PewnurScope", "Ratatoui11e", "Reb13", "Risssy", "Robert ツ", "ScopeWraith", "scrap11", "SHAMAN ЛЮТЬ", "Shbeda", "SimBLÄ NK", "SimplyMom", "SniperXT3", "SN0WMan", "Squeeze1", "st ALBA", "SuperElectron Bioman", "techwrath", "TeeOhiNwhY", "The Palette", "Tigerfan1", "turtletime 거북이", "uJeam", "UrSwigBoaBro", "VENOM THENEW CARNAGE", "Vuladi", "Warrior Poet", "Whedonite92", "Xelaesor", "Zerrrro", "윤스 oops", "에녹 · Enoch"]
+                .map((name, index) => ({ id: Date.now() + index, name: name, rank: 'R1' }));
                 selectionHistory = [{ player: "Rat", date: "06-26", id: Date.now()+1 }, { player: "Lecarre", date: "06-25", id: Date.now()+2 }, { player: "MagicalMike (AllDayDad)", date: "06-24", id: Date.now()+3 }];
+                currentConductor = 'SELECT A CONDUCTOR';
                 updateFirestore();
             }
 
             // --- RENDER FUNCTIONS ---
             const renderManualPickList = () => {
                 manualPickListContainer.innerHTML = '';
-                const sortedMembers = [...allianceMembers].sort((a, b) => a.localeCompare(b));
+                const sortedMembers = [...allianceMembers].sort((a, b) => a.name.localeCompare(b.name));
 
                 sortedMembers.forEach((member) => {
                     const div = document.createElement('div');
                     div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
                     div.innerHTML = `
-                        <button class="flex-grow text-left manual-pick-btn" data-name="${member}">${member}</button>
-                        <button class="delete-member-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-name="${member}" title="Delete member">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <button class="flex-grow text-left manual-pick-btn" data-name="${member.name}">
+                            <span class="font-semibold">${member.name}</span>
+                            <span class="text-xs text-slate-400 ml-2">${member.rank}</span>
                         </button>
+                        <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button class="edit-member-btn text-slate-400 hover:text-cyan-400" data-id="${member.id}" title="Edit member">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button class="delete-member-btn text-slate-400 hover:text-red-400" data-id="${member.id}" title="Delete member">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
                     `;
                     manualPickListContainer.appendChild(div);
                 });
-
-                memberCountSpan.textContent = allianceMembers.length;
             };
 
             const renderHistory = () => {
+                const searchTerm = historySearchInput.value.toLowerCase();
                 historyListContainer.innerHTML = '';
                  const sortedHistory = [...selectionHistory].sort((a, b) => {
                     const dateA = new Date(`2000-${a.date.replace('-', '/')}`);
                     const dateB = new Date(`2000-${b.date.replace('-', '/')}`);
                     return dateB - dateA;
                  });
-                sortedHistory.forEach((item) => {
+
+                const filteredHistory = sortedHistory.filter(item => 
+                    item.player.toLowerCase().includes(searchTerm)
+                );
+
+                filteredHistory.forEach((item) => {
                     const div = document.createElement('div');
                     div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
                     div.innerHTML = `
@@ -275,46 +376,98 @@
                     historyListContainer.appendChild(div);
                 });
             };
+            
+            const renderConductor = () => {
+                if (currentConductor && currentConductor !== 'SELECT A CONDUCTOR') {
+                    conductorNameSpan.textContent = currentConductor;
+                    conductorNameSpan.classList.remove('text-slate-500', 'text-cyan-400');
+                    conductorNameSpan.classList.add('text-yellow-400', 'conductor-reveal', 'text-glow');
+                    conductorNameSpan.addEventListener('animationend', () => conductorNameSpan.classList.remove('conductor-reveal'), { once: true });
+                } else {
+                    conductorNameSpan.textContent = 'SELECT A CONDUCTOR';
+                    conductorNameSpan.classList.remove('text-yellow-400', 'text-glow', 'text-cyan-400');
+                    conductorNameSpan.classList.add('text-slate-500');
+                }
+            };
 
             const renderAll = () => {
                 renderManualPickList();
                 renderHistory();
+                renderConductor();
+            }
+
+            // --- UI STATE MANAGEMENT ---
+            function showLockInMode(name) {
+                previewConductor = name;
+                conductorNameSpan.textContent = name;
+                conductorNameSpan.classList.remove('text-yellow-400', 'text-glow', 'text-slate-500');
+                conductorNameSpan.classList.add('text-cyan-400');
+                randomButtonsContainer.classList.add('hidden');
+                lockInButton.classList.remove('hidden');
+            }
+
+            function showRandomMode() {
+                previewConductor = null;
+                renderConductor(); // Re-render the official conductor
+                randomButtonsContainer.classList.remove('hidden');
+                lockInButton.classList.add('hidden');
             }
 
             // --- CORE LOGIC & EVENT HANDLERS ---
-            const setConductor = (name) => {
-                conductorNameSpan.textContent = name;
-                conductorNameSpan.classList.remove('text-slate-500');
-                conductorNameSpan.classList.add('text-yellow-400', 'conductor-reveal', 'text-glow');
-                conductorNameSpan.addEventListener('animationend', () => conductorNameSpan.classList.remove('conductor-reveal'), { once: true });
-            };
-
             const selectRandomly = (pool, buttonToUpdate) => {
+                showRandomMode();
                 if (pool.length === 0) return;
                 
                 randomSelectButton.disabled = true;
                 leaderSelectButton.disabled = true;
                 buttonToUpdate.textContent = 'CHOOSING...';
 
+                // --- Cooldown Logic ---
+                const now = new Date();
+                const eligiblePool = pool.filter(member => {
+                    const memberName = typeof member === 'object' ? member.name : member;
+                    const memberHistory = selectionHistory
+                        .filter(h => h.player === memberName)
+                        .sort((a, b) => new Date(`2000-${b.date.replace('-', '/')}`) - new Date(`2000-${a.date.replace('-', '/')}`));
+
+                    if (memberHistory.length === 0) return true;
+
+                    const lastSelection = memberHistory[0];
+                    const lastDate = new Date(now.getFullYear(), parseInt(lastSelection.date.split('-')[0]) - 1, parseInt(lastSelection.date.split('-')[1]));
+                    if (now < lastDate) {
+                        lastDate.setFullYear(now.getFullYear() - 1);
+                    }
+                    
+                    const diffTime = now - lastDate;
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    const isLeader = leadershipTeam.includes(memberName);
+                    const cooldown = isLeader ? leadershipCooldownDays : memberCooldownDays;
+
+                    return diffDays >= cooldown;
+                });
+                
+                const selectionPool = eligiblePool.length > 0 ? eligiblePool : pool;
+
+                // --- Drum Roll and Final Selection ---
                 let drumRollCount = 0;
                 const drumRollInterval = setInterval(() => {
-                    const randomIndex = Math.floor(Math.random() * pool.length);
-                    conductorNameSpan.textContent = pool[randomIndex];
+                    const randomIndex = Math.floor(Math.random() * selectionPool.length);
+                    const memberName = typeof selectionPool[randomIndex] === 'object' ? selectionPool[randomIndex].name : selectionPool[randomIndex];
+                    conductorNameSpan.textContent = memberName;
                     conductorNameSpan.classList.remove('text-yellow-400', 'text-glow');
-                    conductorNameSpan.classList.add('text-slate-500');
+                    conductorNameSpan.classList.add('text-cyan-400');
                     if (++drumRollCount > 15) {
                         clearInterval(drumRollInterval);
                         
-                        const recentConductors = selectionHistory.slice(0, 15).map(h => h.player);
-                        const filteredPool = pool.filter(m => !recentConductors.includes(m));
-                        const selectionPool = filteredPool.length > 0 ? filteredPool : pool;
-                        const newConductor = selectionPool[Math.floor(Math.random() * selectionPool.length)];
+                        const newConductorObj = selectionPool[Math.floor(Math.random() * selectionPool.length)];
+                        const newConductorName = typeof newConductorObj === 'object' ? newConductorObj.name : newConductorObj;
                         
-                        setConductor(newConductor);
+                        currentConductor = newConductorName;
                         
                         const today = new Date();
                         const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                        selectionHistory.unshift({ player: newConductor, date: dateStr, id: Date.now() });
+                        selectionHistory.unshift({ player: newConductorName, date: dateStr, id: Date.now() });
                         
                         updateFirestore();
                         
@@ -327,24 +480,44 @@
             };
             
             addMemberButton.addEventListener('click', () => {
-                const newMember = prompt("Enter the name of the new alliance member:");
-                if (newMember && newMember.trim() !== "" && !allianceMembers.includes(newMember.trim())) {
-                    allianceMembers.push(newMember.trim());
-                    updateFirestore();
-                }
+                addNameInput.value = '';
+                addRankSelect.value = 'R1';
+                addModal.classList.remove('hidden');
             });
 
             manualPickListContainer.addEventListener('click', (e) => {
                 const pickBtn = e.target.closest('.manual-pick-btn');
                 if (pickBtn) {
-                    setConductor(pickBtn.dataset.name);
+                    showLockInMode(pickBtn.dataset.name);
+                }
+
+                const editBtn = e.target.closest('.edit-member-btn');
+                if (editBtn) {
+                    memberToEditId = parseFloat(editBtn.dataset.id);
+                    const member = allianceMembers.find(m => m.id === memberToEditId);
+                    if (member) {
+                        editNameInput.value = member.name;
+                        editRankSelect.value = member.rank;
+                        editModal.classList.remove('hidden');
+                    }
                 }
 
                 const deleteBtn = e.target.closest('.delete-member-btn');
                 if (deleteBtn) {
-                    const nameToDelete = deleteBtn.dataset.name;
-                    allianceMembers = allianceMembers.filter(m => m !== nameToDelete);
+                    const idToDelete = parseFloat(deleteBtn.dataset.id);
+                    allianceMembers = allianceMembers.filter(m => m.id !== idToDelete);
                     updateFirestore();
+                }
+            });
+
+            lockInButton.addEventListener('click', () => {
+                if(previewConductor) {
+                    currentConductor = previewConductor;
+                    const today = new Date();
+                    const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    selectionHistory.unshift({ player: currentConductor, date: dateStr, id: Date.now() });
+                    updateFirestore();
+                    showRandomMode();
                 }
             });
             
@@ -355,6 +528,55 @@
                     selectionHistory = selectionHistory.filter(item => item.id !== idToDelete);
                     updateFirestore();
                  }
+            });
+
+            saveAddBtn.addEventListener('click', () => {
+                const newName = addNameInput.value.trim();
+                if (newName && !allianceMembers.some(m => m.name === newName)) {
+                    allianceMembers.push({
+                        id: Date.now(),
+                        name: newName,
+                        rank: addRankSelect.value
+                    });
+                    updateFirestore();
+                    addModal.classList.add('hidden');
+                } else if (newName) {
+                    alert("A member with this name already exists.");
+                }
+            });
+
+            cancelAddBtn.addEventListener('click', () => {
+                addModal.classList.add('hidden');
+            });
+
+            addModal.addEventListener('click', (e) => {
+                if (e.target.id === 'add-modal') {
+                    cancelAddBtn.click();
+                }
+            });
+
+            saveEditBtn.addEventListener('click', () => {
+                if (memberToEditId) {
+                    const memberIndex = allianceMembers.findIndex(m => m.id === memberToEditId);
+                    if (memberIndex > -1) {
+                        allianceMembers[memberIndex].name = editNameInput.value.trim();
+                        allianceMembers[memberIndex].rank = editRankSelect.value;
+                        updateFirestore();
+                    }
+                }
+                editModal.classList.add('hidden');
+                memberToEditId = null;
+            });
+
+            cancelEditBtn.addEventListener('click', () => {
+                editModal.classList.add('hidden');
+                memberToEditId = null;
+            });
+
+            editModal.addEventListener('click', (e) => {
+                if (e.target.id === 'edit-modal') {
+                    cancelEditBtn.click();
+                }
             });
 
             tabManualPick.addEventListener('click', () => {
@@ -370,6 +592,8 @@
                 contentHistory.classList.remove('hidden');
                 contentManualPick.classList.add('hidden');
             });
+            
+            historySearchInput.addEventListener('input', renderHistory);
 
             randomSelectButton.addEventListener('click', () => selectRandomly(allianceMembers, randomSelectButton));
             leaderSelectButton.addEventListener('click', () => selectRandomly(leadershipTeam, leaderSelectButton));
