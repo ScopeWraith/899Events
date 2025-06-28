@@ -104,9 +104,21 @@
         .text-glow {
             text-shadow: 0 0 8px rgba(250, 204, 21, 0.7), 0 0 20px rgba(250, 204, 21, 0.5);
         }
+        
+        /* Auth Visibility Control */
+        .logged-out .admin-control {
+            display: none !important;
+        }
+        .logged-in .login-button {
+             display: none !important;
+        }
+        .logged-out .logout-button {
+            display: none !important;
+        }
+
     </style>
 </head>
-<body class="text-slate-300">
+<body class="text-slate-300 logged-out">
 
     <div id="loading-overlay" class="fixed inset-0 bg-slate-900/80 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
         <div class="loader"></div>
@@ -127,12 +139,12 @@
 
                     <!-- Action Buttons -->
                     <div id="action-buttons-container" class="mt-4">
-                        <div id="random-buttons-container" class="grid grid-cols-1">
+                        <div id="random-buttons-container" class="admin-control grid grid-cols-1">
                             <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
                                 CHOOSE CONDUCTOR
                             </button>
                         </div>
-                         <div id="pending-buttons-container" class="hidden grid grid-cols-2 gap-3">
+                         <div id="pending-buttons-container" class="admin-control hidden grid grid-cols-2 gap-3">
                             <button id="substitute-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
                                 SUBSTITUTE
                             </button>
@@ -170,7 +182,7 @@
                     <div id="content-manual-pick">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-base font-bold text-white">Alliance Members</h3>
-                            <button id="add-member-button" class="text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
+                            <button id="add-member-button" class="admin-control text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </button>
                         </div>
@@ -179,7 +191,7 @@
                     <div id="content-history" class="hidden">
                          <div class="flex items-center mb-2">
                             <input type="text" id="history-search-input" placeholder="Search player history..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                            <button id="add-history-button" class="ml-2 text-cyan-400 hover:text-cyan-300" title="Add history entry">
+                            <button id="add-history-button" class="admin-control ml-2 text-cyan-400 hover:text-cyan-300" title="Add history entry">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </button>
                          </div>
@@ -188,7 +200,7 @@
                     <div id="content-medals" class="hidden">
                         <div class="flex justify-between items-center mb-3">
                              <h3 class="text-base font-bold text-white">Active Medals</h3>
-                             <button id="open-award-medal-modal-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
+                             <button id="open-award-medal-modal-btn" class="admin-control bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
                                  <span>Award Medals</span>
                              </button>
@@ -197,14 +209,21 @@
                     </div>
                     <div id="content-help" class="hidden text-sm space-y-4 text-slate-300 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;">
                         <div>
-                            <h3 class="font-semibold text-cyan-400 mb-1">Cooldown Rules</h3>
+                            <h3 class="font-semibold text-cyan-400 mb-1">Rank Cooldown Rules</h3>
                             <ul class="list-disc list-inside space-y-1">
                                 <li><span class="font-semibold">R1 Members:</span> 120 day cooldown.</li>
                                 <li><span class="font-semibold">R2 Members:</span> 90 day cooldown.</li>
                                 <li><span class="font-semibold">R3 Members:</span> 60 day cooldown.</li>
                                 <li><span class="font-semibold">R4 Members:</span> 45 day cooldown.</li>
+                                <li><span class="font-semibold">R5 Members:</span> 40 day cooldown.</li>
                             </ul>
                             <p class="pt-2 italic text-xs">Note: If all members are on cooldown, these rules are ignored.</p>
+                        </div>
+                        <div id="help-cooldown-reduction">
+                            <h3 class="font-semibold text-cyan-400 mb-1">Medal Cooldown Reductions</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <!-- This will be populated by script -->
+                            </ul>
                         </div>
                         <div>
                             <h3 class="font-semibold text-cyan-400 mb-1">Rank Luck (Permanent)</h3>
@@ -216,27 +235,42 @@
                         </div>
                         <div>
                             <h3 class="font-semibold text-cyan-400 mb-1">Medal Luck (30 Day Duration)</h3>
-                            <ul class="list-disc list-inside space-y-1">
-                                <li><span class="font-semibold">VS Gold:</span> +20% Luck</li>
-                                <li><span class="font-semibold">VS Silver:</span> +18% Luck</li>
-                                <li><span class="font-semibold">VS Bronze:</span> +15% Luck</li>
-                                <li class="pt-2"><span class="font-semibold">Alliance Star - Gold:</span> +15% Luck</li>
-                                <li><span class="font-semibold">Alliance Star - Silver:</span> +12% Luck</li>
-                                <li><span class="font-semibold">Alliance Star - Bronze:</span> +10% Luck</li>
-                                <li class="pt-2"><span class="font-semibold">Alliance Donator - 1st:</span> +10% Luck</li>
-                                <li><span class="font-semibold">Alliance Donator - 2nd:</span> +8% Luck</li>
-                                <li><span class="font-semibold">Alliance Donator - 3rd:</span> +5% Luck</li>
-                                 <li class="pt-2"><span class="font-semibold">Desert Storm Team A - MVP:</span> +5% Luck</li>
-                                <li><span class="font-semibold">Desert Storm Team B - MVP:</span> +5% Luck</li>
+                            <ul class="list-disc list-inside space-y-1" id="help-medal-luck-list">
+                                <!-- This will be populated by script -->
                             </ul>
                         </div>
                     </div>
+                </div>
+                 <!-- Auth Footer -->
+                <div class="p-4 border-t border-slate-700/50 mt-auto">
+                    <button id="open-login-modal-btn" class="login-button w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Admin Login</button>
+                    <button id="logout-button" class="logout-button w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Logout</button>
                 </div>
             </div>
         </main>
     </div>
 
     <!-- Modals -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50">
+        <div class="card p-6 w-full max-w-sm">
+            <h2 class="text-xl font-bold text-white mb-4 text-center">Admin Login</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="username-input" class="block text-sm font-medium text-slate-300">Username</label>
+                    <input type="text" id="username-input" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                </div>
+                <div>
+                    <label for="password-input" class="block text-sm font-medium text-slate-300">Password</label>
+                    <input type="password" id="password-input" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                </div>
+                <p id="login-error-msg" class="text-xs text-red-400 h-4 text-center"></p>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancel-login-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                <button id="login-button" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Login</button>
+            </div>
+        </div>
+    </div>
      <div id="confirmation-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
         <div class="card p-6 w-full max-w-sm text-center">
             <h2 id="confirmation-title" class="text-lg font-bold text-white mb-4">Are you sure?</h2>
@@ -350,25 +384,27 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // --- CONSTANTS ---
-            const RANK_LUCK = { 'R2': 10, 'R3': 20, 'R4': 30 };
-            const MEDAL_LUCK = {
-                'VS Gold': 20, 'VS Silver': 18, 'VS Bronze': 15,
-                'Desert Storm Team A - MVP': 5, 'Desert Storm Team B - MVP': 5,
-                'Alliance Star - Gold': 15, 'Alliance Star - Silver': 12, 'Alliance Star - Bronze': 10,
-                'Alliance Donator - 1st': 10, 'Alliance Donator - 2nd': 8, 'Alliance Donator - 3rd': 5,
-            };
-            const RANK_COOLDOWN = { 'R1': 120, 'R2': 90, 'R3': 60, 'R4': 45, 'R5': 14 };
-            const MEDAL_COOLDOWN_REDUCTION = {
-                'VS Gold': 0.30,
-                'VS Silver': 0.20,
-                'VS Bronze': 0.10,
-                'Desert Storm Team A - MVP': 0.15,
-                'Desert Storm Team B - MVP': 0.15,
-                'Alliance Star - Gold': 0.10,
-                'Alliance Donator - 1st': 0.10,
-                'Alliance Donator - 2nd': 0.10,
-                'Alliance Donator - 3rd': 0.10,
+            // --- CONFIGURATION ---
+            const CONFIG = {
+                RANK_LUCK: { 'R2': 10, 'R3': 20, 'R4': 30 },
+                MEDAL_LUCK: {
+                    'VS Gold': 20, 'VS Silver': 18, 'VS Bronze': 15,
+                    'Desert Storm Team A - MVP': 5, 'Desert Storm Team B - MVP': 5,
+                    'Alliance Star - Gold': 15, 'Alliance Star - Silver': 12, 'Alliance Star - Bronze': 10,
+                    'Alliance Donator - 1st': 10, 'Alliance Donator - 2nd': 8, 'Alliance Donator - 3rd': 5,
+                },
+                RANK_COOLDOWN: { 'R1': 120, 'R2': 90, 'R3': 60, 'R4': 45, 'R5': 40 },
+                MEDAL_COOLDOWN_REDUCTION: {
+                    'VS Gold': 0.30,
+                    'VS Silver': 0.20,
+                    'VS Bronze': 0.10,
+                    'Desert Storm Team A - MVP': 0.15,
+                    'Desert Storm Team B - MVP': 0.15,
+                    'Alliance Star - Gold': 0.10,
+                    'Alliance Donator - 1st': 0.20,
+                    'Alliance Donator - 2nd': 0.15,
+                    'Alliance Donator - 3rd': 0.10,
+                }
             };
 
             // --- ELEMENTS ---
@@ -417,7 +453,7 @@
             const confirmActionBtn = document.getElementById('confirm-action-btn');
             const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
 
-            // New Award Medal Modal Elements
+            // Award Medal Modal Elements
             const openAwardMedalModalBtn = document.getElementById('open-award-medal-modal-btn');
             const awardMedalModal = document.getElementById('award-medal-modal');
             const awardMedalMemberSelect = document.getElementById('award-medal-member-select');
@@ -425,6 +461,16 @@
             const awardMedalValidationMsg = document.getElementById('award-medal-validation-msg');
             const saveAwardMedalBtn = document.getElementById('save-award-medal-btn');
             const cancelAwardMedalBtn = document.getElementById('cancel-award-medal-btn');
+
+            // Auth Elements
+            const loginModal = document.getElementById('login-modal');
+            const loginButton = document.getElementById('login-button');
+            const openLoginModalBtn = document.getElementById('open-login-modal-btn');
+            const cancelLoginBtn = document.getElementById('cancel-login-btn');
+            const logoutButton = document.getElementById('logout-button');
+            const usernameInput = document.getElementById('username-input');
+            const passwordInput = document.getElementById('password-input');
+            const loginErrorMsg = document.getElementById('login-error-msg');
 
             // --- LOCAL STATE ---
             let allianceMembers = [];
@@ -434,6 +480,7 @@
             let memberToEditId = null;
             let db, docRef;
             let confirmCallback = null;
+            let isAuthenticated = false;
 
             // --- FIREBASE SETUP ---
             async function initializeFirebase() {
@@ -493,6 +540,10 @@
 
             // --- DATA MANAGEMENT ---
             async function updateFirestore() {
+                if (!isAuthenticated) {
+                    console.log("Not authenticated. Skipping Firestore update.");
+                    return;
+                }
                 if (!docRef) return;
                 try {
                     await setDoc(docRef, { 
@@ -510,7 +561,7 @@
                 .map((name, index) => ({ id: Date.now() + index, name: name, rank: 'R1', medals: [] }));
                 selectionHistory = [{ player: "Rat", date: "06-26", id: Date.now()+1 }, { player: "Lecarre", date: "06-25", id: Date.now()+2 }, { player: "MagicalMike (AllDayDad)", date: "06-24", id: Date.now()+3 }];
                 currentConductor = 'SELECT A CONDUCTOR';
-                updateFirestore();
+                if (isAuthenticated) updateFirestore();
             }
             
             function awardMedal(memberId, medalName) {
@@ -524,10 +575,11 @@
                         awardedDate: now,
                         expires: now + (30 * 24 * 60 * 60 * 1000)
                     };
+                    if (!member.medals) member.medals = [];
                     member.medals.push(newMedal);
 
                     // Apply cooldown reduction
-                    const reductionPercent = MEDAL_COOLDOWN_REDUCTION[medalName];
+                    const reductionPercent = CONFIG.MEDAL_COOLDOWN_REDUCTION[medalName];
                     if (reductionPercent) {
                         const cooldownInfo = getMemberCooldownInfo(member.name);
                         if (cooldownInfo && cooldownInfo.remainingDays > 0) {
@@ -549,9 +601,26 @@
             }
 
             // --- RENDER FUNCTIONS ---
+            function populateHelpLists() {
+                const cooldownList = document.querySelector("#help-cooldown-reduction ul");
+                cooldownList.innerHTML = '';
+                for(const [medal, reduction] of Object.entries(CONFIG.MEDAL_COOLDOWN_REDUCTION)) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="font-semibold">${medal}:</span> ${reduction * 100}% reduction`;
+                    cooldownList.appendChild(li);
+                }
+
+                const luckList = document.getElementById("help-medal-luck-list");
+                luckList.innerHTML = '';
+                 for(const [medal, luck] of Object.entries(CONFIG.MEDAL_LUCK)) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="font-semibold">${medal}:</span> +${luck}% Luck`;
+                    luckList.appendChild(li);
+                }
+            }
             function populateMedalSelect(selectElement) {
                 selectElement.innerHTML = `<option value="">Select a medal...</option>`;
-                for (const medalName in MEDAL_LUCK) {
+                for (const medalName in CONFIG.MEDAL_LUCK) {
                     const option = document.createElement('option');
                     option.value = medalName;
                     option.textContent = medalName;
@@ -579,7 +648,7 @@
                             <span class="text-xs text-slate-400 ml-2">${member.rank}</span>
                             ${medalIcons}
                         </button>
-                        <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="admin-control flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button class="edit-member-btn text-slate-400 hover:text-cyan-400" data-id="${member.id}" title="Edit member">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             </button>
@@ -625,7 +694,7 @@
                         <p class="font-semibold text-white truncate pr-2">${item.player} ${cooldownHTML}</p>
                         <div class="flex items-center space-x-2 flex-shrink-0">
                             <p class="text-xs text-slate-400">${item.date}</p>
-                            <button class="delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry">
+                            <button class="admin-control delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
@@ -717,6 +786,7 @@
                 renderHistory();
                 renderConductor();
                 renderMedalsTab();
+                populateHelpLists();
             };
 
             // --- LUCK & COOLDOWN CALCULATION ---
@@ -742,7 +812,7 @@
                 const diffTime = now - lastDate;
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 
-                const totalCooldown = RANK_COOLDOWN[memberObject.rank] || 30;
+                const totalCooldown = CONFIG.RANK_COOLDOWN[memberObject.rank] || 30;
                 const remaining = totalCooldown - diffDays;
 
                 return {
@@ -755,32 +825,43 @@
 
             const calculateTotalLuck = (member) => {
                 let totalLuck = 0;
-                totalLuck += RANK_LUCK[member.rank] || 0;
+                totalLuck += CONFIG.RANK_LUCK[member.rank] || 0;
                 const now = Date.now();
                 if (member.medals) {
                     member.medals.forEach(medal => {
                         if (medal.expires > now) {
-                            totalLuck += MEDAL_LUCK[medal.name] || 0;
+                            totalLuck += CONFIG.MEDAL_LUCK[medal.name] || 0;
                         }
                     });
                 }
                 return totalLuck;
             };
 
-            // --- UI STATE MANAGEMENT ---
+            // --- UI STATE & AUTH MANAGEMENT ---
+            function setAuthState(state) {
+                isAuthenticated = state;
+                if (isAuthenticated) {
+                    document.body.classList.remove('logged-out');
+                    document.body.classList.add('logged-in');
+                    loginModal.classList.add('hidden');
+                } else {
+                    document.body.classList.remove('logged-in');
+                    document.body.classList.add('logged-out');
+                }
+            }
             function showPendingMode(name) {
                 pendingConductor = name;
                 conductorNameSpan.textContent = name;
                 conductorNameSpan.classList.remove('text-yellow-400', 'text-glow', 'text-slate-500');
                 conductorNameSpan.classList.add('text-cyan-400');
-                randomButtonsContainer.classList.add('hidden');
-                pendingButtonsContainer.classList.remove('hidden');
+                randomButtonsContainer.style.display = 'none';
+                pendingButtonsContainer.style.display = 'grid';
             }
             function showRandomMode() {
                 pendingConductor = null;
                 renderConductor();
-                randomButtonsContainer.classList.remove('hidden');
-                pendingButtonsContainer.classList.add('hidden');
+                randomButtonsContainer.style.display = 'grid';
+                pendingButtonsContainer.style.display = 'none';
             }
             function showConfirmationModal(title, message, onConfirm) {
                 confirmationTitle.textContent = title;
@@ -791,6 +872,7 @@
 
             // --- CORE LOGIC & EVENT HANDLERS ---
             const selectRandomly = (pool, buttonToUpdate, excludedMember = null) => {
+                if (!isAuthenticated) return;
                 showRandomMode();
                 if (pool.length === 0) return;
                 
@@ -843,17 +925,15 @@
                 }, 100);
             };
             
-            addMemberButton.addEventListener('click', () => {
-                addNameInput.value = '';
-                addRankSelect.value = 'R1';
-                addModal.classList.remove('hidden');
-            });
+            addMemberButton.addEventListener('click', () => { if(isAuthenticated) addModal.classList.remove('hidden'); });
             manualPickListContainer.addEventListener('click', (e) => {
                 const pickBtn = e.target.closest('.manual-pick-btn');
-                if (pickBtn) showPendingMode(pickBtn.dataset.name);
+                if (pickBtn && isAuthenticated) {
+                    showPendingMode(pickBtn.dataset.name);
+                }
 
                 const editBtn = e.target.closest('.edit-member-btn');
-                if (editBtn) {
+                if (editBtn && isAuthenticated) {
                     memberToEditId = parseFloat(editBtn.dataset.id);
                     const member = allianceMembers.find(m => m.id === memberToEditId);
                     if (member) {
@@ -864,13 +944,14 @@
                     }
                 }
                 const deleteBtn = e.target.closest('.delete-member-btn');
-                if (deleteBtn) {
+                if (deleteBtn && isAuthenticated) {
                     const idToDelete = parseFloat(deleteBtn.dataset.id);
                     allianceMembers = allianceMembers.filter(m => m.id !== idToDelete);
                     updateFirestore();
                 }
             });
             lockInButton.addEventListener('click', () => {
+                if (!isAuthenticated) return;
                 showConfirmationModal('Lock In Conductor?', `Are you sure you want to lock in ${pendingConductor}?`, () => {
                     if(pendingConductor) {
                         currentConductor = pendingConductor;
@@ -883,12 +964,14 @@
                 });
             });
             substituteButton.addEventListener('click', () => {
+                if (!isAuthenticated) return;
                 showConfirmationModal('Choose Substitute?', `This will return ${pendingConductor} to the pool and pick a new conductor.`, () => {
                     const originalPick = allianceMembers.find(m => m.name === pendingConductor);
                     selectRandomly(allianceMembers, null, originalPick);
                 });
             });
             historyListContainer.addEventListener('click', (e) => {
+                 if (!isAuthenticated) return;
                  const deleteButton = e.target.closest('.delete-history-btn');
                  if (deleteButton) {
                     const idToDelete = parseFloat(deleteButton.dataset.id);
@@ -897,6 +980,7 @@
                  }
             });
             saveAddBtn.addEventListener('click', () => {
+                if (!isAuthenticated) return;
                 const newName = addNameInput.value.trim();
                 if (newName && !allianceMembers.some(m => m.name === newName)) {
                     allianceMembers.push({ id: Date.now(), name: newName, rank: addRankSelect.value, medals: [] });
@@ -908,16 +992,16 @@
             addModal.addEventListener('click', (e) => { if (e.target.id === 'add-modal') cancelAddBtn.click(); });
             
             saveEditBtn.addEventListener('click', () => {
-                if (memberToEditId) {
-                    const memberIndex = allianceMembers.findIndex(m => m.id === memberToEditId);
-                    if (memberIndex > -1) {
-                        allianceMembers[memberIndex].name = editNameInput.value.trim();
-                        allianceMembers[memberIndex].rank = editRankSelect.value;
-                        updateFirestore();
-                    }
+                if (!isAuthenticated || memberToEditId === null) return;
+                const memberIndex = allianceMembers.findIndex(m => m.id === memberToEditId);
+                if (memberIndex > -1) {
+                    allianceMembers[memberIndex].name = editNameInput.value.trim();
+                    allianceMembers[memberIndex].rank = editRankSelect.value;
+                    updateFirestore();
                 }
             });
             awardMedalBtn.addEventListener('click', () => {
+                if (!isAuthenticated) return;
                 const medalName = awardMedalSelect.value;
                 if(memberToEditId && medalName) {
                     awardMedal(memberToEditId, medalName);
@@ -925,6 +1009,7 @@
                 }
             });
             activeMedalsList.addEventListener('click', (e) => {
+                if (!isAuthenticated) return;
                 const removeBtn = e.target.closest('.remove-medal-btn');
                 if (removeBtn && memberToEditId) {
                     const medalId = parseFloat(removeBtn.dataset.medalId);
@@ -955,6 +1040,7 @@
             });
             
             addHistoryButton.addEventListener('click', () => {
+                if (!isAuthenticated) return;
                 addHistoryPlayerSelect.innerHTML = `<option value="">Select a player...</option>`;
                 const sortedMembers = [...allianceMembers].sort((a,b) => a.name.localeCompare(b.name));
                 sortedMembers.forEach(member => {
@@ -967,6 +1053,7 @@
                 addHistoryModal.classList.remove('hidden');
             });
             saveAddHistoryBtn.addEventListener('click', () => {
+                if (!isAuthenticated) return;
                 const player = addHistoryPlayerSelect.value;
                 const date = addHistoryDateInput.value;
                 if(player && date.match(/^\d{2}-\d{2}$/)) {
@@ -1022,6 +1109,7 @@
             }
 
             openAwardMedalModalBtn.addEventListener('click', () => {
+                if (!isAuthenticated) return;
                 awardMedalMemberSelect.innerHTML = '<option value="">Select a member...</option>';
                 const sortedMembers = [...allianceMembers].sort((a,b) => a.name.localeCompare(b.name));
                 sortedMembers.forEach(member => {
@@ -1043,6 +1131,7 @@
             awardMedalTypeSelect.addEventListener('change', validateMedalAward);
 
             saveAwardMedalBtn.addEventListener('click', () => {
+                if (!isAuthenticated) return;
                 const memberId = parseFloat(awardMedalMemberSelect.value);
                 const medalName = awardMedalTypeSelect.value;
                 if (memberId && medalName) {
@@ -1053,7 +1142,28 @@
                 }
             });
 
+            // --- AUTHENTICATION LOGIC ---
+            openLoginModalBtn.addEventListener('click', () => loginModal.classList.remove('hidden'));
+            cancelLoginBtn.addEventListener('click', () => loginModal.classList.add('hidden'));
+            loginModal.addEventListener('click', (e) => { if(e.target.id === 'login-modal') cancelLoginBtn.click(); });
+
+            loginButton.addEventListener('click', () => {
+                const user = usernameInput.value;
+                const pass = passwordInput.value;
+                if (user === 'sw4prez' && pass === 'newspaper') {
+                    setAuthState(true);
+                } else {
+                    loginErrorMsg.textContent = 'Invalid username or password.';
+                    setTimeout(() => loginErrorMsg.textContent = '', 3000);
+                }
+            });
+
+            logoutButton.addEventListener('click', () => {
+                setAuthState(false);
+            });
+
             // --- INITIALIZATION ---
+            setAuthState(false); // Start logged out
             populateMedalSelect(awardMedalSelect);
             initializeFirebase();
         });
