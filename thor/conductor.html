@@ -186,7 +186,14 @@
                          <div id="history-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 220px;"></div>
                     </div>
                     <div id="content-medals" class="hidden">
-                        <div id="medals-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;"></div>
+                        <div class="flex justify-between items-center mb-3">
+                             <h3 class="text-base font-bold text-white">Active Medals</h3>
+                             <button id="open-award-medal-modal-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                                 <span>Award Medals</span>
+                             </button>
+                        </div>
+                        <div id="medals-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 220px;"></div>
                     </div>
                     <div id="content-help" class="hidden text-sm space-y-4 text-slate-300 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;">
                         <div>
@@ -312,6 +319,28 @@
             </div>
         </div>
     </div>
+    
+    <!-- New Award Medal Modal -->
+    <div id="award-medal-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
+        <div class="card p-6 w-full max-w-sm">
+            <h2 class="text-xl font-bold text-white mb-4">Award a Medal</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="award-medal-member-select" class="block text-sm font-medium text-slate-300">Member</label>
+                    <select id="award-medal-member-select" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"></select>
+                </div>
+                <div>
+                    <label for="award-medal-type-select" class="block text-sm font-medium text-slate-300">Medal</label>
+                    <select id="award-medal-type-select" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"></select>
+                </div>
+                <p id="award-medal-validation-msg" class="text-xs text-yellow-400 h-4"></p>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancel-award-medal-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                <button id="save-award-medal-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm disabled:bg-slate-600 disabled:cursor-not-allowed" disabled>Award Medal</button>
+            </div>
+        </div>
+    </div>
 
 
     <script type="module">
@@ -330,6 +359,17 @@
                 'Alliance Donator - 1st': 10, 'Alliance Donator - 2nd': 8, 'Alliance Donator - 3rd': 5,
             };
             const RANK_COOLDOWN = { 'R1': 120, 'R2': 90, 'R3': 60, 'R4': 45, 'R5': 14 };
+            const MEDAL_COOLDOWN_REDUCTION = {
+                'VS Gold': 0.30,
+                'VS Silver': 0.20,
+                'VS Bronze': 0.10,
+                'Desert Storm Team A - MVP': 0.15,
+                'Desert Storm Team B - MVP': 0.15,
+                'Alliance Star - Gold': 0.10,
+                'Alliance Donator - 1st': 0.10,
+                'Alliance Donator - 2nd': 0.10,
+                'Alliance Donator - 3rd': 0.10,
+            };
 
             // --- ELEMENTS ---
             const loadingOverlay = document.getElementById('loading-overlay');
@@ -377,6 +417,15 @@
             const confirmActionBtn = document.getElementById('confirm-action-btn');
             const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
 
+            // New Award Medal Modal Elements
+            const openAwardMedalModalBtn = document.getElementById('open-award-medal-modal-btn');
+            const awardMedalModal = document.getElementById('award-medal-modal');
+            const awardMedalMemberSelect = document.getElementById('award-medal-member-select');
+            const awardMedalTypeSelect = document.getElementById('award-medal-type-select');
+            const awardMedalValidationMsg = document.getElementById('award-medal-validation-msg');
+            const saveAwardMedalBtn = document.getElementById('save-award-medal-btn');
+            const cancelAwardMedalBtn = document.getElementById('cancel-award-medal-btn');
+
             // --- LOCAL STATE ---
             let allianceMembers = [];
             let selectionHistory = [];
@@ -415,7 +464,12 @@
                                 if (typeof member === 'string') {
                                     return { id: Date.now() + index, name: member, rank: 'R1', medals: [] };
                                 }
-                                return { ...member, id: member.id || Date.now() + index, medals: member.medals || [] };
+                                const medals = (member.medals || []).map(m => ({
+                                    ...m,
+                                    id: m.id || Date.now() + Math.random(),
+                                    awardedDate: m.awardedDate || m.expires - (30 * 24 * 60 * 60 * 1000)
+                                }));
+                                return { ...member, id: member.id || Date.now() + index, medals: medals };
                             });
                             selectionHistory = (data.history || []).map((item, index) => ({
                                 ...item,
@@ -458,15 +512,50 @@
                 currentConductor = 'SELECT A CONDUCTOR';
                 updateFirestore();
             }
+            
+            function awardMedal(memberId, medalName) {
+                const memberIndex = allianceMembers.findIndex(m => m.id === memberId);
+                if (memberIndex > -1) {
+                    const member = allianceMembers[memberIndex];
+                    const now = Date.now();
+                    const newMedal = {
+                        id: now,
+                        name: medalName,
+                        awardedDate: now,
+                        expires: now + (30 * 24 * 60 * 60 * 1000)
+                    };
+                    member.medals.push(newMedal);
+
+                    // Apply cooldown reduction
+                    const reductionPercent = MEDAL_COOLDOWN_REDUCTION[medalName];
+                    if (reductionPercent) {
+                        const cooldownInfo = getMemberCooldownInfo(member.name);
+                        if (cooldownInfo && cooldownInfo.remainingDays > 0) {
+                            const daysToReduce = cooldownInfo.remainingDays * reductionPercent;
+                            const msToReduce = daysToReduce * 24 * 60 * 60 * 1000;
+                            
+                            const historyEntry = selectionHistory.find(h => h.id === cooldownInfo.historyId);
+                            if(historyEntry) {
+                                const newDate = new Date(cooldownInfo.lastSelectionDate.getTime() - msToReduce);
+                                historyEntry.date = `${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
+                            }
+                        }
+                    }
+                    
+                    updateFirestore();
+                    return true;
+                }
+                return false;
+            }
 
             // --- RENDER FUNCTIONS ---
-            function populateMedalSelect() {
-                awardMedalSelect.innerHTML = `<option value="">Select a medal...</option>`;
+            function populateMedalSelect(selectElement) {
+                selectElement.innerHTML = `<option value="">Select a medal...</option>`;
                 for (const medalName in MEDAL_LUCK) {
                     const option = document.createElement('option');
                     option.value = medalName;
                     option.textContent = medalName;
-                    awardMedalSelect.appendChild(option);
+                    selectElement.appendChild(option);
                 }
             }
             const renderManualPickList = () => {
@@ -478,7 +567,7 @@
                     div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
                     
                     const now = Date.now();
-                    const activeMedals = member.medals.filter(m => m.expires > now);
+                    const activeMedals = member.medals ? member.medals.filter(m => m.expires > now) : [];
                     let medalIcons = '';
                     if (activeMedals.length > 0) {
                         medalIcons = `<span class="text-xs ml-2">${activeMedals.map(m => '🏅').join('')}</span>`;
@@ -506,20 +595,34 @@
                 const searchTerm = historySearchInput.value.toLowerCase();
                 historyListContainer.innerHTML = '';
                  const sortedHistory = [...selectionHistory].sort((a, b) => {
-                    const dateA = new Date(`2000-${a.date.replace('-', '/')}`);
-                    const dateB = new Date(`2000-${b.date.replace('-', '/')}`);
+                    const dateA = new Date(new Date().getFullYear(), parseInt(a.date.split('-')[0]) - 1, parseInt(a.date.split('-')[1]));
+                    const dateB = new Date(new Date().getFullYear(), parseInt(b.date.split('-')[0]) - 1, parseInt(b.date.split('-')[1]));
                     return dateB - dateA;
                  });
 
                 const filteredHistory = sortedHistory.filter(item => 
                     item.player.toLowerCase().includes(searchTerm)
                 );
+                
+                const renderedCooldowns = new Set();
 
                 filteredHistory.forEach((item) => {
                     const div = document.createElement('div');
                     div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
+                    
+                    let cooldownHTML = '';
+                    if (!renderedCooldowns.has(item.player)) {
+                        const cooldownInfo = getMemberCooldownInfo(item.player);
+                        if (cooldownInfo && cooldownInfo.remainingDays > 0) {
+                            cooldownHTML = `<span class="text-xs text-red-400 font-semibold ml-2">(${cooldownInfo.remainingDays}d left)</span>`;
+                        } else if (cooldownInfo) {
+                             cooldownHTML = `<span class="text-xs text-green-400 font-semibold ml-2">(Eligible)</span>`;
+                        }
+                        renderedCooldowns.add(item.player);
+                    }
+
                     div.innerHTML = `
-                        <p class="font-semibold text-white truncate pr-2">${item.player}</p>
+                        <p class="font-semibold text-white truncate pr-2">${item.player} ${cooldownHTML}</p>
                         <div class="flex items-center space-x-2 flex-shrink-0">
                             <p class="text-xs text-slate-400">${item.date}</p>
                             <button class="delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry">
@@ -542,19 +645,26 @@
                     conductorNameSpan.classList.add('text-slate-500');
                 }
             };
-            const renderActiveMedals = () => {
+            const renderActiveMedalsInEditModal = () => {
                 if (memberToEditId === null) return;
                 const member = allianceMembers.find(m => m.id === memberToEditId);
                 activeMedalsList.innerHTML = '';
-                if (!member || member.medals.length === 0) {
+                if (!member || !member.medals || member.medals.length === 0) {
                     activeMedalsList.innerHTML = `<p class="text-xs text-slate-400 italic">No active medals.</p>`;
                     return;
                 }
-                member.medals.forEach(medal => {
-                    const now = Date.now();
-                    const daysLeft = Math.ceil((medal.expires - now) / (1000 * 60 * 60 * 24));
-                    if (daysLeft <= 0) return;
+                
+                const now = Date.now();
+                const activeMedals = member.medals.filter(medal => medal.expires > now);
 
+                if (activeMedals.length === 0) {
+                     activeMedalsList.innerHTML = `<p class="text-xs text-slate-400 italic">No active medals.</p>`;
+                     return;
+                }
+
+                activeMedals.forEach(medal => {
+                    const daysLeft = Math.ceil((medal.expires - now) / (1000 * 60 * 60 * 24));
+                    
                     const div = document.createElement('div');
                     div.className = 'flex justify-between items-center bg-slate-700/50 p-2 rounded-md';
                     div.innerHTML = `
@@ -569,7 +679,7 @@
             };
             const renderMedalsTab = () => {
                 medalsListContainer.innerHTML = '';
-                const membersWithMedals = allianceMembers.filter(m => m.medals.some(medal => medal.expires > Date.now()));
+                const membersWithMedals = allianceMembers.filter(m => m.medals && m.medals.some(medal => medal.expires > Date.now()));
 
                 if (membersWithMedals.length === 0) {
                     medalsListContainer.innerHTML = `<p class="text-sm text-slate-400 italic">No members have active medals.</p>`;
@@ -577,20 +687,27 @@
                 }
 
                 membersWithMedals.forEach(member => {
-                    const isEligible = !isMemberOnCooldown(member);
-                    const eligibilityClass = isEligible ? 'text-green-400' : 'text-red-400';
-                    const eligibilityText = isEligible ? 'Eligible' : 'On Cooldown';
-
                     const div = document.createElement('div');
-                    div.className = 'item-enter flex justify-between items-center p-2 rounded-lg bg-slate-800/50 text-sm';
+                    div.className = 'item-enter p-2 rounded-lg bg-slate-800/50 text-sm';
+                    
+                    const activeMedalsHTML = member.medals
+                        .filter(m => m.expires > Date.now())
+                        .map(m => {
+                            const awardedDate = new Date(m.awardedDate);
+                            const formattedDate = `${String(awardedDate.getMonth() + 1).padStart(2, '0')}/${String(awardedDate.getDate()).padStart(2, '0')}`;
+                            return `<div class="flex items-center justify-between bg-cyan-800/50 text-cyan-300 px-2 py-0.5 rounded-full">
+                                        <span>${m.name}</span>
+                                        <span class="text-xs text-cyan-500 ml-2">(${formattedDate})</span>
+                                    </div>`;
+                        }).join('');
+
                     div.innerHTML = `
                         <div>
-                            <p class="font-semibold text-white">${member.name}</p>
-                            <div class="flex flex-wrap gap-x-2 gap-y-1 mt-1">
-                                ${member.medals.filter(m => m.expires > Date.now()).map(m => `<span class="text-xs bg-cyan-800/50 text-cyan-300 px-2 py-0.5 rounded-full">${m.name}</span>`).join('')}
+                            <p class="font-semibold text-white mb-1">${member.name}</p>
+                            <div class="flex flex-col gap-1">
+                                ${activeMedalsHTML}
                             </div>
                         </div>
-                        <span class="text-xs font-bold ${eligibilityClass}">${eligibilityText}</span>
                     `;
                     medalsListContainer.appendChild(div);
                 });
@@ -603,33 +720,51 @@
             };
 
             // --- LUCK & COOLDOWN CALCULATION ---
-            const calculateTotalLuck = (member) => {
-                let totalLuck = 0;
-                totalLuck += RANK_LUCK[member.rank] || 0;
-                const now = Date.now();
-                member.medals.forEach(medal => {
-                    if (medal.expires > now) {
-                        totalLuck += MEDAL_LUCK[medal.name] || 0;
-                    }
-                });
-                return totalLuck;
-            };
+            const getMemberCooldownInfo = (memberName) => {
+                const memberObject = allianceMembers.find(m => m.name === memberName);
+                if (!memberObject) return null;
 
-            const isMemberOnCooldown = (memberObject) => {
-                if (!memberObject) return true;
-                const now = new Date();
-                const memberHistory = selectionHistory.filter(h => h.player === memberObject.name).sort((a, b) => new Date(`2000-${b.date.replace('-', '/')}`) - new Date(`2000-${a.date.replace('-', '/')}`));
-                if (memberHistory.length === 0) return false;
+                const sortedMemberHistory = selectionHistory
+                    .filter(h => h.player === memberObject.name)
+                    .sort((a, b) => {
+                        const dateA = new Date(new Date().getFullYear(), parseInt(a.date.split('-')[0]) - 1, parseInt(a.date.split('-')[1]));
+                        const dateB = new Date(new Date().getFullYear(), parseInt(b.date.split('-')[0]) - 1, parseInt(b.date.split('-')[1]));
+                        return dateB - dateA;
+                    });
+
+                if (sortedMemberHistory.length === 0) return { remainingDays: 0 };
                 
-                const lastSelection = memberHistory[0];
+                const lastSelection = sortedMemberHistory[0];
+                const now = new Date();
                 const lastDate = new Date(now.getFullYear(), parseInt(lastSelection.date.split('-')[0]) - 1, parseInt(lastSelection.date.split('-')[1]));
                 if (now < lastDate) lastDate.setFullYear(now.getFullYear() - 1);
                 
                 const diffTime = now - lastDate;
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 
-                const cooldown = RANK_COOLDOWN[memberObject.rank] || 30;
-                return diffDays < cooldown;
+                const totalCooldown = RANK_COOLDOWN[memberObject.rank] || 30;
+                const remaining = totalCooldown - diffDays;
+
+                return {
+                    lastSelectionDate: lastDate,
+                    totalCooldownDays: totalCooldown,
+                    remainingDays: Math.max(0, remaining),
+                    historyId: lastSelection.id
+                };
+            };
+
+            const calculateTotalLuck = (member) => {
+                let totalLuck = 0;
+                totalLuck += RANK_LUCK[member.rank] || 0;
+                const now = Date.now();
+                if (member.medals) {
+                    member.medals.forEach(medal => {
+                        if (medal.expires > now) {
+                            totalLuck += MEDAL_LUCK[medal.name] || 0;
+                        }
+                    });
+                }
+                return totalLuck;
             };
 
             // --- UI STATE MANAGEMENT ---
@@ -662,7 +797,11 @@
                 randomSelectButton.disabled = true;
                 if (buttonToUpdate) buttonToUpdate.textContent = 'CHOOSING...';
 
-                const eligibleByCooldown = pool.filter(member => !isMemberOnCooldown(member) && (!excludedMember || member.name !== excludedMember.name));
+                const eligibleByCooldown = pool.filter(member => {
+                    const info = getMemberCooldownInfo(member.name);
+                    return (!info || info.remainingDays <= 0) && (!excludedMember || member.name !== excludedMember.name);
+                });
+
                 const selectionPool = eligibleByCooldown.length > 0 ? eligibleByCooldown : pool.filter(m => excludedMember ? m.name !== excludedMember.name : true);
 
                 if (selectionPool.length === 0) {
@@ -673,9 +812,8 @@
                 }
 
                 const weightedPool = selectionPool.map(member => {
-                    const memberObject = typeof member === 'object' ? member : allianceMembers.find(m => m.name === member);
-                    const luck = memberObject ? calculateTotalLuck(memberObject) : 0;
-                    return { member: memberObject || {name: member}, weight: 100 + luck };
+                    const luck = calculateTotalLuck(member);
+                    return { member, weight: 100 + luck };
                 });
 
                 const totalWeight = weightedPool.reduce((sum, item) => sum + item.weight, 0);
@@ -693,8 +831,7 @@
                 let drumRollCount = 0;
                 const drumRollInterval = setInterval(() => {
                     const randomIndex = Math.floor(Math.random() * selectionPool.length);
-                    const memberName = typeof selectionPool[randomIndex] === 'object' ? selectionPool[randomIndex].name : selectionPool[randomIndex];
-                    conductorNameSpan.textContent = memberName;
+                    conductorNameSpan.textContent = selectionPool[randomIndex].name;
                     conductorNameSpan.classList.remove('text-yellow-400', 'text-glow');
                     conductorNameSpan.classList.add('text-cyan-400');
                     if (++drumRollCount > 15) {
@@ -722,7 +859,7 @@
                     if (member) {
                         editNameInput.value = member.name;
                         editRankSelect.value = member.rank;
-                        renderActiveMedals();
+                        renderActiveMedalsInEditModal();
                         editModal.classList.remove('hidden');
                     }
                 }
@@ -781,13 +918,10 @@
                 }
             });
             awardMedalBtn.addEventListener('click', () => {
-                const memberIndex = allianceMembers.findIndex(m => m.id === memberToEditId);
                 const medalName = awardMedalSelect.value;
-                if(memberIndex > -1 && medalName) {
-                    const expires = Date.now() + (30 * 24 * 60 * 60 * 1000);
-                    allianceMembers[memberIndex].medals.push({ id: Date.now(), name: medalName, expires: expires });
-                    renderActiveMedals();
-                    updateFirestore();
+                if(memberToEditId && medalName) {
+                    awardMedal(memberToEditId, medalName);
+                    renderActiveMedalsInEditModal();
                 }
             });
             activeMedalsList.addEventListener('click', (e) => {
@@ -797,7 +931,7 @@
                     const memberIndex = allianceMembers.findIndex(m => m.id === memberToEditId);
                     if(memberIndex > -1) {
                         allianceMembers[memberIndex].medals = allianceMembers[memberIndex].medals.filter(m => m.id !== medalId);
-                        renderActiveMedals();
+                        renderActiveMedalsInEditModal();
                         updateFirestore();
                     }
                 }
@@ -848,8 +982,79 @@
             historySearchInput.addEventListener('input', renderHistory);
             randomSelectButton.addEventListener('click', () => selectRandomly(allianceMembers, randomSelectButton));
 
+            // --- AWARD MEDAL MODAL LOGIC ---
+            function validateMedalAward() {
+                const memberId = parseFloat(awardMedalMemberSelect.value);
+                const medalName = awardMedalTypeSelect.value;
+                const validationMsg = awardMedalValidationMsg;
+                const saveBtn = saveAwardMedalBtn;
+
+                if (!memberId || !medalName) {
+                    saveBtn.disabled = true;
+                    validationMsg.textContent = '';
+                    return;
+                }
+
+                const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                let isMedalOnGlobalCooldown = false;
+                for (const member of allianceMembers) {
+                    if (member.medals && member.medals.some(m => m.name === medalName && m.awardedDate > sevenDaysAgo)) {
+                        isMedalOnGlobalCooldown = true;
+                        break;
+                    }
+                }
+
+                if (isMedalOnGlobalCooldown) {
+                    validationMsg.textContent = `This medal was already awarded this week.`;
+                    saveBtn.disabled = true;
+                    return;
+                }
+                
+                const member = allianceMembers.find(m => m.id === memberId);
+                if (member && member.medals && member.medals.some(m => m.name === medalName && m.expires > Date.now())) {
+                    validationMsg.textContent = `${member.name} already has an active ${medalName}.`;
+                    saveBtn.disabled = true;
+                    return;
+                }
+
+                validationMsg.textContent = '';
+                saveBtn.disabled = false;
+            }
+
+            openAwardMedalModalBtn.addEventListener('click', () => {
+                awardMedalMemberSelect.innerHTML = '<option value="">Select a member...</option>';
+                const sortedMembers = [...allianceMembers].sort((a,b) => a.name.localeCompare(b.name));
+                sortedMembers.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.id;
+                    option.textContent = member.name;
+                    awardMedalMemberSelect.appendChild(option);
+                });
+                
+                populateMedalSelect(awardMedalTypeSelect);
+                
+                validateMedalAward();
+                awardMedalModal.classList.remove('hidden');
+            });
+
+            cancelAwardMedalBtn.addEventListener('click', () => awardMedalModal.classList.add('hidden'));
+            awardMedalModal.addEventListener('click', (e) => { if(e.target.id === 'award-medal-modal') cancelAwardMedalBtn.click(); });
+            awardMedalMemberSelect.addEventListener('change', validateMedalAward);
+            awardMedalTypeSelect.addEventListener('change', validateMedalAward);
+
+            saveAwardMedalBtn.addEventListener('click', () => {
+                const memberId = parseFloat(awardMedalMemberSelect.value);
+                const medalName = awardMedalTypeSelect.value;
+                if (memberId && medalName) {
+                    if (awardMedal(memberId, medalName)) {
+                        renderAll(); // Re-render everything to show changes
+                        awardMedalModal.classList.add('hidden');
+                    }
+                }
+            });
+
             // --- INITIALIZATION ---
-            populateMedalSelect();
+            populateMedalSelect(awardMedalSelect);
             initializeFirebase();
         });
     </script>
