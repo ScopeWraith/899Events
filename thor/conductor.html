@@ -11,18 +11,40 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background: #0f172a; /* bg-slate-900 */
+            background-color: #020617; /* bg-slate-950 */
+            background-image: radial-gradient(circle at top right, rgba(14, 165, 233, 0.15), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent 50%);
         }
         .font-orbitron {
             font-family: 'Orbitron', sans-serif;
         }
         .card {
             background-color: rgba(30, 41, 59, 0.5); /* bg-slate-800/50 */
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(51, 65, 85, 0.5); /* border-slate-700/50 */
-            border-radius: 1rem;
+            border-radius: 1.5rem; /* Increased rounding */
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Aurora border effect */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 1.5rem;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(168, 85, 247, 0.4));
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
         }
         .conductor-reveal {
             animation: reveal 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
@@ -58,22 +80,30 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .tab-btn {
+        .nav-btn {
             transition: all 0.3s ease;
-            border-bottom: 2px solid transparent;
-            padding-bottom: 0.25rem;
             color: #94a3b8; /* text-slate-400 */
+            position: relative;
         }
-        .tab-btn:hover {
-             color: #e2e8f0; /* text-slate-200 */
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background-color: #06b6d4;
+            transition: width 0.3s ease;
         }
-        .tab-btn.active {
+        .nav-btn.active {
             color: #06b6d4; /* text-cyan-500 */
-            border-bottom-color: #06b6d4;
-            font-weight: 600;
+        }
+        .nav-btn.active::after {
+            width: 50%;
         }
         .text-glow {
-            text-shadow: 0 0 5px rgba(250, 204, 21, 0.6), 0 0 15px rgba(250, 204, 21, 0.4);
+            text-shadow: 0 0 8px rgba(250, 204, 21, 0.7), 0 0 20px rgba(250, 204, 21, 0.5);
         }
     </style>
 </head>
@@ -84,106 +114,115 @@
         <p class="mt-4 text-lg text-slate-300">Connecting to Database...</p>
     </div>
 
-    <div class="min-h-screen p-4 flex flex-col items-center">
-        <header class="text-center w-full max-w-xl mx-auto mb-6">
-            <h1 class="font-orbitron text-3xl md:text-4xl font-bold text-cyan-400">CONDUCTOR APP</h1>
-        </header>
-
-        <main class="w-full max-w-xl mx-auto">
-            <div class="card p-4 md:p-6">
-                <!-- Conductor Display -->
-                <div class="relative mb-3">
-                    <h2 class="text-xl font-bold text-yellow-400 text-center text-glow">Today's Conductor</h2>
-                </div>
-                <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-4 min-h-[100px] flex items-center justify-center text-center">
-                    <span id="conductor-name" class="font-orbitron text-2xl md:text-3xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
-                </div>
-
-                <!-- Action Buttons -->
-                <div id="action-buttons-container" class="mt-4">
-                    <div id="random-buttons-container" class="grid grid-cols-1">
-                        <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
-                            CHOOSE CONDUCTOR
-                        </button>
+    <div class="min-h-screen p-4 flex flex-col items-center justify-center">
+        <main class="w-full max-w-md mx-auto">
+            <div class="card">
+                <div class="p-4 md:p-6">
+                    <!-- Conductor Display -->
+                    <div class="relative mb-3">
+                        <h2 class="text-lg font-bold text-yellow-400 text-center text-glow">Today's Conductor</h2>
                     </div>
-                     <div id="pending-buttons-container" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button id="substitute-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
-                            CHOOSE SUBSTITUTE
-                        </button>
-                        <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">
-                            LOCK IN CONDUCTOR
-                        </button>
+                    <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-4 min-h-[90px] flex items-center justify-center text-center">
+                        <span id="conductor-name" class="font-orbitron text-2xl md:text-3xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div id="action-buttons-container" class="mt-4">
+                        <div id="random-buttons-container" class="grid grid-cols-1">
+                            <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
+                                CHOOSE CONDUCTOR
+                            </button>
+                        </div>
+                         <div id="pending-buttons-container" class="hidden grid grid-cols-2 gap-3">
+                            <button id="substitute-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
+                                SUBSTITUTE
+                            </button>
+                            <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">
+                                LOCK IN
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Tabbed Lists -->
-                <div class="mt-6">
-                    <!-- Tab Buttons -->
-                    <div class="grid grid-cols-4 text-center border-b border-slate-700">
-                        <button id="tab-manual-pick" class="tab-btn active">Manual Pick</button>
-                        <button id="tab-history" class="tab-btn">History</button>
-                        <button id="tab-medals" class="tab-btn">Medals</button>
-                        <button id="tab-help" class="tab-btn">Help</button>
+                <!-- Tab Navigation -->
+                <div class="mt-4 border-b border-t border-slate-700">
+                    <div class="grid grid-cols-4 text-center">
+                        <button id="tab-manual-pick" class="nav-btn active p-3 flex flex-col items-center justify-center">
+                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197"></path></svg>
+                            <span class="text-xs font-semibold">Members</span>
+                        </button>
+                        <button id="tab-history" class="nav-btn p-3 flex flex-col items-center justify-center">
+                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span class="text-xs font-semibold">History</span>
+                        </button>
+                        <button id="tab-medals" class="nav-btn p-3 flex flex-col items-center justify-center">
+                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                            <span class="text-xs font-semibold">Medals</span>
+                        </button>
+                        <button id="tab-help" class="nav-btn p-3 flex flex-col items-center justify-center">
+                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span class="text-xs font-semibold">Help</span>
+                        </button>
                     </div>
-
-                    <!-- Tab Content -->
-                    <div class="mt-3">
-                        <div id="content-manual-pick">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="text-base font-bold text-white">Alliance Members</h3>
-                                <button id="add-member-button" class="text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
-                                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </button>
-                            </div>
-                            <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 200px;"></div>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="mt-4 px-4 md:px-6 pb-4 flex-grow min-h-[250px]">
+                    <div id="content-manual-pick">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-base font-bold text-white">Alliance Members</h3>
+                            <button id="add-member-button" class="text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
+                               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
                         </div>
-                        <div id="content-history" class="hidden">
-                             <div class="flex items-center mb-2">
-                                <input type="text" id="history-search-input" placeholder="Search player history..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                <button id="add-history-button" class="ml-2 text-cyan-400 hover:text-cyan-300" title="Add history entry">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </button>
-                             </div>
-                             <div id="history-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 220px;"></div>
+                        <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;"></div>
+                    </div>
+                    <div id="content-history" class="hidden">
+                         <div class="flex items-center mb-2">
+                            <input type="text" id="history-search-input" placeholder="Search player history..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            <button id="add-history-button" class="ml-2 text-cyan-400 hover:text-cyan-300" title="Add history entry">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                         </div>
+                         <div id="history-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 220px;"></div>
+                    </div>
+                    <div id="content-medals" class="hidden">
+                        <div id="medals-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;"></div>
+                    </div>
+                    <div id="content-help" class="hidden text-sm space-y-4 text-slate-300 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;">
+                        <div>
+                            <h3 class="font-semibold text-cyan-400 mb-1">Cooldown Rules</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><span class="font-semibold">R1 Members:</span> 120 day cooldown.</li>
+                                <li><span class="font-semibold">R2 Members:</span> 90 day cooldown.</li>
+                                <li><span class="font-semibold">R3 Members:</span> 60 day cooldown.</li>
+                                <li><span class="font-semibold">R4 Members:</span> 45 day cooldown.</li>
+                            </ul>
+                            <p class="pt-2 italic text-xs">Note: If all members are on cooldown, these rules are ignored.</p>
                         </div>
-                        <div id="content-medals" class="hidden">
-                            <div id="medals-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;"></div>
+                        <div>
+                            <h3 class="font-semibold text-cyan-400 mb-1">Rank Luck (Permanent)</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><span class="font-semibold">R2:</span> +10% Luck</li>
+                                <li><span class="font-semibold">R3:</span> +20% Luck</li>
+                                <li><span class="font-semibold">R4:</span> +30% Luck</li>
+                            </ul>
                         </div>
-                        <div id="content-help" class="hidden text-sm space-y-4 text-slate-300 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;">
-                            <div>
-                                <h3 class="font-semibold text-cyan-400 mb-1">Cooldown Rules</h3>
-                                <ul class="list-disc list-inside space-y-1">
-                                    <li><span class="font-semibold">R1 Members:</span> 120 day cooldown.</li>
-                                    <li><span class="font-semibold">R2 Members:</span> 90 day cooldown.</li>
-                                    <li><span class="font-semibold">R3 Members:</span> 60 day cooldown.</li>
-                                    <li><span class="font-semibold">R4 Members:</span> 45 day cooldown.</li>
-                                </ul>
-                                <p class="pt-2 italic text-xs">Note: If all members are on cooldown, these rules are ignored.</p>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-cyan-400 mb-1">Rank Luck (Permanent)</h3>
-                                <ul class="list-disc list-inside space-y-1">
-                                    <li><span class="font-semibold">R2:</span> +10% Luck</li>
-                                    <li><span class="font-semibold">R3:</span> +20% Luck</li>
-                                    <li><span class="font-semibold">R4:</span> +30% Luck</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-cyan-400 mb-1">Medal Luck (30 Day Duration)</h3>
-                                <ul class="list-disc list-inside space-y-1">
-                                    <li><span class="font-semibold">VS Gold:</span> +20% Luck</li>
-                                    <li><span class="font-semibold">VS Silver:</span> +18% Luck</li>
-                                    <li><span class="font-semibold">VS Bronze:</span> +15% Luck</li>
-                                    <li class="pt-2"><span class="font-semibold">Alliance Star - Gold:</span> +15% Luck</li>
-                                    <li><span class="font-semibold">Alliance Star - Silver:</span> +12% Luck</li>
-                                    <li><span class="font-semibold">Alliance Star - Bronze:</span> +10% Luck</li>
-                                    <li class="pt-2"><span class="font-semibold">Alliance Donator - 1st:</span> +10% Luck</li>
-                                    <li><span class="font-semibold">Alliance Donator - 2nd:</span> +8% Luck</li>
-                                    <li><span class="font-semibold">Alliance Donator - 3rd:</span> +5% Luck</li>
-                                     <li class="pt-2"><span class="font-semibold">Desert Storm Team A - MVP:</span> +5% Luck</li>
-                                    <li><span class="font-semibold">Desert Storm Team B - MVP:</span> +5% Luck</li>
-                                </ul>
-                            </div>
+                        <div>
+                            <h3 class="font-semibold text-cyan-400 mb-1">Medal Luck (30 Day Duration)</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><span class="font-semibold">VS Gold:</span> +20% Luck</li>
+                                <li><span class="font-semibold">VS Silver:</span> +18% Luck</li>
+                                <li><span class="font-semibold">VS Bronze:</span> +15% Luck</li>
+                                <li class="pt-2"><span class="font-semibold">Alliance Star - Gold:</span> +15% Luck</li>
+                                <li><span class="font-semibold">Alliance Star - Silver:</span> +12% Luck</li>
+                                <li><span class="font-semibold">Alliance Star - Bronze:</span> +10% Luck</li>
+                                <li class="pt-2"><span class="font-semibold">Alliance Donator - 1st:</span> +10% Luck</li>
+                                <li><span class="font-semibold">Alliance Donator - 2nd:</span> +8% Luck</li>
+                                <li><span class="font-semibold">Alliance Donator - 3rd:</span> +5% Luck</li>
+                                 <li class="pt-2"><span class="font-semibold">Desert Storm Team A - MVP:</span> +5% Luck</li>
+                                <li><span class="font-semibold">Desert Storm Team B - MVP:</span> +5% Luck</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
