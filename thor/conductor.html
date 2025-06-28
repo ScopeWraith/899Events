@@ -25,8 +25,7 @@
             border-radius: 1.5rem; /* Increased rounding */
             display: flex;
             flex-direction: column;
-            position: relative;
-            overflow: hidden;
+            overflow: hidden; /* To contain the bottom nav */
         }
         /* Aurora border effect */
         .card::before {
@@ -114,7 +113,7 @@
         <p class="mt-4 text-lg text-slate-300">Connecting to Database...</p>
     </div>
 
-    <div class="min-h-screen p-4 flex flex-col items-center justify-center">
+    <div class="min-h-screen p-4 sm:pt-8 flex flex-col items-center">
         <main class="w-full max-w-md mx-auto">
             <div class="card">
                 <div class="p-4 md:p-6">
@@ -145,7 +144,7 @@
                 </div>
 
                 <!-- Tab Navigation -->
-                <div class="mt-4 border-b border-t border-slate-700">
+                <div class="mt-2 border-b border-t border-slate-700">
                     <div class="grid grid-cols-4 text-center">
                         <button id="tab-manual-pick" class="nav-btn active p-3 flex flex-col items-center justify-center">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197"></path></svg>
@@ -167,7 +166,7 @@
                 </div>
                 
                 <!-- Tab Content -->
-                <div class="mt-4 px-4 md:px-6 pb-4 flex-grow min-h-[250px]">
+                <div class="p-4 flex-grow min-h-[250px]">
                     <div id="content-manual-pick">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-base font-bold text-white">Alliance Members</h3>
