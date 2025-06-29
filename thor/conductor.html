@@ -101,8 +101,11 @@
         .nav-btn.active::after {
             width: 50%;
         }
-        .text-glow {
-            text-shadow: 0 0 8px rgba(250, 204, 21, 0.7), 0 0 20px rgba(250, 204, 21, 0.5);
+        .text-glow-gold {
+            text-shadow: 0 0 8px rgba(250, 204, 21, 0.9), 0 0 20px rgba(250, 204, 21, 0.7);
+        }
+        .text-glow-cyan {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.9), 0 0 20px rgba(34, 211, 238, 0.7);
         }
         
         /* Auth Visibility Control */
@@ -131,20 +134,20 @@
                 <div class="p-4 md:p-6">
                     <!-- Conductor Display -->
                     <div class="relative mb-3">
-                        <h2 class="text-lg font-bold text-yellow-400 text-center text-glow">Today's Conductor</h2>
+                        <h2 class="text-2xl font-bold text-white text-center text-glow-cyan">Today's Conductor</h2>
                     </div>
                     <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-4 min-h-[90px] flex items-center justify-center text-center">
-                        <span id="conductor-name" class="font-orbitron text-2xl md:text-3xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
+                        <span id="conductor-name" class="font-orbitron text-3xl md:text-4xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
                     </div>
 
                     <!-- Action Buttons -->
-                    <div id="action-buttons-container" class="mt-4">
-                        <div id="random-buttons-container" class="admin-control grid grid-cols-1">
+                    <div id="action-buttons-container" class="mt-4 admin-control">
+                        <div id="random-buttons-container" class="grid grid-cols-1">
                             <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
                                 CHOOSE CONDUCTOR
                             </button>
                         </div>
-                         <div id="pending-buttons-container" class="admin-control hidden grid grid-cols-2 gap-3">
+                         <div id="pending-buttons-container" class="hidden grid grid-cols-2 gap-3">
                             <button id="substitute-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
                                 SUBSTITUTE
                             </button>
@@ -158,11 +161,11 @@
                 <!-- Tab Navigation -->
                 <div class="mt-2 border-b border-t border-slate-700">
                     <div class="grid grid-cols-3 text-center">
-                        <button id="tab-manual-pick" class="nav-btn active p-3 flex flex-col items-center justify-center">
+                        <button id="tab-manual-pick" class="nav-btn p-3 flex flex-col items-center justify-center">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197"></path></svg>
                             <span class="text-xs font-semibold">Members</span>
                         </button>
-                        <button id="tab-history" class="nav-btn p-3 flex flex-col items-center justify-center">
+                        <button id="tab-history" class="nav-btn active p-3 flex flex-col items-center justify-center">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             <span class="text-xs font-semibold">History</span>
                         </button>
@@ -175,7 +178,7 @@
                 
                 <!-- Tab Content -->
                 <div class="p-4 flex-grow min-h-[250px]">
-                    <div id="content-manual-pick">
+                    <div id="content-manual-pick" class="hidden">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-base font-bold text-white">Alliance Members</h3>
                             <button id="add-member-button" class="admin-control text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
@@ -184,7 +187,7 @@
                         </div>
                         <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;"></div>
                     </div>
-                    <div id="content-history" class="hidden">
+                    <div id="content-history">
                          <div class="flex items-center mb-2">
                             <input type="text" id="history-search-input" placeholder="Search player history..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
                             <button id="add-history-button" class="admin-control ml-2 text-cyan-400 hover:text-cyan-300" title="Add history entry">
@@ -734,11 +737,11 @@
                 if (currentConductor && currentConductor !== 'SELECT A CONDUCTOR') {
                     conductorNameSpan.textContent = currentConductor;
                     conductorNameSpan.classList.remove('text-slate-500', 'text-cyan-400');
-                    conductorNameSpan.classList.add('text-yellow-400', 'conductor-reveal', 'text-glow');
+                    conductorNameSpan.classList.add('text-white', 'conductor-reveal', 'text-glow-gold');
                     conductorNameSpan.addEventListener('animationend', () => conductorNameSpan.classList.remove('conductor-reveal'), { once: true });
                 } else {
                     conductorNameSpan.textContent = 'SELECT A CONDUCTOR';
-                    conductorNameSpan.classList.remove('text-yellow-400', 'text-glow', 'text-cyan-400');
+                    conductorNameSpan.classList.remove('text-white', 'text-glow-gold', 'text-cyan-400');
                     conductorNameSpan.classList.add('text-slate-500');
                 }
             };
@@ -880,7 +883,7 @@
             function showPendingMode(name) {
                 pendingConductor = name;
                 conductorNameSpan.textContent = name;
-                conductorNameSpan.classList.remove('text-yellow-400', 'text-glow', 'text-slate-500');
+                conductorNameSpan.classList.remove('text-white', 'text-glow-gold', 'text-slate-500');
                 conductorNameSpan.classList.add('text-cyan-400');
                 randomButtonsContainer.style.display = 'none';
                 pendingButtonsContainer.style.display = 'grid';
@@ -942,7 +945,7 @@
                 const drumRollInterval = setInterval(() => {
                     const randomIndex = Math.floor(Math.random() * selectionPool.length);
                     conductorNameSpan.textContent = selectionPool[randomIndex].name;
-                    conductorNameSpan.classList.remove('text-yellow-400', 'text-glow');
+                    conductorNameSpan.classList.remove('text-white', 'text-glow-gold');
                     conductorNameSpan.classList.add('text-cyan-400');
                     if (++drumRollCount > 15) {
                         clearInterval(drumRollInterval);
