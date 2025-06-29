@@ -885,14 +885,14 @@
                 conductorNameSpan.textContent = name;
                 conductorNameSpan.classList.remove('text-white', 'text-glow-gold', 'text-slate-500');
                 conductorNameSpan.classList.add('text-cyan-400');
-                randomButtonsContainer.style.display = 'none';
-                pendingButtonsContainer.style.display = 'grid';
+                randomButtonsContainer.classList.add('hidden');
+                pendingButtonsContainer.classList.remove('hidden');
             }
             function showRandomMode() {
                 pendingConductor = null;
                 renderConductor();
-                randomButtonsContainer.style.display = 'grid';
-                pendingButtonsContainer.style.display = 'none';
+                randomButtonsContainer.classList.remove('hidden');
+                pendingButtonsContainer.classList.add('hidden');
             }
             function showConfirmationModal(title, message, onConfirm) {
                 confirmationTitle.textContent = title;
@@ -1191,6 +1191,18 @@
 
             logoutButton.addEventListener('click', () => {
                 setAuthState(false);
+            });
+            
+            // --- CONFIRMATION MODAL LOGIC ---
+            confirmActionBtn.addEventListener('click', () => {
+                if (confirmCallback) {
+                    confirmCallback();
+                }
+                confirmationModal.classList.add('hidden');
+            });
+
+            confirmCancelBtn.addEventListener('click', () => {
+                confirmationModal.classList.add('hidden');
             });
 
             // --- READ ME MODAL LOGIC ---
