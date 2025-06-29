@@ -157,7 +157,7 @@
 
                 <!-- Tab Navigation -->
                 <div class="mt-2 border-b border-t border-slate-700">
-                    <div class="grid grid-cols-4 text-center">
+                    <div class="grid grid-cols-3 text-center">
                         <button id="tab-manual-pick" class="nav-btn active p-3 flex flex-col items-center justify-center">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197"></path></svg>
                             <span class="text-xs font-semibold">Members</span>
@@ -169,10 +169,6 @@
                         <button id="tab-medals" class="nav-btn p-3 flex flex-col items-center justify-center">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
                             <span class="text-xs font-semibold">Medals</span>
-                        </button>
-                        <button id="tab-help" class="nav-btn p-3 flex flex-col items-center justify-center">
-                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span class="text-xs font-semibold">Help</span>
                         </button>
                     </div>
                 </div>
@@ -207,44 +203,17 @@
                         </div>
                         <div id="medals-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 220px;"></div>
                     </div>
-                    <div id="content-help" class="hidden text-sm space-y-4 text-slate-300 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;">
-                        <div>
-                            <h3 class="font-semibold text-cyan-400 mb-1">Rank Cooldown Rules</h3>
-                            <ul class="list-disc list-inside space-y-1">
-                                <li><span class="font-semibold">R1 Members:</span> 120 day cooldown.</li>
-                                <li><span class="font-semibold">R2 Members:</span> 90 day cooldown.</li>
-                                <li><span class="font-semibold">R3 Members:</span> 60 day cooldown.</li>
-                                <li><span class="font-semibold">R4 Members:</span> 45 day cooldown.</li>
-                                <li><span class="font-semibold">R5 Members:</span> 40 day cooldown.</li>
-                            </ul>
-                            <p class="pt-2 italic text-xs">Note: If all members are on cooldown, these rules are ignored.</p>
-                        </div>
-                        <div id="help-cooldown-reduction">
-                            <h3 class="font-semibold text-cyan-400 mb-1">Medal Cooldown Reductions</h3>
-                            <ul class="list-disc list-inside space-y-1">
-                                <!-- This will be populated by script -->
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-cyan-400 mb-1">Rank Luck (Permanent)</h3>
-                            <ul class="list-disc list-inside space-y-1">
-                                <li><span class="font-semibold">R2:</span> +10% Luck</li>
-                                <li><span class="font-semibold">R3:</span> +20% Luck</li>
-                                <li><span class="font-semibold">R4:</span> +30% Luck</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-cyan-400 mb-1">Medal Luck (30 Day Duration)</h3>
-                            <ul class="list-disc list-inside space-y-1" id="help-medal-luck-list">
-                                <!-- This will be populated by script -->
-                            </ul>
-                        </div>
-                    </div>
                 </div>
                  <!-- Auth Footer -->
-                <div class="p-4 border-t border-slate-700/50 mt-auto">
-                    <button id="open-login-modal-btn" class="login-button w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Admin Login</button>
-                    <button id="logout-button" class="logout-button w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Logout</button>
+                <div class="p-4 border-t border-slate-700/50 mt-auto flex items-center justify-between space-x-4">
+                    <button id="read-me-button" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Read Me</span>
+                    </button>
+                    <div class="flex-grow text-right">
+                        <button id="open-login-modal-btn" class="login-button bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Admin Login</button>
+                        <button id="logout-button" class="logout-button bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Logout</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -376,6 +345,62 @@
         </div>
     </div>
 
+    <!-- Read Me Modal -->
+    <div id="read-me-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50">
+        <div class="card p-6 w-full max-w-lg">
+            <h2 class="text-2xl font-bold text-white mb-4 text-center font-orbitron">Read Me</h2>
+            <div class="text-sm space-y-4 text-slate-300 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 70vh;">
+                 <div>
+                    <h3 class="font-semibold text-cyan-400 mb-1 text-lg">How It Works</h3>
+                    <p>This tool is designed to select a "Train Conductor" from a pool of alliance members based on a weighted random selection. The goal is to create a fair and balanced rotation.</p>
+                    <ul class="list-disc list-inside space-y-1 mt-2">
+                        <li>An admin must log in to perform actions like choosing a conductor, editing members, or awarding medals.</li>
+                        <li>The selection process considers member rank and active medals to calculate a "luck" score, which influences their chance of being picked.</li>
+                        <li>After a member is chosen, they enter a cooldown period based on their rank, during which they cannot be selected again.</li>
+                        <li>Certain medals can reduce this cooldown period.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-cyan-400 mb-1 text-lg">Rank Cooldown Rules</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><span class="font-semibold">R1 Members:</span> 120 day cooldown.</li>
+                        <li><span class="font-semibold">R2 Members:</span> 90 day cooldown.</li>
+                        <li><span class="font-semibold">R3 Members:</span> 60 day cooldown.</li>
+                        <li><span class="font-semibold">R4 Members:</span> 45 day cooldown.</li>
+                        <li><span class="font-semibold">R5 Members:</span> 40 day cooldown.</li>
+                    </ul>
+                    <p class="pt-2 italic text-xs">Note: If all members are on cooldown, these rules are ignored and everyone is eligible.</p>
+                </div>
+                <div id="read-me-cooldown-reduction">
+                    <h3 class="font-semibold text-cyan-400 mb-1 text-lg">Medal Cooldown Reductions</h3>
+                    <p>Earning the following medals will reduce a player's remaining conductor cooldown by the specified percentage:</p>
+                    <ul class="list-disc list-inside space-y-1 mt-2">
+                        <!-- This will be populated by script -->
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-cyan-400 mb-1 text-lg">Rank Luck (Permanent)</h3>
+                     <p>Higher ranks receive a permanent luck bonus, increasing their chances of being selected when eligible.</p>
+                    <ul class="list-disc list-inside space-y-1 mt-2">
+                        <li><span class="font-semibold">R2:</span> +10% Luck</li>
+                        <li><span class="font-semibold">R3:</span> +20% Luck</li>
+                        <li><span class="font-semibold">R4:</span> +30% Luck</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-cyan-400 mb-1 text-lg">Medal Luck (30 Day Duration)</h3>
+                    <p>Awarded medals provide a temporary luck bonus for 30 days.</p>
+                    <ul class="list-disc list-inside space-y-1 mt-2" id="read-me-medal-luck-list">
+                        <!-- This will be populated by script -->
+                    </ul>
+                </div>
+            </div>
+             <div class="mt-6 flex justify-end">
+                <button id="close-read-me-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg text-sm">Close</button>
+            </div>
+        </div>
+    </div>
+
 
     <script type="module">
         // Import Firebase modules
@@ -421,11 +446,9 @@
             const tabManualPick = document.getElementById('tab-manual-pick');
             const tabHistory = document.getElementById('tab-history');
             const tabMedals = document.getElementById('tab-medals');
-            const tabHelp = document.getElementById('tab-help');
             const contentManualPick = document.getElementById('content-manual-pick');
             const contentHistory = document.getElementById('content-history');
             const contentMedals = document.getElementById('content-medals');
-            const contentHelp = document.getElementById('content-help');
             const historySearchInput = document.getElementById('history-search-input');
             const addHistoryButton = document.getElementById('add-history-button');
             const addHistoryModal = document.getElementById('add-history-modal');
@@ -471,6 +494,11 @@
             const usernameInput = document.getElementById('username-input');
             const passwordInput = document.getElementById('password-input');
             const loginErrorMsg = document.getElementById('login-error-msg');
+
+            // Read Me Modal Elements
+            const readMeButton = document.getElementById('read-me-button');
+            const readMeModal = document.getElementById('read-me-modal');
+            const closeReadMeBtn = document.getElementById('close-read-me-btn');
 
             // --- LOCAL STATE ---
             let allianceMembers = [];
@@ -602,7 +630,7 @@
 
             // --- RENDER FUNCTIONS ---
             function populateHelpLists() {
-                const cooldownList = document.querySelector("#help-cooldown-reduction ul");
+                const cooldownList = document.querySelector("#read-me-cooldown-reduction ul");
                 cooldownList.innerHTML = '';
                 for(const [medal, reduction] of Object.entries(CONFIG.MEDAL_COOLDOWN_REDUCTION)) {
                     const li = document.createElement('li');
@@ -610,7 +638,7 @@
                     cooldownList.appendChild(li);
                 }
 
-                const luckList = document.getElementById("help-medal-luck-list");
+                const luckList = document.getElementById("read-me-medal-luck-list");
                 luckList.innerHTML = '';
                  for(const [medal, luck] of Object.entries(CONFIG.MEDAL_LUCK)) {
                     const li = document.createElement('li');
@@ -1027,8 +1055,8 @@
             });
             editModal.addEventListener('click', (e) => { if (e.target.id === 'edit-modal') cancelEditBtn.click(); });
             
-            const allTabs = [tabManualPick, tabHistory, tabMedals, tabHelp];
-            const allContent = [contentManualPick, contentHistory, contentMedals, contentHelp];
+            const allTabs = [tabManualPick, tabHistory, tabMedals];
+            const allContent = [contentManualPick, contentHistory, contentMedals];
 
             allTabs.forEach((tab, index) => {
                 tab.addEventListener('click', () => {
@@ -1161,6 +1189,11 @@
             logoutButton.addEventListener('click', () => {
                 setAuthState(false);
             });
+
+            // --- READ ME MODAL LOGIC ---
+            readMeButton.addEventListener('click', () => readMeModal.classList.remove('hidden'));
+            closeReadMeBtn.addEventListener('click', () => readMeModal.classList.add('hidden'));
+            readMeModal.addEventListener('click', (e) => { if(e.target.id === 'read-me-modal') closeReadMeBtn.click(); });
 
             // --- INITIALIZATION ---
             setAuthState(false); // Start logged out
