@@ -369,40 +369,64 @@
     
     <!-- Player Info Modal -->
     <div id="player-info-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
-        <div class="card p-6 w-full max-w-md">
-            <div class="flex justify-between items-start mb-4">
-                <h2 id="player-info-name" class="text-2xl font-bold text-white font-orbitron">Player Name</h2>
-                <button id="close-player-info-btn" class="text-3xl font-light leading-none text-slate-400 hover:text-white transition-colors">&times;</button>
+        <div class="card p-4 sm:p-6 w-full max-w-md">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="player-info-name" class="text-xl sm:text-2xl font-bold text-white font-orbitron truncate pr-2">Player Name</h2>
+                <button id="close-player-info-btn" class="text-3xl font-light leading-none text-slate-400 hover:text-white transition-colors flex-shrink-0">&times;</button>
             </div>
-            
+
+            <!-- Designate Button -->
             <div class="admin-control mb-4">
-                <button id="designate-conductor-btn" class="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all">
-                    Designate as Conductor
+                <button id="designate-conductor-btn" class="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span>Designate as Conductor</span>
                 </button>
             </div>
 
-            <div class="border-t border-b border-slate-700/50 py-4 my-4">
-                <h3 class="text-sm font-semibold text-cyan-400 mb-3 text-center uppercase tracking-wider">Player Statistics</h3>
-                <div class="grid grid-cols-3 gap-4 text-center">
+            <!-- Stats Section -->
+            <div class="border-y border-slate-700/50 py-4 my-4">
+                <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                    <!-- Total Luck -->
                     <div>
-                        <p id="player-info-luck" class="text-2xl font-bold text-white">0%</p>
+                        <div class="text-cyan-400 mx-auto mb-1">
+                            <svg class="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        </div>
                         <p class="text-xs text-slate-400">Total Luck</p>
+                        <p id="player-info-luck" class="text-lg font-bold text-white">0%</p>
                     </div>
+                    <!-- Cooldown Reduction -->
                     <div>
-                        <p id="player-info-cd-reduction" class="text-2xl font-bold text-white">0%</p>
+                        <div class="text-purple-400 mx-auto mb-1">
+                            <svg class="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
                         <p class="text-xs text-slate-400">CD Reduction</p>
+                        <p id="player-info-cd-reduction" class="text-lg font-bold text-white">0%</p>
                     </div>
+                    <!-- Active Medals -->
                     <div>
-                        <p id="player-info-active-medals" class="text-2xl font-bold text-white">0</p>
+                        <div class="text-amber-400 mx-auto mb-1">
+                            <svg class="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                        </div>
                         <p class="text-xs text-slate-400">Active Medals</p>
+                        <p id="player-info-active-medals" class="text-lg font-bold text-white">0</p>
                     </div>
                 </div>
             </div>
 
-            <div>
-                <h3 class="text-base font-bold text-white mb-3">Medal History</h3>
-                <div id="player-info-medals-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 200px;">
-                    <!-- Medal items will be populated here -->
+            <!-- History Container -->
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-base font-bold text-white mb-2">Medal History</h3>
+                    <div id="player-info-medals-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 120px;">
+                        <!-- Medal items will be populated here -->
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white mb-2">Conductor History</h3>
+                    <div id="player-info-conductor-history-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 120px;">
+                        <!-- Conductor history items will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -419,11 +443,11 @@
 
             <!-- Tabs -->
             <div id="how-it-works-tabs-container" class="border-b border-slate-700 mb-4">
-                <nav class="flex space-x-4" aria-label="Tabs">
-                    <button data-tab="overview" class="how-it-works-tab px-3 py-2 font-medium text-sm rounded-t-lg active">Overview</button>
-                    <button data-tab="selection" class="how-it-works-tab px-3 py-2 font-medium text-sm rounded-t-lg">Selection Process</button>
-                    <button data-tab="ranks-medals" class="how-it-works-tab px-3 py-2 font-medium text-sm rounded-t-lg">Ranks & Medals</button>
-                    <button data-tab="admin" class="how-it-works-tab px-3 py-2 font-medium text-sm rounded-t-lg">Admin Controls</button>
+                <nav class="grid grid-cols-4 -mb-px" aria-label="Tabs">
+                    <button data-tab="overview" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg active">Overview</button>
+                    <button data-tab="selection" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg">Selection</button>
+                    <button data-tab="ranks-medals" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg">Bonuses</button>
+                    <button data-tab="admin" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg">Admin</button>
                 </nav>
             </div>
 
@@ -451,46 +475,41 @@
                     </ul>
                 </div>
 
-                <div id="tab-content-ranks-medals" class="how-it-works-tab-content">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Rank Cooldowns</h3>
-                            <p>A member's rank determines their base cooldown period after being conductor.</p>
-                            <ul class="list-disc list-inside space-y-1 mt-2">
-                                <li><span class="font-semibold">R1 Members:</span> 120 day cooldown.</li>
-                                <li><span class="font-semibold">R2 Members:</span> 90 day cooldown.</li>
-                                <li><span class="font-semibold">R3 Members:</span> 60 day cooldown.</li>
-                                <li><span class="font-semibold">R4 Members:</span> 45 day cooldown.
-                                <li><span class="font-semibold">R5 Members:</span> 40 day cooldown.</li>
-                            </ul>
-                        </div>
-                         <div>
-                            <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Rank Luck</h3>
-                             <p>Higher ranks receive a permanent luck bonus.</p>
-                            <ul class="list-disc list-inside space-y-1 mt-2">
-                                <li><span class="font-semibold">R2:</span> +10% Luck</li>
-                                <li><span class="font-semibold">R3:</span> +20% Luck</li>
-                                <li><span class="font-semibold">R4:</span> +30% Luck</li>
-                            </ul>
+                <div id="tab-content-ranks-medals" class="how-it-works-tab-content space-y-6">
+                    <div>
+                        <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Rank Bonuses</h3>
+                        <p class="mb-3">A member's rank determines their base cooldown period and provides a permanent luck bonus.</p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-800/50">
+                                        <th class="p-2 font-semibold text-white">Rank</th>
+                                        <th class="p-2 font-semibold text-white">Cooldown</th>
+                                        <th class="p-2 font-semibold text-white">Luck Bonus</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="how-it-works-rank-bonus-table">
+                                    <!-- This will be populated by script -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div class="mt-6">
+                     <div>
                         <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Medal Bonuses (30 Day Duration)</h3>
-                        <p>Awarded medals provide powerful, temporary bonuses for 30 days. They can increase luck, reduce cooldowns, or both.</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-                            <div>
-                                <h4 class="font-semibold text-white mb-1">Luck Bonuses</h4>
-                                <ul class="list-disc list-inside space-y-1" id="how-it-works-medal-luck-list">
+                        <p class="mb-3">Awarded medals provide powerful, temporary bonuses for 30 days. They can increase luck, reduce cooldowns, or both.</p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-800/50">
+                                        <th class="p-2 font-semibold text-white">Medal Name</th>
+                                        <th class="p-2 font-semibold text-white">Luck Bonus</th>
+                                        <th class="p-2 font-semibold text-white">CD Reduction</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="how-it-works-medal-bonus-table">
                                     <!-- This will be populated by script -->
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold text-white mb-1">Cooldown Reductions</h4>
-                                <p class="text-xs italic text-slate-400 mb-2">Reduces remaining cooldown at the time the medal is awarded.</p>
-                                <ul class="list-disc list-inside space-y-1" id="how-it-works-cooldown-reduction-list">
-                                    <!-- This will be populated by script -->
-                                </ul>
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -523,13 +542,13 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // --- CONFIGURATION ---
             const CONFIG = {
-                RANK_LUCK: { 'R2': 10, 'R3': 20, 'R4': 30 },
+                RANK_LUCK: { 'R2': 10, 'R3': 20, 'R4': 30, 'R5': 30 },
                 MEDAL_LUCK: {
                     'VS Gold': 20, 'VS Silver': 18, 'VS Bronze': 15,
                     'Desert Storm Team A - MVP': 5, 'Desert Storm Team B - MVP': 5,
-                    'Star - Killer Award': 15, // Formerly 'Alliance Star - Gold'
-                    'Star - Helper Award': 12, // Formerly 'Alliance Star - Silver'
-                    'Star - Gift Award': 10,   // Formerly 'Alliance Star - Bronze'
+                    'Star - Killer Award': 15,
+                    'Star - Helper Award': 12,
+                    'Star - Rally Award': 10,
                     'Alliance Donator - 1st': 10, 'Alliance Donator - 2nd': 8, 'Alliance Donator - 3rd': 5,
                     'Mega Express Medal': 25,
                     'Capitol Award': 15,
@@ -544,7 +563,9 @@
                     'VS Bronze': 0.10,
                     'Desert Storm Team A - MVP': 0.15,
                     'Desert Storm Team B - MVP': 0.15,
-                    'Star - Killer Award': 0.10, // Formerly 'Alliance Star - Gold'
+                    'Star - Killer Award': 0.10,
+                    'Star - Helper Award': 0.08,
+                    'Star - Rally Award': 0.05,
                     'Alliance Donator - 1st': 0.20,
                     'Alliance Donator - 2nd': 0.15,
                     'Alliance Donator - 3rd': 0.10,
@@ -610,6 +631,7 @@
             const playerInfoCdReduction = document.getElementById('player-info-cd-reduction');
             const playerInfoActiveMedals = document.getElementById('player-info-active-medals');
             const playerInfoMedalsList = document.getElementById('player-info-medals-list');
+            const playerInfoConductorHistoryList = document.getElementById('player-info-conductor-history-list');
 
 
             // Award Medal Modal Elements
@@ -776,26 +798,57 @@
             }
 
             // --- RENDER FUNCTIONS ---
-            function populateHelpLists() {
-                const cooldownList = document.getElementById("how-it-works-cooldown-reduction-list");
-                cooldownList.innerHTML = '';
-                for(const [medal, reduction] of Object.entries(CONFIG.MEDAL_COOLDOWN_REDUCTION)) {
-                    if (reduction > 0) {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<span class="font-semibold">${medal}:</span> ${reduction * 100}% reduction`;
-                        cooldownList.appendChild(li);
-                    }
-                }
+            function populateBonusTables() {
+                // Populate Rank Table
+                const rankTableBody = document.getElementById("how-it-works-rank-bonus-table");
+                rankTableBody.innerHTML = '';
+                const ranks = ['R1', 'R2', 'R3', 'R4', 'R5'];
+                ranks.forEach(rank => {
+                    const cooldown = CONFIG.RANK_COOLDOWN[rank] || '-';
+                    const luck = CONFIG.RANK_LUCK[rank] || 0;
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-slate-700/50';
+                    row.innerHTML = `
+                        <td class="p-2 font-semibold text-cyan-400">${rank}</td>
+                        <td class="p-2">${cooldown} days</td>
+                        <td class="p-2">+${luck}%</td>
+                    `;
+                    rankTableBody.appendChild(row);
+                });
 
-                const luckList = document.getElementById("how-it-works-medal-luck-list");
-                luckList.innerHTML = '';
-                 for(const [medal, luck] of Object.entries(CONFIG.MEDAL_LUCK)) {
-                    if (luck > 0) {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<span class="font-semibold">${medal}:</span> +${luck}% Luck`;
-                        luckList.appendChild(li);
-                    }
-                }
+                // Populate Medal Table
+                const medalTableBody = document.getElementById("how-it-works-medal-bonus-table");
+                medalTableBody.innerHTML = '';
+                
+                const medalDisplayOrder = [
+                    'VS Gold', 'VS Silver', 'VS Bronze',
+                    'Star - Killer Award', 'Star - Helper Award', 'Star - Rally Award',
+                    'Desert Storm Team A - MVP', 'Desert Storm Team B - MVP',
+                    'Alliance Donator - 1st', 'Alliance Donator - 2nd', 'Alliance Donator - 3rd',
+                    'Mega Express Medal',
+                    'Capitol Award',
+                    'Doomsday Award',
+                    'Meteorite Award',
+                    'Count Master Award'
+                ];
+
+                const allMedalNames = [...new Set([...Object.keys(CONFIG.MEDAL_LUCK), ...Object.keys(CONFIG.MEDAL_COOLDOWN_REDUCTION)])];
+                const displayedMedals = new Set(medalDisplayOrder);
+                const remainingMedals = allMedalNames.filter(m => !displayedMedals.has(m)).sort();
+                const finalMedalOrder = [...medalDisplayOrder, ...remainingMedals];
+                
+                finalMedalOrder.forEach(medal => {
+                    const luck = CONFIG.MEDAL_LUCK[medal];
+                    const reduction = CONFIG.MEDAL_COOLDOWN_REDUCTION[medal];
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-slate-700/50';
+                    row.innerHTML = `
+                        <td class="p-2">${medal}</td>
+                        <td class="p-2">${luck ? `+${luck}%` : '-'}</td>
+                        <td class="p-2">${reduction ? `${Math.round(reduction * 100)}%` : '-'}</td>
+                    `;
+                    medalTableBody.appendChild(row);
+                });
             }
             function populateMedalSelect(selectElement) {
                 selectElement.innerHTML = `<option value="">Select a medal...</option>`;
@@ -993,7 +1046,7 @@
                 renderHistory();
                 renderConductor();
                 renderMedalsTab();
-                populateHelpLists();
+                populateBonusTables();
             };
 
             // --- LUCK & COOLDOWN CALCULATION ---
@@ -1102,7 +1155,7 @@
                 if (!member) return;
 
                 playerInfoName.textContent = member.name;
-                designateConductorBtn.textContent = `Designate ${member.name} as Conductor`;
+                designateConductorBtn.querySelector('span').textContent = `Designate as Conductor`;
 
                 // Populate stats
                 playerInfoLuck.textContent = `${calculateTotalLuck(member)}%`;
@@ -1121,7 +1174,7 @@
                         const isExpired = medal.expires < now;
                         const medalColorClass = isExpired ? 'text-slate-500' : 'text-green-400';
                         const awardedDate = new Date(medal.awardedDate);
-                        const formattedDate = `${String(awardedDate.getMonth() + 1).padStart(2, '0')}-${String(awardedDate.getDate()).padStart(2, '0')}-${awardedDate.getFullYear()}`;
+                        const formattedDate = `${String(awardedDate.getMonth() + 1).padStart(2, '0')}-${String(awardedDate.getDate()).padStart(2, '0')}-${String(awardedDate.getFullYear()).slice(-2)}`;
 
                         const li = document.createElement('div');
                         li.className = 'flex justify-between items-center bg-slate-800/50 p-2 rounded-md';
@@ -1132,6 +1185,31 @@
                         playerInfoMedalsList.appendChild(li);
                     });
                 }
+
+                // Populate Conductor History
+                playerInfoConductorHistoryList.innerHTML = '';
+                const memberHistory = selectionHistory
+                    .filter(h => h.player === member.name)
+                    .sort((a, b) => {
+                        const dateA = new Date(new Date().getFullYear(), parseInt(a.date.split('-')[0]) - 1, parseInt(a.date.split('-')[1]));
+                        const dateB = new Date(new Date().getFullYear(), parseInt(b.date.split('-')[0]) - 1, parseInt(b.date.split('-')[1]));
+                        return dateB - dateA;
+                    });
+
+                if (memberHistory.length === 0) {
+                    playerInfoConductorHistoryList.innerHTML = `<p class="text-sm text-slate-400 italic text-center">No conductor history.</p>`;
+                } else {
+                    memberHistory.forEach(entry => {
+                        const li = document.createElement('div');
+                        li.className = 'flex justify-between items-center bg-slate-800/50 p-2 rounded-md';
+                        li.innerHTML = `
+                            <span class="font-semibold text-slate-300">Conductor</span>
+                            <span class="text-xs text-slate-400">${entry.date}</span>
+                        `;
+                        playerInfoConductorHistoryList.appendChild(li);
+                    });
+                }
+
 
                 playerInfoModal.classList.remove('hidden');
             }
@@ -1282,7 +1360,9 @@
                     allianceMembers[memberIndex].name = editNameInput.value.trim();
                     allianceMembers[memberIndex].rank = editRankSelect.value;
                     updateFirestore();
-                    // Optionally show a save confirmation message
+                    // Close the modal
+                    editModal.classList.add('hidden');
+                    memberToEditId = null;
                 }
             });
             awardMedalBtn.addEventListener('click', () => {
