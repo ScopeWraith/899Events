@@ -251,10 +251,6 @@
             <h2 class="text-xl font-bold text-white mb-4 text-center">Admin Login</h2>
             <div class="space-y-4">
                 <div>
-                    <label for="username-input" class="block text-sm font-medium text-slate-300">Username</label>
-                    <input type="text" id="username-input" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                </div>
-                <div>
                     <label for="password-input" class="block text-sm font-medium text-slate-300">Password</label>
                     <input type="password" id="password-input" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
                 </div>
@@ -464,7 +460,7 @@
                                 <li><span class="font-semibold">R1 Members:</span> 120 day cooldown.</li>
                                 <li><span class="font-semibold">R2 Members:</span> 90 day cooldown.</li>
                                 <li><span class="font-semibold">R3 Members:</span> 60 day cooldown.</li>
-                                <li><span class="font-semibold">R4 Members:</span> 45 day cooldown.</li>
+                                <li><span class="font-semibold">R4 Members:</span> 45 day cooldown.
                                 <li><span class="font-semibold">R5 Members:</span> 40 day cooldown.</li>
                             </ul>
                         </div>
@@ -531,8 +527,15 @@
                 MEDAL_LUCK: {
                     'VS Gold': 20, 'VS Silver': 18, 'VS Bronze': 15,
                     'Desert Storm Team A - MVP': 5, 'Desert Storm Team B - MVP': 5,
-                    'Alliance Star - Gold': 15, 'Alliance Star - Silver': 12, 'Alliance Star - Bronze': 10,
+                    'Star - Killer Award': 15, // Formerly 'Alliance Star - Gold'
+                    'Star - Helper Award': 12, // Formerly 'Alliance Star - Silver'
+                    'Star - Gift Award': 10,   // Formerly 'Alliance Star - Bronze'
                     'Alliance Donator - 1st': 10, 'Alliance Donator - 2nd': 8, 'Alliance Donator - 3rd': 5,
+                    'Mega Express Medal': 25,
+                    'Capitol Award': 15,
+                    'Doomsday Award': 10,
+                    'Meteorite Award': 5,
+                    'Count Master Award': 5,
                 },
                 RANK_COOLDOWN: { 'R1': 120, 'R2': 90, 'R3': 60, 'R4': 45, 'R5': 40 },
                 MEDAL_COOLDOWN_REDUCTION: {
@@ -541,10 +544,15 @@
                     'VS Bronze': 0.10,
                     'Desert Storm Team A - MVP': 0.15,
                     'Desert Storm Team B - MVP': 0.15,
-                    'Alliance Star - Gold': 0.10,
+                    'Star - Killer Award': 0.10, // Formerly 'Alliance Star - Gold'
                     'Alliance Donator - 1st': 0.20,
                     'Alliance Donator - 2nd': 0.15,
                     'Alliance Donator - 3rd': 0.10,
+                    'Mega Express Medal': 0.50,
+                    'Capitol Award': 0.25,
+                    'Doomsday Award': 0.20,
+                    'Meteorite Award': 0.15,
+                    'Count Master Award': 0.10,
                 },
                 SUB_BOOST_LUCK: 50,
             };
@@ -619,7 +627,6 @@
             const openLoginModalBtn = document.getElementById('open-login-modal-btn');
             const cancelLoginBtn = document.getElementById('cancel-login-btn');
             const logoutButton = document.getElementById('logout-button');
-            const usernameInput = document.getElementById('username-input');
             const passwordInput = document.getElementById('password-input');
             const loginErrorMsg = document.getElementById('login-error-msg');
 
@@ -773,22 +780,27 @@
                 const cooldownList = document.getElementById("how-it-works-cooldown-reduction-list");
                 cooldownList.innerHTML = '';
                 for(const [medal, reduction] of Object.entries(CONFIG.MEDAL_COOLDOWN_REDUCTION)) {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span class="font-semibold">${medal}:</span> ${reduction * 100}% reduction`;
-                    cooldownList.appendChild(li);
+                    if (reduction > 0) {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<span class="font-semibold">${medal}:</span> ${reduction * 100}% reduction`;
+                        cooldownList.appendChild(li);
+                    }
                 }
 
                 const luckList = document.getElementById("how-it-works-medal-luck-list");
                 luckList.innerHTML = '';
                  for(const [medal, luck] of Object.entries(CONFIG.MEDAL_LUCK)) {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span class="font-semibold">${medal}:</span> +${luck}% Luck`;
-                    luckList.appendChild(li);
+                    if (luck > 0) {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<span class="font-semibold">${medal}:</span> +${luck}% Luck`;
+                        luckList.appendChild(li);
+                    }
                 }
             }
             function populateMedalSelect(selectElement) {
                 selectElement.innerHTML = `<option value="">Select a medal...</option>`;
-                for (const medalName in CONFIG.MEDAL_LUCK) {
+                const medalNames = Object.keys(CONFIG.MEDAL_LUCK).sort();
+                for (const medalName of medalNames) {
                     const option = document.createElement('option');
                     option.value = medalName;
                     option.textContent = medalName;
@@ -1448,12 +1460,12 @@
             loginModal.addEventListener('click', (e) => { if(e.target.id === 'login-modal') cancelLoginBtn.click(); });
 
             loginButton.addEventListener('click', () => {
-                const user = usernameInput.value;
                 const pass = passwordInput.value;
-                if (user === 'sw4prez' && pass === 'newspaper') {
+                // Check only the password
+                if (pass === 'newspaper') {
                     setAuthState(true);
                 } else {
-                    loginErrorMsg.textContent = 'Invalid username or password.';
+                    loginErrorMsg.textContent = 'Invalid password.';
                     setTimeout(() => loginErrorMsg.textContent = '', 3000);
                 }
             });
