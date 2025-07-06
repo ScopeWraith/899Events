@@ -169,8 +169,8 @@
                             </button>
                         </div>
                          <div id="pending-buttons-container" class="hidden grid grid-cols-2 gap-3">
-                            <button id="substitute-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
-                                SUBSTITUTE
+                            <button id="reroll-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
+                                RE-ROLL
                             </button>
                             <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">
                                 LOCK IN
@@ -217,7 +217,7 @@
                     </div>
                     <div id="content-medals" class="hidden">
                         <div class="flex justify-between items-center mb-3">
-                             <h3 class="text-base font-bold text-white">Active Medals</h3>
+                             <h3 class="text-base font-bold text-white">Active Medal Awards</h3>
                              <button id="open-award-medal-modal-btn" class="admin-control bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
                                  <span>Award Medals</span>
@@ -374,6 +374,11 @@
                 </button>
             </div>
 
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center mb-4">
+                <p class="text-xs text-slate-400">Conductor Eligibility</p>
+                <p id="player-info-eligibility" class="text-lg font-bold text-white">Eligible Now</p>
+            </div>
+
             <div class="border-y border-slate-700/50 py-4 my-4">
                 <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                     <div>
@@ -450,8 +455,9 @@
                         <li><strong>Eligibility:</strong> A member is considered eligible if they are not on cooldown. If all members are on cooldown, this rule is ignored and everyone becomes eligible.</li>
                         <li><strong>Luck Score:</strong> Each eligible member's chance is determined by their total Luck score. The formula is essentially <code>100 + Rank Luck + Medal Luck + Sub Boost</code>. This score becomes their "weight" in the drawing.</li>
                         <li><strong>The Pick:</strong> The system chooses a winner from the eligible pool based on these weights. A member with a 200 Luck score has twice the chance of being picked as a member with a 100 Luck score.</li>
-                        <li><strong>Pending Confirmation:</strong> The chosen member is not final until an admin clicks "Lock In". This allows for substitutions if the selected member is unavailable.</li>
-                        <li><strong>Substitution Boost:</strong> If a chosen conductor is substituted, they are put back into the pool and receive a temporary <strong>+50% "Sub Boost"</strong> to their luck. This boost is removed the next time they are successfully locked in as conductor, ensuring they get a fair chance soon after.</li>
+                        <li><strong>Pending Confirmation:</strong> The chosen member is not final until an admin clicks "Lock In". This allows for re-rolls if the selected member is unavailable.</li>
+                        <li><strong>Re-rolling:</strong> If the "Re-roll" button is used, the pending conductor is returned to the pool for the next drawing without any penalty or bonus, and a new conductor is chosen from the remaining eligible members.</li>
+                        <li><strong>Substitution Boost:</strong> If a chosen conductor is substituted (a feature no longer present on the main UI but kept in the logic), they are put back into the pool and receive a temporary <strong>+50% "Sub Boost"</strong> to their luck. This boost is removed the next time they are successfully locked in as conductor.</li>
                     </ul>
                 </div>
 
@@ -570,7 +576,7 @@
             const conductorNameSpan = document.getElementById('conductor-name');
             const randomSelectButton = document.getElementById('random-select-button');
             const lockInButton = document.getElementById('lock-in-button');
-            const substituteButton = document.getElementById('substitute-button');
+            const rerollButton = document.getElementById('reroll-button');
             const pendingButtonsContainer = document.getElementById('pending-buttons-container');
             const randomButtonsContainer = document.getElementById('random-buttons-container');
             const addMemberButton = document.getElementById('add-member-button');
@@ -613,6 +619,7 @@
             const playerInfoName = document.getElementById('player-info-name');
             const closePlayerInfoBtn = document.getElementById('close-player-info-btn');
             const designateConductorBtn = document.getElementById('designate-conductor-btn');
+            const playerInfoEligibility = document.getElementById('player-info-eligibility');
             const playerInfoLuck = document.getElementById('player-info-luck');
             const playerInfoCdReduction = document.getElementById('player-info-cd-reduction');
             const playerInfoActiveMedals = document.getElementById('player-info-active-medals');
@@ -760,22 +767,6 @@
                     };
                     if (!member.medals) member.medals = [];
                     member.medals.push(newMedal);
-
-                    // Apply cooldown reduction
-                    const reductionPercent = CONFIG.MEDAL_COOLDOWN_REDUCTION[medalName];
-                    if (reductionPercent) {
-                        const cooldownInfo = getMemberCooldownInfo(member.name);
-                        if (cooldownInfo && cooldownInfo.remainingDays > 0) {
-                            const daysToReduce = cooldownInfo.remainingDays * reductionPercent;
-                            const msToReduce = daysToReduce * 24 * 60 * 60 * 1000;
-
-                            const historyEntry = selectionHistory.find(h => h.id === cooldownInfo.historyId);
-                            if(historyEntry) {
-                                const newDate = new Date(cooldownInfo.lastSelectionDate.getTime() - msToReduce);
-                                historyEntry.date = `${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
-                            }
-                        }
-                    }
 
                     updateFirestore();
                     return true;
@@ -996,34 +987,44 @@
             };
             const renderMedalsTab = () => {
                 medalsListContainer.innerHTML = '';
-                const membersWithMedals = allianceMembers.filter(m => m.medals && m.medals.some(medal => medal.expires > Date.now()));
+                const now = Date.now();
+                
+                // 1. Flatten all active medals into a single array
+                const allActiveMedals = allianceMembers.reduce((acc, member) => {
+                    if (member.medals) {
+                        const memberActiveMedals = member.medals
+                            .filter(medal => medal.expires > now)
+                            .map(medal => ({ ...medal, memberName: member.name })); // Add member name for display
+                        acc.push(...memberActiveMedals);
+                    }
+                    return acc;
+                }, []);
 
-                if (membersWithMedals.length === 0) {
-                    medalsListContainer.innerHTML = `<p class="text-sm text-slate-400 italic">No members have active medals.</p>`;
+                // 2. Sort by most recent first
+                allActiveMedals.sort((a, b) => b.awardedDate - a.awardedDate);
+
+                if (allActiveMedals.length === 0) {
+                    medalsListContainer.innerHTML = `<p class="text-sm text-slate-400 italic text-center">No active medals.</p>`;
                     return;
                 }
 
-                membersWithMedals.forEach(member => {
+                // 3. Render the new list
+                allActiveMedals.forEach(medal => {
+                    const awardedDate = new Date(medal.awardedDate);
+                    const daysLeft = Math.ceil((medal.expires - now) / (1000 * 60 * 60 * 24));
+                    const formattedDate = `${String(awardedDate.getMonth() + 1).padStart(2, '0')}/${String(awardedDate.getDate()).padStart(2, '0')}`;
+
                     const div = document.createElement('div');
-                    div.className = 'item-enter p-2 rounded-lg bg-slate-800/50 text-sm';
-
-                    const activeMedalsHTML = member.medals
-                        .filter(m => m.expires > Date.now())
-                        .map(m => {
-                            const awardedDate = new Date(m.awardedDate);
-                            const formattedDate = `${String(awardedDate.getMonth() + 1).padStart(2, '0')}/${String(awardedDate.getDate()).padStart(2, '0')}`;
-                            return `<div class="flex items-center justify-between bg-cyan-800/50 text-cyan-300 px-2 py-0.5 rounded-full">
-                                        <span>${m.name}</span>
-                                        <span class="text-xs text-cyan-500 ml-2">(${formattedDate})</span>
-                                    </div>`;
-                        }).join('');
-
+                    div.className = 'item-enter flex items-center justify-between p-2 rounded-lg bg-slate-800/50 text-sm';
+                    
                     div.innerHTML = `
-                        <div>
-                            <p class="font-semibold text-white mb-1">${member.name}</p>
-                            <div class="flex flex-col gap-1">
-                                ${activeMedalsHTML}
-                            </div>
+                        <div class="flex-grow">
+                            <p class="font-semibold text-cyan-300">${medal.name}</p>
+                            <p class="text-xs text-slate-300">Awarded to <span class="font-bold text-white">${medal.memberName}</span></p>
+                        </div>
+                        <div class="text-right flex-shrink-0 ml-2">
+                             <p class="font-semibold text-white">${formattedDate}</p>
+                             <p class="text-xs text-slate-400">${daysLeft}d left</p>
                         </div>
                     `;
                     medalsListContainer.appendChild(div);
@@ -1050,23 +1051,30 @@
                         return dateB - dateA;
                     });
 
-                if (sortedMemberHistory.length === 0) return { remainingDays: 0 };
+                if (sortedMemberHistory.length === 0) return { remainingDays: 0, eligibilityDate: new Date() };
 
                 const lastSelection = sortedMemberHistory[0];
                 const now = new Date();
+                // Normalize date to start of day for consistent calculations
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                 const lastDate = new Date(now.getFullYear(), parseInt(lastSelection.date.split('-')[0]) - 1, parseInt(lastSelection.date.split('-')[1]));
-                if (now < lastDate) lastDate.setFullYear(now.getFullYear() - 1);
+                if (today < lastDate) lastDate.setFullYear(now.getFullYear() - 1);
 
-                const diffTime = now - lastDate;
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                const baseCooldownDays = CONFIG.RANK_COOLDOWN[memberObject.rank] || 30;
+                const cooldownReductionPercent = calculateCooldownReduction(memberObject);
+                const effectiveCooldownDays = Math.round(baseCooldownDays * (1 - cooldownReductionPercent));
 
-                const totalCooldown = CONFIG.RANK_COOLDOWN[memberObject.rank] || 30;
-                const remaining = totalCooldown - diffDays;
+                const eligibilityDate = new Date(lastDate.getTime());
+                eligibilityDate.setDate(eligibilityDate.getDate() + effectiveCooldownDays);
+
+                const diffTime = eligibilityDate - today;
+                const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                 return {
                     lastSelectionDate: lastDate,
-                    totalCooldownDays: totalCooldown,
-                    remainingDays: Math.max(0, remaining),
+                    totalCooldownDays: effectiveCooldownDays,
+                    remainingDays: Math.max(0, remainingDays),
+                    eligibilityDate: eligibilityDate,
                     historyId: lastSelection.id
                 };
             };
@@ -1151,6 +1159,18 @@
                 const now = Date.now();
                 const activeMedalsCount = member.medals ? member.medals.filter(m => m.expires > now).length : 0;
                 playerInfoActiveMedals.textContent = activeMedalsCount;
+
+                // Populate eligibility
+                const cooldownInfo = getMemberCooldownInfo(member.name);
+                if (cooldownInfo && cooldownInfo.remainingDays > 0) {
+                    playerInfoEligibility.textContent = `On ${cooldownInfo.eligibilityDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+                    playerInfoEligibility.classList.remove('text-green-400');
+                    playerInfoEligibility.classList.add('text-amber-400');
+                } else {
+                    playerInfoEligibility.textContent = 'Eligible Now';
+                    playerInfoEligibility.classList.remove('text-amber-400');
+                    playerInfoEligibility.classList.add('text-green-400');
+                }
 
                 // Populate medal history
                 playerInfoMedalsList.innerHTML = '';
@@ -1304,20 +1324,15 @@
                     showRandomMode();
                 });
             });
-            substituteButton.addEventListener('click', () => {
+            rerollButton.addEventListener('click', () => {
                 if (!isAuthenticated || !pendingConductor) return;
-                showConfirmationModal('Choose Substitute?', `This will return ${pendingConductor} to the pool with a +${CONFIG.SUB_BOOST_LUCK}% luck boost and pick a new conductor.`, () => {
-                    // Apply sub boost
-                    const memberIndex = allianceMembers.findIndex(m => m.name === pendingConductor);
-                    if (memberIndex > -1) {
-                        allianceMembers[memberIndex].subBoost = true;
-                    }
-                    updateFirestore(); // Save the boost immediately
-
+                showConfirmationModal('Re-roll Conductor?', `This will return ${pendingConductor} to the pool and pick a new conductor. No luck bonus will be applied.`, () => {
                     const originalPick = allianceMembers.find(m => m.name === pendingConductor);
+                    // Re-roll without applying any sub-boost
                     selectRandomly(allianceMembers, null, originalPick);
                 });
             });
+
             historyListContainer.addEventListener('click', (e) => {
                  if (!isAuthenticated) return;
                  const deleteButton = e.target.closest('.delete-history-btn');
@@ -1462,10 +1477,10 @@
                     return;
                 }
 
-                const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                const sixDaysAgo = Date.now() - (6 * 24 * 60 * 60 * 1000);
                 let isMedalOnGlobalCooldown = false;
                 for (const member of allianceMembers) {
-                    if (member.medals && member.medals.some(m => m.name === medalName && m.awardedDate > sevenDaysAgo)) {
+                    if (member.medals && member.medals.some(m => m.name === medalName && m.awardedDate > sixDaysAgo)) {
                         isMedalOnGlobalCooldown = true;
                         break;
                     }
