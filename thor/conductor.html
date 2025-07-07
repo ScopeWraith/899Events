@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- *** ADDED: Confetti library *** -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -145,6 +147,8 @@
     </style>
 </head>
 <body class="text-slate-300 logged-out">
+    
+    <canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[100]"></canvas>
 
     <div id="loading-overlay" class="fixed inset-0 bg-slate-900/80 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
         <div class="loader"></div>
@@ -168,12 +172,16 @@
                                 CHOOSE CONDUCTOR
                             </button>
                         </div>
-                         <div id="pending-buttons-container" class="hidden grid grid-cols-2 gap-3">
+                         <!-- *** MODIFIED: Changed to grid-cols-3 and added Cancel button *** -->
+                         <div id="pending-buttons-container" class="hidden grid grid-cols-3 gap-3">
                             <button id="reroll-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
                                 RE-ROLL
                             </button>
                             <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">
                                 LOCK IN
+                            </button>
+                            <button id="cancel-selection-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-red-400/50">
+                                CANCEL
                             </button>
                         </div>
                     </div>
@@ -536,7 +544,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // --- CONFIGURATION ---
             const CONFIG = {
-                // *** MODIFIED: Aggressive rank luck values for better weighting ***
                 RANK_LUCK: { 'R1': 10, 'R2': 25, 'R3': 50, 'R4': 85, 'R5': 130 },
                 MEDAL_LUCK: {
                     'VS Gold': 20, 'VS Silver': 18, 'VS Bronze': 15,
@@ -554,6 +561,7 @@
                     'Doomsday Award': 10,
                     'Meteorite Award': 5,
                     'Count Master Award': 5,
+                    'Frontline Medal': 5, // *** ADDED: Frontline Medal ***
                 },
                 RANK_COOLDOWN: { 'R1': 120, 'R2': 90, 'R3': 60, 'R4': 45, 'R5': 40 },
                 MEDAL_COOLDOWN_REDUCTION: {
@@ -577,6 +585,7 @@
                     'Doomsday Award': 0.20,
                     'Meteorite Award': 0.15,
                     'Count Master Award': 0.10,
+                    'Frontline Medal': 0.10, // *** ADDED: Frontline Medal ***
                 },
                 SUB_BOOST_LUCK: 50,
             };
@@ -588,6 +597,7 @@
             const randomSelectButton = document.getElementById('random-select-button');
             const lockInButton = document.getElementById('lock-in-button');
             const rerollButton = document.getElementById('reroll-button');
+            const cancelSelectionButton = document.getElementById('cancel-selection-button'); // *** ADDED: Cancel button element ***
             const pendingButtonsContainer = document.getElementById('pending-buttons-container');
             const randomButtonsContainer = document.getElementById('random-buttons-container');
             const addMemberButton = document.getElementById('add-member-button');
@@ -811,6 +821,7 @@
                 const medalTableBody = document.getElementById("how-it-works-medal-bonus-table");
                 medalTableBody.innerHTML = '';
                 
+                // *** MODIFIED: Added Frontline Medal to display order ***
                 const medalDisplayOrder = [
                     'VS Gold', 'VS Silver', 'VS Bronze',
                     'Champion Duel - Alliance Gold', 'Champion Duel - Alliance Silver', 'Champion Duel - Alliance Bronze',
@@ -822,7 +833,8 @@
                     'Doomsday Award',
                     'General\'s Trial - Gold',
                     'Meteorite Award',
-                    'Count Master Award'
+                    'Count Master Award',
+                    'Frontline Medal'
                 ];
 
                 const allMedalNames = [...new Set([...Object.keys(CONFIG.MEDAL_LUCK), ...Object.keys(CONFIG.MEDAL_COOLDOWN_REDUCTION)])];
@@ -1238,6 +1250,35 @@
 
                 playerInfoModal.classList.remove('hidden');
             }
+            
+            function triggerConfetti() {
+                const canvas = document.getElementById('confetti-canvas');
+                const myConfetti = confetti.create(canvas, {
+                    resize: true,
+                    useWorker: true
+                });
+
+                const duration = 2 * 1000;
+                const animationEnd = Date.now() + duration;
+                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+
+                function randomInRange(min, max) {
+                  return Math.random() * (max - min) + min;
+                }
+
+                const interval = setInterval(function() {
+                  const timeLeft = animationEnd - Date.now();
+
+                  if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                  }
+
+                  const particleCount = 50 * (timeLeft / duration);
+                  // since particles fall down, start a bit higher than random
+                  myConfetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                  myConfetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
+            }
 
 
             // --- CORE LOGIC & EVENT HANDLERS ---
@@ -1263,7 +1304,6 @@
                     return;
                 }
                 
-                // *** MODIFIED: Changed base weight from 50 to 1 to make luck more impactful ***
                 const weightedPool = selectionPool.map(member => {
                     const luck = calculateTotalLuck(member);
                     return { member, weight: 1 + luck };
@@ -1348,6 +1388,7 @@
 
                     updateFirestore();
                     showRandomMode();
+                    triggerConfetti();
                 });
             });
             rerollButton.addEventListener('click', () => {
@@ -1357,6 +1398,12 @@
                     // Re-roll without applying any sub-boost
                     selectRandomly(allianceMembers, null, originalPick);
                 });
+            });
+
+            // *** ADDED: Event listener for cancel selection button ***
+            cancelSelectionButton.addEventListener('click', () => {
+                if (!isAuthenticated) return;
+                showRandomMode();
             });
 
             historyListContainer.addEventListener('click', (e) => {
@@ -1497,6 +1544,7 @@
                     updateFirestore();
                     showRandomMode();
                     playerInfoModal.classList.add('hidden');
+                    triggerConfetti();
                 });
             });
 
