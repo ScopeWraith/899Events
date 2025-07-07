@@ -327,8 +327,19 @@
                         <button id="award-medal-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold px-4 rounded-lg text-sm">Award</button>
                     </div>
                 </div>
+                <!-- *** ADDED: Section to remove sub boost *** -->
+                <div id="edit-sub-boost-section" class="hidden border-t border-slate-700 pt-4">
+                    <h3 class="text-sm font-medium text-slate-300">Active Buffs</h3>
+                    <div class="flex justify-between items-center mt-2 bg-slate-700/50 p-2 rounded-md">
+                        <div>
+                            <p class="text-sm font-semibold text-yellow-400">Substitution Boost Active</p>
+                            <p id="sub-boost-description" class="text-xs text-slate-400"></p>
+                        </div>
+                        <button id="remove-sub-boost-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-lg text-xs">Remove</button>
+                    </div>
+                </div>
                  <div>
-                    <h3 class="text-sm font-medium text-slate-300">Active Medals</h3>
+                    <h3 class="text-sm font-medium text-slate-300 mt-4">Active Medals</h3>
                     <div id="active-medals-list" class="mt-2 space-y-2"></div>
                 </div>
             </div>
@@ -453,8 +464,8 @@
                     <p>When an admin clicks the "Choose Conductor" button, the system performs a weighted random drawing from all eligible members.</p>
                     <ul class="list-disc list-inside space-y-2 mt-2">
                         <li><strong>Eligibility:</strong> A member is considered eligible if they are not on cooldown. If all members are on cooldown, this rule is ignored and everyone becomes eligible.</li>
-                        <li><strong>Luck Score:</strong> Each eligible member's chance is determined by their total Luck score. The formula is essentially <code>100 + Rank Luck + Medal Luck + Sub Boost</code>. This score becomes their "weight" in the drawing.</li>
-                        <li><strong>The Pick:</strong> The system chooses a winner from the eligible pool based on these weights. A member with a 200 Luck score has twice the chance of being picked as a member with a 100 Luck score.</li>
+                        <li><strong>Luck Score:</strong> Each eligible member's chance is determined by their total Luck score. The formula is essentially <code>50 + Rank Luck + Medal Luck + Sub Boost</code>. This score becomes their "weight" in the drawing.</li>
+                        <li><strong>The Pick:</strong> The system chooses a winner from the eligible pool based on these weights. A member with a 150 Luck score has three times the chance of being picked as a member with a 50 Luck score.</li>
                         <li><strong>Pending Confirmation:</strong> The chosen member is not final until an admin clicks "Lock In". This allows for re-rolls if the selected member is unavailable.</li>
                         <li><strong>Re-rolling:</strong> If the "Re-roll" button is used, the pending conductor is returned to the pool for the next drawing without any penalty or bonus, and a new conductor is chosen from the remaining eligible members.</li>
                         <li><strong>Substitution Boost:</strong> If a chosen conductor is substituted (a feature no longer present on the main UI but kept in the logic), they are put back into the pool and receive a temporary <strong>+50% "Sub Boost"</strong> to their luck. This boost is removed the next time they are successfully locked in as conductor.</li>
@@ -526,7 +537,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // --- CONFIGURATION ---
             const CONFIG = {
-                RANK_LUCK: { 'R2': 10, 'R3': 20, 'R4': 30, 'R5': 30 },
+                RANK_LUCK: { 'R1': 5, 'R2': 20, 'R3': 40, 'R4': 65, 'R5': 90 },
                 MEDAL_LUCK: {
                     'VS Gold': 20, 'VS Silver': 18, 'VS Bronze': 15,
                     'Champion Duel - Alliance Gold': 30,
@@ -613,6 +624,9 @@
             const confirmationMessage = document.getElementById('confirmation-message');
             const confirmActionBtn = document.getElementById('confirm-action-btn');
             const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+            const editSubBoostSection = document.getElementById('edit-sub-boost-section');
+            const subBoostDescription = document.getElementById('sub-boost-description');
+            const removeSubBoostBtn = document.getElementById('remove-sub-boost-btn');
 
             // Player Info Modal Elements
             const playerInfoModal = document.getElementById('player-info-modal');
@@ -864,6 +878,7 @@
                         subBoostIndicator = `<span class="ml-2 text-xs font-bold bg-yellow-500/80 text-white px-2 py-0.5 rounded-full" title="+${CONFIG.SUB_BOOST_LUCK}% Luck Boost">SUB</span>`;
                     }
 
+                    // *** MODIFIED: Added color classes to stats ***
                     div.innerHTML = `
                         <div class="flex-grow flex items-center overflow-hidden">
                             <button class="text-left player-info-trigger truncate w-full" data-id="${member.id}" title="${member.name}">
@@ -874,15 +889,15 @@
                         </div>
                         <div class="flex-shrink-0 flex items-center space-x-2 text-xs text-center pointer-events-none">
                              <div class="w-10">
-                                <span class="font-bold text-slate-300">${totalLuck}%</span>
+                                <span class="font-bold text-cyan-400">${totalLuck}%</span>
                                 <span class="block text-slate-500 text-[10px]">Luck %</span>
                             </div>
                              <div class="w-10">
-                                <span class="font-bold text-slate-300">${cooldownReductionText}</span>
+                                <span class="font-bold text-purple-400">${cooldownReductionText}</span>
                                 <span class="block text-slate-500 text-[10px]">CD %</span>
                             </div>
                             <div class="w-10">
-                                <span class="font-bold text-slate-300">${activeMedalsCount}</span>
+                                <span class="font-bold text-amber-400">${activeMedalsCount}</span>
                                 <span class="block text-slate-500 text-[10px]">Medals</span>
                             </div>
                         </div>
@@ -1153,12 +1168,16 @@
                 playerInfoName.textContent = member.name;
                 designateConductorBtn.querySelector('span').textContent = `Designate as Conductor`;
 
-                // Populate stats
+                // *** MODIFIED: Colorize stats in player info modal ***
                 playerInfoLuck.textContent = `${calculateTotalLuck(member)}%`;
+                playerInfoLuck.className = 'text-lg font-bold text-cyan-400';
                 playerInfoCdReduction.textContent = `${Math.round(calculateCooldownReduction(member) * 100)}%`;
+                playerInfoCdReduction.className = 'text-lg font-bold text-purple-400';
+                
                 const now = Date.now();
                 const activeMedalsCount = member.medals ? member.medals.filter(m => m.expires > now).length : 0;
                 playerInfoActiveMedals.textContent = activeMedalsCount;
+                playerInfoActiveMedals.className = 'text-lg font-bold text-amber-400';
 
                 // Populate eligibility
                 const cooldownInfo = getMemberCooldownInfo(member.name);
@@ -1245,10 +1264,10 @@
                      if(buttonToUpdate) buttonToUpdate.textContent = 'CHOOSE CONDUCTOR';
                     return;
                 }
-
+                
                 const weightedPool = selectionPool.map(member => {
                     const luck = calculateTotalLuck(member);
-                    return { member, weight: 100 + luck };
+                    return { member, weight: 50 + luck };
                 });
 
                 const totalWeight = weightedPool.reduce((sum, item) => sum + item.weight, 0);
@@ -1293,6 +1312,15 @@
                     if (member) {
                         editNameInput.value = member.name;
                         editRankSelect.value = member.rank;
+                        
+                        // *** ADDED: Handle Sub Boost display in edit modal ***
+                        if (member.subBoost) {
+                            subBoostDescription.textContent = `Provides a +${CONFIG.SUB_BOOST_LUCK}% luck bonus.`;
+                            editSubBoostSection.classList.remove('hidden');
+                        } else {
+                            editSubBoostSection.classList.add('hidden');
+                        }
+
                         renderActiveMedalsInEditModal();
                         editModal.classList.remove('hidden');
                     }
@@ -1377,6 +1405,18 @@
                     }
                 }
             });
+
+            // *** ADDED: Event listener to remove sub boost ***
+            removeSubBoostBtn.addEventListener('click', () => {
+                if (!isAuthenticated || memberToEditId === null) return;
+                const memberIndex = allianceMembers.findIndex(m => m.id === memberToEditId);
+                if (memberIndex > -1) {
+                    allianceMembers[memberIndex].subBoost = false;
+                    editSubBoostSection.classList.add('hidden'); // Hide section in UI
+                    updateFirestore(); // Save change to DB
+                }
+            });
+
             activeMedalsList.addEventListener('click', (e) => {
                 if (!isAuthenticated) return;
                 const removeBtn = e.target.closest('.remove-medal-btn');
