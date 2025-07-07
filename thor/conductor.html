@@ -8,9 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- *** ADDED: Confetti library *** -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <style>
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent the main page from scrolling */
+        }
         body {
             font-family: 'Roboto', sans-serif;
             background-color: #020617; /* bg-slate-950 */
@@ -20,24 +23,19 @@
         .font-orbitron {
             font-family: 'Orbitron', sans-serif;
         }
+        /* Shared card styling */
         .card {
             background-color: rgba(30, 41, 59, 0.5); /* bg-slate-800/50 */
             backdrop-filter: blur(12px);
             border: 1px solid rgba(51, 65, 85, 0.5); /* border-slate-700/50 */
-            border-radius: 1.5rem; /* Increased rounding */
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; /* To contain the bottom nav */
+            position: relative;
         }
         /* Aurora border effect */
         .card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 1.5rem;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit; /* Use the parent's border-radius */
             padding: 1px;
             background: linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(168, 85, 247, 0.4));
             -webkit-mask:
@@ -46,6 +44,7 @@
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             z-index: -1;
+            pointer-events: none;
         }
         .conductor-reveal {
             animation: reveal 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
@@ -81,12 +80,14 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .nav-btn {
+        
+        /* Mobile Nav Button Styling */
+        .mobile-nav-btn {
             transition: all 0.3s ease;
             color: #94a3b8; /* text-slate-400 */
             position: relative;
         }
-        .nav-btn::after {
+        .mobile-nav-btn::after {
             content: '';
             position: absolute;
             bottom: 0;
@@ -97,12 +98,29 @@
             background-color: #06b6d4;
             transition: width 0.3s ease;
         }
-        .nav-btn.active {
+        .mobile-nav-btn.active {
             color: #06b6d4; /* text-cyan-500 */
         }
-        .nav-btn.active::after {
+        .mobile-nav-btn.active::after {
             width: 50%;
         }
+
+        /* Desktop Sidebar Nav Styling */
+        .desktop-nav-btn {
+            transition: all 0.3s ease;
+            color: #94a3b8; /* text-slate-400 */
+            border-left: 3px solid transparent;
+        }
+        .desktop-nav-btn:hover {
+            background-color: rgba(51, 65, 85, 0.3); /* bg-slate-700/30 */
+            color: #e2e8f0; /* text-slate-200 */
+        }
+        .desktop-nav-btn.active {
+            color: #06b6d4; /* text-cyan-400 */
+            border-left-color: #06b6d4;
+            background-color: rgba(14, 165, 233, 0.1);
+        }
+
         .text-glow-gold {
             text-shadow: 0 0 8px rgba(250, 204, 21, 0.9), 0 0 20px rgba(250, 204, 21, 0.7);
         }
@@ -111,38 +129,18 @@
         }
 
         /* Auth Visibility Control */
-        .logged-out .admin-control {
-            display: none !important;
-        }
-        .logged-in .login-button {
-             display: none !important;
-        }
-        .logged-out .logout-button {
-            display: none !important;
-        }
+        .logged-out .admin-control { display: none !important; }
+        .logged-in .login-button { display: none !important; }
+        .logged-out .logout-button { display: none !important; }
         
         /* How It Works Modal Tabs */
         .how-it-works-tab {
-            background-color: transparent;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s ease;
-            color: #94a3b8; /* text-slate-400 */
+            background-color: transparent; border-bottom: 2px solid transparent; transition: all 0.3s ease; color: #94a3b8;
         }
-        .how-it-works-tab.active {
-            color: #06b6d4; /* text-cyan-500 */
-            border-bottom-color: #06b6d4;
-        }
-        .how-it-works-tab-content {
-            display: none;
-        }
-        .how-it-works-tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        .how-it-works-tab.active { color: #06b6d4; border-bottom-color: #06b6d4; }
+        .how-it-works-tab-content { display: none; }
+        .how-it-works-tab-content.active { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     </style>
 </head>
@@ -155,10 +153,49 @@
         <p class="mt-4 text-lg text-slate-300">Connecting to Database...</p>
     </div>
 
-    <div class="min-h-screen p-4 sm:pt-8 flex flex-col items-center">
-        <main class="w-full max-w-md mx-auto">
-            <div class="card">
-                <div class="p-4 md:p-6">
+    <!-- Main container for layout -->
+    <div class="h-full p-4 lg:p-8 flex flex-col lg:flex-row gap-8">
+        
+        <!-- ===== DESKTOP SIDEBAR ===== -->
+        <aside class="hidden lg:flex flex-col w-64 flex-shrink-0">
+            <div class="card flex-grow flex flex-col rounded-2xl">
+                <div class="p-4 border-b border-slate-700/50">
+                    <h1 class="text-xl font-bold text-white text-center font-orbitron">Conductor</h1>
+                </div>
+                <nav id="desktop-nav" class="flex-grow p-2 space-y-1">
+                    <button data-tab="members" class="desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197"></path></svg>
+                        <span class="font-semibold">Members</span>
+                    </button>
+                    <button data-tab="history" class="desktop-nav-btn active w-full flex items-center p-3 rounded-lg space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="font-semibold">History</span>
+                    </button>
+                    <button data-tab="medals" class="desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                        <span class="font-semibold">Medals</span>
+                    </button>
+                </nav>
+                 <div class="p-4 border-t border-slate-700/50 mt-auto flex flex-col items-center justify-between space-y-2">
+                    <button id="how-it-works-button" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>How it works!</span>
+                    </button>
+                    <div class="flex-grow text-center">
+                        <button id="open-login-modal-btn" class="login-button bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Admin Login</button>
+                        <button id="logout-button" class="logout-button bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== Main Content Area (Mobile & Desktop) ===== -->
+        <main class="w-full max-w-md mx-auto lg:max-w-none lg:mx-0 flex-grow flex flex-col min-h-0">
+            <!-- This card contains the sidebar and content panels -->
+            <div class="card rounded-2xl flex-grow flex flex-col min-h-0">
+                
+                <!-- Conductor Display (Inside main card) -->
+                <div class="p-4 md:p-6 flex-shrink-0">
                     <div class="relative mb-3">
                         <h2 class="text-2xl font-bold text-white text-center text-glow-cyan">Today's Conductor</h2>
                     </div>
@@ -172,84 +209,83 @@
                                 CHOOSE CONDUCTOR
                             </button>
                         </div>
-                         <!-- *** MODIFIED: Changed to grid-cols-3 and added Cancel button *** -->
                          <div id="pending-buttons-container" class="hidden grid grid-cols-3 gap-3">
-                            <button id="reroll-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">
-                                RE-ROLL
-                            </button>
-                            <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">
-                                LOCK IN
-                            </button>
-                            <button id="cancel-selection-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-red-400/50">
-                                CANCEL
-                            </button>
+                            <button id="reroll-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">RE-ROLL</button>
+                            <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">LOCK IN</button>
+                            <button id="cancel-selection-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-red-400/50">CANCEL</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-2 border-b border-t border-slate-700">
-                    <div class="grid grid-cols-3 text-center">
-                        <button id="tab-manual-pick" class="nav-btn p-3 flex flex-col items-center justify-center">
-                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197"></path></svg>
-                            <span class="text-xs font-semibold">Members</span>
-                        </button>
-                        <button id="tab-history" class="nav-btn active p-3 flex flex-col items-center justify-center">
-                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span class="text-xs font-semibold">History</span>
-                        </button>
-                        <button id="tab-medals" class="nav-btn p-3 flex flex-col items-center justify-center">
-                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                            <span class="text-xs font-semibold">Medals</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="p-4 flex-grow min-h-[250px]">
-                    <div id="content-manual-pick" class="hidden">
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-base font-bold text-white">Alliance Members</h3>
-                            <button id="add-member-button" class="admin-control text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
-                               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <!-- Main Content Panels -->
+                <div class="flex-grow flex flex-col min-h-0">
+                    <!-- Mobile Nav -->
+                    <div id="mobile-nav" class="lg:hidden mt-2 border-b border-t border-slate-700">
+                        <div class="grid grid-cols-3 text-center">
+                            <button data-tab="members" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
+                                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197"></path></svg>
+                                <span class="text-xs font-semibold">Members</span>
+                            </button>
+                            <button data-tab="history" class="mobile-nav-btn active p-3 flex flex-col items-center justify-center">
+                                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span class="text-xs font-semibold">History</span>
+                            </button>
+                            <button data-tab="medals" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
+                                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                                <span class="text-xs font-semibold">Medals</span>
                             </button>
                         </div>
-                        <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 250px;"></div>
                     </div>
-                    <div id="content-history">
-                         <div class="flex items-center mb-2">
-                            <input type="text" id="history-search-input" placeholder="Search player history..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                            <button id="add-history-button" class="admin-control ml-2 text-cyan-400 hover:text-cyan-300" title="Add history entry">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            </button>
-                         </div>
-                         <div id="history-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 220px;"></div>
-                    </div>
-                    <div id="content-medals" class="hidden">
-                        <div class="flex justify-between items-center mb-3">
-                             <h3 class="text-base font-bold text-white">Active Medal Awards</h3>
-                             <button id="open-award-medal-modal-btn" class="admin-control bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                                 <span>Award Medals</span>
-                             </button>
+                    <!-- Content Panels Wrapper -->
+                    <div class="p-4 lg:p-6 flex-grow flex flex-col min-h-0">
+                        <div id="content-members" class="hidden h-full flex flex-col">
+                            <div class="flex justify-between items-center mb-2 flex-shrink-0">
+                                <h3 class="text-lg font-bold text-white">Alliance Members</h3>
+                                <button id="add-member-button" class="admin-control text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
+                                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                            </div>
+                            <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
                         </div>
-                        <div id="medals-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 220px;"></div>
+                        <div id="content-history" class="h-full flex flex-col">
+                             <div class="flex items-center mb-2 flex-shrink-0">
+                                <input type="text" id="history-search-input" placeholder="Search player history..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <button id="add-history-button" class="admin-control ml-2 text-cyan-400 hover:text-cyan-300" title="Add history entry">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                             </div>
+                             <div id="history-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
+                        </div>
+                        <div id="content-medals" class="hidden h-full flex flex-col">
+                            <div class="flex justify-between items-center mb-3 flex-shrink-0">
+                                 <h3 class="text-lg font-bold text-white">Active Medal Awards</h3>
+                                 <button id="open-award-medal-modal-btn" class="admin-control bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                                     <span>Award Medals</span>
+                                 </button>
+                            </div>
+                            <div id="medals-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
+                        </div>
                     </div>
-                </div>
-                 <div class="p-4 border-t border-slate-700/50 mt-auto flex items-center justify-between space-x-4">
-                    <button id="how-it-works-button" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>How it works!</span>
-                    </button>
-                    <div class="flex-grow text-right">
-                        <button id="open-login-modal-btn" class="login-button bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Admin Login</button>
-                        <button id="logout-button" class="logout-button bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Logout</button>
+                    <!-- Mobile Footer -->
+                    <div class="lg:hidden p-4 border-t border-slate-700/50 mt-auto flex items-center justify-between space-x-4">
+                        <button id="how-it-works-button-mobile" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>How it works!</span>
+                        </button>
+                        <div class="flex-grow text-right">
+                            <button id="open-login-modal-btn-mobile" class="login-button bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Admin Login</button>
+                            <button id="logout-button-mobile" class="logout-button bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Logout</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="login-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50">
-        <div class="card p-6 w-full max-w-sm">
+    <!-- All Modals remain unchanged -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4 text-center">Admin Login</h2>
             <div class="space-y-4">
                 <div>
@@ -264,8 +300,8 @@
             </div>
         </div>
     </div>
-     <div id="confirmation-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
-        <div class="card p-6 w-full max-w-sm text-center">
+    <div id="confirmation-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm text-center rounded-2xl">
             <h2 id="confirmation-title" class="text-lg font-bold text-white mb-4">Are you sure?</h2>
             <p id="confirmation-message" class="text-sm text-slate-300 mb-6">This action cannot be undone.</p>
             <div class="flex justify-center space-x-4">
@@ -274,8 +310,8 @@
             </div>
         </div>
     </div>
-    <div id="add-history-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
-        <div class="card p-6 w-full max-w-sm">
+    <div id="add-history-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4">Add History Entry</h2>
             <div class="space-y-4">
                 <div>
@@ -293,8 +329,8 @@
             </div>
         </div>
     </div>
-    <div id="add-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
-        <div class="card p-6 w-full max-w-sm">
+    <div id="add-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4">Add New Member</h2>
             <div class="space-y-4">
                 <div>
@@ -314,8 +350,8 @@
             </div>
         </div>
     </div>
-    <div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
-        <div class="card p-6 w-full max-w-md">
+    <div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-md rounded-2xl">
              <h2 class="text-xl font-bold text-white mb-4">Edit Member</h2>
             <div class="space-y-4">
                 <div>
@@ -356,9 +392,8 @@
             </div>
         </div>
     </div>
-
-    <div id="award-medal-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
-        <div class="card p-6 w-full max-w-sm">
+    <div id="award-medal-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4">Award a Medal</h2>
             <div class="space-y-4">
                 <div>
@@ -377,75 +412,56 @@
             </div>
         </div>
     </div>
-    
     <div id="player-info-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
-        <div class="card p-4 sm:p-6 w-full max-w-md">
+        <div class="card p-4 sm:p-6 w-full max-w-md rounded-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h2 id="player-info-name" class="text-xl sm:text-2xl font-bold text-white font-orbitron truncate pr-2">Player Name</h2>
                 <button id="close-player-info-btn" class="text-3xl font-light leading-none text-slate-400 hover:text-white transition-colors flex-shrink-0">&times;</button>
             </div>
-
             <div class="admin-control mb-4">
                 <button id="designate-conductor-btn" class="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm transition-all flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     <span>Designate as Conductor</span>
                 </button>
             </div>
-
             <div class="bg-slate-800/50 rounded-lg p-3 text-center mb-4">
                 <p class="text-xs text-slate-400">Conductor Eligibility</p>
                 <p id="player-info-eligibility" class="text-lg font-bold text-white">Eligible Now</p>
             </div>
-
             <div class="border-y border-slate-700/50 py-4 my-4">
                 <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                     <div>
-                        <div class="text-cyan-400 mx-auto mb-1">
-                            <svg class="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                        </div>
-                        <p class="text-xs text-slate-400">Total Luck</p>
-                        <p id="player-info-luck" class="text-lg font-bold text-white">0%</p>
+                        <div class="text-cyan-400 mx-auto mb-1"><svg class="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg></div>
+                        <p class="text-xs text-slate-400">Total Luck</p><p id="player-info-luck" class="text-lg font-bold text-white">0%</p>
                     </div>
                     <div>
-                        <div class="text-purple-400 mx-auto mb-1">
-                            <svg class="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                        <p class="text-xs text-slate-400">CD Reduction</p>
-                        <p id="player-info-cd-reduction" class="text-lg font-bold text-white">0%</p>
+                        <div class="text-purple-400 mx-auto mb-1"><svg class="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                        <p class="text-xs text-slate-400">CD Reduction</p><p id="player-info-cd-reduction" class="text-lg font-bold text-white">0%</p>
                     </div>
                     <div>
-                        <div class="text-amber-400 mx-auto mb-1">
-                            <svg class="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                        </div>
-                        <p class="text-xs text-slate-400">Active Medals</p>
-                        <p id="player-info-active-medals" class="text-lg font-bold text-white">0</p>
+                        <div class="text-amber-400 mx-auto mb-1"><svg class="w-7 h-7 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg></div>
+                        <p class="text-xs text-slate-400">Active Medals</p><p id="player-info-active-medals" class="text-lg font-bold text-white">0</p>
                     </div>
                 </div>
             </div>
-
             <div class="space-y-4">
                 <div>
                     <h3 class="text-base font-bold text-white mb-2">Medal History</h3>
-                    <div id="player-info-medals-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 120px;">
-                        </div>
+                    <div id="player-info-medals-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 120px;"></div>
                 </div>
                 <div>
                     <h3 class="text-base font-bold text-white mb-2">Conductor History</h3>
-                    <div id="player-info-conductor-history-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 120px;">
-                        </div>
+                    <div id="player-info-conductor-history-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 120px;"></div>
                 </div>
             </div>
         </div>
     </div>
-
-
     <div id="how-it-works-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
-        <div class="card p-6 w-full max-w-2xl">
+        <div class="card p-6 w-full max-w-2xl rounded-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold text-white font-orbitron">How it works!</h2>
                 <button id="close-how-it-works-btn" class="text-3xl font-light leading-none text-slate-400 hover:text-white transition-colors">&times;</button>
             </div>
-
             <div id="how-it-works-tabs-container" class="border-b border-slate-700 mb-4">
                 <nav class="grid grid-cols-4 -mb-px" aria-label="Tabs">
                     <button data-tab="overview" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg active">Overview</button>
@@ -454,80 +470,9 @@
                     <button data-tab="admin" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg">Admin</button>
                 </nav>
             </div>
-
-            <div class="text-sm space-y-4 text-slate-300 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 60vh;">
-                <div id="tab-content-overview" class="how-it-works-tab-content active">
-                    <p>This tool is designed to select a "Train Conductor" from a pool of alliance members based on a weighted random selection. The goal is to create a fair, transparent, and balanced rotation that rewards active and high-ranking members while still giving everyone a chance.</p>
-                    <ul class="list-disc list-inside space-y-2 mt-4">
-                        <li><strong>Fairness First:</strong> The system uses a "Luck" score to weigh the odds. Higher luck means a better chance of being selected, but it never guarantees it.</li>
-                        <li><strong>Cooldown System:</strong> After a member serves as conductor, they enter a cooldown period to ensure others get a turn.</li>
-                        <li><strong>Rewarding Performance:</strong> Higher ranks and special medals provide bonuses to a member's luck and can reduce their cooldown time, rewarding dedication and achievement.</li>
-                        <li><strong>Admin Management:</strong> Logged-in administrators have full control over the member list, selection history, and medal awards to keep the system up-to-date.</li>
-                    </ul>
-                </div>
-
-                <div id="tab-content-selection" class="how-it-works-tab-content">
-                    <h3 class="font-semibold text-cyan-400 mb-2 text-lg">The Drawing</h3>
-                    <p>When an admin clicks the "Choose Conductor" button, the system performs a weighted random drawing from all eligible members.</p>
-                    <ul class="list-disc list-inside space-y-2 mt-2">
-                        <li><strong>Eligibility:</strong> A member is considered eligible if they are not on cooldown. If all members are on cooldown, this rule is ignored and everyone becomes eligible.</li>
-                        <li><strong>Luck Score:</strong> Each eligible member's chance is determined by their total Luck score. The formula is essentially <code>1 + Rank Luck + Medal Luck + Sub Boost</code>. This score becomes their "weight" in the drawing.</li>
-                        <li><strong>The Pick:</strong> The system chooses a winner from the eligible pool based on these weights. A member with a 100 Luck score has roughly double the chance of being picked as a member with a 50 Luck score.</li>
-                        <li><strong>Pending Confirmation:</strong> The chosen member is not final until an admin clicks "Lock In". This allows for re-rolls if the selected member is unavailable.</li>
-                        <li><strong>Re-rolling:</strong> If the "Re-roll" button is used, the pending conductor is returned to the pool for the next drawing without any penalty or bonus, and a new conductor is chosen from the remaining eligible members.</li>
-                        <li><strong>Substitution Boost:</strong> If a chosen conductor is substituted (a feature no longer present on the main UI but kept in the logic), they are put back into the pool and receive a temporary <strong>+50% "Sub Boost"</strong> to their luck. This boost is removed the next time they are successfully locked in as conductor.</li>
-                    </ul>
-                </div>
-
-                <div id="tab-content-ranks-medals" class="how-it-works-tab-content space-y-6">
-                    <div>
-                        <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Rank Bonuses</h3>
-                        <p class="mb-3">A member's rank determines their base cooldown period and provides a permanent luck bonus.</p>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-800/50">
-                                        <th class="p-2 font-semibold text-white">Rank</th>
-                                        <th class="p-2 font-semibold text-white">Cooldown</th>
-                                        <th class="p-2 font-semibold text-white">Luck Bonus</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="how-it-works-rank-bonus-table">
-                                    </tbody>
-                            </table>
-                        </div>
-                    </div>
-                     <div>
-                        <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Medal Bonuses (30 Day Duration)</h3>
-                        <p class="mb-3">Awarded medals provide powerful, temporary bonuses for 30 days. They can increase luck, reduce cooldowns, or both.</p>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-800/50">
-                                        <th class="p-2 font-semibold text-white">Medal Name</th>
-                                        <th class="p-2 font-semibold text-white">Luck Bonus</th>
-                                        <th class="p-2 font-semibold text-white">CD Reduction</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="how-it-works-medal-bonus-table">
-                                    </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="tab-content-admin" class="how-it-works-tab-content">
-                    <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Admin Responsibilities</h3>
-                    <p>To access administrative controls, you must log in using the provided credentials. Admins are responsible for maintaining the accuracy of the tool.</p>
-                    <ul class="list-disc list-inside space-y-2 mt-2">
-                        <li><strong>Manage Members:</strong> Add new members, edit their name and rank, or remove them from the alliance list via the "Members" tab.</li>
-                        <li><strong>Award Medals:</strong> Award medals to members to grant them temporary bonuses. This can be done from the "Medals" tab or from the member edit screen.</li>
-                        <li><strong>Designate Conductor:</strong> Manually set a member as the conductor by clicking their name in the "Members" list to open the Player Information Card and using the "Designate" button.</li>
-                        <li><strong>Manage History:</strong> Manually add or delete past conductor records from the "History" tab to correct errors or fill in missing data.</li>
-                    </ul>
-                </div>
+            <div id="how-it-works-content" class="text-sm space-y-4 text-slate-300 custom-scrollbar pr-2 overflow-y-auto" style="max-height: 60vh;">
+                <!-- Content for How It Works tabs will be populated by JS -->
             </div>
-            
              <div class="mt-6 flex justify-end">
                 <button id="close-how-it-works-btn-2" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg text-sm">Close</button>
             </div>
@@ -561,7 +506,7 @@
                     'Doomsday Award': 10,
                     'Meteorite Award': 5,
                     'Count Master Award': 5,
-                    'Frontline Medal': 5, // *** ADDED: Frontline Medal ***
+                    'Frontline Medal': 5,
                 },
                 RANK_COOLDOWN: { 'R1': 120, 'R2': 90, 'R3': 60, 'R4': 45, 'R5': 40 },
                 MEDAL_COOLDOWN_REDUCTION: {
@@ -585,7 +530,7 @@
                     'Doomsday Award': 0.20,
                     'Meteorite Award': 0.15,
                     'Count Master Award': 0.10,
-                    'Frontline Medal': 0.10, // *** ADDED: Frontline Medal ***
+                    'Frontline Medal': 0.10,
                 },
                 SUB_BOOST_LUCK: 50,
             };
@@ -597,17 +542,17 @@
             const randomSelectButton = document.getElementById('random-select-button');
             const lockInButton = document.getElementById('lock-in-button');
             const rerollButton = document.getElementById('reroll-button');
-            const cancelSelectionButton = document.getElementById('cancel-selection-button'); // *** ADDED: Cancel button element ***
+            const cancelSelectionButton = document.getElementById('cancel-selection-button');
             const pendingButtonsContainer = document.getElementById('pending-buttons-container');
             const randomButtonsContainer = document.getElementById('random-buttons-container');
             const addMemberButton = document.getElementById('add-member-button');
             const manualPickListContainer = document.getElementById('manual-pick-list-container');
-            const tabManualPick = document.getElementById('tab-manual-pick');
-            const tabHistory = document.getElementById('tab-history');
-            const tabMedals = document.getElementById('tab-medals');
-            const contentManualPick = document.getElementById('content-manual-pick');
+            
+            // Tab containers
+            const contentMembers = document.getElementById('content-members');
             const contentHistory = document.getElementById('content-history');
             const contentMedals = document.getElementById('content-medals');
+
             const historySearchInput = document.getElementById('history-search-input');
             const addHistoryButton = document.getElementById('add-history-button');
             const addHistoryModal = document.getElementById('add-history-modal');
@@ -650,7 +595,6 @@
             const playerInfoMedalsList = document.getElementById('player-info-medals-list');
             const playerInfoConductorHistoryList = document.getElementById('player-info-conductor-history-list');
 
-
             // Award Medal Modal Elements
             const openAwardMedalModalBtn = document.getElementById('open-award-medal-modal-btn');
             const awardMedalModal = document.getElementById('award-medal-modal');
@@ -663,18 +607,19 @@
             // Auth Elements
             const loginModal = document.getElementById('login-modal');
             const loginButton = document.getElementById('login-button');
-            const openLoginModalBtn = document.getElementById('open-login-modal-btn');
             const cancelLoginBtn = document.getElementById('cancel-login-btn');
-            const logoutButton = document.getElementById('logout-button');
             const passwordInput = document.getElementById('password-input');
             const loginErrorMsg = document.getElementById('login-error-msg');
+            const loginButtons = [document.getElementById('open-login-modal-btn'), document.getElementById('open-login-modal-btn-mobile')];
+            const logoutButtons = [document.getElementById('logout-button'), document.getElementById('logout-button-mobile')];
 
             // How It Works Modal Elements
-            const howItWorksButton = document.getElementById('how-it-works-button');
             const howItWorksModal = document.getElementById('how-it-works-modal');
             const closeHowItWorksBtn = document.getElementById('close-how-it-works-btn');
             const closeHowItWorksBtn2 = document.getElementById('close-how-it-works-btn-2');
             const howItWorksTabsContainer = document.getElementById('how-it-works-tabs-container');
+            const howItWorksContent = document.getElementById('how-it-works-content');
+            const howItWorksButtons = [document.getElementById('how-it-works-button'), document.getElementById('how-it-works-button-mobile')];
 
             // --- LOCAL STATE ---
             let allianceMembers = [];
@@ -751,7 +696,6 @@
                 }
                 if (!docRef) return;
                 try {
-                    // Sanitize members array before saving
                     const sanitizedMembers = allianceMembers.map(m => ({
                         id: m.id,
                         name: m.name,
@@ -799,128 +743,123 @@
             }
 
             // --- RENDER FUNCTIONS ---
+            function populateHowItWorksContent() {
+                howItWorksContent.innerHTML = `
+                <div id="tab-content-overview" class="how-it-works-tab-content">
+                    <p>This tool is designed to select a "Train Conductor" from a pool of alliance members based on a weighted random selection. The goal is to create a fair, transparent, and balanced rotation that rewards active and high-ranking members while still giving everyone a chance.</p>
+                    <ul class="list-disc list-inside space-y-2 mt-4">
+                        <li><strong>Fairness First:</strong> The system uses a "Luck" score to weigh the odds. Higher luck means a better chance of being selected, but it never guarantees it.</li>
+                        <li><strong>Cooldown System:</strong> After a member serves as conductor, they enter a cooldown period to ensure others get a turn.</li>
+                        <li><strong>Rewarding Performance:</strong> Higher ranks and special medals provide bonuses to a member's luck and can reduce their cooldown time, rewarding dedication and achievement.</li>
+                        <li><strong>Admin Management:</strong> Logged-in administrators have full control over the member list, selection history, and medal awards to keep the system up-to-date.</li>
+                    </ul>
+                </div>
+                <div id="tab-content-selection" class="how-it-works-tab-content">
+                    <h3 class="font-semibold text-cyan-400 mb-2 text-lg">The Drawing</h3>
+                    <p>When an admin clicks the "Choose Conductor" button, the system performs a weighted random drawing from all eligible members.</p>
+                    <ul class="list-disc list-inside space-y-2 mt-2">
+                        <li><strong>Eligibility:</strong> A member is considered eligible if they are not on cooldown. If all members are on cooldown, this rule is ignored and everyone becomes eligible.</li>
+                        <li><strong>Luck Score:</strong> Each eligible member's chance is determined by their total Luck score. The formula is essentially <code>1 + Rank Luck + Medal Luck + Sub Boost</code>. This score becomes their "weight" in the drawing.</li>
+                        <li><strong>The Pick:</strong> The system chooses a winner from the eligible pool based on these weights. A member with a 100 Luck score has roughly double the chance of being picked as a member with a 50 Luck score.</li>
+                        <li><strong>Pending Confirmation:</strong> The chosen member is not final until an admin clicks "Lock In". This allows for re-rolls if the selected member is unavailable.</li>
+                        <li><strong>Re-rolling:</strong> If the "Re-roll" button is used, the pending conductor is returned to the pool for the next drawing without any penalty or bonus, and a new conductor is chosen from the remaining eligible members.</li>
+                        <li><strong>Substitution Boost:</strong> If a chosen conductor is substituted, they are put back into the pool and receive a temporary <strong>+50% "Sub Boost"</strong> to their luck. This boost is removed the next time they are successfully locked in as conductor.</li>
+                    </ul>
+                </div>
+                <div id="tab-content-ranks-medals" class="how-it-works-tab-content space-y-6">
+                    <div>
+                        <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Rank Bonuses</h3>
+                        <p class="mb-3">A member's rank determines their base cooldown period and provides a permanent luck bonus.</p>
+                        <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-800/50"><th class="p-2 font-semibold text-white">Rank</th><th class="p-2 font-semibold text-white">Cooldown</th><th class="p-2 font-semibold text-white">Luck Bonus</th></tr></thead><tbody id="how-it-works-rank-bonus-table"></tbody></table></div>
+                    </div>
+                     <div>
+                        <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Medal Bonuses (30 Day Duration)</h3>
+                        <p class="mb-3">Awarded medals provide powerful, temporary bonuses for 30 days. They can increase luck, reduce cooldowns, or both.</p>
+                        <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-800/50"><th class="p-2 font-semibold text-white">Medal Name</th><th class="p-2 font-semibold text-white">Luck Bonus</th><th class="p-2 font-semibold text-white">CD Reduction</th></tr></thead><tbody id="how-it-works-medal-bonus-table"></tbody></table></div>
+                    </div>
+                </div>
+                <div id="tab-content-admin" class="how-it-works-tab-content">
+                    <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Admin Responsibilities</h3>
+                    <p>To access administrative controls, you must log in using the provided credentials. Admins are responsible for maintaining the accuracy of the tool.</p>
+                    <ul class="list-disc list-inside space-y-2 mt-2">
+                        <li><strong>Manage Members:</strong> Add new members, edit their name and rank, or remove them from the alliance list via the "Members" tab.</li>
+                        <li><strong>Award Medals:</strong> Award medals to members to grant them temporary bonuses. This can be done from the "Medals" tab or from the member edit screen.</li>
+                        <li><strong>Designate Conductor:</strong> Manually set a member as the conductor by clicking their name in the "Members" list to open the Player Information Card and using the "Designate" button.</li>
+                        <li><strong>Manage History:</strong> Manually add or delete past conductor records from the "History" tab to correct errors or fill in missing data.</li>
+                    </ul>
+                </div>`;
+                populateBonusTables();
+            }
+
             function populateBonusTables() {
-                // Populate Rank Table
                 const rankTableBody = document.getElementById("how-it-works-rank-bonus-table");
+                if (!rankTableBody) return;
                 rankTableBody.innerHTML = '';
-                const ranks = ['R1', 'R2', 'R3', 'R4', 'R5'];
-                ranks.forEach(rank => {
-                    const cooldown = CONFIG.RANK_COOLDOWN[rank] || '-';
-                    const luck = CONFIG.RANK_LUCK[rank] || 0;
+                Object.keys(CONFIG.RANK_COOLDOWN).forEach(rank => {
                     const row = document.createElement('tr');
                     row.className = 'border-b border-slate-700/50';
-                    row.innerHTML = `
-                        <td class="p-2 font-semibold text-cyan-400">${rank}</td>
-                        <td class="p-2">${cooldown} days</td>
-                        <td class="p-2">+${luck}%</td>
-                    `;
+                    row.innerHTML = `<td class="p-2 font-semibold text-cyan-400">${rank}</td><td class="p-2">${CONFIG.RANK_COOLDOWN[rank]} days</td><td class="p-2">+${CONFIG.RANK_LUCK[rank]}%</td>`;
                     rankTableBody.appendChild(row);
                 });
 
-                // Populate Medal Table
                 const medalTableBody = document.getElementById("how-it-works-medal-bonus-table");
+                 if (!medalTableBody) return;
                 medalTableBody.innerHTML = '';
-                
-                // *** MODIFIED: Added Frontline Medal to display order ***
                 const medalDisplayOrder = [
-                    'VS Gold', 'VS Silver', 'VS Bronze',
-                    'Champion Duel - Alliance Gold', 'Champion Duel - Alliance Silver', 'Champion Duel - Alliance Bronze',
-                    'Star - Killer Award', 'Star - Helper Award', 'Star - Rally Award',
-                    'Desert Storm Team A - MVP', 'Desert Storm Team B - MVP',
-                    'Alliance Donator - 1st', 'Alliance Donator - 2nd', 'Alliance Donator - 3rd',
-                    'Mega Express Medal',
-                    'Capitol Award',
-                    'Doomsday Award',
-                    'General\'s Trial - Gold',
-                    'Meteorite Award',
-                    'Count Master Award',
-                    'Frontline Medal'
+                    'VS Gold', 'VS Silver', 'VS Bronze', 'Champion Duel - Alliance Gold', 'Champion Duel - Alliance Silver', 'Champion Duel - Alliance Bronze',
+                    'Star - Killer Award', 'Star - Helper Award', 'Star - Rally Award', 'Desert Storm Team A - MVP', 'Desert Storm Team B - MVP',
+                    'Alliance Donator - 1st', 'Alliance Donator - 2nd', 'Alliance Donator - 3rd', 'Mega Express Medal', 'Capitol Award',
+                    'Doomsday Award', 'General\'s Trial - Gold', 'Meteorite Award', 'Count Master Award', 'Frontline Medal'
                 ];
-
-                const allMedalNames = [...new Set([...Object.keys(CONFIG.MEDAL_LUCK), ...Object.keys(CONFIG.MEDAL_COOLDOWN_REDUCTION)])];
-                const displayedMedals = new Set(medalDisplayOrder);
-                const remainingMedals = allMedalNames.filter(m => !displayedMedals.has(m)).sort();
-                const finalMedalOrder = [...medalDisplayOrder, ...remainingMedals];
-                
-                finalMedalOrder.forEach(medal => {
-                    const luck = CONFIG.MEDAL_LUCK[medal];
-                    const reduction = CONFIG.MEDAL_COOLDOWN_REDUCTION[medal];
+                medalDisplayOrder.forEach(medal => {
+                    const luck = CONFIG.MEDAL_LUCK[medal] || 0;
+                    const reduction = CONFIG.MEDAL_COOLDOWN_REDUCTION[medal] || 0;
                     const row = document.createElement('tr');
                     row.className = 'border-b border-slate-700/50';
-                    row.innerHTML = `
-                        <td class="p-2">${medal}</td>
-                        <td class="p-2">${luck ? `+${luck}%` : '-'}</td>
-                        <td class="p-2">${reduction ? `${Math.round(reduction * 100)}%` : '-'}</td>
-                    `;
+                    row.innerHTML = `<td class="p-2">${medal}</td><td class="p-2">+${luck}%</td><td class="p-2">${Math.round(reduction * 100)}%</td>`;
                     medalTableBody.appendChild(row);
                 });
             }
+
             function populateMedalSelect(selectElement) {
                 selectElement.innerHTML = `<option value="">Select a medal...</option>`;
-                const medalNames = Object.keys(CONFIG.MEDAL_LUCK).sort();
-                for (const medalName of medalNames) {
+                Object.keys(CONFIG.MEDAL_LUCK).sort().forEach(medalName => {
                     const option = document.createElement('option');
                     option.value = medalName;
                     option.textContent = medalName;
                     selectElement.appendChild(option);
-                }
+                });
             }
+
             const renderManualPickList = () => {
                 manualPickListContainer.innerHTML = '';
-                const sortedMembers = [...allianceMembers].sort((a, b) => a.name.localeCompare(b.name));
-
-                sortedMembers.forEach((member) => {
+                [...allianceMembers].sort((a, b) => a.name.localeCompare(b.name)).forEach(member => {
                     const div = document.createElement('div');
                     div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
-
                     const cooldownInfo = getMemberCooldownInfo(member.name);
                     const onCooldown = cooldownInfo && cooldownInfo.remainingDays > 0;
                     const nameColorClass = onCooldown ? 'text-slate-400' : 'text-green-400';
-
-                    const now = Date.now();
-                    const activeMedalsCount = member.medals ? member.medals.filter(m => m.expires > now).length : 0;
-                    
+                    const activeMedalsCount = member.medals ? member.medals.filter(m => m.expires > Date.now()).length : 0;
                     const totalCooldownReduction = calculateCooldownReduction(member);
                     const cooldownReductionText = totalCooldownReduction > 0 ? `${Math.round(totalCooldownReduction * 100)}%` : '-';
-
                     const totalLuck = calculateTotalLuck(member);
-
-                    let subBoostIndicator = '';
-                    if (member.subBoost) {
-                        subBoostIndicator = `<span class="ml-2 text-xs font-bold bg-yellow-500/80 text-white px-2 py-0.5 rounded-full" title="+${CONFIG.SUB_BOOST_LUCK}% Luck Boost">SUB</span>`;
-                    }
+                    let subBoostIndicator = member.subBoost ? `<span class="ml-2 text-xs font-bold bg-yellow-500/80 text-white px-2 py-0.5 rounded-full" title="+${CONFIG.SUB_BOOST_LUCK}% Luck Boost">SUB</span>` : '';
 
                     div.innerHTML = `
                         <div class="flex-grow flex items-center overflow-hidden">
                             <button class="text-left player-info-trigger truncate w-full" data-id="${member.id}" title="${member.name}">
-                                <span class="font-semibold ${nameColorClass}">${member.name}</span>
-                                <span class="text-xs text-slate-500 ml-2">${member.rank}</span>
-                                ${subBoostIndicator}
+                                <span class="font-semibold ${nameColorClass}">${member.name}</span><span class="text-xs text-slate-500 ml-2">${member.rank}</span>${subBoostIndicator}
                             </button>
                         </div>
                         <div class="flex-shrink-0 flex items-center space-x-2 text-xs text-center pointer-events-none">
-                             <div class="w-10">
-                                <span class="font-bold text-cyan-400">${totalLuck}%</span>
-                                <span class="block text-slate-500 text-[10px]">Luck %</span>
-                            </div>
-                             <div class="w-10">
-                                <span class="font-bold text-purple-400">${cooldownReductionText}</span>
-                                <span class="block text-slate-500 text-[10px]">CD %</span>
-                            </div>
-                            <div class="w-10">
-                                <span class="font-bold text-amber-400">${activeMedalsCount}</span>
-                                <span class="block text-slate-500 text-[10px]">Medals</span>
-                            </div>
+                             <div class="w-10"><span class="font-bold text-cyan-400">${totalLuck}%</span><span class="block text-slate-500 text-[10px]">Luck %</span></div>
+                             <div class="w-10"><span class="font-bold text-purple-400">${cooldownReductionText}</span><span class="block text-slate-500 text-[10px]">CD %</span></div>
+                            <div class="w-10"><span class="font-bold text-amber-400">${activeMedalsCount}</span><span class="block text-slate-500 text-[10px]">Medals</span></div>
                         </div>
                         <div class="admin-control flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                            <button class="edit-member-btn text-slate-400 hover:text-cyan-400" data-id="${member.id}" title="Edit member">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
-                            <button class="delete-member-btn text-slate-400 hover:text-red-400" data-id="${member.id}" title="Delete member">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </div>
-                    `;
+                            <button class="edit-member-btn text-slate-400 hover:text-cyan-400" data-id="${member.id}" title="Edit member"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                            <button class="delete-member-btn text-slate-400 hover:text-red-400" data-id="${member.id}" title="Delete member"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                        </div>`;
                     manualPickListContainer.appendChild(div);
                 });
             };
@@ -928,22 +867,13 @@
             const renderHistory = () => {
                 const searchTerm = historySearchInput.value.toLowerCase();
                 historyListContainer.innerHTML = '';
-                 const sortedHistory = [...selectionHistory].sort((a, b) => {
-                    const dateA = new Date(new Date().getFullYear(), parseInt(a.date.split('-')[0]) - 1, parseInt(a.date.split('-')[1]));
-                    const dateB = new Date(new Date().getFullYear(), parseInt(b.date.split('-')[0]) - 1, parseInt(b.date.split('-')[1]));
-                    return dateB - dateA;
-                 });
-
-                const filteredHistory = sortedHistory.filter(item =>
-                    item.player.toLowerCase().includes(searchTerm)
-                );
-
+                const sortedHistory = [...selectionHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
+                const filteredHistory = sortedHistory.filter(item => item.player.toLowerCase().includes(searchTerm));
                 const renderedCooldowns = new Set();
 
-                filteredHistory.forEach((item) => {
+                filteredHistory.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
-
                     let cooldownHTML = '';
                     if (!renderedCooldowns.has(item.player)) {
                         const cooldownInfo = getMemberCooldownInfo(item.player);
@@ -954,19 +884,16 @@
                         }
                         renderedCooldowns.add(item.player);
                     }
-
                     div.innerHTML = `
                         <p class="font-semibold text-white truncate pr-2">${item.player} ${cooldownHTML}</p>
                         <div class="flex items-center space-x-2 flex-shrink-0">
-                            <p class="text-xs text-slate-400">${item.date}</p>
-                            <button class="admin-control delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </div>
-                    `;
+                            <p class="text-xs text-slate-400">${new Date(item.date).toLocaleDateString(undefined, {month: '2-digit', day: '2-digit'})}</p>
+                            <button class="admin-control delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                        </div>`;
                     historyListContainer.appendChild(div);
                 });
             };
+
             const renderConductor = () => {
                 if (currentConductor && currentConductor !== 'SELECT A CONDUCTOR') {
                     conductorNameSpan.textContent = currentConductor;
@@ -979,6 +906,7 @@
                     conductorNameSpan.classList.add('text-slate-500');
                 }
             };
+
             const renderActiveMedalsInEditModal = () => {
                 if (memberToEditId === null) return;
                 const member = allianceMembers.find(m => m.id === memberToEditId);
@@ -987,81 +915,49 @@
                     activeMedalsList.innerHTML = `<p class="text-xs text-slate-400 italic">No active medals.</p>`;
                     return;
                 }
-
-                const now = Date.now();
-                const activeMedals = member.medals.filter(medal => medal.expires > now);
-
+                const activeMedals = member.medals.filter(medal => medal.expires > Date.now());
                 if (activeMedals.length === 0) {
                      activeMedalsList.innerHTML = `<p class="text-xs text-slate-400 italic">No active medals.</p>`;
                      return;
                 }
-
                 activeMedals.forEach(medal => {
-                    const daysLeft = Math.ceil((medal.expires - now) / (1000 * 60 * 60 * 24));
-
+                    const daysLeft = Math.ceil((medal.expires - Date.now()) / (1000 * 60 * 60 * 24));
                     const div = document.createElement('div');
                     div.className = 'flex justify-between items-center bg-slate-700/50 p-2 rounded-md';
-                    div.innerHTML = `
-                        <div>
-                            <p class="text-sm font-semibold text-white">${medal.name}</p>
-                            <p class="text-xs text-slate-400">Expires in ${daysLeft} day(s)</p>
-                        </div>
-                        <button class="remove-medal-btn text-red-500 hover:text-red-400" data-medal-id="${medal.id}" title="Remove Medal">&times;</button>
-                    `;
+                    div.innerHTML = `<div><p class="text-sm font-semibold text-white">${medal.name}</p><p class="text-xs text-slate-400">Expires in ${daysLeft} day(s)</p></div><button class="remove-medal-btn text-red-500 hover:text-red-400" data-medal-id="${medal.id}" title="Remove Medal">&times;</button>`;
                     activeMedalsList.appendChild(div);
                 });
             };
+
             const renderMedalsTab = () => {
                 medalsListContainer.innerHTML = '';
                 const now = Date.now();
-                
-                // 1. Flatten all active medals into a single array
                 const allActiveMedals = allianceMembers.reduce((acc, member) => {
                     if (member.medals) {
-                        const memberActiveMedals = member.medals
-                            .filter(medal => medal.expires > now)
-                            .map(medal => ({ ...medal, memberName: member.name })); // Add member name for display
-                        acc.push(...memberActiveMedals);
+                        acc.push(...member.medals.filter(medal => medal.expires > now).map(medal => ({ ...medal, memberName: member.name })));
                     }
                     return acc;
-                }, []);
-
-                // 2. Sort by most recent first
-                allActiveMedals.sort((a, b) => b.awardedDate - a.awardedDate);
+                }, []).sort((a, b) => b.awardedDate - a.awardedDate);
 
                 if (allActiveMedals.length === 0) {
                     medalsListContainer.innerHTML = `<p class="text-sm text-slate-400 italic text-center">No active medals.</p>`;
                     return;
                 }
-
-                // 3. Render the new list
                 allActiveMedals.forEach(medal => {
-                    const awardedDate = new Date(medal.awardedDate);
                     const daysLeft = Math.ceil((medal.expires - now) / (1000 * 60 * 60 * 24));
-                    const formattedDate = `${String(awardedDate.getMonth() + 1).padStart(2, '0')}/${String(awardedDate.getDate()).padStart(2, '0')}`;
-
+                    const formattedDate = new Date(medal.awardedDate).toLocaleDateString(undefined, {month: '2-digit', day: '2-digit'});
                     const div = document.createElement('div');
                     div.className = 'item-enter flex items-center justify-between p-2 rounded-lg bg-slate-800/50 text-sm';
-                    
-                    div.innerHTML = `
-                        <div class="flex-grow">
-                            <p class="font-semibold text-cyan-300">${medal.name}</p>
-                            <p class="text-xs text-slate-300">Awarded to <span class="font-bold text-white">${medal.memberName}</span></p>
-                        </div>
-                        <div class="text-right flex-shrink-0 ml-2">
-                             <p class="font-semibold text-white">${formattedDate}</p>
-                             <p class="text-xs text-slate-400">${daysLeft}d left</p>
-                        </div>
-                    `;
+                    div.innerHTML = `<div class="flex-grow"><p class="font-semibold text-cyan-300">${medal.name}</p><p class="text-xs text-slate-300">Awarded to <span class="font-bold text-white">${medal.memberName}</span></p></div><div class="text-right flex-shrink-0 ml-2"><p class="font-semibold text-white">${formattedDate}</p><p class="text-xs text-slate-400">${daysLeft}d left</p></div>`;
                     medalsListContainer.appendChild(div);
                 });
             };
+
             const renderAll = () => {
                 renderManualPickList();
                 renderHistory();
                 renderConductor();
                 renderMedalsTab();
-                populateBonusTables();
             };
 
             // --- LUCK & COOLDOWN CALCULATION ---
@@ -1069,22 +965,13 @@
                 const memberObject = allianceMembers.find(m => m.name === memberName);
                 if (!memberObject) return null;
 
-                const sortedMemberHistory = selectionHistory
-                    .filter(h => h.player === memberObject.name)
-                    .sort((a, b) => {
-                        const dateA = new Date(new Date().getFullYear(), parseInt(a.date.split('-')[0]) - 1, parseInt(a.date.split('-')[1]));
-                        const dateB = new Date(new Date().getFullYear(), parseInt(b.date.split('-')[0]) - 1, parseInt(b.date.split('-')[1]));
-                        return dateB - dateA;
-                    });
-
+                const sortedMemberHistory = selectionHistory.filter(h => h.player === memberObject.name).sort((a, b) => new Date(b.date) - new Date(a.date));
                 if (sortedMemberHistory.length === 0) return { remainingDays: 0, eligibilityDate: new Date() };
 
                 const lastSelection = sortedMemberHistory[0];
-                const now = new Date();
-                // Normalize date to start of day for consistent calculations
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                const lastDate = new Date(now.getFullYear(), parseInt(lastSelection.date.split('-')[0]) - 1, parseInt(lastSelection.date.split('-')[1]));
-                if (today < lastDate) lastDate.setFullYear(now.getFullYear() - 1);
+                const lastDate = new Date(lastSelection.date);
+                const today = new Date();
+                today.setHours(0,0,0,0);
 
                 const baseCooldownDays = CONFIG.RANK_COOLDOWN[memberObject.rank] || 30;
                 const cooldownReductionPercent = calculateCooldownReduction(memberObject);
@@ -1096,21 +983,14 @@
                 const diffTime = eligibilityDate - today;
                 const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                return {
-                    lastSelectionDate: lastDate,
-                    totalCooldownDays: effectiveCooldownDays,
-                    remainingDays: Math.max(0, remainingDays),
-                    eligibilityDate: eligibilityDate,
-                    historyId: lastSelection.id
-                };
+                return { remainingDays: Math.max(0, remainingDays), eligibilityDate };
             };
 
             const calculateCooldownReduction = (member) => {
                 let totalReduction = 0;
-                const now = Date.now();
                 if (member.medals) {
                     member.medals.forEach(medal => {
-                        if (medal.expires > now && CONFIG.MEDAL_COOLDOWN_REDUCTION[medal.name]) {
+                        if (medal.expires > Date.now() && CONFIG.MEDAL_COOLDOWN_REDUCTION[medal.name]) {
                             totalReduction += CONFIG.MEDAL_COOLDOWN_REDUCTION[medal.name];
                         }
                     });
@@ -1119,19 +999,14 @@
             };
 
             const calculateTotalLuck = (member) => {
-                let totalLuck = 0;
-                // Add rank luck
-                totalLuck += CONFIG.RANK_LUCK[member.rank] || 0;
-                // Add medal luck
-                const now = Date.now();
+                let totalLuck = CONFIG.RANK_LUCK[member.rank] || 0;
                 if (member.medals) {
                     member.medals.forEach(medal => {
-                        if (medal.expires > now) {
+                        if (medal.expires > Date.now()) {
                             totalLuck += CONFIG.MEDAL_LUCK[medal.name] || 0;
                         }
                     });
                 }
-                // Add Sub Boost luck
                 if (member.subBoost) {
                     totalLuck += CONFIG.SUB_BOOST_LUCK;
                 }
@@ -1143,13 +1018,11 @@
                 isAuthenticated = state;
                 document.body.classList.toggle('logged-in', state);
                 document.body.classList.toggle('logged-out', !state);
-                if (state) {
-                    loginModal.classList.add('hidden');
-                }
-                // Re-render to show/hide admin controls within lists
+                if (state) loginModal.classList.add('hidden');
                 renderManualPickList();
                 renderHistory();
             }
+
             function showPendingMode(name) {
                 pendingConductor = name;
                 conductorNameSpan.textContent = name;
@@ -1158,128 +1031,63 @@
                 randomButtonsContainer.classList.add('hidden');
                 pendingButtonsContainer.classList.remove('hidden');
             }
+
             function showRandomMode() {
                 pendingConductor = null;
                 renderConductor();
                 randomButtonsContainer.classList.remove('hidden');
                 pendingButtonsContainer.classList.add('hidden');
             }
+
             function showConfirmationModal(title, message, onConfirm) {
                 confirmationTitle.textContent = title;
                 confirmationMessage.textContent = message;
                 confirmCallback = onConfirm;
                 confirmationModal.classList.remove('hidden');
             }
-            
+
             function openPlayerInfoModal(memberId) {
                 infoModalMemberId = memberId;
                 const member = allianceMembers.find(m => m.id === memberId);
                 if (!member) return;
 
                 playerInfoName.textContent = member.name;
-                designateConductorBtn.querySelector('span').textContent = `Designate as Conductor`;
-
                 playerInfoLuck.textContent = `${calculateTotalLuck(member)}%`;
-                playerInfoLuck.className = 'text-lg font-bold text-cyan-400';
                 playerInfoCdReduction.textContent = `${Math.round(calculateCooldownReduction(member) * 100)}%`;
-                playerInfoCdReduction.className = 'text-lg font-bold text-purple-400';
-                
-                const now = Date.now();
-                const activeMedalsCount = member.medals ? member.medals.filter(m => m.expires > now).length : 0;
+                const activeMedalsCount = member.medals ? member.medals.filter(m => m.expires > Date.now()).length : 0;
                 playerInfoActiveMedals.textContent = activeMedalsCount;
-                playerInfoActiveMedals.className = 'text-lg font-bold text-amber-400';
 
-                // Populate eligibility
                 const cooldownInfo = getMemberCooldownInfo(member.name);
                 if (cooldownInfo && cooldownInfo.remainingDays > 0) {
                     playerInfoEligibility.textContent = `On ${cooldownInfo.eligibilityDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
-                    playerInfoEligibility.classList.remove('text-green-400');
-                    playerInfoEligibility.classList.add('text-amber-400');
+                    playerInfoEligibility.className = 'text-lg font-bold text-amber-400';
                 } else {
                     playerInfoEligibility.textContent = 'Eligible Now';
-                    playerInfoEligibility.classList.remove('text-amber-400');
-                    playerInfoEligibility.classList.add('text-green-400');
+                    playerInfoEligibility.className = 'text-lg font-bold text-green-400';
                 }
 
-                // Populate medal history
-                playerInfoMedalsList.innerHTML = '';
-                if (!member.medals || member.medals.length === 0) {
-                    playerInfoMedalsList.innerHTML = `<p class="text-sm text-slate-400 italic text-center">No medals earned.</p>`;
-                } else {
-                    const sortedMedals = [...member.medals].sort((a, b) => b.awardedDate - a.awardedDate);
-                    sortedMedals.forEach(medal => {
-                        const isExpired = medal.expires < now;
-                        const medalColorClass = isExpired ? 'text-slate-500' : 'text-green-400';
-                        const awardedDate = new Date(medal.awardedDate);
-                        const formattedDate = `${String(awardedDate.getMonth() + 1).padStart(2, '0')}-${String(awardedDate.getDate()).padStart(2, '0')}-${String(awardedDate.getFullYear()).slice(-2)}`;
-
-                        const li = document.createElement('div');
-                        li.className = 'flex justify-between items-center bg-slate-800/50 p-2 rounded-md';
-                        li.innerHTML = `
-                            <span class="font-semibold ${medalColorClass}">${medal.name}</span>
-                            <span class="text-xs text-slate-400">${formattedDate}</span>
-                        `;
-                        playerInfoMedalsList.appendChild(li);
-                    });
-                }
-
-                // Populate Conductor History
-                playerInfoConductorHistoryList.innerHTML = '';
-                const memberHistory = selectionHistory
-                    .filter(h => h.player === member.name)
-                    .sort((a, b) => {
-                        const dateA = new Date(new Date().getFullYear(), parseInt(a.date.split('-')[0]) - 1, parseInt(a.date.split('-')[1]));
-                        const dateB = new Date(new Date().getFullYear(), parseInt(b.date.split('-')[0]) - 1, parseInt(b.date.split('-')[1]));
-                        return dateB - dateA;
-                    });
-
-                if (memberHistory.length === 0) {
-                    playerInfoConductorHistoryList.innerHTML = `<p class="text-sm text-slate-400 italic text-center">No conductor history.</p>`;
-                } else {
-                    memberHistory.forEach(entry => {
-                        const li = document.createElement('div');
-                        li.className = 'flex justify-between items-center bg-slate-800/50 p-2 rounded-md';
-                        li.innerHTML = `
-                            <span class="font-semibold text-slate-300">Conductor</span>
-                            <span class="text-xs text-slate-400">${entry.date}</span>
-                        `;
-                        playerInfoConductorHistoryList.appendChild(li);
-                    });
-                }
-
+                playerInfoMedalsList.innerHTML = !member.medals || member.medals.length === 0 ? `<p class="text-sm text-slate-400 italic text-center">No medals earned.</p>` : [...member.medals].sort((a, b) => b.awardedDate - a.awardedDate).map(medal => `<div class="flex justify-between items-center bg-slate-800/50 p-2 rounded-md"><span class="font-semibold ${medal.expires < Date.now() ? 'text-slate-500' : 'text-green-400'}">${medal.name}</span><span class="text-xs text-slate-400">${new Date(medal.awardedDate).toLocaleDateString(undefined, {month: '2-digit', day: '2-digit', year: '2-digit'})}</span></div>`).join('');
+                
+                const memberHistory = selectionHistory.filter(h => h.player === member.name).sort((a,b) => new Date(b.date) - new Date(a.date));
+                playerInfoConductorHistoryList.innerHTML = memberHistory.length === 0 ? `<p class="text-sm text-slate-400 italic text-center">No conductor history.</p>` : memberHistory.map(entry => `<div class="flex justify-between items-center bg-slate-800/50 p-2 rounded-md"><span class="font-semibold text-slate-300">Conductor</span><span class="text-xs text-slate-400">${new Date(entry.date).toLocaleDateString(undefined, {month: '2-digit', day: '2-digit'})}</span></div>`).join('');
 
                 playerInfoModal.classList.remove('hidden');
             }
             
             function triggerConfetti() {
                 const canvas = document.getElementById('confetti-canvas');
-                const myConfetti = confetti.create(canvas, {
-                    resize: true,
-                    useWorker: true
-                });
-
-                const duration = 2 * 1000;
-                const animationEnd = Date.now() + duration;
+                const myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+                const duration = 2 * 1000, animationEnd = Date.now() + duration;
                 const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
-
-                function randomInRange(min, max) {
-                  return Math.random() * (max - min) + min;
-                }
-
-                const interval = setInterval(function() {
+                function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+                const interval = setInterval(() => {
                   const timeLeft = animationEnd - Date.now();
-
-                  if (timeLeft <= 0) {
-                    return clearInterval(interval);
-                  }
-
+                  if (timeLeft <= 0) return clearInterval(interval);
                   const particleCount = 50 * (timeLeft / duration);
-                  // since particles fall down, start a bit higher than random
-                  myConfetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-                  myConfetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+                  myConfetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                  myConfetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
                 }, 250);
             }
-
 
             // --- CORE LOGIC & EVENT HANDLERS ---
             const selectRandomly = (pool, buttonToUpdate, excludedMember = null) => {
@@ -1290,41 +1098,29 @@
                 randomSelectButton.disabled = true;
                 if (buttonToUpdate) buttonToUpdate.textContent = 'CHOOSING...';
 
-                const eligibleByCooldown = pool.filter(member => {
-                    const info = getMemberCooldownInfo(member.name);
-                    return (!info || info.remainingDays <= 0) && (!excludedMember || member.name !== excludedMember.name);
-                });
-
+                const eligibleByCooldown = pool.filter(member => (!getMemberCooldownInfo(member.name) || getMemberCooldownInfo(member.name).remainingDays <= 0) && (!excludedMember || member.name !== excludedMember.name));
                 const selectionPool = eligibleByCooldown.length > 0 ? eligibleByCooldown : pool.filter(m => excludedMember ? m.name !== excludedMember.name : true);
 
                 if (selectionPool.length === 0) {
-                    alert("No eligible members found based on current rules.");
-                     randomSelectButton.disabled = false;
-                     if(buttonToUpdate) buttonToUpdate.textContent = 'CHOOSE CONDUCTOR';
+                    console.log("No eligible members found.");
+                    randomSelectButton.disabled = false;
+                    if(buttonToUpdate) buttonToUpdate.textContent = 'CHOOSE CONDUCTOR';
                     return;
                 }
                 
-                const weightedPool = selectionPool.map(member => {
-                    const luck = calculateTotalLuck(member);
-                    return { member, weight: 1 + luck };
-                });
-
+                const weightedPool = selectionPool.map(member => ({ member, weight: 1 + calculateTotalLuck(member) }));
                 const totalWeight = weightedPool.reduce((sum, item) => sum + item.weight, 0);
                 let randomWeight = Math.random() * totalWeight;
                 let winner = weightedPool[weightedPool.length - 1].member;
 
                 for(const item of weightedPool) {
                     randomWeight -= item.weight;
-                    if (randomWeight <= 0) {
-                        winner = item.member;
-                        break;
-                    }
+                    if (randomWeight <= 0) { winner = item.member; break; }
                 }
 
                 let drumRollCount = 0;
                 const drumRollInterval = setInterval(() => {
-                    const randomIndex = Math.floor(Math.random() * selectionPool.length);
-                    conductorNameSpan.textContent = selectionPool[randomIndex].name;
+                    conductorNameSpan.textContent = selectionPool[Math.floor(Math.random() * selectionPool.length)].name;
                     conductorNameSpan.classList.remove('text-white', 'text-glow-gold');
                     conductorNameSpan.classList.add('text-cyan-400');
                     if (++drumRollCount > 15) {
@@ -1335,15 +1131,36 @@
                     }
                 }, 100);
             };
+            
+            // --- TAB SWITCHING LOGIC ---
+            function switchTab(tabName) {
+                // This function handles the main navigation tabs (Members, History, Medals)
+                // Deactivate all main nav buttons
+                document.querySelectorAll('#desktop-nav [data-tab], #mobile-nav [data-tab]').forEach(btn => btn.classList.remove('active'));
+                
+                // Activate the correct main nav buttons
+                document.querySelectorAll(`#desktop-nav [data-tab="${tabName}"], #mobile-nav [data-tab="${tabName}"]`).forEach(btn => btn.classList.add('active'));
 
+                // Hide all main content panels
+                [contentMembers, contentHistory, contentMedals].forEach(p => p.classList.add('hidden'));
+
+                // Show the correct content panel
+                const contentPanel = document.getElementById(`content-${tabName}`);
+                if (contentPanel) {
+                    contentPanel.classList.remove('hidden');
+                }
+            }
+            // Attach listener only to main navigation buttons
+            document.querySelectorAll('#desktop-nav [data-tab], #mobile-nav [data-tab]').forEach(button => {
+                button.addEventListener('click', () => switchTab(button.dataset.tab));
+            });
+
+
+            // --- EVENT LISTENERS ---
             addMemberButton.addEventListener('click', () => { if(isAuthenticated) addModal.classList.remove('hidden'); });
             manualPickListContainer.addEventListener('click', (e) => {
                 const infoTrigger = e.target.closest('.player-info-trigger');
-                if (infoTrigger) {
-                    const memberId = parseFloat(infoTrigger.dataset.id);
-                    openPlayerInfoModal(memberId);
-                }
-
+                if (infoTrigger) openPlayerInfoModal(parseFloat(infoTrigger.dataset.id));
                 const editBtn = e.target.closest('.edit-member-btn');
                 if (editBtn && isAuthenticated) {
                     memberToEditId = parseFloat(editBtn.dataset.id);
@@ -1351,14 +1168,8 @@
                     if (member) {
                         editNameInput.value = member.name;
                         editRankSelect.value = member.rank;
-                        
-                        if (member.subBoost) {
-                            subBoostDescription.textContent = `Provides a +${CONFIG.SUB_BOOST_LUCK}% luck bonus.`;
-                            editSubBoostSection.classList.remove('hidden');
-                        } else {
-                            editSubBoostSection.classList.add('hidden');
-                        }
-
+                        editSubBoostSection.classList.toggle('hidden', !member.subBoost);
+                        if(member.subBoost) subBoostDescription.textContent = `Provides a +${CONFIG.SUB_BOOST_LUCK}% luck bonus.`;
                         renderActiveMedalsInEditModal();
                         editModal.classList.remove('hidden');
                     }
@@ -1366,57 +1177,48 @@
                 const deleteBtn = e.target.closest('.delete-member-btn');
                 if (deleteBtn && isAuthenticated) {
                     showConfirmationModal('Delete Member?', 'Are you sure you want to remove this member permanently?', () => {
-                        const idToDelete = parseFloat(deleteBtn.dataset.id);
-                        allianceMembers = allianceMembers.filter(m => m.id !== idToDelete);
+                        allianceMembers = allianceMembers.filter(m => m.id !== parseFloat(deleteBtn.dataset.id));
                         updateFirestore();
                     });
                 }
             });
+
             lockInButton.addEventListener('click', () => {
                 if (!isAuthenticated || !pendingConductor) return;
                 showConfirmationModal('Lock In Conductor?', `Are you sure you want to lock in ${pendingConductor}?`, () => {
                     currentConductor = pendingConductor;
-                    const today = new Date();
-                    const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                    selectionHistory.unshift({ player: currentConductor, date: dateStr, id: Date.now() });
-
-                    // Remove Sub Boost if it exists
+                    selectionHistory.unshift({ player: currentConductor, date: new Date().toISOString(), id: Date.now() });
                     const memberIndex = allianceMembers.findIndex(m => m.name === currentConductor);
                     if (memberIndex > -1 && allianceMembers[memberIndex].subBoost) {
                         allianceMembers[memberIndex].subBoost = false;
                     }
-
                     updateFirestore();
                     showRandomMode();
                     triggerConfetti();
                 });
             });
+
             rerollButton.addEventListener('click', () => {
                 if (!isAuthenticated || !pendingConductor) return;
-                showConfirmationModal('Re-roll Conductor?', `This will return ${pendingConductor} to the pool and pick a new conductor. No luck bonus will be applied.`, () => {
+                showConfirmationModal('Re-roll Conductor?', `This will return ${pendingConductor} to the pool and pick a new conductor.`, () => {
                     const originalPick = allianceMembers.find(m => m.name === pendingConductor);
-                    // Re-roll without applying any sub-boost
                     selectRandomly(allianceMembers, null, originalPick);
                 });
             });
-
-            // *** ADDED: Event listener for cancel selection button ***
-            cancelSelectionButton.addEventListener('click', () => {
-                if (!isAuthenticated) return;
-                showRandomMode();
-            });
+            
+            cancelSelectionButton.addEventListener('click', () => { if (isAuthenticated) showRandomMode(); });
 
             historyListContainer.addEventListener('click', (e) => {
                  if (!isAuthenticated) return;
                  const deleteButton = e.target.closest('.delete-history-btn');
                  if (deleteButton) {
                     showConfirmationModal('Delete History Entry?', 'Are you sure you want to remove this history entry?', () => {
-                        const idToDelete = parseFloat(deleteButton.dataset.id);
-                        selectionHistory = selectionHistory.filter(item => item.id !== idToDelete);
+                        selectionHistory = selectionHistory.filter(item => item.id !== parseFloat(deleteButton.dataset.id));
                         updateFirestore();
                     });
                  }
             });
+
             saveAddBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 const newName = addNameInput.value.trim();
@@ -1424,10 +1226,11 @@
                     allianceMembers.push({ id: Date.now(), name: newName, rank: addRankSelect.value, medals: [], subBoost: false });
                     updateFirestore();
                     addModal.classList.add('hidden');
-                } else if (newName) alert("A member with this name already exists.");
+                } else if (newName) {
+                    console.log("A member with this name already exists.");
+                }
             });
             cancelAddBtn.addEventListener('click', () => addModal.classList.add('hidden'));
-            addModal.addEventListener('click', (e) => { if (e.target.id === 'add-modal') cancelAddBtn.click(); });
 
             saveEditBtn.addEventListener('click', () => {
                 if (!isAuthenticated || memberToEditId === null) return;
@@ -1436,31 +1239,26 @@
                     allianceMembers[memberIndex].name = editNameInput.value.trim();
                     allianceMembers[memberIndex].rank = editRankSelect.value;
                     updateFirestore();
-                    // Close the modal
                     editModal.classList.add('hidden');
                     memberToEditId = null;
                 }
             });
             awardMedalBtn.addEventListener('click', () => {
-                if (!isAuthenticated) return;
+                if (!isAuthenticated || !memberToEditId) return;
                 const medalName = awardMedalSelect.value;
-                if(memberToEditId && medalName) {
-                    if(awardMedal(memberToEditId, medalName)) {
-                        renderActiveMedalsInEditModal();
-                    }
+                if(medalName && awardMedal(memberToEditId, medalName)) {
+                    renderActiveMedalsInEditModal();
                 }
             });
-
             removeSubBoostBtn.addEventListener('click', () => {
                 if (!isAuthenticated || memberToEditId === null) return;
                 const memberIndex = allianceMembers.findIndex(m => m.id === memberToEditId);
                 if (memberIndex > -1) {
                     allianceMembers[memberIndex].subBoost = false;
-                    editSubBoostSection.classList.add('hidden'); // Hide section in UI
-                    updateFirestore(); // Save change to DB
+                    editSubBoostSection.classList.add('hidden');
+                    updateFirestore();
                 }
             });
-
             activeMedalsList.addEventListener('click', (e) => {
                 if (!isAuthenticated) return;
                 const removeBtn = e.target.closest('.remove-medal-btn');
@@ -1474,73 +1272,47 @@
                     }
                 }
             });
-            cancelEditBtn.addEventListener('click', () => {
-                editModal.classList.add('hidden');
-                memberToEditId = null;
-            });
-            editModal.addEventListener('click', (e) => { if (e.target.id === 'edit-modal') cancelEditBtn.click(); });
-
-            const allTabs = [tabManualPick, tabHistory, tabMedals];
-            const allContent = [contentManualPick, contentHistory, contentMedals];
-
-            allTabs.forEach((tab, index) => {
-                tab.addEventListener('click', () => {
-                    allTabs.forEach(t => t.classList.remove('active'));
-                    allContent.forEach(c => c.classList.add('hidden'));
-                    tab.classList.add('active');
-                    allContent[index].classList.remove('hidden');
-                });
-            });
-
+            cancelEditBtn.addEventListener('click', () => { editModal.classList.add('hidden'); memberToEditId = null; });
+            
             addHistoryButton.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 addHistoryPlayerSelect.innerHTML = `<option value="">Select a player...</option>`;
-                const sortedMembers = [...allianceMembers].sort((a,b) => a.name.localeCompare(b.name));
-                sortedMembers.forEach(member => {
+                [...allianceMembers].sort((a,b) => a.name.localeCompare(b.name)).forEach(member => {
                     const option = document.createElement('option');
                     option.value = member.name;
                     option.textContent = member.name;
                     addHistoryPlayerSelect.appendChild(option);
                 });
                 addHistoryDateInput.value = '';
-                addHistoryModal.classList.remove('hidden');
+                addHistoryModal.classList.add('hidden');
             });
             saveAddHistoryBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 const player = addHistoryPlayerSelect.value;
                 const date = addHistoryDateInput.value;
                 if(player && date.match(/^\d{2}-\d{2}$/)) {
-                    selectionHistory.unshift({ player, date, id: Date.now() });
+                    const [month, day] = date.split('-');
+                    const year = new Date().getFullYear();
+                    selectionHistory.unshift({ player, date: new Date(year, month - 1, day).toISOString(), id: Date.now() });
                     updateFirestore();
                     addHistoryModal.classList.add('hidden');
                 } else {
-                    alert('Please select a player and enter a valid date in MM-DD format.');
+                    console.log('Please select a player and enter a valid date in MM-DD format.');
                 }
             });
             cancelAddHistoryBtn.addEventListener('click', () => addHistoryModal.classList.add('hidden'));
-
             historySearchInput.addEventListener('input', renderHistory);
             randomSelectButton.addEventListener('click', () => selectRandomly(allianceMembers, randomSelectButton));
 
-            // --- PLAYER INFO MODAL LOGIC ---
             closePlayerInfoBtn.addEventListener('click', () => playerInfoModal.classList.add('hidden'));
-            playerInfoModal.addEventListener('click', (e) => { if(e.target.id === 'player-info-modal') closePlayerInfoBtn.click(); });
-
             designateConductorBtn.addEventListener('click', () => {
                 if (!isAuthenticated || infoModalMemberId === null) return;
                 const member = allianceMembers.find(m => m.id === infoModalMemberId);
                 if (!member) return;
-
                 showConfirmationModal(`Designate ${member.name}?`, `Are you sure you want to make ${member.name} the conductor?`, () => {
                     currentConductor = member.name;
-                    const today = new Date();
-                    const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                    selectionHistory.unshift({ player: currentConductor, date: dateStr, id: Date.now() });
-
-                    if (member.subBoost) {
-                        member.subBoost = false;
-                    }
-
+                    selectionHistory.unshift({ player: currentConductor, date: new Date().toISOString(), id: Date.now() });
+                    if (member.subBoost) member.subBoost = false;
                     updateFirestore();
                     showRandomMode();
                     playerInfoModal.classList.add('hidden');
@@ -1548,145 +1320,74 @@
                 });
             });
 
-
-            // --- AWARD MEDAL MODAL LOGIC ---
             function validateMedalAward() {
                 const memberId = parseFloat(awardMedalMemberSelect.value);
                 const medalName = awardMedalTypeSelect.value;
-                const validationMsg = awardMedalValidationMsg;
-                const saveBtn = saveAwardMedalBtn;
-
-                if (!memberId || !medalName) {
-                    saveBtn.disabled = true;
-                    validationMsg.textContent = '';
-                    return;
-                }
-
+                if (!memberId || !medalName) { saveAwardMedalBtn.disabled = true; awardMedalValidationMsg.textContent = ''; return; }
                 const sixDaysAgo = Date.now() - (6 * 24 * 60 * 60 * 1000);
-                let isMedalOnGlobalCooldown = false;
-                for (const member of allianceMembers) {
-                    if (member.medals && member.medals.some(m => m.name === medalName && m.awardedDate > sixDaysAgo)) {
-                        isMedalOnGlobalCooldown = true;
-                        break;
-                    }
+                if (allianceMembers.some(m => m.medals && m.medals.some(med => med.name === medalName && med.awardedDate > sixDaysAgo))) {
+                    awardMedalValidationMsg.textContent = `This medal was already awarded this week.`; saveAwardMedalBtn.disabled = true; return;
                 }
-
-                if (isMedalOnGlobalCooldown) {
-                    validationMsg.textContent = `This medal was already awarded this week.`;
-                    saveBtn.disabled = true;
-                    return;
-                }
-
                 const member = allianceMembers.find(m => m.id === memberId);
                 if (member && member.medals && member.medals.some(m => m.name === medalName && m.expires > Date.now())) {
-                    validationMsg.textContent = `${member.name} already has an active ${medalName}.`;
-                    saveBtn.disabled = true;
-                    return;
+                    awardMedalValidationMsg.textContent = `${member.name} already has an active ${medalName}.`; saveAwardMedalBtn.disabled = true; return;
                 }
-
-                validationMsg.textContent = '';
-                saveBtn.disabled = false;
+                awardMedalValidationMsg.textContent = ''; saveAwardMedalBtn.disabled = false;
             }
-
             openAwardMedalModalBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 awardMedalMemberSelect.innerHTML = '<option value="">Select a member...</option>';
-                const sortedMembers = [...allianceMembers].sort((a,b) => a.name.localeCompare(b.name));
-                sortedMembers.forEach(member => {
-                    const option = document.createElement('option');
-                    option.value = member.id;
-                    option.textContent = member.name;
-                    awardMedalMemberSelect.appendChild(option);
+                [...allianceMembers].sort((a,b) => a.name.localeCompare(b.name)).forEach(member => {
+                    const option = document.createElement('option'); option.value = member.id; option.textContent = member.name; awardMedalMemberSelect.appendChild(option);
                 });
-
                 populateMedalSelect(awardMedalTypeSelect);
-
                 validateMedalAward();
                 awardMedalModal.classList.remove('hidden');
             });
-
             cancelAwardMedalBtn.addEventListener('click', () => awardMedalModal.classList.add('hidden'));
-            awardMedalModal.addEventListener('click', (e) => { if(e.target.id === 'award-medal-modal') cancelAwardMedalBtn.click(); });
             awardMedalMemberSelect.addEventListener('change', validateMedalAward);
             awardMedalTypeSelect.addEventListener('change', validateMedalAward);
-
             saveAwardMedalBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 const memberId = parseFloat(awardMedalMemberSelect.value);
                 const medalName = awardMedalTypeSelect.value;
-                if (memberId && medalName) {
-                    if (awardMedal(memberId, medalName)) {
-                        renderAll(); // Re-render everything to show changes
-                        awardMedalModal.classList.add('hidden');
-                    }
+                if (memberId && medalName && awardMedal(memberId, medalName)) {
+                    renderAll();
+                    awardMedalModal.classList.add('hidden');
                 }
             });
 
-            // --- AUTHENTICATION LOGIC ---
-            openLoginModalBtn.addEventListener('click', () => loginModal.classList.remove('hidden'));
-            cancelLoginBtn.addEventListener('click', () => loginModal.classList.add('hidden'));
-            loginModal.addEventListener('click', (e) => { if(e.target.id === 'login-modal') cancelLoginBtn.click(); });
-
+            loginButtons.forEach(btn => btn.addEventListener('click', () => loginModal.classList.remove('hidden')));
+            logoutButtons.forEach(btn => btn.addEventListener('click', () => setAuthState(false)));
             loginButton.addEventListener('click', () => {
-                const pass = passwordInput.value;
-                // Check only the password
-                if (pass === 'newspaper') {
-                    setAuthState(true);
-                } else {
-                    loginErrorMsg.textContent = 'Invalid password.';
-                    setTimeout(() => loginErrorMsg.textContent = '', 3000);
-                }
+                if (passwordInput.value === 'newspaper') setAuthState(true);
+                else { loginErrorMsg.textContent = 'Invalid password.'; setTimeout(() => loginErrorMsg.textContent = '', 3000); }
             });
+            cancelLoginBtn.addEventListener('click', () => loginModal.classList.add('hidden'));
 
-            logoutButton.addEventListener('click', () => {
-                setAuthState(false);
-            });
-
-            // --- CONFIRMATION MODAL LOGIC ---
-            confirmActionBtn.addEventListener('click', () => {
-                if (confirmCallback) {
-                    confirmCallback();
-                }
-                confirmationModal.classList.add('hidden');
-            });
-
-            confirmCancelBtn.addEventListener('click', () => {
-                confirmationModal.classList.add('hidden');
-            });
-
-            // --- HOW IT WORKS MODAL LOGIC ---
+            confirmActionBtn.addEventListener('click', () => { if (confirmCallback) confirmCallback(); confirmationModal.classList.add('hidden'); });
+            confirmCancelBtn.addEventListener('click', () => confirmationModal.classList.add('hidden'));
+            
             const openHowItWorks = () => {
                 howItWorksModal.classList.remove('hidden');
-                // Ensure the first tab is active when opening
                 howItWorksTabsContainer.querySelector('[data-tab="overview"]').click();
             }
-            const closeHowItWorks = () => {
-                howItWorksModal.classList.add('hidden');
-            }
-
-            howItWorksButton.addEventListener('click', openHowItWorks);
-            closeHowItWorksBtn.addEventListener('click', closeHowItWorks);
-            closeHowItWorksBtn2.addEventListener('click', closeHowItWorks);
-            howItWorksModal.addEventListener('click', (e) => { if(e.target.id === 'how-it-works-modal') closeHowItWorks(); });
-
+            howItWorksButtons.forEach(btn => btn.addEventListener('click', openHowItWorks));
+            closeHowItWorksBtn.addEventListener('click', () => howItWorksModal.classList.add('hidden'));
+            closeHowItWorksBtn2.addEventListener('click', () => howItWorksModal.classList.add('hidden'));
             howItWorksTabsContainer.addEventListener('click', (e) => {
                 const tabButton = e.target.closest('.how-it-works-tab');
                 if (!tabButton) return;
-
-                const tabId = tabButton.dataset.tab;
-                
-                // Deactivate all tabs and content
                 howItWorksTabsContainer.querySelectorAll('.how-it-works-tab').forEach(tab => tab.classList.remove('active'));
-                document.querySelectorAll('.how-it-works-tab-content').forEach(content => content.classList.remove('active'));
-
-                // Activate the clicked tab and its content
+                howItWorksContent.querySelectorAll('.how-it-works-tab-content').forEach(content => content.style.display = 'none');
                 tabButton.classList.add('active');
-                document.getElementById(`tab-content-${tabId}`).classList.add('active');
+                howItWorksContent.querySelector(`#tab-content-${tabButton.dataset.tab}`).style.display = 'block';
             });
 
-
             // --- INITIALIZATION ---
-            setAuthState(false); // Start logged out
+            setAuthState(false);
+            switchTab('history');
+            populateHowItWorksContent();
             populateMedalSelect(awardMedalSelect);
             initializeFirebase();
         });
