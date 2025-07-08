@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Train Conductor Selector</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -164,21 +165,21 @@
                 </div>
                 <nav id="desktop-nav" class="flex-grow p-2 space-y-1">
                     <button data-tab="members" class="desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197"></path></svg>
+                        <i class="fa-solid fa-users w-5 h-5 text-center"></i>
                         <span class="font-semibold">Members</span>
                     </button>
                     <button data-tab="history" class="desktop-nav-btn active w-full flex items-center p-3 rounded-lg space-x-3">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <i class="fa-solid fa-clock-rotate-left w-5 h-5 text-center"></i>
                         <span class="font-semibold">History</span>
                     </button>
                     <button data-tab="medals" class="desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                        <i class="fa-solid fa-medal w-5 h-5 text-center"></i>
                         <span class="font-semibold">Medals</span>
                     </button>
                 </nav>
                  <div class="p-4 border-t border-slate-700/50 mt-auto flex flex-col items-center justify-between space-y-2">
                     <button id="how-it-works-button" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <i class="fa-solid fa-circle-question w-4 h-4"></i>
                         <span>How it works!</span>
                     </button>
                     <div class="flex-grow text-center">
@@ -223,15 +224,15 @@
                     <div id="mobile-nav" class="lg:hidden mt-2 border-b border-t border-slate-700">
                         <div class="grid grid-cols-3 text-center">
                             <button data-tab="members" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
-                                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197"></path></svg>
+                                <i class="fa-solid fa-users w-5 h-5 mb-1"></i>
                                 <span class="text-xs font-semibold">Members</span>
                             </button>
                             <button data-tab="history" class="mobile-nav-btn active p-3 flex flex-col items-center justify-center">
-                                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <i class="fa-solid fa-clock-rotate-left w-5 h-5 mb-1"></i>
                                 <span class="text-xs font-semibold">History</span>
                             </button>
                             <button data-tab="medals" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
-                                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                                <i class="fa-solid fa-medal w-5 h-5 mb-1"></i>
                                 <span class="text-xs font-semibold">Medals</span>
                             </button>
                         </div>
@@ -239,10 +240,10 @@
                     <!-- Content Panels Wrapper -->
                     <div class="p-4 lg:p-6 flex-grow flex flex-col min-h-0">
                         <div id="content-members" class="hidden h-full flex flex-col">
-                            <div class="flex justify-between items-center mb-2 flex-shrink-0">
-                                <h3 class="text-lg font-bold text-white">Alliance Members</h3>
-                                <button id="add-member-button" class="admin-control text-cyan-400 hover:text-cyan-300 transition-colors" title="Add new member">
-                                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <div class="flex items-center mb-2 flex-shrink-0">
+                                <input type="text" id="member-search-input" placeholder="Search members..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <button id="add-member-button" class="admin-control ml-2 text-cyan-400 hover:text-cyan-300" title="Add new member">
+                                   <i class="fa-solid fa-plus-circle w-6 h-6"></i>
                                 </button>
                             </div>
                             <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
@@ -251,7 +252,7 @@
                              <div class="flex items-center mb-2 flex-shrink-0">
                                 <input type="text" id="history-search-input" placeholder="Search player history..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
                                 <button id="add-history-button" class="admin-control ml-2 text-cyan-400 hover:text-cyan-300" title="Add history entry">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <i class="fa-solid fa-plus-circle w-6 h-6"></i>
                                 </button>
                              </div>
                              <div id="history-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
@@ -260,7 +261,7 @@
                             <div class="flex justify-between items-center mb-3 flex-shrink-0">
                                  <h3 class="text-lg font-bold text-white">Active Medal Awards</h3>
                                  <button id="open-award-medal-modal-btn" class="admin-control bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                                    <i class="fa-solid fa-medal w-4 h-4"></i>
                                      <span>Award Medals</span>
                                  </button>
                             </div>
@@ -270,7 +271,7 @@
                     <!-- Mobile Footer -->
                     <div class="lg:hidden p-4 border-t border-slate-700/50 mt-auto flex items-center justify-between space-x-4">
                         <button id="how-it-works-button-mobile" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <i class="fa-solid fa-circle-question w-4 h-4"></i>
                             <span>How it works!</span>
                         </button>
                         <div class="flex-grow text-right">
@@ -284,7 +285,7 @@
     </div>
 
     <!-- All Modals -->
-    <div id="login-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
+    <div id="login-modal" class="modal-overlay hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4 text-center">Admin Login</h2>
             <div class="space-y-4">
@@ -300,7 +301,7 @@
             </div>
         </div>
     </div>
-    <div id="confirmation-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+    <div id="confirmation-modal" class="modal-overlay hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm text-center rounded-2xl">
             <h2 id="confirmation-title" class="text-lg font-bold text-white mb-4">Are you sure?</h2>
             <p id="confirmation-message" class="text-sm text-slate-300 mb-6">This action cannot be undone.</p>
@@ -310,7 +311,7 @@
             </div>
         </div>
     </div>
-    <div id="add-history-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+    <div id="add-history-modal" class="modal-overlay hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4">Add History Entry</h2>
             <div class="space-y-4">
@@ -329,7 +330,7 @@
             </div>
         </div>
     </div>
-    <div id="edit-history-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+    <div id="edit-history-modal" class="modal-overlay hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4">Edit History Entry</h2>
             <div class="space-y-4">
@@ -348,7 +349,7 @@
             </div>
         </div>
     </div>
-    <div id="add-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+    <div id="add-modal" class="modal-overlay hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4">Add New Member</h2>
             <div class="space-y-4">
@@ -369,7 +370,7 @@
             </div>
         </div>
     </div>
-    <div id="edit-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+    <div id="edit-modal" class="modal-overlay hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-md rounded-2xl">
              <h2 class="text-xl font-bold text-white mb-4">Edit Member</h2>
             <div class="space-y-4">
@@ -411,7 +412,7 @@
             </div>
         </div>
     </div>
-    <div id="award-medal-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+    <div id="award-medal-modal" class="modal-overlay hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4">Award a Medal</h2>
             <div class="space-y-4">
@@ -431,7 +432,7 @@
             </div>
         </div>
     </div>
-    <div id="player-info-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
+    <div id="player-info-modal" class="modal-overlay hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
         <div class="card p-4 sm:p-6 w-full max-w-md rounded-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h2 id="player-info-name" class="text-xl sm:text-2xl font-bold text-white font-orbitron truncate pr-2">Player Name</h2>
@@ -475,7 +476,7 @@
             </div>
         </div>
     </div>
-    <div id="how-it-works-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
+    <div id="how-it-works-modal" class="modal-overlay hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-2xl rounded-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold text-white font-orbitron">How it works!</h2>
@@ -572,6 +573,7 @@
             const contentHistory = document.getElementById('content-history');
             const contentMedals = document.getElementById('content-medals');
 
+            const memberSearchInput = document.getElementById('member-search-input');
             const historySearchInput = document.getElementById('history-search-input');
             const addHistoryButton = document.getElementById('add-history-button');
             const addHistoryModal = document.getElementById('add-history-modal');
@@ -910,8 +912,11 @@
             }
 
             const renderManualPickList = () => {
+                const searchTerm = memberSearchInput.value.toLowerCase();
                 manualPickListContainer.innerHTML = '';
-                [...allianceMembers].sort((a, b) => a.name.localeCompare(b.name)).forEach(member => {
+                const filteredMembers = allianceMembers.filter(member => member.name.toLowerCase().includes(searchTerm));
+
+                [...filteredMembers].sort((a, b) => a.name.localeCompare(b.name)).forEach(member => {
                     const div = document.createElement('div');
                     div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
                     const cooldownInfo = getMemberCooldownInfo(member.name);
@@ -935,8 +940,8 @@
                             <div class="w-10"><span class="font-bold text-amber-400">${activeMedalsCount}</span><span class="block text-slate-500 text-[10px]">Medals</span></div>
                         </div>
                         <div class="admin-control flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                            <button class="edit-member-btn text-slate-400 hover:text-cyan-400" data-id="${member.id}" title="Edit member"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
-                            <button class="delete-member-btn text-slate-400 hover:text-red-400" data-id="${member.id}" title="Delete member"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                            <button class="edit-member-btn text-slate-400 hover:text-cyan-400" data-id="${member.id}" title="Edit member"><i class="fa-solid fa-pencil w-4 h-4"></i></button>
+                            <button class="delete-member-btn text-slate-400 hover:text-red-400" data-id="${member.id}" title="Delete member"><i class="fa-solid fa-trash-can w-4 h-4"></i></button>
                         </div>`;
                     manualPickListContainer.appendChild(div);
                 });
@@ -991,29 +996,39 @@
                     const div = document.createElement('div');
                     div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
                     
+                    const member = allianceMembers.find(m => m.name === item.player);
+                    
                     if (item.type === 'conductor') {
+                        const playerNameHTML = member 
+                            ? `<button class="font-bold text-white underline hover:text-cyan-300 player-info-trigger" data-id="${member.id}">${item.player}</button>`
+                            : `<span class="font-bold text-white">${item.player}</span>`;
+
                         div.innerHTML = `
                             <div class="flex items-center truncate pr-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-3 text-cyan-400 flex-shrink-0"><path d="M21 16V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8"></path><path d="M5 16l-3 3"></path><path d="M22 16l-3 3"></path><path d="M8 16h8"></path><path d="M12 16v-3"></path><path d="M6 8V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"></path></svg>
-                                <p class="font-semibold text-slate-300 truncate"><span class="text-white">${item.player}</span> received Train Conductor</p>
+                                <i class="fa-solid fa-train-subway w-5 h-5 mr-3 text-cyan-400 flex-shrink-0"></i>
+                                <p class="text-slate-300 truncate">${playerNameHTML} received Train Conductor</p>
                             </div>
                             <div class="flex items-center space-x-2 flex-shrink-0">
-                                <button class="admin-control edit-history-btn text-slate-400 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Edit history entry"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
-                                <button class="admin-control delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                                <button class="admin-control edit-history-btn text-slate-400 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Edit history entry"><i class="fa-solid fa-pencil w-4 h-4"></i></button>
+                                <button class="admin-control delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry"><i class="fa-solid fa-trash-can w-4 h-4"></i></button>
                             </div>`;
                     } else { // Medal Event
+                        const playerNameHTML = member 
+                            ? `<button class="font-bold text-white underline hover:text-cyan-300 player-info-trigger" data-id="${member.id}">${item.player}</button>`
+                            : `<span class="font-bold text-white">${item.player}</span>`;
+
                         if (item.medalName === 'Mega Express Medal') {
                             div.classList.add('bg-red-900/20');
                             div.innerHTML = `
                                 <div class="flex items-center truncate pr-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" class="w-5 h-5 mr-3 text-red-400 flex-shrink-0 animate-pulse"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 22.17l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                                    <p class="font-bold text-red-400 truncate"><span class="text-white">${item.player}</span> earned the <span class="text-red-300">${item.medalName}</span></p>
+                                    <i class="fa-solid fa-heart w-5 h-5 mr-3 text-red-400 flex-shrink-0 animate-pulse"></i>
+                                    <p class="font-semibold text-red-400 truncate">${playerNameHTML} earned the <span class="text-red-300">${item.medalName}</span></p>
                                 </div>`;
                         } else {
                             div.innerHTML = `
                                  <div class="flex items-center truncate pr-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-3 text-amber-400 flex-shrink-0"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>
-                                    <p class="font-semibold text-slate-300 truncate"><span class="text-white">${item.player}</span> earned <span class="text-amber-300">${item.medalName}</span></p>
+                                    <i class="fa-solid fa-medal w-5 h-5 mr-3 text-amber-400 flex-shrink-0"></i>
+                                    <p class="text-slate-300 truncate">${playerNameHTML} earned <span class="text-amber-300 font-semibold">${item.medalName}</span></p>
                                 </div>`;
                         }
                     }
@@ -1284,11 +1299,15 @@
 
             // --- EVENT LISTENERS ---
             addMemberButton.addEventListener('click', () => { if(isAuthenticated) addModal.classList.remove('hidden'); });
+            
             manualPickListContainer.addEventListener('click', (e) => {
                 const infoTrigger = e.target.closest('.player-info-trigger');
-                if (infoTrigger) openPlayerInfoModal(parseFloat(infoTrigger.dataset.id));
                 const editBtn = e.target.closest('.edit-member-btn');
-                if (editBtn && isAuthenticated) {
+                const deleteBtn = e.target.closest('.delete-member-btn');
+
+                if (infoTrigger) {
+                    openPlayerInfoModal(parseFloat(infoTrigger.dataset.id));
+                } else if (editBtn && isAuthenticated) {
                     memberToEditId = parseFloat(editBtn.dataset.id);
                     const member = allianceMembers.find(m => m.id === memberToEditId);
                     if (member) {
@@ -1299,9 +1318,7 @@
                         renderActiveMedalsInEditModal();
                         editModal.classList.remove('hidden');
                     }
-                }
-                const deleteBtn = e.target.closest('.delete-member-btn');
-                if (deleteBtn && isAuthenticated) {
+                } else if (deleteBtn && isAuthenticated) {
                     showConfirmationModal('Delete Member?', 'Are you sure you want to remove this member permanently?', () => {
                         allianceMembers = allianceMembers.filter(m => m.id !== parseFloat(deleteBtn.dataset.id));
                         updateFirestore();
@@ -1335,27 +1352,36 @@
             cancelSelectionButton.addEventListener('click', () => { if (isAuthenticated) showRandomMode(); });
 
             historyListContainer.addEventListener('click', (e) => {
-                 if (!isAuthenticated) return;
                  const deleteButton = e.target.closest('.delete-history-btn');
-                 if (deleteButton) {
-                    showConfirmationModal('Delete History Entry?', 'Are you sure you want to remove this history entry?', () => {
-                        selectionHistory = selectionHistory.filter(item => item.id !== parseFloat(deleteButton.dataset.id));
-                        updateFirestore();
-                    });
-                 }
                  const editButton = e.target.closest('.edit-history-btn');
-                 if (editButton) {
-                    historyToEditId = parseFloat(editButton.dataset.id);
-                    const historyItem = selectionHistory.find(item => item.id === historyToEditId);
-                    if (historyItem) {
-                        editHistoryPlayerName.textContent = historyItem.player;
-                        const date = new Date(historyItem.date);
-                        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                        const day = date.getDate().toString().padStart(2, '0');
-                        const year = date.getFullYear();
-                        editHistoryDateInput.value = `${month}-${day}-${year}`;
-                        editHistoryModal.classList.remove('hidden');
+                 const playerTrigger = e.target.closest('.player-info-trigger');
+
+                 if (playerTrigger) {
+                    const memberId = parseFloat(playerTrigger.dataset.id);
+                    if (!isNaN(memberId)) {
+                        openPlayerInfoModal(memberId);
                     }
+                 }
+                 
+                 if (isAuthenticated) {
+                     if (deleteButton) {
+                        showConfirmationModal('Delete History Entry?', 'Are you sure you want to remove this history entry?', () => {
+                            selectionHistory = selectionHistory.filter(item => item.id !== parseFloat(deleteButton.dataset.id));
+                            updateFirestore();
+                        });
+                     } else if (editButton) {
+                        historyToEditId = parseFloat(editButton.dataset.id);
+                        const historyItem = selectionHistory.find(item => item.id === historyToEditId);
+                        if (historyItem) {
+                            editHistoryPlayerName.textContent = historyItem.player;
+                            const date = new Date(historyItem.date);
+                            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                            const day = date.getDate().toString().padStart(2, '0');
+                            const year = date.getFullYear();
+                            editHistoryDateInput.value = `${month}-${day}-${year}`;
+                            editHistoryModal.classList.remove('hidden');
+                        }
+                     }
                  }
             });
 
@@ -1464,6 +1490,7 @@
                 }
             });
 
+            memberSearchInput.addEventListener('input', renderManualPickList);
             historySearchInput.addEventListener('input', renderHistory);
             randomSelectButton.addEventListener('click', () => selectRandomly(allianceMembers, randomSelectButton));
 
@@ -1536,6 +1563,16 @@
                 howItWorksTabsContainer.querySelector('[data-tab="overview"]').click();
             }
             howItWorksButtons.forEach(btn => btn.addEventListener('click', openHowItWorks));
+            
+            // Close modals when clicking outside
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+
             closeHowItWorksBtn.addEventListener('click', () => howItWorksModal.classList.add('hidden'));
             closeHowItWorksBtn2.addEventListener('click', () => howItWorksModal.classList.add('hidden'));
             howItWorksTabsContainer.addEventListener('click', (e) => {
