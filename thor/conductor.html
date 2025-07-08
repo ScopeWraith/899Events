@@ -283,7 +283,7 @@
         </main>
     </div>
 
-    <!-- All Modals remain unchanged -->
+    <!-- All Modals -->
     <div id="login-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4 text-center">Admin Login</h2>
@@ -319,13 +319,32 @@
                     <select id="add-history-player-select" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"></select>
                 </div>
                 <div>
-                    <label for="add-history-date-input" class="block text-sm font-medium text-slate-300">Date (MM-DD)</label>
-                    <input type="text" id="add-history-date-input" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                    <label for="add-history-date-input" class="block text-sm font-medium text-slate-300">Date (MM-DD-YYYY)</label>
+                    <input type="text" id="add-history-date-input" placeholder="e.g., 07-08-2025" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
                 </div>
             </div>
             <div class="mt-6 flex justify-end space-x-3">
                 <button id="cancel-add-history-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
                 <button id="save-add-history-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Save Entry</button>
+            </div>
+        </div>
+    </div>
+    <div id="edit-history-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm rounded-2xl">
+            <h2 class="text-xl font-bold text-white mb-4">Edit History Entry</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300">Player</label>
+                    <p id="edit-history-player-name" class="mt-1 w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-2 text-slate-400"></p>
+                </div>
+                <div>
+                    <label for="edit-history-date-input" class="block text-sm font-medium text-slate-300">Date (MM-DD-YYYY)</label>
+                    <input type="text" id="edit-history-date-input" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="e.g., 07-08-2025">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancel-edit-history-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                <button id="save-edit-history-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Save Changes</button>
             </div>
         </div>
     </div>
@@ -560,6 +579,14 @@
             const addHistoryDateInput = document.getElementById('add-history-date-input');
             const saveAddHistoryBtn = document.getElementById('save-add-history-btn');
             const cancelAddHistoryBtn = document.getElementById('cancel-add-history-btn');
+            
+            // Edit History Modal Elements
+            const editHistoryModal = document.getElementById('edit-history-modal');
+            const editHistoryPlayerName = document.getElementById('edit-history-player-name');
+            const editHistoryDateInput = document.getElementById('edit-history-date-input');
+            const saveEditHistoryBtn = document.getElementById('save-edit-history-btn');
+            const cancelEditHistoryBtn = document.getElementById('cancel-edit-history-btn');
+
             const addModal = document.getElementById('add-modal');
             const addNameInput = document.getElementById('add-name-input');
             const addRankSelect = document.getElementById('add-rank-select');
@@ -627,10 +654,55 @@
             let currentConductor = 'SELECT A CONDUCTOR';
             let pendingConductor = null;
             let memberToEditId = null;
+            let historyToEditId = null;
             let infoModalMemberId = null;
             let db, docRef;
             let confirmCallback = null;
             let isAuthenticated = false;
+
+            // --- DATE HELPERS ---
+            /**
+             * Safely parses a date value from various formats into a numeric timestamp.
+             * @param {any} dateValue - The value to parse (number, string, or Firestore Timestamp).
+             * @returns {number|null} A numeric timestamp or null if parsing fails.
+             */
+            function getTimestamp(dateValue) {
+                if (!dateValue) return null;
+                // If it's a Firestore Timestamp object, convert it
+                if (typeof dateValue.toDate === 'function') {
+                    return dateValue.toDate().getTime();
+                }
+                // If it's already a valid number (timestamp), return it
+                if (typeof dateValue === 'number' && !isNaN(dateValue)) {
+                    return dateValue;
+                }
+                // If it's a string, try parsing it
+                if (typeof dateValue === 'string') {
+                    const date = new Date(dateValue);
+                    if (!isNaN(date.getTime())) {
+                        return date.getTime();
+                    }
+                }
+                // Return null if parsing fails
+                return null;
+            }
+
+            /**
+             * Formats a timestamp into a consistent, readable date string.
+             * @param {number|null} timestamp - The numeric timestamp to format.
+             * @returns {string} A formatted date string (e.g., "07/08/25") or "Invalid Date".
+             */
+            function formatDate(timestamp) {
+                if (timestamp === null || isNaN(timestamp)) {
+                    return 'Invalid Date';
+                }
+                return new Date(timestamp).toLocaleDateString(undefined, {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: '2-digit'
+                });
+            }
+
 
             // --- FIREBASE SETUP ---
             async function initializeFirebase() {
@@ -661,17 +733,23 @@
                                 if (typeof member === 'string') {
                                     return { id: Date.now() + index, name: member, rank: 'R1', medals: [], subBoost: false };
                                 }
+                                // Sanitize medal dates on load
                                 const medals = (member.medals || []).map(m => ({
                                     ...m,
                                     id: m.id || Date.now() + Math.random(),
-                                    awardedDate: m.awardedDate || m.expires - (30 * 24 * 60 * 60 * 1000)
+                                    awardedDate: getTimestamp(m.awardedDate),
+                                    expires: getTimestamp(m.expires)
                                 }));
                                 return { ...member, id: member.id || Date.now() + index, medals: medals, subBoost: member.subBoost || false };
                             });
+                            
+                            // Sanitize history dates on load
                             selectionHistory = (data.history || []).map((item, index) => ({
                                 ...item,
+                                date: getTimestamp(item.date),
                                 id: item.id || Date.now() + index
                             }));
+
                             currentConductor = data.currentConductor || 'SELECT A CONDUCTOR';
                         } else {
                             console.log("No data found in Firestore. Initializing with default data.");
@@ -717,7 +795,7 @@
             function initializeDefaultData() {
                 allianceMembers = ["13Edy13", "Aceman12", "Aheleosthe2nd", "AirForester", "Andre Rabelo", "Anthony 69", "Arghonut 모험가", "atalon", "aZzIel", "Bamslang", "Basow", "Beezees", "Belleroo", "Bettel nerd", "B L Ä N K", "bobo1987 보보", "CaeTaka", "CaptainObviouss", "Chan 찬", "Chefjuanpi", "Churchill JAPABR", "Cindelll", "Curty Mc", "Dauntethemechanic", "DARS MILK", "Dino1311", "Dollystroyer", "DontWorryDaddysHere", "Drewstroyer", "Duck0311", "Dumpchicken", "Ender", "foxzilla", "Gangster 25", "General Bjam", "Grande Anão", "GPêê", "Guerneros del Chaco", "Gunbarista", "Hadrianswall", "ilovecafs", "Isorryl", "jessictia", "Jmelo1686", "JojoBans", "JTWolf", "KAYRONMAN", "KBL50", "Keylonis", "Kitt3nnnn", "LÄDY", "Leccarré", "leoyutian", "likes2ride", "LION 1937", "MÄXIMÜS", "MattCat 맷 더 캣", "Mayhem007", "Maz·Ibrahim.ч", "MICH3773", "MotoM0t0", "Mr Peaches", "Ms Andrea", "n3tt1k", "NinerGang211", "NikolaiVolkoff", "NoShtSherlock 셜록", "NyahNyah메롱", "Peacekëeper", "PewnurScope", "Ratatoui11e", "Reb13", "Risssy", "Robert ツ", "ScopeWraith", "scrap11", "SHAMAN ЛЮТЬ", "Shbeda", "SimBLÄ NK", "SimplyMom", "SniperXT3", "SN0WMan", "Squeeze1", "st ALBA", "SuperElectron Bioman", "techwrath", "TeeOhiNwhY", "The Palette", "Tigerfan1", "turtletime 거북이", "uJeam", "UrSwigBoaBro", "VENOM THENEW CARNAGE", "Vuladi", "Warrior Poet", "Whedonite92", "Xelaesor", "Zerrrro", "윤스 oops", "에녹 · Enoch"]
                 .map((name, index) => ({ id: Date.now() + index, name: name, rank: 'R1', medals: [], subBoost: false }));
-                selectionHistory = [{ player: "Rat", date: "06-26", id: Date.now()+1 }, { player: "Lecarre", date: "06-25", id: Date.now()+2 }, { player: "MagicalMike (AllDayDad)", date: "06-24", id: Date.now()+3 }];
+                selectionHistory = [{ player: "Rat", date: Date.now() - 86400000 * 2, id: Date.now()+1 }, { player: "Lecarre", date: Date.now() - 86400000 * 3, id: Date.now()+2 }, { player: "MagicalMike (AllDayDad)", date: Date.now() - 86400000 * 4, id: Date.now()+3 }];
                 currentConductor = 'SELECT A CONDUCTOR';
                 if (isAuthenticated) updateFirestore();
             }
@@ -867,7 +945,7 @@
             const renderHistory = () => {
                 const searchTerm = historySearchInput.value.toLowerCase();
                 historyListContainer.innerHTML = '';
-                const sortedHistory = [...selectionHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
+                const sortedHistory = [...selectionHistory].sort((a, b) => b.date - a.date);
                 const filteredHistory = sortedHistory.filter(item => item.player.toLowerCase().includes(searchTerm));
                 const renderedCooldowns = new Set();
 
@@ -887,7 +965,8 @@
                     div.innerHTML = `
                         <p class="font-semibold text-white truncate pr-2">${item.player} ${cooldownHTML}</p>
                         <div class="flex items-center space-x-2 flex-shrink-0">
-                            <p class="text-xs text-slate-400">${new Date(item.date).toLocaleDateString(undefined, {month: '2-digit', day: '2-digit'})}</p>
+                            <p class="text-xs text-slate-400">${formatDate(item.date)}</p>
+                            <button class="admin-control edit-history-btn text-slate-400 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Edit history entry"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                             <button class="admin-control delete-history-btn text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" data-id="${item.id}" title="Delete history entry"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                         </div>`;
                     historyListContainer.appendChild(div);
@@ -945,10 +1024,9 @@
                 }
                 allActiveMedals.forEach(medal => {
                     const daysLeft = Math.ceil((medal.expires - now) / (1000 * 60 * 60 * 24));
-                    const formattedDate = new Date(medal.awardedDate).toLocaleDateString(undefined, {month: '2-digit', day: '2-digit'});
                     const div = document.createElement('div');
                     div.className = 'item-enter flex items-center justify-between p-2 rounded-lg bg-slate-800/50 text-sm';
-                    div.innerHTML = `<div class="flex-grow"><p class="font-semibold text-cyan-300">${medal.name}</p><p class="text-xs text-slate-300">Awarded to <span class="font-bold text-white">${medal.memberName}</span></p></div><div class="text-right flex-shrink-0 ml-2"><p class="font-semibold text-white">${formattedDate}</p><p class="text-xs text-slate-400">${daysLeft}d left</p></div>`;
+                    div.innerHTML = `<div class="flex-grow"><p class="font-semibold text-cyan-300">${medal.name}</p><p class="text-xs text-slate-300">Awarded to <span class="font-bold text-white">${medal.memberName}</span></p></div><div class="text-right flex-shrink-0 ml-2"><p class="font-semibold text-white">${formatDate(medal.awardedDate)}</p><p class="text-xs text-slate-400">${daysLeft}d left</p></div>`;
                     medalsListContainer.appendChild(div);
                 });
             };
@@ -965,11 +1043,11 @@
                 const memberObject = allianceMembers.find(m => m.name === memberName);
                 if (!memberObject) return null;
 
-                const sortedMemberHistory = selectionHistory.filter(h => h.player === memberObject.name).sort((a, b) => new Date(b.date) - new Date(a.date));
+                const sortedMemberHistory = selectionHistory.filter(h => h.player === memberObject.name && h.date !== null).sort((a, b) => b.date - a.date);
                 if (sortedMemberHistory.length === 0) return { remainingDays: 0, eligibilityDate: new Date() };
 
                 const lastSelection = sortedMemberHistory[0];
-                const lastDate = new Date(lastSelection.date);
+                const lastDate = new Date(lastSelection.date); // This is now safe because dates are sanitized on load
                 const today = new Date();
                 today.setHours(0,0,0,0);
 
@@ -1059,17 +1137,17 @@
 
                 const cooldownInfo = getMemberCooldownInfo(member.name);
                 if (cooldownInfo && cooldownInfo.remainingDays > 0) {
-                    playerInfoEligibility.textContent = `On ${cooldownInfo.eligibilityDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+                    playerInfoEligibility.textContent = `On ${new Date(cooldownInfo.eligibilityDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
                     playerInfoEligibility.className = 'text-lg font-bold text-amber-400';
                 } else {
                     playerInfoEligibility.textContent = 'Eligible Now';
                     playerInfoEligibility.className = 'text-lg font-bold text-green-400';
                 }
 
-                playerInfoMedalsList.innerHTML = !member.medals || member.medals.length === 0 ? `<p class="text-sm text-slate-400 italic text-center">No medals earned.</p>` : [...member.medals].sort((a, b) => b.awardedDate - a.awardedDate).map(medal => `<div class="flex justify-between items-center bg-slate-800/50 p-2 rounded-md"><span class="font-semibold ${medal.expires < Date.now() ? 'text-slate-500' : 'text-green-400'}">${medal.name}</span><span class="text-xs text-slate-400">${new Date(medal.awardedDate).toLocaleDateString(undefined, {month: '2-digit', day: '2-digit', year: '2-digit'})}</span></div>`).join('');
+                playerInfoMedalsList.innerHTML = !member.medals || member.medals.length === 0 ? `<p class="text-sm text-slate-400 italic text-center">No medals earned.</p>` : [...member.medals].sort((a, b) => b.awardedDate - a.awardedDate).map(medal => `<div class="flex justify-between items-center bg-slate-800/50 p-2 rounded-md"><span class="font-semibold ${medal.expires < Date.now() ? 'text-slate-500' : 'text-green-400'}">${medal.name}</span><span class="text-xs text-slate-400">${formatDate(medal.awardedDate)}</span></div>`).join('');
                 
-                const memberHistory = selectionHistory.filter(h => h.player === member.name).sort((a,b) => new Date(b.date) - new Date(a.date));
-                playerInfoConductorHistoryList.innerHTML = memberHistory.length === 0 ? `<p class="text-sm text-slate-400 italic text-center">No conductor history.</p>` : memberHistory.map(entry => `<div class="flex justify-between items-center bg-slate-800/50 p-2 rounded-md"><span class="font-semibold text-slate-300">Conductor</span><span class="text-xs text-slate-400">${new Date(entry.date).toLocaleDateString(undefined, {month: '2-digit', day: '2-digit'})}</span></div>`).join('');
+                const memberHistory = selectionHistory.filter(h => h.player === member.name).sort((a,b) => b.date - a.date);
+                playerInfoConductorHistoryList.innerHTML = memberHistory.length === 0 ? `<p class="text-sm text-slate-400 italic text-center">No conductor history.</p>` : memberHistory.map(entry => `<div class="flex justify-between items-center bg-slate-800/50 p-2 rounded-md"><span class="font-semibold text-slate-300">Conductor</span><span class="text-xs text-slate-400">${formatDate(entry.date)}</span></div>`).join('');
 
                 playerInfoModal.classList.remove('hidden');
             }
@@ -1187,7 +1265,7 @@
                 if (!isAuthenticated || !pendingConductor) return;
                 showConfirmationModal('Lock In Conductor?', `Are you sure you want to lock in ${pendingConductor}?`, () => {
                     currentConductor = pendingConductor;
-                    selectionHistory.unshift({ player: currentConductor, date: new Date().toISOString(), id: Date.now() });
+                    selectionHistory.unshift({ player: currentConductor, date: Date.now(), id: Date.now() });
                     const memberIndex = allianceMembers.findIndex(m => m.name === currentConductor);
                     if (memberIndex > -1 && allianceMembers[memberIndex].subBoost) {
                         allianceMembers[memberIndex].subBoost = false;
@@ -1216,6 +1294,20 @@
                         selectionHistory = selectionHistory.filter(item => item.id !== parseFloat(deleteButton.dataset.id));
                         updateFirestore();
                     });
+                 }
+                 const editButton = e.target.closest('.edit-history-btn');
+                 if (editButton) {
+                    historyToEditId = parseFloat(editButton.dataset.id);
+                    const historyItem = selectionHistory.find(item => item.id === historyToEditId);
+                    if (historyItem) {
+                        editHistoryPlayerName.textContent = historyItem.player;
+                        const date = new Date(historyItem.date);
+                        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                        const day = date.getDate().toString().padStart(2, '0');
+                        const year = date.getFullYear();
+                        editHistoryDateInput.value = `${month}-${day}-${year}`;
+                        editHistoryModal.classList.remove('hidden');
+                    }
                  }
             });
 
@@ -1284,23 +1376,46 @@
                     addHistoryPlayerSelect.appendChild(option);
                 });
                 addHistoryDateInput.value = '';
-                addHistoryModal.classList.add('hidden');
+                addHistoryModal.classList.remove('hidden');
             });
+
             saveAddHistoryBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 const player = addHistoryPlayerSelect.value;
-                const date = addHistoryDateInput.value;
-                if(player && date.match(/^\d{2}-\d{2}$/)) {
-                    const [month, day] = date.split('-');
-                    const year = new Date().getFullYear();
-                    selectionHistory.unshift({ player, date: new Date(year, month - 1, day).toISOString(), id: Date.now() });
+                const dateStr = addHistoryDateInput.value;
+                if(player && dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                    const [month, day, year] = dateStr.split('-');
+                    selectionHistory.unshift({ player, date: new Date(year, month - 1, day).getTime(), id: Date.now() });
                     updateFirestore();
                     addHistoryModal.classList.add('hidden');
                 } else {
-                    console.log('Please select a player and enter a valid date in MM-DD format.');
+                    console.log('Please select a player and enter a valid date in MM-DD-YYYY format.');
                 }
             });
             cancelAddHistoryBtn.addEventListener('click', () => addHistoryModal.classList.add('hidden'));
+
+            // Edit History Modal Listeners
+            cancelEditHistoryBtn.addEventListener('click', () => {
+                editHistoryModal.classList.add('hidden');
+                historyToEditId = null;
+            });
+            saveEditHistoryBtn.addEventListener('click', () => {
+                if (!isAuthenticated || historyToEditId === null) return;
+                const dateStr = editHistoryDateInput.value;
+                if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                    const historyIndex = selectionHistory.findIndex(item => item.id === historyToEditId);
+                    if (historyIndex > -1) {
+                        const [month, day, year] = dateStr.split('-');
+                        selectionHistory[historyIndex].date = new Date(year, month - 1, day).getTime();
+                        updateFirestore();
+                        editHistoryModal.classList.add('hidden');
+                        historyToEditId = null;
+                    }
+                } else {
+                    console.error("Invalid date format. Please use MM-DD-YYYY.");
+                }
+            });
+
             historySearchInput.addEventListener('input', renderHistory);
             randomSelectButton.addEventListener('click', () => selectRandomly(allianceMembers, randomSelectButton));
 
@@ -1311,7 +1426,7 @@
                 if (!member) return;
                 showConfirmationModal(`Designate ${member.name}?`, `Are you sure you want to make ${member.name} the conductor?`, () => {
                     currentConductor = member.name;
-                    selectionHistory.unshift({ player: currentConductor, date: new Date().toISOString(), id: Date.now() });
+                    selectionHistory.unshift({ player: currentConductor, date: Date.now(), id: Date.now() });
                     if (member.subBoost) member.subBoost = false;
                     updateFirestore();
                     showRandomMode();
