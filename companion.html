@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THOR Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        html { font-size: 16px; }
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #020617;
+            background-image: radial-gradient(circle at top right, rgba(14, 165, 233, 0.15), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent 50%);
+            color: #d1d5db;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .card {
+            background-color: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            position: relative;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .loader {
+            border: 4px solid #334155;
+            border-top: 4px solid #06b6d4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .page-content { display: none; animation: fadeIn 0.5s ease-in-out; }
+        .page-content.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-btn { transition: all 0.3s ease; color: #94a3b8; border-left: 3px solid transparent; }
+        .nav-btn:hover { background-color: rgba(51, 65, 85, 0.3); color: #e2e8f0; }
+        .nav-btn.active { color: #06b6d4; border-left-color: #06b6d4; background-color: rgba(14, 165, 233, 0.1); }
+        .mobile-nav-btn { color: #94a3b8; transition: all 0.2s ease-in-out; }
+        .mobile-nav-btn.active { color: #06b6d4; transform: scale(1.1); }
+        
+        /* Auth Visibility Control */
+        .logged-out .admin-control, .logged-out .user-control { display: none !important; }
+        .logged-in .guest-control { display: none !important; }
+        .not-admin .admin-control { display: none !important; }
+
+        .conductor-reveal { animation: reveal 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+        @keyframes reveal { 0% { letter-spacing: -0.5em; opacity: 0; } 40% { opacity: 0.6; } 100% { letter-spacing: normal; opacity: 1; } }
+        .item-enter { animation: item-enter 0.5s ease-out; }
+        @keyframes item-enter { 0% { opacity: 0; transform: scale(0.95) translateY(10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+        .text-glow-gold { text-shadow: 0 0 8px rgba(250, 204, 21, 0.9), 0 0 20px rgba(250, 204, 21, 0.7); }
+        .text-glow-cyan { text-shadow: 0 0 8px rgba(34, 211, 238, 0.9), 0 0 20px rgba(34, 211, 238, 0.7); }
+        .event-card { background-color: rgba(17, 24, 39, 0.6); border: 1px solid rgba(55, 65, 81, 0.5); transition: all 0.3s ease; }
+        .event-card:hover { border-color: rgba(6, 182, 212, 0.5); transform: translateY(-2px); }
+    </style>
+</head>
+<body class="logged-out not-admin">
+    
+    <canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[100]"></canvas>
+
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center z-[200] transition-opacity duration-300">
+        <div class="loader"></div>
+        <p class="mt-4 text-lg text-slate-300">Connecting to THOR Network...</p>
+    </div>
+
+    <!-- Main Layout Container -->
+    <div class="flex h-full w-full">
+        <!-- ===== DESKTOP SIDEBAR ===== -->
+        <aside id="desktop-sidebar" class="hidden lg:flex flex-col w-64 bg-slate-900/70 p-4 flex-shrink-0">
+            <div class="flex items-center justify-center gap-3 mb-8">
+                <i class="fa-solid fa-bolt text-cyan-400 text-3xl"></i>
+                <h1 class="text-2xl font-bold text-white font-orbitron">THOR</h1>
+            </div>
+            <nav id="desktop-nav" class="flex-grow space-y-2">
+                <button data-page="home" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
+                    <i class="fa-solid fa-bullhorn w-5 h-5 text-center"></i>
+                    <span class="font-semibold">Announcements</span>
+                </button>
+                <button data-page="conductor" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
+                    <i class="fa-solid fa-train-subway w-5 h-5 text-center"></i>
+                    <span class="font-semibold">Conductor</span>
+                </button>
+                <button data-page="events" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
+                    <i class="fa-solid fa-calendar-days w-5 h-5 text-center"></i>
+                    <span class="font-semibold">Events</span>
+                </button>
+                <button data-page="profile" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4 user-control">
+                    <i class="fa-solid fa-user-circle w-5 h-5 text-center"></i>
+                    <span class="font-semibold">My Profile</span>
+                </button>
+                 <button data-page="accolades" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
+                    <i class="fa-solid fa-medal w-5 h-5 text-center"></i>
+                    <span class="font-semibold">Accolades</span>
+                </button>
+                <button data-page="game-info" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
+                    <i class="fa-solid fa-book-open w-5 h-5 text-center"></i>
+                    <span class="font-semibold">Game Info</span>
+                </button>
+            </nav>
+            <div class="mt-auto flex flex-col items-center space-y-2">
+                <div id="user-profile-widget" class="user-control w-full text-center p-2">
+                    <img id="user-avatar" src="https://placehold.co/40x40/1e293b/94a3b8?text=?" class="w-10 h-10 rounded-full mx-auto mb-2 border-2 border-slate-600">
+                    <p id="user-display-name" class="text-sm font-semibold text-white truncate"></p>
+                    <p id="user-email" class="text-xs text-slate-400 truncate"></p>
+                </div>
+                <button id="login-sidebar-btn" class="guest-control w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Login / Sign Up</button>
+                <button id="logout-button" class="user-control w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Logout</button>
+            </div>
+        </aside>
+
+        <!-- ===== Main Content Area ===== -->
+        <main class="flex-grow flex flex-col h-full p-4 lg:p-8 overflow-y-auto custom-scrollbar">
+            
+            <!-- ===== HOME / ANNOUNCEMENTS PAGE ===== -->
+            <div id="page-home" class="page-content flex-col gap-6 w-full">
+                <h2 class="text-3xl font-bold text-white font-orbitron">Announcements</h2>
+                <div id="add-announcement-form" class="admin-control card p-4 rounded-lg">
+                    <h3 class="font-semibold text-lg text-white mb-2">New Announcement</h3>
+                    <textarea id="announcement-text" class="w-full bg-slate-900 border border-slate-600 rounded-md p-2 text-sm" rows="3" placeholder="Type your announcement here..."></textarea>
+                    <div class="flex justify-end mt-2">
+                        <button id="post-announcement-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Post</button>
+                    </div>
+                </div>
+                <div id="announcements-list" class="space-y-4"></div>
+            </div>
+
+            <!-- ===== CONDUCTOR PAGE ===== -->
+            <div id="page-conductor" class="page-content flex-col lg:flex-row gap-8 w-full">
+                <div class="w-full lg:w-1/3 flex flex-col gap-8">
+                    <div class="card rounded-2xl p-4">
+                        <h2 class="text-xl font-bold text-white text-center text-glow-cyan mb-2">Today's Conductor</h2>
+                        <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-3 flex items-center justify-center text-center">
+                            <span id="conductor-name" class="font-orbitron text-2xl md:text-3xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
+                        </div>
+                        <div id="action-buttons-container" class="admin-control mt-3">
+                            <div id="random-buttons-container" class="grid grid-cols-1">
+                                <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm">CHOOSE CONDUCTOR</button>
+                            </div>
+                            <div id="pending-buttons-container" class="hidden grid grid-cols-3 gap-3">
+                                <button id="reroll-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-sm">RE-ROLL</button>
+                                <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-sm">LOCK IN</button>
+                                <button id="cancel-selection-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm">CANCEL</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card rounded-2xl p-4 flex-grow flex flex-col">
+                        <div class="flex items-center mb-2 flex-shrink-0">
+                            <h3 class="text-lg font-bold text-white">Alliance Members</h3>
+                            <button id="add-member-button" class="admin-control ml-auto text-cyan-400 hover:text-cyan-300" title="Add new member"><i class="fa-solid fa-plus-circle w-6 h-6"></i></button>
+                        </div>
+                        <input type="text" id="member-search-input" placeholder="Search members..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1.5 text-sm mb-2">
+                        <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
+                    </div>
+                </div>
+                <div class="w-full lg:w-2/3 card rounded-2xl p-4 flex flex-col">
+                    <h3 class="text-lg font-bold text-white mb-2">Conductor History</h3>
+                    <div id="history-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
+                </div>
+            </div>
+
+            <!-- ===== EVENTS PAGE ===== -->
+            <div id="page-events" class="page-content flex-col gap-6 w-full">
+                <h2 class="text-3xl font-bold text-white font-orbitron mb-4">Game Events</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="flex flex-col gap-8">
+                        <div>
+                            <h3 class="text-2xl font-semibold text-cyan-300 mb-3">Alliance Events</h3>
+                            <div id="alliance-events-list" class="space-y-4"></div>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold text-cyan-300 mb-3">Server Events</h3>
+                            <div id="server-events-list" class="space-y-4"></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-8">
+                        <div>
+                            <h3 class="text-2xl font-semibold text-cyan-300 mb-3">Arms Race</h3>
+                            <div id="arms-race-events-list" class="space-y-4"></div>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold text-cyan-300 mb-3">Season Events</h3>
+                            <div id="season-events-list" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PROFILE PAGE ===== -->
+            <div id="page-profile" class="page-content flex-col gap-6 w-full">
+                <h2 class="text-3xl font-bold text-white font-orbitron">My Profile</h2>
+                <div class="card p-6 rounded-lg max-w-lg w-full mx-auto">
+                    <div class="flex items-center gap-4">
+                        <img id="profile-page-avatar" src="https://placehold.co/80x80/1e293b/94a3b8?text=?" class="w-20 h-20 rounded-full border-4 border-slate-600">
+                        <div>
+                            <h3 id="profile-page-name" class="text-2xl font-bold text-white"></h3>
+                            <p id="profile-page-email" class="text-slate-400"></p>
+                        </div>
+                    </div>
+                    <div class="mt-6 border-t border-slate-700 pt-6">
+                        <label for="ingame-name-input" class="block text-sm font-medium text-slate-300 mb-1">In-Game Name</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="ingame-name-input" class="w-full bg-slate-900 border border-slate-600 rounded-md p-2 text-sm" placeholder="Enter your in-game name">
+                            <button id="save-ingame-name-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Save</button>
+                        </div>
+                        <p id="ingame-name-status" class="text-xs text-green-400 mt-2 h-4"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-accolades" class="page-content flex-col gap-6 w-full">
+                <h2 class="text-3xl font-bold text-white font-orbitron">Accolades</h2>
+                <div class="card p-8 rounded-lg text-center"><i class="fa-solid fa-person-digging text-5xl text-cyan-400 mb-4"></i><p class="text-xl">This section is under construction.</p></div>
+            </div>
+            <div id="page-game-info" class="page-content flex-col gap-6 w-full">
+                <h2 class="text-3xl font-bold text-white font-orbitron">Game Information</h2>
+                <div class="card p-8 rounded-lg text-center"><i class="fa-solid fa-person-digging text-5xl text-cyan-400 mb-4"></i><p class="text-xl">This section is under construction.</p></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== MOBILE NAVIGATION ===== -->
+    <nav id="mobile-nav" class="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900/80 backdrop-blur-sm border-t border-slate-700 grid grid-cols-5 text-center">
+        <button data-page="home" class="mobile-nav-btn p-3 flex flex-col items-center gap-1"><i class="fa-solid fa-bullhorn text-xl"></i><span class="text-xs font-medium">Home</span></button>
+        <button data-page="conductor" class="mobile-nav-btn p-3 flex flex-col items-center gap-1"><i class="fa-solid fa-train-subway text-xl"></i><span class="text-xs font-medium">Conductor</span></button>
+        <button data-page="events" class="mobile-nav-btn p-3 flex flex-col items-center gap-1"><i class="fa-solid fa-calendar-days text-xl"></i><span class="text-xs font-medium">Events</span></button>
+        <button data-page="profile" class="mobile-nav-btn p-3 flex flex-col items-center gap-1 user-control"><i class="fa-solid fa-user-circle text-xl"></i><span class="text-xs font-medium">Profile</span></button>
+        <button id="login-mobile-btn" class="mobile-nav-btn p-3 flex flex-col items-center gap-1 guest-control"><i class="fa-solid fa-right-to-bracket text-xl"></i><span class="text-xs font-medium">Login</span></button>
+    </nav>
+
+    <!-- ===== MODALS ===== -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm rounded-2xl relative">
+            <button id="close-login-modal-btn" class="absolute top-3 right-4 text-2xl text-slate-400 hover:text-white">&times;</button>
+            <h2 class="text-xl font-bold text-white mb-6 text-center">Join THOR Companion</h2>
+            <div class="space-y-4">
+                <button id="google-login-btn" class="w-full bg-white text-slate-800 font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-3 hover:bg-slate-200 transition-colors">
+                    <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_24dp.png" alt="Google" class="w-5 h-5"> Sign in with Google
+                </button>
+                <button id="apple-login-btn" class="w-full bg-black text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-800 transition-colors">
+                    <i class="fa-brands fa-apple text-xl"></i> Sign in with Apple
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 text-center mt-4">Apple sign-in requires developer configuration.</p>
+        </div>
+    </div>
+    <div id="register-ingame-name-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm rounded-2xl">
+            <h2 class="text-xl font-bold text-white mb-2">Welcome!</h2>
+            <p class="text-slate-400 text-sm mb-4">One last step. Please enter your in-game name to link your account.</p>
+            <input type="text" id="register-ingame-name-input" class="w-full bg-slate-900 border border-slate-600 rounded-md p-2 text-sm" placeholder="Your exact in-game name">
+            <div class="flex justify-end mt-4">
+                <button id="save-new-user-ingame-name-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Complete Registration</button>
+            </div>
+        </div>
+    </div>
+    <div id="add-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm rounded-2xl">
+            <h2 class="text-xl font-bold text-white mb-4">Add New Member</h2>
+            <div class="space-y-4">
+                <input type="text" id="add-name-input" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2" placeholder="Name">
+                <select id="add-rank-select" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2">
+                    <option>R1</option> <option>R2</option> <option>R3</option> <option>R4</option> <option>R5</option>
+                </select>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancel-add-btn" class="bg-slate-600 hover:bg-slate-500 font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                <button id="save-add-btn" class="bg-cyan-500 hover:bg-cyan-600 font-bold py-2 px-4 rounded-lg text-sm">Save</button>
+            </div>
+        </div>
+    </div>
+    <div id="confirmation-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm text-center rounded-2xl">
+            <h2 id="confirmation-title" class="text-lg font-bold text-white mb-4">Are you sure?</h2>
+            <p id="confirmation-message" class="text-sm text-slate-300 mb-6">This action cannot be undone.</p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirm-cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-bold py-2 px-6 rounded-lg text-sm">Cancel</button>
+                <button id="confirm-action-btn" class="bg-red-600 hover:bg-red-700 font-bold py-2 px-6 rounded-lg text-sm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, collection, onSnapshot, setDoc, addDoc, query, orderBy, deleteDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, OAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const firebaseConfig = {
+                apiKey: "AIzaSyD611fkiEdyNJitQtvNr0iJLCjEQ1vSGtI",
+                authDomain: "thorhub-b22db.firebaseapp.com",
+                projectId: "thorhub-b22db",
+                storageBucket: "thorhub-b22db.appspot.com",
+                messagingSenderId: "500418301293",
+                appId: "1:500418301293:web:5af846f5383325e6349e64"
+            };
+
+            const CONFIG = {
+                RANK_LUCK: { 'R1': 10, 'R2': 25, 'R3': 50, 'R4': 85, 'R5': 130 },
+                RANK_COOLDOWN: { 'R1': 120, 'R2': 90, 'R3': 60, 'R4': 45, 'R5': 40 },
+            };
+
+            // --- GLOBAL ELEMENTS ---
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const pages = document.querySelectorAll('.page-content');
+            const navButtons = document.querySelectorAll('.nav-btn, .mobile-nav-btn');
+            const body = document.body;
+
+            // --- AUTH ELEMENTS ---
+            const loginSidebarBtn = document.getElementById('login-sidebar-btn');
+            const loginMobileBtn = document.getElementById('login-mobile-btn');
+            const logoutButton = document.getElementById('logout-button');
+            const loginModal = document.getElementById('login-modal');
+            const closeLoginModalBtn = document.getElementById('close-login-modal-btn');
+            const googleLoginBtn = document.getElementById('google-login-btn');
+            const appleLoginBtn = document.getElementById('apple-login-btn');
+            const userAvatar = document.getElementById('user-avatar');
+            const userDisplayName = document.getElementById('user-display-name');
+            const userEmail = document.getElementById('user-email');
+            
+            // --- PROFILE & REGISTRATION ELEMENTS ---
+            const registerModal = document.getElementById('register-ingame-name-modal');
+            const registerNameInput = document.getElementById('register-ingame-name-input');
+            const saveNewUserNameBtn = document.getElementById('save-new-user-ingame-name-btn');
+            const profilePageAvatar = document.getElementById('profile-page-avatar');
+            const profilePageName = document.getElementById('profile-page-name');
+            const profilePageEmail = document.getElementById('profile-page-email');
+            const ingameNameInput = document.getElementById('ingame-name-input');
+            const saveIngameNameBtn = document.getElementById('save-ingame-name-btn');
+            const ingameNameStatus = document.getElementById('ingame-name-status');
+            
+            // --- OTHER ELEMENTS ---
+            const announcementsList = document.getElementById('announcements-list');
+            const allianceEventsList = document.getElementById('alliance-events-list');
+            const serverEventsList = document.getElementById('server-events-list');
+            const armsRaceEventsList = document.getElementById('arms-race-events-list');
+            const seasonEventsList = document.getElementById('season-events-list');
+            const conductorNameSpan = document.getElementById('conductor-name');
+            const manualPickListContainer = document.getElementById('manual-pick-list-container');
+            const historyListContainer = document.getElementById('history-list-container');
+
+
+            // --- LOCAL STATE ---
+            let db, auth;
+            let currentFirebaseUser = null;
+            let currentUserProfile = null;
+            let eventUpdateInterval;
+            let allianceMembers = [];
+            let selectionHistory = [];
+            let announcements = [];
+            let currentConductor = 'SELECT A CONDUCTOR';
+            let pendingConductor = null;
+            let confirmCallback = null;
+            
+            // --- NAVIGATION ---
+            function showPage(pageId) {
+                const fullPageId = 'page-' + pageId;
+                pages.forEach(page => page.classList.remove('active'));
+                
+                const pageToShow = document.getElementById(fullPageId);
+                if (pageToShow) {
+                    pageToShow.classList.add('active');
+                } else {
+                    document.getElementById('page-home').classList.add('active');
+                    pageId = 'home'; 
+                }
+
+                navButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.page === pageId);
+                });
+                localStorage.setItem('lastVisitedPage', pageId);
+            }
+
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => showPage(btn.dataset.page));
+            });
+
+            // --- FIREBASE INITIALIZATION & AUTH HANDLING ---
+            async function initializeFirebase() {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            currentFirebaseUser = user;
+                            await handleUserLogin(user);
+                        } else {
+                            handleUserLogout();
+                        }
+                        loadPublicData(); 
+                        loadingOverlay.style.opacity = '0';
+                        setTimeout(() => loadingOverlay.style.display = 'none', 300);
+                    });
+                } catch (error) {
+                    console.error("Firebase Initialization Error:", error);
+                    loadingOverlay.innerHTML = `<p class="text-red-400 text-center">Connection Failed.<br>Please check console for errors.</p>`;
+                }
+            }
+
+            async function handleUserLogin(user) {
+                body.classList.add('logged-in');
+                body.classList.remove('logged-out');
+
+                const userRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userRef);
+
+                if (!userDoc.exists()) {
+                    currentUserProfile = {
+                        uid: user.uid,
+                        displayName: user.displayName,
+                        email: user.email,
+                        photoURL: user.photoURL,
+                        provider: user.providerData[0].providerId,
+                        createdAt: Date.now(),
+                        inGameName: null,
+                        isAdmin: false
+                    };
+                    await setDoc(userRef, currentUserProfile);
+                    registerModal.classList.remove('hidden');
+                } else {
+                    currentUserProfile = userDoc.data();
+                }
+                
+                updateUIAfterLogin();
+            }
+
+            function handleUserLogout() {
+                currentFirebaseUser = null;
+                currentUserProfile = null;
+                body.classList.add('logged-out');
+                body.classList.remove('logged-in');
+                body.classList.add('not-admin');
+                body.classList.remove('is-admin');
+                showPage('home');
+            }
+
+            function updateUIAfterLogin() {
+                if (!currentUserProfile) return;
+
+                userAvatar.src = currentUserProfile.photoURL || 'https://placehold.co/40x40/1e293b/94a3b8?text=?';
+                userDisplayName.textContent = currentUserProfile.displayName;
+                userEmail.textContent = currentUserProfile.email;
+
+                profilePageAvatar.src = currentUserProfile.photoURL || 'https://placehold.co/80x80/1e293b/94a3b8?text=?';
+                profilePageName.textContent = currentUserProfile.displayName;
+                profilePageEmail.textContent = currentUserProfile.email;
+                ingameNameInput.value = currentUserProfile.inGameName || '';
+
+                if (currentUserProfile.isAdmin) {
+                    body.classList.add('is-admin');
+                    body.classList.remove('not-admin');
+                } else {
+                    body.classList.add('not-admin');
+                    body.classList.remove('is-admin');
+                }
+                
+                loginModal.classList.add('hidden');
+            }
+            
+            function signInWithProvider(provider) {
+                signInWithPopup(auth, provider).catch(error => {
+                    console.error(`Sign-in error with ${provider.providerId}:`, error);
+                });
+            }
+            
+            async function saveInGameName(name) {
+                if (!currentFirebaseUser || !name) return;
+                const userRef = doc(db, 'users', currentFirebaseUser.uid);
+                await updateDoc(userRef, { inGameName: name });
+                currentUserProfile.inGameName = name;
+                ingameNameInput.value = name;
+                ingameNameStatus.textContent = 'In-game name saved!';
+                setTimeout(() => ingameNameStatus.textContent = '', 3000);
+            }
+
+            // --- PUBLIC DATA & RENDERING ---
+            function loadPublicData() {
+                const conductorDocRef = doc(db, 'allianceData', 'conductor');
+                const announcementsCollectionRef = collection(db, 'announcements');
+                const eventsDocRef = doc(db, 'allianceData', 'events');
+
+                onSnapshot(conductorDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        allianceMembers = data.members || [];
+                        selectionHistory = data.history || [];
+                        currentConductor = data.currentConductor || 'SELECT A CONDUCTOR';
+                    }
+                    renderConductorPage();
+                });
+                const qAnnouncements = query(announcementsCollectionRef, orderBy('timestamp', 'desc'));
+                onSnapshot(qAnnouncements, (querySnapshot) => {
+                    announcements = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderAnnouncements();
+                });
+                onSnapshot(eventsDocRef, (docSnap) => {
+                     if (docSnap.exists() && docSnap.data().schedule) {
+                        renderEvents(docSnap.data().schedule);
+                    }
+                });
+            }
+
+            function renderAnnouncements() {
+                announcementsList.innerHTML = '';
+                if (announcements.length === 0) {
+                    announcementsList.innerHTML = `<div class="card p-4 rounded-lg text-center text-slate-400">No announcements yet.</div>`;
+                    return;
+                }
+                announcements.forEach(ann => {
+                    const div = document.createElement('div');
+                    div.className = 'card p-4 rounded-lg item-enter';
+                    const date = new Date(ann.timestamp).toLocaleString();
+                    div.innerHTML = `
+                        <p class="text-slate-200">${ann.text}</p>
+                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-700">
+                            <p class="text-xs text-slate-400">Posted on ${date}</p>
+                            <button class="admin-control delete-announcement-btn text-red-500 hover:text-red-400 text-xs" data-id="${ann.id}">Delete</button>
+                        </div>
+                    `;
+                    announcementsList.appendChild(div);
+                });
+            }
+
+            function renderEvents(schedule) {
+                if (!schedule) return;
+                
+                if (eventUpdateInterval) clearInterval(eventUpdateInterval);
+
+                const lists = {
+                    'Alliance Event': allianceEventsList,
+                    'Server Event': serverEventsList,
+                    'Arms Race': armsRaceEventsList,
+                    'Season Event': seasonEventsList,
+                };
+
+                Object.values(lists).forEach(list => list.innerHTML = '');
+
+                const updateTimers = () => {
+                    const now = new Date();
+                    schedule.forEach(event => {
+                        const startTime = new Date(event.startTime);
+                        const endTime = new Date(event.endTime);
+                        let timeText, colorClass, timerId = `event-timer-${event.name.replace(/\s+/g, '-')}`;
+                        
+                        if (now < startTime) {
+                            const diff = startTime - now;
+                            const d = Math.floor(diff / 86400000);
+                            const h = Math.floor((diff % 86400000) / 3600000);
+                            const m = Math.floor((diff % 3600000) / 60000);
+                            timeText = `Starts in: ${d > 0 ? d + 'd ' : ''}${h}h ${m}m`;
+                            colorClass = 'text-yellow-400';
+                        } else if (now >= startTime && now <= endTime) {
+                            const diff = endTime - now;
+                             const d = Math.floor(diff / 86400000);
+                            const h = Math.floor((diff % 86400000) / 3600000);
+                            const m = Math.floor((diff % 3600000) / 60000);
+                            timeText = `Ends in: ${d > 0 ? d + 'd ' : ''}${h}h ${m}m`;
+                            colorClass = 'text-green-400';
+                        } else {
+                            timeText = 'Ended';
+                            colorClass = 'text-red-500';
+                        }
+                        
+                        const timerEl = document.getElementById(timerId);
+                        if (timerEl) {
+                            timerEl.textContent = timeText;
+                            timerEl.className = `font-semibold text-sm ${colorClass}`;
+                        }
+                    });
+                };
+                
+                schedule.sort((a,b) => new Date(a.startTime) - new Date(b.startTime)).forEach(event => {
+                    const container = lists[event.category];
+                    if (!container) return;
+
+                    const card = document.createElement('div');
+                    card.className = 'event-card flex items-center p-3 rounded-lg gap-4';
+                    
+                    card.innerHTML = `
+                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center">
+                             <i class="fa-solid ${event.img} text-cyan-400 text-2xl"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-white">${event.name}</h4>
+                            <p id="event-timer-${event.name.replace(/\s+/g, '-')}" class="font-semibold text-sm"></p>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+                updateTimers();
+                eventUpdateInterval = setInterval(updateTimers, 1000);
+            }
+            
+            function renderConductorPage() {
+                renderManualPickList();
+                renderHistory();
+                renderConductor();
+            }
+
+            function renderManualPickList() {
+                 manualPickListContainer.innerHTML = '';
+                [...allianceMembers].sort((a, b) => a.name.localeCompare(b.name)).forEach(member => {
+                    const div = document.createElement('div');
+                    div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
+                    div.innerHTML = `<div class="flex-grow flex items-center overflow-hidden"><span class="font-semibold">${member.name}</span><span class="text-xs text-slate-500 ml-2">${member.rank}</span></div>`;
+                    manualPickListContainer.appendChild(div);
+                });
+            }
+
+            function renderHistory() {
+                historyListContainer.innerHTML = '';
+                if (selectionHistory.length === 0) {
+                     historyListContainer.innerHTML = `<p class="text-sm text-slate-400 italic text-center">No conductor history.</p>`;
+                     return;
+                }
+                [...selectionHistory].sort((a,b) => b.date - a.date).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'item-enter flex items-center justify-between p-2 rounded-lg bg-slate-800/50 text-sm';
+                    div.innerHTML = `<div><p class="font-semibold text-white">${item.player}</p><p class="text-xs text-slate-400">${new Date(item.date).toLocaleDateString()}</p></div>`;
+                    historyListContainer.appendChild(div);
+                });
+            }
+
+            function renderConductor() {
+                conductorNameSpan.textContent = currentConductor;
+            }
+
+            // --- EVENT LISTENERS ---
+            loginSidebarBtn.addEventListener('click', () => loginModal.classList.remove('hidden'));
+            loginMobileBtn.addEventListener('click', () => loginModal.classList.remove('hidden'));
+            closeLoginModalBtn.addEventListener('click', () => loginModal.classList.add('hidden'));
+
+            googleLoginBtn.addEventListener('click', () => signInWithProvider(new GoogleAuthProvider()));
+            appleLoginBtn.addEventListener('click', () => signInWithProvider(new OAuthProvider('apple.com')));
+
+            logoutButton.addEventListener('click', () => signOut(auth));
+
+            saveNewUserNameBtn.addEventListener('click', async () => {
+                const name = registerNameInput.value.trim();
+                if (name) {
+                    await saveInGameName(name);
+                    registerModal.classList.add('hidden');
+                }
+            });
+            
+            saveIngameNameBtn.addEventListener('click', () => {
+                const name = ingameNameInput.value.trim();
+                if (name) {
+                    saveInGameName(name);
+                }
+            });
+            
+            // --- INITIALIZATION ---
+            const lastPage = localStorage.getItem('lastVisitedPage') || 'home';
+            showPage(lastPage);
+            initializeFirebase();
+        });
+    </script>
+</body>
+</html>
