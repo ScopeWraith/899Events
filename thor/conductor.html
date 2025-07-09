@@ -222,6 +222,146 @@
             transition: all 0.2s ease-in-out;
         }
 
+        /* Podium Styling */
+        .podium-section {
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 0.5rem;
+            min-height: 180px;
+        }
+        .podium-spot {
+            width: 30%;
+            max-width: 140px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .podium-spot:hover {
+            transform: translateY(-5px);
+        }
+        .podium-spot.first { order: 2; }
+        .podium-spot.second { order: 1; }
+        .podium-spot.third { order: 3; }
+
+        .podium-avatar-container {
+            position: relative;
+            z-index: 10;
+        }
+
+        .podium-frame {
+            width: 80px;
+            height: 80px;
+            border-radius: 0.75rem;
+            margin: 0 auto;
+            padding: 4px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .podium-spot.first .podium-frame {
+            background: linear-gradient(145deg, #FFD700, #E6A500);
+            width: 90px;
+            height: 90px;
+        }
+        .podium-spot.second .podium-frame {
+            background: linear-gradient(145deg, #e0e0e0, #a9a9a9);
+        }
+        .podium-spot.third .podium-frame {
+            background: linear-gradient(145deg, #CD7F32, #A0522D);
+        }
+        .podium-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 0.5rem;
+            background-color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            overflow: hidden;
+            border: 2px solid #0f172a;
+        }
+        .podium-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .podium-platform {
+            margin-top: -40px;
+            padding-top: 45px;
+            padding-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            position: relative;
+            color: white;
+            box-shadow: inset 0 3px 5px rgba(0,0,0,0.3);
+        }
+        .podium-spot.first .podium-platform {
+            height: 100px;
+            background: linear-gradient(to top, #ca8a04, #facc15);
+        }
+        .podium-spot.second .podium-platform {
+            height: 80px;
+            background: linear-gradient(to top, #64748b, #94a3b8);
+        }
+        .podium-spot.third .podium-platform {
+            height: 70px;
+            background: linear-gradient(to top, #92400e, #b45309);
+        }
+
+        .podium-info {
+            margin-top: 0.5rem;
+        }
+
+        .podium-name {
+            font-weight: 700;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 0.5rem;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+        }
+        .podium-medals {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            margin-top: 0.25rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+        .podium-medals .fa-medal {
+            color: #fde047;
+        }
+
+        .podium-rank-badge {
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1e293b;
+            font-family: 'Orbitron', sans-serif;
+            z-index: 12;
+            border: 2px solid white;
+        }
+        .podium-spot.first .podium-rank-badge { background: #FFD700; }
+        .podium-spot.second .podium-rank-badge { background: #C0C0C0; }
+        .podium-spot.third .podium-rank-badge { background: #CD7F32; }
+
     </style>
 </head>
 <body class="text-slate-300 logged-out">
@@ -354,8 +494,12 @@
                              <div id="history-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
                         </div>
                         <div id="content-medals" class="hidden h-full flex flex-col">
-                            <div class="flex justify-between items-center mb-3 flex-shrink-0">
-                                 <h3 class="text-lg font-bold text-white">Active Medal Awards</h3>
+                            <!-- Top Medal Holders Display -->
+                            <div id="top-medal-holders-container" class="mb-4">
+                                <!-- Podium spots will be generated by JS -->
+                            </div>
+                            <div class="flex justify-between items-center mb-3 flex-shrink-0 pt-4">
+                                 <h3 class="text-lg font-bold text-white">All Active Medals</h3>
                                  <button id="open-award-medal-modal-btn" class="admin-control bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
                                     <i class="fa-solid fa-medal w-4 h-4"></i>
                                      <span>Award Medals</span>
@@ -480,6 +624,17 @@
                         <option>R1</option> <option>R2</option> <option>R3</option> <option>R4</option> <option>R5</option>
                     </select>
                 </div>
+                 <div class="border-t border-slate-700 pt-4">
+                    <h3 class="text-sm font-medium text-slate-300">Avatar</h3>
+                    <div class="mt-2 flex items-center gap-4">
+                        <img id="edit-avatar-preview" src="https://placehold.co/80x80/1e293b/94a3b8?text=Avatar" class="w-20 h-20 rounded-full object-cover bg-slate-800 border-2 border-slate-600">
+                        <div class="flex-grow">
+                            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+                            <button id="select-avatar-btn" class="w-full bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Select Image</button>
+                            <p id="avatar-upload-status" class="text-xs text-slate-400 mt-2 h-4"></p>
+                        </div>
+                    </div>
+                </div>
                 <div class="border-t border-slate-700 pt-4">
                     <label for="award-medal-select" class="block text-sm font-medium text-slate-300">Award a Medal (30 Day Bonus)</label>
                     <div class="flex gap-2 mt-1">
@@ -601,6 +756,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
 
         document.addEventListener('DOMContentLoaded', async () => {
             // --- CONFIGURATION ---
@@ -708,6 +865,13 @@
             const editSubBoostSection = document.getElementById('edit-sub-boost-section');
             const subBoostDescription = document.getElementById('sub-boost-description');
             const removeSubBoostBtn = document.getElementById('remove-sub-boost-btn');
+            
+            // Avatar Elements
+            const editAvatarPreview = document.getElementById('edit-avatar-preview');
+            const avatarUploadInput = document.getElementById('avatar-upload-input');
+            const selectAvatarBtn = document.getElementById('select-avatar-btn');
+            const avatarUploadStatus = document.getElementById('avatar-upload-status');
+
 
             // Player Info Modal Elements
             const playerInfoModal = document.getElementById('player-info-modal');
@@ -755,7 +919,7 @@
             let memberToEditId = null;
             let historyToEditId = null;
             let infoModalMemberId = null;
-            let db, docRef;
+            let db, docRef, storage;
             let confirmCallback = null;
             let isAuthenticated = false;
 
@@ -818,6 +982,7 @@
                     const docId = 'conductor-selector-data';
                     const app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
+                    storage = getStorage(app);
                     const auth = getAuth(app);
 
                     await signInAnonymously(auth);
@@ -830,7 +995,7 @@
                             const data = docSnap.data();
                             allianceMembers = (data.members || []).map((member, index) => {
                                 if (typeof member === 'string') {
-                                    return { id: Date.now() + index, name: member, rank: 'R1', medals: [], subBoost: false };
+                                    return { id: Date.now() + index, name: member, rank: 'R1', medals: [], subBoost: false, avatarUrl: null };
                                 }
                                 // Sanitize medal dates on load
                                 const medals = (member.medals || []).map(m => ({
@@ -839,7 +1004,7 @@
                                     awardedDate: getTimestamp(m.awardedDate),
                                     expires: getTimestamp(m.expires)
                                 }));
-                                return { ...member, id: member.id || Date.now() + index, medals: medals, subBoost: member.subBoost || false };
+                                return { ...member, id: member.id || Date.now() + index, medals: medals, subBoost: member.subBoost || false, avatarUrl: member.avatarUrl || null };
                             });
                             
                             // Sanitize history dates on load
@@ -879,6 +1044,7 @@
                         rank: m.rank,
                         medals: m.medals || [],
                         subBoost: m.subBoost || false,
+                        avatarUrl: m.avatarUrl || null,
                     }));
 
                     await setDoc(docRef, {
@@ -893,7 +1059,7 @@
 
             function initializeDefaultData() {
                 allianceMembers = ["13Edy13", "Aceman12", "Aheleosthe2nd", "AirForester", "Andre Rabelo", "Anthony 69", "Arghonut 모험가", "atalon", "aZzIel", "Bamslang", "Basow", "Beezees", "Belleroo", "Bettel nerd", "B L Ä N K", "bobo1987 보보", "CaeTaka", "CaptainObviouss", "Chan 찬", "Chefjuanpi", "Churchill JAPABR", "Cindelll", "Curty Mc", "Dauntethemechanic", "DARS MILK", "Dino1311", "Dollystroyer", "DontWorryDaddysHere", "Drewstroyer", "Duck0311", "Dumpchicken", "Ender", "foxzilla", "Gangster 25", "General Bjam", "Grande Anão", "GPêê", "Guerneros del Chaco", "Gunbarista", "Hadrianswall", "ilovecafs", "Isorryl", "jessictia", "Jmelo1686", "JojoBans", "JTWolf", "KAYRONMAN", "KBL50", "Keylonis", "Kitt3nnnn", "LÄDY", "Leccarré", "leoyutian", "likes2ride", "LION 1937", "MÄXIMÜS", "MattCat 맷 더 캣", "Mayhem007", "Maz·Ibrahim.ч", "MICH3773", "MotoM0t0", "Mr Peaches", "Ms Andrea", "n3tt1k", "NinerGang211", "NikolaiVolkoff", "NoShtSherlock 셜록", "NyahNyah메롱", "Peacekëeper", "PewnurScope", "Ratatoui11e", "Reb13", "Risssy", "Robert ツ", "ScopeWraith", "scrap11", "SHAMAN ЛЮТЬ", "Shbeda", "SimBLÄ NK", "SimplyMom", "SniperXT3", "SN0WMan", "Squeeze1", "st ALBA", "SuperElectron Bioman", "techwrath", "TeeOhiNwhY", "The Palette", "Tigerfan1", "turtletime 거북이", "uJeam", "UrSwigBoaBro", "VENOM THENEW CARNAGE", "Vuladi", "Warrior Poet", "Whedonite92", "Xelaesor", "Zerrrro", "윤스 oops", "에녹 · Enoch"]
-                .map((name, index) => ({ id: Date.now() + index, name: name, rank: 'R1', medals: [], subBoost: false }));
+                .map((name, index) => ({ id: Date.now() + index, name: name, rank: 'R1', medals: [], subBoost: false, avatarUrl: null }));
                 selectionHistory = [{ player: "Rat", date: Date.now() - 86400000 * 2, id: Date.now()+1 }, { player: "Lecarre", date: Date.now() - 86400000 * 3, id: Date.now()+2 }, { player: "MagicalMike (AllDayDad)", date: Date.now() - 86400000 * 4, id: Date.now()+3 }];
                 currentConductor = 'SELECT A CONDUCTOR';
                 if (isAuthenticated) updateFirestore();
@@ -1184,11 +1350,94 @@
                 });
             };
 
+            const renderTopMedalHolders = () => {
+                const container = document.getElementById('top-medal-holders-container');
+                if (!container) return;
+
+                const now = Date.now();
+                const medalCounts = allianceMembers.map(member => {
+                    const activeMedals = (member.medals || []).filter(medal => medal.expires > now);
+                    return {
+                        id: member.id,
+                        name: member.name,
+                        avatarUrl: member.avatarUrl,
+                        medalCount: activeMedals.length
+                    };
+                }).filter(m => m.medalCount > 0)
+                  .sort((a, b) => b.medalCount - a.medalCount);
+
+                const topThree = medalCounts.slice(0, 3);
+                
+                const podiumOrder = [
+                    { rank: 2, class: 'second', icon: 'fa-user-astronaut' },
+                    { rank: 1, class: 'first', icon: 'fa-crown' },
+                    { rank: 3, class: 'third', icon: 'fa-user-ninja' }
+                ];
+                
+                let html = '<div class="podium-section"><h3 class="text-lg font-bold text-white text-center mb-4">Most Medals</h3><div class="podium">';
+
+                if (topThree.length > 0) {
+                    const podiumData = [
+                        topThree[1], // 2nd place
+                        topThree[0], // 1st place
+                        topThree[2]  // 3rd place
+                    ];
+
+                    podiumOrder.forEach((pos, index) => {
+                        const member = podiumData[index];
+                        if (member) {
+                             const avatarHtml = member.avatarUrl
+                                ? `<img src="${member.avatarUrl}" alt="${member.name}'s avatar">`
+                                : `<i class="fa-solid ${pos.icon} text-slate-400"></i>`;
+
+                            html += `
+                                <div class="podium-spot ${pos.class}" data-id="${member.id}">
+                                    <div class="podium-avatar-container">
+                                        <div class="podium-frame">
+                                            <div class="podium-avatar">${avatarHtml}</div>
+                                        </div>
+                                    </div>
+                                    <div class="podium-platform">
+                                        <div class="podium-rank-badge">${pos.rank}</div>
+                                    </div>
+                                    <div class="podium-info">
+                                        <p class="podium-name" title="${member.name}">${member.name}</p>
+                                        <div class="podium-medals">
+                                            <i class="fa-solid fa-medal"></i>
+                                            <span>${member.medalCount}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                             html += `<div class="podium-spot ${pos.class}" style="opacity: 0.3; cursor: default;">
+                                        <div class="podium-avatar-container">
+                                            <div class="podium-frame">
+                                                <div class="podium-avatar"><i class="fa-solid fa-question text-slate-600"></i></div>
+                                            </div>
+                                        </div>
+                                        <div class="podium-platform">
+                                            <div class="podium-rank-badge">${pos.rank}</div>
+                                        </div>
+                                        <div class="podium-info"><p class="podium-name">-</p><div class="podium-medals"><i class="fa-solid fa-medal"></i><span>0</span></div></div>
+                                     </div>`;
+                        }
+                    });
+
+                } else {
+                    html += `<p class="text-center text-slate-400 italic w-full">No medals awarded yet. Be the first!</p>`;
+                }
+                
+                html += '</div></div>';
+                container.innerHTML = html;
+            };
+
             const renderAll = () => {
                 renderManualPickList();
                 renderHistory();
                 renderConductor();
                 renderMedalsTab();
+                renderTopMedalHolders();
             };
 
             // --- LUCK & COOLDOWN CALCULATION ---
@@ -1416,6 +1665,10 @@
                     if (member) {
                         editNameInput.value = member.name;
                         editRankSelect.value = member.rank;
+                        // Set avatar preview
+                        editAvatarPreview.src = member.avatarUrl || 'https://placehold.co/80x80/1e293b/94a3b8?text=Avatar';
+                        avatarUploadStatus.textContent = '';
+                        
                         editSubBoostSection.classList.toggle('hidden', !member.subBoost);
                         if(member.subBoost) subBoostDescription.textContent = `Provides a +${CONFIG.SUB_BOOST_LUCK}% luck bonus.`;
                         renderActiveMedalsInEditModal();
@@ -1492,7 +1745,7 @@
                 if (!isAuthenticated) return;
                 const newName = addNameInput.value.trim();
                 if (newName && !allianceMembers.some(m => m.name === newName)) {
-                    allianceMembers.push({ id: Date.now(), name: newName, rank: addRankSelect.value, medals: [], subBoost: false });
+                    allianceMembers.push({ id: Date.now(), name: newName, rank: addRankSelect.value, medals: [], subBoost: false, avatarUrl: null });
                     updateFirestore();
                     addModal.classList.add('hidden');
                 } else if (newName) {
@@ -1718,6 +1971,50 @@
                 tabButton.classList.add('active');
                 howItWorksContent.querySelector(`#tab-content-${tabButton.dataset.tab}`).style.display = 'block';
             });
+            
+            // Avatar Upload Logic
+            selectAvatarBtn.addEventListener('click', () => avatarUploadInput.click());
+            avatarUploadInput.addEventListener('change', async (e) => {
+                if (!isAuthenticated || memberToEditId === null) return;
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const memberIndex = allianceMembers.findIndex(m => m.id === memberToEditId);
+                if (memberIndex === -1) return;
+
+                avatarUploadStatus.textContent = 'Uploading...';
+                selectAvatarBtn.disabled = true;
+
+                const storageRef = ref(storage, `avatars/${memberToEditId}`);
+
+                try {
+                    const snapshot = await uploadBytes(storageRef, file);
+                    const downloadURL = await getDownloadURL(snapshot.ref);
+                    
+                    allianceMembers[memberIndex].avatarUrl = downloadURL;
+                    await updateFirestore();
+                    
+                    editAvatarPreview.src = downloadURL;
+                    avatarUploadStatus.textContent = 'Upload complete!';
+                    
+                    renderAll(); // Re-render to update podium if needed
+                } catch (error) {
+                    console.error("Avatar upload error:", error);
+                    avatarUploadStatus.textContent = 'Upload failed. See console.';
+                } finally {
+                     selectAvatarBtn.disabled = false;
+                     setTimeout(() => avatarUploadStatus.textContent = '', 3000);
+                }
+            });
+            
+            // Podium click listener
+            document.getElementById('top-medal-holders-container').addEventListener('click', (e) => {
+                const podiumSpot = e.target.closest('.podium-spot');
+                if (podiumSpot && podiumSpot.dataset.id) {
+                    openPlayerInfoModal(parseFloat(podiumSpot.dataset.id));
+                }
+            });
+
 
             // --- INITIALIZATION ---
             setAuthState(false);
