@@ -1,800 +1,684 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THOR Companion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-    <style>
-        html { font-size: 16px; }
-        html, body { height: 100%; overflow: hidden; }
+import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    signOut, 
+    onAuthStateChanged,
+    updateProfile
+} from 'firebase/auth';
+import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    getDoc,
+    collection,
+    query,
+    where,
+    getDocs,
+    updateDoc,
+    deleteDoc
+} from 'firebase/firestore';
+import { 
+    getStorage, 
+    ref, 
+    uploadBytes, 
+    getDownloadURL 
+} from "firebase/storage";
+import { Shield, Users, Info, Annoyed, Gamepad2, LogIn, Menu, X, LogOut, UserCircle, ShieldCheck, Server as ServerIcon, Edit, Save, UploadCloud, AlertCircle } from 'lucide-react';
+
+// --- Firebase Configuration ---
+const firebaseConfig = {
+  apiKey: "AIzaSyBq1dC_O1qj3WJz_6DWm8vBZfaEOZW6XoY",
+  authDomain: "lastwar-alliancecompanion.firebaseapp.com",
+  projectId: "lastwar-alliancecompanion",
+  storageBucket: "lastwar-alliancecompanion.appspot.com",
+  messagingSenderId: "591144202239",
+  appId: "1:591144202239:web:88a724721d7ba5e7f941ca",
+  measurementId: "G-6M3T2205Z4"
+};
+
+// --- Initialize Firebase ---
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app); // Initialize Firebase Storage
+
+// --- Style Component for Theming ---
+const GlobalStyles = () => (
+    <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;500;700&display=swap');
+        
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #020617;
-            background-image: radial-gradient(circle at top right, rgba(14, 165, 233, 0.15), transparent 40%),
-                              radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent 50%);
-            color: #d1d5db;
+            background-color: #020617; /* bg-slate-950 */
+            background-image: radial-gradient(circle at top right, rgba(14, 165, 233, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.1), transparent 50%);
         }
-        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
         .card {
-            background-color: rgba(30, 41, 59, 0.5);
+            background-color: rgba(30, 41, 59, 0.5); /* bg-slate-800/50 */
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(51, 65, 85, 0.5);
+            border: 1px solid rgba(51, 65, 85, 0.5); /* border-slate-700/50 */
             position: relative;
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        .loader {
-            border: 4px solid #334155;
-            border-top: 4px solid #06b6d4;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(168, 85, 247, 0.4));
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .page-content { display: none; animation: fadeIn 0.5s ease-in-out; }
-        .page-content.active { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-btn { transition: all 0.3s ease; color: #94a3b8; border-left: 3px solid transparent; }
-        .nav-btn:hover { background-color: rgba(51, 65, 85, 0.3); color: #e2e8f0; }
-        .nav-btn.active { color: #06b6d4; border-left-color: #06b6d4; background-color: rgba(14, 165, 233, 0.1); }
-        
-        #mobile-nav { padding-bottom: env(safe-area-inset-bottom, 0); }
-        .mobile-nav-btn { color: #94a3b8; transition: all 0.2s ease-in-out; }
-        .mobile-nav-btn.active { color: #06b6d4; transform: scale(1.1); }
-        
-        .logged-out .admin-control, .logged-out .user-control { display: none !important; }
-        .logged-in .guest-control { display: none !important; }
-        .not-admin .admin-control { display: none !important; }
+        .text-glow-cyan {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.9), 0 0 20px rgba(34, 211, 238, 0.7);
+        }
+    `}</style>
+);
 
-        .conductor-reveal { animation: reveal 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
-        @keyframes reveal { 0% { letter-spacing: -0.5em; opacity: 0; } 40% { opacity: 0.6; } 100% { letter-spacing: normal; opacity: 1; } }
-        .item-enter { animation: item-enter 0.5s ease-out; }
-        @keyframes item-enter { 0% { opacity: 0; transform: scale(0.95) translateY(10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
-        .text-glow-gold { text-shadow: 0 0 8px rgba(250, 204, 21, 0.9), 0 0 20px rgba(250, 204, 21, 0.7); }
-        .text-glow-cyan { text-shadow: 0 0 8px rgba(34, 211, 238, 0.9), 0 0 20px rgba(34, 211, 238, 0.7); }
-        .event-card { background-color: rgba(17, 24, 39, 0.6); border: 1px solid rgba(55, 65, 81, 0.5); transition: all 0.3s ease; }
-        .event-card:hover { border-color: rgba(6, 182, 212, 0.5); transform: translateY(-2px); }
-        #avatar-upload-label { cursor: pointer; }
-    </style>
-</head>
-<body class="logged-out not-admin">
-    
-    <canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[100]"></canvas>
 
-    <div id="loading-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center z-[200] transition-opacity duration-300">
-        <div class="loader"></div>
-        <p class="mt-4 text-lg text-slate-300">Connecting to THOR Network...</p>
-    </div>
+// --- Main App Component ---
+export default function App() {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [userData, setUserData] = useState(null);
+    const [appKey, setAppKey] = useState(0); // Add a key to force re-renders
 
-    <!-- Main Layout Container -->
-    <div class="flex h-full w-full">
-        <!-- ===== DESKTOP SIDEBAR ===== -->
-        <aside id="desktop-sidebar" class="hidden lg:flex flex-col w-64 bg-slate-900/70 p-4 flex-shrink-0">
-            <div class="flex items-center justify-center gap-3 mb-8">
-                <i class="fa-solid fa-bolt text-cyan-400 text-3xl"></i>
-                <h1 class="text-2xl font-bold text-white font-orbitron">THOR</h1>
+    const refreshUserData = async () => {
+        if (auth.currentUser) {
+            const userDocRef = doc(db, "users", auth.currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                setUserData(userDocSnap.data());
+            }
+            setAppKey(prevKey => prevKey + 1); // Increment key to trigger re-render
+        }
+    };
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            setUser(user);
+            if (user) {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    setUserData(userDocSnap.data());
+                } else {
+                    console.log("No such user document!");
+                    setUserData(null);
+                }
+            } else {
+                setUserData(null);
+            }
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error("Error signing out: ", error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-slate-950 text-white">
+                <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
             </div>
-            <nav id="desktop-nav" class="flex-grow space-y-2">
-                <button data-page="home" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
-                    <i class="fa-solid fa-bullhorn w-5 h-5 text-center"></i>
-                    <span class="font-semibold">Announcements</span>
-                </button>
-                <button data-page="members" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
-                    <i class="fa-solid fa-users w-5 h-5 text-center"></i>
-                    <span class="font-semibold">Members</span>
-                </button>
-                <button data-page="conductor" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
-                    <i class="fa-solid fa-train-subway w-5 h-5 text-center"></i>
-                    <span class="font-semibold">Conductor</span>
-                </button>
-                <button data-page="events" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
-                    <i class="fa-solid fa-calendar-days w-5 h-5 text-center"></i>
-                    <span class="font-semibold">Events</span>
-                </button>
-                <button data-page="profile" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4 user-control">
-                    <i class="fa-solid fa-user-circle w-5 h-5 text-center"></i>
-                    <span class="font-semibold">My Profile</span>
-                </button>
-                 <button data-page="accolades" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
-                    <i class="fa-solid fa-medal w-5 h-5 text-center"></i>
-                    <span class="font-semibold">Accolades</span>
-                </button>
-                <button data-page="game-info" class="nav-btn w-full flex items-center p-3 rounded-lg space-x-4">
-                    <i class="fa-solid fa-book-open w-5 h-5 text-center"></i>
-                    <span class="font-semibold">Game Info</span>
-                </button>
+        );
+    }
+
+    return (
+        <>
+            <GlobalStyles />
+            <div className="bg-slate-950 text-slate-200 min-h-screen" key={appKey}>
+                {user ? (
+                    <Dashboard user={user} userData={userData} onLogout={handleLogout} onProfileUpdate={refreshUserData} />
+                ) : (
+                    <AuthPage />
+                )}
+            </div>
+        </>
+    );
+}
+
+// --- Authentication Page ---
+const AuthPage = () => {
+    const [isLogin, setIsLogin] = useState(true);
+
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+            <div className="card w-full max-w-md p-8 rounded-2xl shadow-2xl">
+                <h1 className="text-4xl font-bold text-center text-white mb-2 font-orbitron text-glow-cyan">Last War</h1>
+                <h2 className="text-2xl font-semibold text-center text-cyan-400 mb-6">Alliance Companion</h2>
+                
+                {isLogin ? <LoginForm /> : <SignUpForm />}
+
+                <p className="mt-6 text-center text-slate-400">
+                    {isLogin ? "Don't have an account?" : "Already have an account?"}
+                    <button onClick={() => setIsLogin(!isLogin)} className="ml-2 font-semibold text-cyan-400 hover:text-cyan-300 transition-colors">
+                        {isLogin ? "Sign Up" : "Log In"}
+                    </button>
+                </p>
+            </div>
+        </div>
+    );
+};
+
+// --- Login Form ---
+const LoginForm = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    return (
+        <form onSubmit={handleLogin}>
+            <div className="space-y-4">
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email Address" className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500" required />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500" required />
+            </div>
+            {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+            <button type="submit" className="w-full mt-6 py-3 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-lg font-bold transition-all transform hover:scale-105">
+                <LogIn className="inline-block mr-2" size={20} />
+                Login
+            </button>
+        </form>
+    );
+};
+
+// --- Sign Up Form ---
+const SignUpForm = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [inGameName, setInGameName] = useState('');
+    const [server, setServer] = useState('');
+    const [alliance, setAlliance] = useState('');
+    const [rank, setRank] = useState('R1');
+    const [error, setError] = useState('');
+
+    const handleSignUp = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            await updateProfile(user, { displayName: inGameName });
+
+            const isVerified = ['R1', 'R2', 'R3'].includes(rank);
+
+            await setDoc(doc(db, "users", user.uid), {
+                uid: user.uid,
+                inGameName,
+                server,
+                alliance,
+                rank,
+                rankVerified: isVerified,
+                email: user.email,
+                avatarUrl: '', // Start with an empty avatar URL
+                createdAt: new Date(),
+            });
+
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSignUp}>
+            <div className="space-y-3">
+                 <input type="text" value={inGameName} onChange={(e) => setInGameName(e.target.value)} placeholder="In-Game Name" className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500" required />
+                 <input type="text" value={server} onChange={(e) => setServer(e.target.value)} placeholder="Server Number (e.g., 101)" className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500" required />
+                 <input type="text" value={alliance} onChange={(e) => setAlliance(e.target.value)} placeholder="Alliance Tag (e.g., ABC)" className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500" required />
+                 <select value={rank} onChange={(e) => setRank(e.target.value)} className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                    <option value="R1">R1</option>
+                    <option value="R2">R2</option>
+                    <option value="R3">R3</option>
+                    <option value="R4">R4 (Requires Verification)</option>
+                    <option value="R5">R5 (Requires Verification)</option>
+                 </select>
+                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email Address" className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500" required />
+                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500" required />
+            </div>
+            {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+            <button type="submit" className="w-full mt-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-lg font-bold transition-all transform hover:scale-105">
+                Create Account
+            </button>
+        </form>
+    );
+};
+
+
+// --- Dashboard ---
+const Dashboard = ({ user, userData, onLogout, onProfileUpdate }) => {
+    const [activeView, setActiveView] = useState('Announcements');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const navItems = [
+        { name: 'Announcements', icon: Annoyed },
+        { name: 'Member Info', icon: Users },
+        { name: 'Alliance Info', icon: Shield },
+        { name: 'Server Info', icon: ServerIcon },
+        { name: 'Game Info', icon: Gamepad2 },
+        { name: 'Profile', icon: UserCircle },
+    ];
+    
+    if (userData?.isAdmin) navItems.push({ name: 'Admin', icon: ShieldCheck });
+    if (userData?.rank === 'R5' && userData?.rankVerified) navItems.push({ name: 'Alliance Management', icon: Shield });
+
+    const renderContent = () => {
+        switch (activeView) {
+            case 'Member Info': return <MemberInfoPage currentUserData={userData} />;
+            case 'Alliance Info': return <AllianceInfoPage />;
+            case 'Server Info': return <ServerInfoPage />;
+            case 'Profile': return <ProfilePage user={user} userData={userData} onProfileUpdate={onProfileUpdate} />;
+            case 'Admin': return <AdminPanel />;
+            case 'Alliance Management': return <AllianceManagementPanel currentUserData={userData} />;
+            default: return <ContentBox title={activeView}>Content for {activeView} goes here.</ContentBox>;
+        }
+    };
+    
+    const Sidebar = () => (
+        <aside className={`card rounded-none md:rounded-2xl flex flex-col transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-0'} md:w-64 overflow-hidden`}>
+            <div className="flex items-center justify-center h-20 border-b border-slate-700/50">
+                <Shield size={28} className="text-cyan-400" />
+                <h1 className="text-xl font-bold ml-2 font-orbitron text-white">LWAC</h1>
+            </div>
+            <nav className="flex-1 p-2 space-y-1">
+                {navItems.map(item => (
+                    <button
+                        key={item.name}
+                        onClick={() => {
+                            setActiveView(item.name);
+                            if (isSidebarOpen) setIsSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center p-3 rounded-lg transition-colors text-slate-300 hover:bg-slate-700/30 hover:text-slate-100 ${activeView === item.name ? 'bg-cyan-500/10 text-cyan-400 border-l-4 border-cyan-400' : 'border-l-4 border-transparent'}`}
+                    >
+                        <item.icon className="mr-3" size={20} />
+                        <span className="font-semibold">{item.name}</span>
+                    </button>
+                ))}
             </nav>
-            <div class="mt-auto flex flex-col items-center space-y-2">
-                <div id="user-profile-widget" class="user-control w-full text-center p-2">
-                    <img id="user-avatar" src="https://placehold.co/40x40/1e293b/94a3b8?text=?" class="w-10 h-10 rounded-full mx-auto mb-2 border-2 border-slate-600">
-                    <p id="user-ingame-name" class="text-sm font-semibold text-white truncate"></p>
+            <div className="p-4 border-t border-slate-700/50">
+                <div className="flex items-center space-x-3">
+                    <img src={userData?.avatarUrl || `https://placehold.co/40x40/1e293b/94a3b8?text=${(userData?.inGameName || 'U').charAt(0)}`} alt="Avatar" className="w-10 h-10 rounded-full bg-slate-700 object-cover" />
+                    <div className="text-sm">
+                        <p className="font-semibold text-white">{userData?.inGameName || user.displayName}</p>
+                        <p className="text-slate-400">S: {userData?.server} | A: {userData?.alliance}</p>
+                    </div>
                 </div>
-                <button id="login-sidebar-btn" class="guest-control w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Login / Sign Up</button>
-                <button id="logout-button" class="user-control w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Logout</button>
+                <button onClick={onLogout} className="w-full flex items-center justify-center mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition-colors">
+                    <LogOut className="mr-2" size={18} />
+                    Logout
+                </button>
             </div>
         </aside>
+    );
 
-        <!-- ===== Main Content Area ===== -->
-        <main class="flex-grow flex flex-col h-full p-4 lg:p-8 overflow-y-auto custom-scrollbar">
+    return (
+        <div className="flex flex-col md:flex-row h-screen p-0 md:p-8 gap-8">
+            <div className="md:hidden fixed top-4 left-4 z-20">
+                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 bg-slate-800/80 rounded-md backdrop-blur-sm">
+                    {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+            </div>
             
-            <!-- ===== HOME / ANNOUNCEMENTS PAGE ===== -->
-            <div id="page-home" class="page-content flex-col gap-6 w-full">
-                <h2 class="text-3xl font-bold text-white font-orbitron">Announcements</h2>
-                <div id="add-announcement-form" class="admin-control card p-4 rounded-lg">
-                    <h3 class="font-semibold text-lg text-white mb-2">New Announcement</h3>
-                    <textarea id="announcement-text" class="w-full bg-slate-900 border border-slate-600 rounded-md p-2 text-sm" rows="3" placeholder="Type your announcement here..."></textarea>
-                    <div class="flex justify-end mt-2">
-                        <button id="post-announcement-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Post</button>
-                    </div>
-                </div>
-                <div id="announcements-list" class="space-y-4"></div>
+            <div className={`fixed inset-0 z-10 md:relative md:flex ${isSidebarOpen ? 'block' : 'hidden'} md:block`}>
+                 <Sidebar />
             </div>
 
-            <!-- ===== MEMBERS PAGE ===== -->
-            <div id="page-members" class="page-content flex-col gap-6 w-full">
-                <h2 class="text-3xl font-bold text-white font-orbitron">Alliance Members</h2>
-                <div id="members-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    <!-- Member cards will be injected here -->
+            <main className="flex-1 flex flex-col min-h-0">
+                <header className="flex items-center justify-between md:justify-end h-20 px-6 md:hidden bg-slate-800/50">
+                    <h1 className="text-xl font-bold font-orbitron text-white">{activeView}</h1>
+                </header>
+                <div className="p-4 md:p-0 flex-1">
+                    {renderContent()}
                 </div>
-            </div>
-
-            <!-- ===== CONDUCTOR PAGE ===== -->
-            <div id="page-conductor" class="page-content flex-col lg:flex-row gap-8 w-full">
-                <div class="w-full lg:w-1/3 flex flex-col gap-8">
-                    <div class="card rounded-2xl p-4">
-                        <h2 class="text-xl font-bold text-white text-center text-glow-cyan mb-2">Today's Conductor</h2>
-                        <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-3 flex items-center justify-center text-center">
-                            <span id="conductor-name" class="font-orbitron text-2xl md:text-3xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
-                        </div>
-                        <div id="action-buttons-container" class="admin-control mt-3">
-                            <div id="random-buttons-container" class="grid grid-cols-1">
-                                <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm">CHOOSE CONDUCTOR</button>
-                            </div>
-                            <div id="pending-buttons-container" class="hidden grid grid-cols-3 gap-3">
-                                <button id="reroll-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-sm">RE-ROLL</button>
-                                <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-sm">LOCK IN</button>
-                                <button id="cancel-selection-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm">CANCEL</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card rounded-2xl p-4 flex-grow flex flex-col">
-                        <div class="flex items-center mb-2 flex-shrink-0">
-                            <h3 class="text-lg font-bold text-white">Conductor Pool</h3>
-                            <button id="add-member-button" class="admin-control ml-auto text-cyan-400 hover:text-cyan-300" title="Add new member"><i class="fa-solid fa-plus-circle w-6 h-6"></i></button>
-                        </div>
-                        <input type="text" id="member-search-input" placeholder="Search members..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1.5 text-sm mb-2">
-                        <div id="manual-pick-list-container" class="space-y-1 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
-                    </div>
-                </div>
-                <div class="w-full lg:w-2/3 card rounded-2xl p-4 flex flex-col">
-                    <h3 class="text-lg font-bold text-white mb-2">Conductor History</h3>
-                    <div id="history-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
-                </div>
-            </div>
-
-            <!-- ===== EVENTS PAGE ===== -->
-            <div id="page-events" class="page-content flex-col gap-6 w-full">
-                <h2 class="text-3xl font-bold text-white font-orbitron mb-4">Game Events</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="flex flex-col gap-8">
-                        <div>
-                            <h3 class="text-2xl font-semibold text-cyan-300 mb-3">Alliance Events</h3>
-                            <div id="alliance-events-list" class="space-y-4"></div>
-                        </div>
-                        <div>
-                            <h3 class="text-2xl font-semibold text-cyan-300 mb-3">Server Events</h3>
-                            <div id="server-events-list" class="space-y-4"></div>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-8">
-                        <div>
-                            <h3 class="text-2xl font-semibold text-cyan-300 mb-3">Arms Race</h3>
-                            <div id="arms-race-events-list" class="space-y-4"></div>
-                        </div>
-                        <div>
-                            <h3 class="text-2xl font-semibold text-cyan-300 mb-3">Season Events</h3>
-                            <div id="season-events-list" class="space-y-4"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== PROFILE PAGE ===== -->
-            <div id="page-profile" class="page-content flex-col gap-6 w-full">
-                <h2 class="text-3xl font-bold text-white font-orbitron">My Profile</h2>
-                <div class="card p-6 rounded-lg max-w-lg w-full mx-auto">
-                    <div class="flex flex-col sm:flex-row items-center gap-4">
-                        <div class="relative group">
-                            <img id="profile-page-avatar" src="https://placehold.co/80x80/1e293b/94a3b8?text=?" class="w-20 h-20 rounded-full border-4 border-slate-600">
-                            <label for="avatar-upload-input" id="avatar-upload-label" class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i class="fa-solid fa-camera text-2xl"></i>
-                            </label>
-                            <input type="file" id="avatar-upload-input" class="hidden" accept="image/png, image/jpeg">
-                        </div>
-                        <div>
-                            <h3 id="profile-page-name" class="text-2xl font-bold text-white text-center sm:text-left"></h3>
-                            <p id="avatar-upload-status" class="text-xs text-center sm:text-left h-4 mt-1"></p>
-                        </div>
-                    </div>
-                    <div class="mt-6 border-t border-slate-700 pt-6">
-                        <label for="ingame-name-input" class="block text-sm font-medium text-slate-300 mb-1">In-Game Name</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="ingame-name-input" class="w-full bg-slate-900 border border-slate-600 rounded-md p-2 text-sm" placeholder="Enter your in-game name">
-                            <button id="save-ingame-name-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Save</button>
-                        </div>
-                        <p id="ingame-name-status" class="text-xs text-green-400 mt-2 h-4"></p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="page-accolades" class="page-content flex-col gap-6 w-full">
-                <h2 class="text-3xl font-bold text-white font-orbitron">Accolades</h2>
-                <div class="card p-8 rounded-lg text-center"><i class="fa-solid fa-person-digging text-5xl text-cyan-400 mb-4"></i><p class="text-xl">This section is under construction.</p></div>
-            </div>
-            <div id="page-game-info" class="page-content flex-col gap-6 w-full">
-                <h2 class="text-3xl font-bold text-white font-orbitron">Game Information</h2>
-                <div class="card p-8 rounded-lg text-center"><i class="fa-solid fa-person-digging text-5xl text-cyan-400 mb-4"></i><p class="text-xl">This section is under construction.</p></div>
-            </div>
-        </main>
-    </div>
-
-    <!-- ===== MOBILE NAVIGATION ===== -->
-    <nav id="mobile-nav" class="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900/80 backdrop-blur-sm border-t border-slate-700 grid grid-cols-4 text-center">
-        <button data-page="home" class="mobile-nav-btn p-3 flex flex-col items-center justify-center gap-1"><i class="fa-solid fa-bullhorn text-xl"></i><span class="text-xs font-medium">Home</span></button>
-        <button data-page="members" class="mobile-nav-btn p-3 flex flex-col items-center justify-center gap-1"><i class="fa-solid fa-users text-xl"></i><span class="text-xs font-medium">Members</span></button>
-        <button data-page="events" class="mobile-nav-btn p-3 flex flex-col items-center justify-center gap-1"><i class="fa-solid fa-calendar-days text-xl"></i><span class="text-xs font-medium">Events</span></button>
-        <button id="mobile-last-btn" data-page="login" class="mobile-nav-btn p-3 flex flex-col items-center justify-center gap-1">
-            <i id="mobile-last-icon" class="fa-solid fa-right-to-bracket text-xl"></i>
-            <span id="mobile-last-text" class="text-xs font-medium">Login</span>
-        </button>
-    </nav>
-
-    <!-- ===== MODALS ===== -->
-    <div id="login-modal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
-        <div class="card p-6 w-full max-w-sm rounded-2xl relative">
-            <button id="close-login-modal-btn" class="absolute top-3 right-4 text-2xl text-slate-400 hover:text-white">&times;</button>
-            
-            <!-- Login Form -->
-            <div id="login-form-container">
-                <h2 class="text-xl font-bold text-white mb-4 text-center">Login</h2>
-                <div class="space-y-4">
-                    <div class="relative"><i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="email" id="login-email" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 pl-10" placeholder="Email"></div>
-                    <div class="relative"><i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="password" id="login-password" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 pl-10" placeholder="Password"></div>
-                </div>
-                <p id="login-error-msg" class="text-xs text-red-400 h-4 text-center mt-2"></p>
-                <button id="login-btn" class="w-full mt-4 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">Login</button>
-                <p class="text-xs text-center mt-4 text-slate-400">Don't have an account? <button id="show-register-form-btn" class="font-semibold text-cyan-400 hover:underline">Sign Up</button></p>
-            </div>
-
-            <!-- Register Form -->
-            <div id="register-form-container" class="hidden">
-                <h2 class="text-xl font-bold text-white mb-4 text-center">Create Account</h2>
-                <div class="space-y-4">
-                    <div class="relative"><i class="fa-solid fa-user-astronaut absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="register-ingame-name" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 pl-10" placeholder="In-Game Name"></div>
-                    <div class="relative"><i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="email" id="register-email" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 pl-10" placeholder="Email"></div>
-                    <div class="relative"><i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="password" id="register-password" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 pl-10" placeholder="Password"></div>
-                    <div class="relative"><i class="fa-solid fa-check-double absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="password" id="register-confirm-password" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 pl-10" placeholder="Confirm Password"></div>
-                </div>
-                 <p id="register-error-msg" class="text-xs text-red-400 h-4 text-center mt-2"></p>
-                <button id="register-btn" class="w-full mt-4 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">Create Account</button>
-                <p class="text-xs text-center mt-4 text-slate-400">Already have an account? <button id="show-login-form-btn" class="font-semibold text-cyan-400 hover:underline">Login</button></p>
-            </div>
+            </main>
         </div>
-    </div>
-    <div id="add-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
-        <div class="card p-6 w-full max-w-sm rounded-2xl">
-            <h2 class="text-xl font-bold text-white mb-4">Add New Member</h2>
-            <div class="space-y-4">
-                <input type="text" id="add-name-input" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2" placeholder="Name">
-                <select id="add-rank-select" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2">
-                    <option>R1</option> <option>R2</option> <option>R3</option> <option>R4</option> <option>R5</option>
-                </select>
-            </div>
-            <div class="mt-6 flex justify-end space-x-3">
-                <button id="cancel-add-btn" class="bg-slate-600 hover:bg-slate-500 font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
-                <button id="save-add-btn" class="bg-cyan-500 hover:bg-cyan-600 font-bold py-2 px-4 rounded-lg text-sm">Save</button>
-            </div>
-        </div>
-    </div>
-    <div id="confirmation-modal" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50 p-4">
-        <div class="card p-6 w-full max-w-sm text-center rounded-2xl">
-            <h2 id="confirmation-title" class="text-lg font-bold text-white mb-4">Are you sure?</h2>
-            <p id="confirmation-message" class="text-sm text-slate-300 mb-6">This action cannot be undone.</p>
-            <div class="flex justify-center space-x-4">
-                <button id="confirm-cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-bold py-2 px-6 rounded-lg text-sm">Cancel</button>
-                <button id="confirm-action-btn" class="bg-red-600 hover:bg-red-700 font-bold py-2 px-6 rounded-lg text-sm">Confirm</button>
-            </div>
-        </div>
-    </div>
+    );
+};
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, collection, onSnapshot, setDoc, addDoc, query, orderBy, deleteDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const firebaseConfig = {
-                apiKey: "AIzaSyD611fkiEdyNJitQtvNr0iJLCjEQ1vSGtI",
-                authDomain: "thorhub-b22db.firebaseapp.com",
-                projectId: "thorhub-b22db",
-                storageBucket: "thorhub-b22db.appspot.com",
-                messagingSenderId: "500418301293",
-                appId: "1:500418301293:web:5af846f5383325e6349e64"
+// --- Image Resizing Utility ---
+const resizeImage = (file, width, height) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/jpeg', 0.9); // Return as high-quality JPEG
             };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
 
-            // --- GLOBAL ELEMENTS & STATE ---
-            const loadingOverlay = document.getElementById('loading-overlay');
-            const body = document.body;
-            let db, auth, storage, currentFirebaseUser, currentUserProfile;
-            let eventUpdateInterval;
-            let allianceMembers = [];
-            let selectionHistory = [];
-            let announcements = [];
-            let registeredUsers = [];
-            let currentConductor = 'SELECT A CONDUCTOR';
-            let pendingConductor = null;
-            let confirmCallback = null;
-            
-            // --- UI TOGGLES & NAVIGATION ---
-            function showPage(pageId) {
-                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-                const pageToShow = document.getElementById('page-' + pageId);
-                if (pageToShow) pageToShow.classList.add('active');
-                else document.getElementById('page-home').classList.add('active');
+
+// --- Profile Page ---
+const ProfilePage = ({ user, userData, onProfileUpdate }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [displayName, setDisplayName] = useState(userData?.inGameName || '');
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState(userData?.avatarUrl || '');
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        setDisplayName(userData?.inGameName || '');
+        setPreviewUrl(userData?.avatarUrl || '');
+    }, [userData]);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            setError('Invalid file type. Please upload a JPG or PNG.');
+            return;
+        }
+        setError('');
+        setAvatarFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+    };
+
+    const handleSave = async () => {
+        if (!user) return;
+        setUploading(true);
+        setError('');
+
+        let newAvatarUrl = userData.avatarUrl;
+
+        if (avatarFile) {
+            try {
+                // Resize the image before uploading
+                const resizedBlob = await resizeImage(avatarFile, 300, 300);
+                const avatarRef = ref(storage, `avatars/${user.uid}/avatar.jpg`);
                 
-                document.querySelectorAll('.nav-btn, .mobile-nav-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.page === pageId);
-                });
-                localStorage.setItem('lastVisitedPage', pageId);
+                const snapshot = await uploadBytes(avatarRef, resizedBlob);
+                newAvatarUrl = await getDownloadURL(snapshot.ref);
+            } catch (err) {
+                console.error("Error uploading/resizing avatar:", err);
+                setError('Failed to upload avatar. Please try again.');
+                setUploading(false);
+                return;
             }
-            
-            // --- FIREBASE INITIALIZATION & AUTH ---
-            async function initializeFirebase() {
-                try {
-                    const app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-                    storage = getStorage(app);
-                    
-                    onAuthStateChanged(auth, async (user) => {
-                        currentFirebaseUser = user;
-                        if (user) {
-                            await handleUserLogin(user);
-                        } else {
-                            handleUserLogout();
-                        }
-                        loadPublicData();
-                        loadingOverlay.style.opacity = '0';
-                        setTimeout(() => loadingOverlay.style.display = 'none', 300);
-                    });
-                } catch (error) {
-                    console.error("Firebase Initialization Error:", error);
-                    loadingOverlay.innerHTML = `<p class="text-red-400 text-center">Connection Failed.</p>`;
-                }
-            }
+        }
 
-            async function handleUserLogin(user) {
-                const userRef = doc(db, 'users', user.uid);
-                const userDoc = await getDoc(userRef);
-                currentUserProfile = userDoc.exists() ? userDoc.data() : null;
-                
-                if (currentUserProfile) {
-                    body.classList.add('logged-in');
-                    body.classList.remove('logged-out');
-                    updateUIAfterLogin();
-                } else {
-                    handleUserLogout();
-                }
-            }
-
-            function handleUserLogout() {
-                currentUserProfile = null;
-                body.classList.add('logged-out');
-                body.classList.remove('logged-in');
-                body.classList.add('not-admin');
-                body.classList.remove('is-admin');
-                
-                const lastBtn = document.getElementById('mobile-last-btn');
-                const lastIcon = document.getElementById('mobile-last-icon');
-                const lastText = document.getElementById('mobile-last-text');
-                lastBtn.dataset.page = 'login';
-                lastIcon.className = 'fa-solid fa-right-to-bracket text-xl';
-                lastText.textContent = 'Login';
-
-                showPage('home');
-            }
-
-            function getCacheBustedUrl(url) {
-                if (!url) return 'https://placehold.co/80x80/1e293b/94a3b8?text=?';
-                return `${url}&t=${new Date().getTime()}`;
-            }
-
-            function updateUIAfterLogin() {
-                if (!currentUserProfile) return;
-                
-                const photoURL = getCacheBustedUrl(currentUserProfile.photoURL);
-
-                document.getElementById('user-avatar').src = photoURL;
-                document.getElementById('user-ingame-name').textContent = currentUserProfile.inGameName;
-                document.getElementById('profile-page-avatar').src = photoURL;
-                document.getElementById('profile-page-name').textContent = currentUserProfile.inGameName;
-                document.getElementById('ingame-name-input').value = currentUserProfile.inGameName || '';
-
-                if (currentUserProfile.isAdmin) {
-                    body.classList.add('is-admin');
-                    body.classList.remove('not-admin');
-                } else {
-                    body.classList.add('not-admin');
-                    body.classList.remove('is-admin');
-                }
-                
-                const lastBtn = document.getElementById('mobile-last-btn');
-                const lastIcon = document.getElementById('mobile-last-icon');
-                const lastText = document.getElementById('mobile-last-text');
-                lastBtn.dataset.page = 'profile';
-                lastIcon.className = 'fa-solid fa-user-circle text-xl';
-                lastText.textContent = 'Profile';
-
-                document.getElementById('login-modal').classList.add('hidden');
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            await updateDoc(userDocRef, {
+                inGameName: displayName,
+                avatarUrl: newAvatarUrl,
+            });
+            if (auth.currentUser.displayName !== displayName) {
+                await updateProfile(auth.currentUser, { displayName: displayName });
             }
             
-            // --- PUBLIC DATA & RENDERING ---
-            function loadPublicData() {
-                const conductorDocRef = doc(db, 'allianceData', 'conductor');
-                const announcementsCollectionRef = collection(db, 'announcements');
-                const eventsDocRef = doc(db, 'allianceData', 'events');
-                const usersCollectionRef = collection(db, 'users');
+            await onProfileUpdate(); // Callback to refresh App state
+        } catch (err) {
+            console.error("Error updating profile:", err);
+            setError('Failed to save profile.');
+        } finally {
+            setUploading(false);
+            setIsEditing(false);
+        }
+    };
 
-                onSnapshot(conductorDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        allianceMembers = data.members || [];
-                        selectionHistory = data.history || [];
-                        currentConductor = data.currentConductor || 'SELECT A CONDUCTOR';
-                    }
-                    renderConductorPage();
-                });
-                const qAnnouncements = query(announcementsCollectionRef, orderBy('timestamp', 'desc'));
-                onSnapshot(qAnnouncements, (querySnapshot) => {
-                    announcements = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderAnnouncements();
-                });
-                onSnapshot(eventsDocRef, (docSnap) => {
-                     if (docSnap.exists() && docSnap.data().schedule) {
-                        renderEvents(docSnap.data().schedule);
-                    }
-                });
-                onSnapshot(query(usersCollectionRef, orderBy('inGameName')), (querySnapshot) => {
-                    registeredUsers = querySnapshot.docs.map(doc => doc.data());
-                    renderMembersPage();
-                });
-            }
+    if (!userData) return <ContentBox title="Profile">Loading profile data...</ContentBox>;
 
-            function renderAnnouncements() {
-                const announcementsList = document.getElementById('announcements-list');
-                announcementsList.innerHTML = '';
-                if (announcements.length === 0) {
-                    announcementsList.innerHTML = `<div class="card p-4 rounded-lg text-center text-slate-400">No announcements yet.</div>`;
-                    return;
-                }
-                announcements.forEach(ann => {
-                    const div = document.createElement('div');
-                    div.className = 'card p-4 rounded-lg item-enter';
-                    const date = new Date(ann.timestamp).toLocaleString();
-                    div.innerHTML = `
-                        <p class="text-slate-200">${ann.text}</p>
-                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-700">
-                            <p class="text-xs text-slate-400">Posted by ${ann.author || 'Admin'} on ${date}</p>
-                            <button class="admin-control delete-announcement-btn text-red-500 hover:text-red-400 text-xs" data-id="${ann.id}">Delete</button>
+    return (
+        <ContentBox title="Your Profile">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white font-orbitron">{isEditing ? 'Edit Profile' : 'Profile Overview'}</h2>
+                {!isEditing ? (
+                    <button onClick={() => setIsEditing(true)} className="flex items-center bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
+                        <Edit size={16} className="mr-2" /> Edit
+                    </button>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => { setIsEditing(false); setError(''); setPreviewUrl(userData.avatarUrl); }} className="flex items-center bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
+                            Cancel
+                        </button>
+                        <button onClick={handleSave} disabled={uploading} className="flex items-center bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors disabled:bg-slate-500">
+                            <Save size={16} className="mr-2" /> {uploading ? 'Saving...' : 'Save Changes'}
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {error && (
+                <div className="bg-red-900/50 border border-red-700 text-red-300 p-3 rounded-lg mb-4 flex items-center">
+                    <AlertCircle size={20} className="mr-3" />
+                    {error}
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-1 flex flex-col items-center">
+                    <img src={previewUrl || `https://placehold.co/128x128/1e293b/94a3b8?text=${(displayName || 'U').charAt(0)}`} alt="Avatar" className="w-32 h-32 rounded-full bg-slate-700 mb-4 object-cover" />
+                    {isEditing && (
+                        <div className="w-full">
+                            <label htmlFor="avatar-upload" className="w-full cursor-pointer flex items-center justify-center bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
+                                <UploadCloud size={16} className="mr-2" /> Upload Avatar
+                            </label>
+                            <input id="avatar-upload" type="file" accept="image/jpeg, image/png" className="hidden" onChange={handleFileChange} />
                         </div>
-                    `;
-                    announcementsList.appendChild(div);
-                });
-            }
+                    )}
+                </div>
 
-            function renderEvents(schedule) {
-                const allianceEventsList = document.getElementById('alliance-events-list');
-                const serverEventsList = document.getElementById('server-events-list');
-                const armsRaceEventsList = document.getElementById('arms-race-events-list');
-                const seasonEventsList = document.getElementById('season-events-list');
-
-                if (!schedule) return;
-                
-                if (eventUpdateInterval) clearInterval(eventUpdateInterval);
-
-                const lists = {
-                    'Alliance Event': allianceEventsList,
-                    'Server Event': serverEventsList,
-                    'Arms Race': armsRaceEventsList,
-                    'Season Event': seasonEventsList,
-                };
-
-                Object.values(lists).forEach(list => list.innerHTML = '');
-
-                const updateTimers = () => {
-                    const now = new Date();
-                    schedule.forEach(event => {
-                        const startTime = new Date(event.startTime);
-                        const endTime = new Date(event.endTime);
-                        let timeText, colorClass, timerId = `event-timer-${event.name.replace(/\s+/g, '-')}`;
-                        
-                        if (now < startTime) {
-                            const diff = startTime - now;
-                            const d = Math.floor(diff / 86400000);
-                            const h = Math.floor((diff % 86400000) / 3600000);
-                            const m = Math.floor((diff % 3600000) / 60000);
-                            timeText = `Starts in: ${d > 0 ? d + 'd ' : ''}${h}h ${m}m`;
-                            colorClass = 'text-yellow-400';
-                        } else if (now >= startTime && now <= endTime) {
-                            const diff = endTime - now;
-                             const d = Math.floor(diff / 86400000);
-                            const h = Math.floor((diff % 86400000) / 3600000);
-                            const m = Math.floor((diff % 3600000) / 60000);
-                            timeText = `Ends in: ${d > 0 ? d + 'd ' : ''}${h}h ${m}m`;
-                            colorClass = 'text-green-400';
-                        } else {
-                            timeText = 'Ended';
-                            colorClass = 'text-red-500';
-                        }
-                        
-                        const timerEl = document.getElementById(timerId);
-                        if (timerEl) {
-                            timerEl.textContent = timeText;
-                            timerEl.className = `font-semibold text-sm ${colorClass}`;
-                        }
-                    });
-                };
-                
-                schedule.sort((a,b) => new Date(a.startTime) - new Date(b.startTime)).forEach(event => {
-                    const container = lists[event.category];
-                    if (!container) return;
-
-                    const card = document.createElement('div');
-                    card.className = 'event-card flex items-center p-3 rounded-lg gap-4';
-                    
-                    card.innerHTML = `
-                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center">
-                             <i class="fa-solid ${event.img || 'fa-star'} text-cyan-400 text-2xl"></i>
-                        </div>
-                        <div class="flex-grow">
-                            <h4 class="font-bold text-white">${event.name}</h4>
-                            <p id="event-timer-${event.name.replace(/\s+/g, '-')}" class="font-semibold text-sm"></p>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-
-                updateTimers();
-                eventUpdateInterval = setInterval(updateTimers, 1000);
-            }
-            
-            function renderMembersPage() {
-                const membersList = document.getElementById('members-list');
-                membersList.innerHTML = '';
-                if (registeredUsers.length === 0) {
-                    membersList.innerHTML = `<p class="col-span-full text-center text-slate-400">No members have registered yet.</p>`;
-                    return;
-                }
-                registeredUsers.forEach(user => {
-                    const memberCard = document.createElement('div');
-                    memberCard.className = 'card p-4 rounded-lg text-center item-enter';
-                    const photoURL = getCacheBustedUrl(user.photoURL);
-                    memberCard.innerHTML = `
-                        <img src="${photoURL}" class="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-slate-600">
-                        <p class="font-semibold text-white truncate">${user.inGameName}</p>
-                    `;
-                    membersList.appendChild(memberCard);
-                });
-            }
-
-            function renderConductorPage() {
-                const manualPickListContainer = document.getElementById('manual-pick-list-container');
-                manualPickListContainer.innerHTML = '';
-                [...allianceMembers].sort((a, b) => a.name.localeCompare(b.name)).forEach(member => {
-                    const div = document.createElement('div');
-                    div.className = 'item-enter flex justify-between items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors duration-200 group text-sm';
-                    div.innerHTML = `<div class="flex-grow flex items-center overflow-hidden"><span class="font-semibold">${member.name}</span><span class="text-xs text-slate-500 ml-2">${member.rank}</span></div>`;
-                    manualPickListContainer.appendChild(div);
-                });
-
-                const historyListContainer = document.getElementById('history-list-container');
-                historyListContainer.innerHTML = '';
-                if (selectionHistory.length === 0) {
-                     historyListContainer.innerHTML = `<p class="text-sm text-slate-400 italic text-center">No conductor history.</p>`;
-                } else {
-                    [...selectionHistory].sort((a,b) => b.date - a.date).forEach(item => {
-                        const div = document.createElement('div');
-                        div.className = 'item-enter flex items-center justify-between p-2 rounded-lg bg-slate-800/50 text-sm';
-                        div.innerHTML = `<div><p class="font-semibold text-white">${item.player}</p><p class="text-xs text-slate-400">${new Date(item.date).toLocaleDateString()}</p></div>`;
-                        historyListContainer.appendChild(div);
-                    });
-                }
-                
-                document.getElementById('conductor-name').textContent = currentConductor;
-            }
-
-            // --- IMAGE RESIZING UTILITY ---
-            function resizeImage(file, maxWidth, maxHeight) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            let { width, height } = img;
-
-                            if (width > height) {
-                                if (width > maxWidth) {
-                                    height *= maxWidth / width;
-                                    width = maxWidth;
-                                }
-                            } else {
-                                if (height > maxHeight) {
-                                    width *= maxHeight / height;
-                                    height = maxHeight;
-                                }
+                <div className="md:col-span-2 space-y-4">
+                    <div>
+                        <label className="text-sm font-semibold text-slate-400">In-Game Name</label>
+                        {isEditing ? (
+                            <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full mt-1 px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+                        ) : (
+                            <p className="text-lg text-white">{displayName}</p>
+                        )}
+                    </div>
+                    <div><label className="text-sm font-semibold text-slate-400">Email</label><p className="text-lg text-white">{userData.email}</p></div>
+                    <div><label className="text-sm font-semibold text-slate-400">Server</label><p className="text-lg text-white">{userData.server}</p></div>
+                    <div><label className="text-sm font-semibold text-slate-400">Alliance</label><p className="text-lg text-white">{userData.alliance}</p></div>
+                    <div>
+                        <label className="text-sm font-semibold text-slate-400">Rank</label>
+                        <p className="text-lg text-white flex items-center">{userData.rank} 
+                             {userData.rankVerified ? 
+                                <span className="ml-2 text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">Verified</span> : 
+                                <span className="ml-2 text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-yellow-600 bg-yellow-200">Pending</span>
                             }
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
-                            canvas.toBlob(resolve, file.type);
-                        };
-                        img.onerror = reject;
-                        img.src = e.target.result;
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </ContentBox>
+    );
+};
 
-            // --- EVENT LISTENERS ---
-            document.getElementById('login-btn').addEventListener('click', () => {
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-                const errorMsg = document.getElementById('login-error-msg');
-                errorMsg.textContent = '';
-                signInWithEmailAndPassword(auth, email, password)
-                    .catch(error => { errorMsg.textContent = error.message; });
-            });
 
-            document.getElementById('register-btn').addEventListener('click', async () => {
-                const inGameName = document.getElementById('register-ingame-name').value.trim();
-                const email = document.getElementById('register-email').value;
-                const password = document.getElementById('register-password').value;
-                const confirmPassword = document.getElementById('register-confirm-password').value;
-                const errorMsg = document.getElementById('register-error-msg');
-                errorMsg.textContent = '';
+// --- Table Component ---
+const InfoTable = ({ headers, data }) => (
+    <div className="overflow-x-auto">
+        <table className="min-w-full bg-slate-800/30 rounded-lg">
+            <thead>
+                <tr className="bg-slate-700/50">
+                    {headers.map(header => (
+                        <th key={header} className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">{header}</th>
+                    ))}
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700/50">
+                {data.map((row, rowIndex) => (
+                    <tr key={rowIndex} className="hover:bg-slate-700/40">
+                        {row.map((cell, cellIndex) => (
+                            <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">{cell}</td>
+                        ))}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+);
 
-                if (!inGameName) {
-                    errorMsg.textContent = "Please enter an in-game name.";
-                    return;
-                }
-                if (password !== confirmPassword) {
-                    errorMsg.textContent = "Passwords do not match.";
-                    return;
-                }
+// --- Member Info Page ---
+const MemberInfoPage = ({ currentUserData }) => {
+    const [members, setMembers] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-                try {
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
-                    
-                    const newUserProfile = {
-                        uid: user.uid,
-                        inGameName: inGameName,
-                        email: user.email,
-                        photoURL: null,
-                        createdAt: Date.now(),
-                        isAdmin: false
-                    };
-                    
-                    await setDoc(doc(db, 'users', user.uid), newUserProfile);
-                } catch (error) {
-                    errorMsg.textContent = error.message;
-                }
-            });
-            
-            document.getElementById('logout-button').addEventListener('click', () => signOut(auth));
+    useEffect(() => {
+        if (!currentUserData) return;
+        const fetchMembers = async () => {
+            setLoading(true);
+            const q = query(collection(db, "users"), where("server", "==", currentUserData.server), where("alliance", "==", currentUserData.alliance));
+            const querySnapshot = await getDocs(q);
+            const memberList = querySnapshot.docs.map(doc => doc.data());
+            setMembers(memberList);
+            setLoading(false);
+        };
+        fetchMembers();
+    }, [currentUserData]);
 
-            document.getElementById('avatar-upload-input').addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                const statusEl = document.getElementById('avatar-upload-status');
-                if (!file || !currentFirebaseUser) return;
-                
-                if (!['image/jpeg', 'image/png'].includes(file.type)) {
-                    statusEl.textContent = 'Only JPG or PNG allowed.';
-                    statusEl.className = 'text-xs text-center sm:text-left h-4 mt-1 text-red-400';
-                    return;
-                }
+    const tableHeaders = ["Avatar", "In-Game Name", "Rank", "Status"];
+    const tableData = members.map(m => [
+        <img src={m.avatarUrl || `https://placehold.co/32x32/1e293b/94a3b8?text=${m.inGameName.charAt(0)}`} alt="avatar" className="w-8 h-8 rounded-full bg-slate-700 object-cover" />,
+        m.inGameName,
+        m.rank,
+        m.rankVerified ? 
+            <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">Verified</span> : 
+            <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-yellow-600 bg-yellow-200">Pending</span>
+    ]);
 
-                statusEl.textContent = 'Resizing & Uploading...';
-                statusEl.className = 'text-xs text-center sm:text-left h-4 mt-1 text-yellow-400';
+    return (
+        <ContentBox title={`Alliance Members - [${currentUserData?.alliance}]`}>
+            {loading ? <p>Loading members...</p> : <InfoTable headers={tableHeaders} data={tableData} />}
+        </ContentBox>
+    );
+};
 
-                try {
-                    const resizedBlob = await resizeImage(file, 300, 300);
-                    const storageRef = ref(storage, `avatars/${currentFirebaseUser.uid}/avatar.jpg`);
-                    await uploadBytes(storageRef, resizedBlob);
-                    const downloadURL = await getDownloadURL(storageRef);
-                    await updateDoc(doc(db, 'users', currentFirebaseUser.uid), { photoURL: downloadURL });
-                    
-                    currentUserProfile.photoURL = downloadURL;
-                    updateUIAfterLogin();
-                    statusEl.textContent = 'Avatar updated!';
-                    statusEl.className = 'text-xs text-center sm:text-left h-4 mt-1 text-green-400';
-                    setTimeout(() => statusEl.textContent = '', 3000);
-                } catch (error) {
-                    console.error("Avatar upload error:", error);
-                    statusEl.textContent = 'Upload failed. See console.';
-                    statusEl.className = 'text-xs text-center sm:text-left h-4 mt-1 text-red-400';
-                }
-            });
-            
-            document.getElementById('save-ingame-name-btn').addEventListener('click', async () => {
-                const newName = document.getElementById('ingame-name-input').value.trim();
-                if (newName && currentUserProfile && newName !== currentUserProfile.inGameName) {
-                    await updateDoc(doc(db, 'users', currentFirebaseUser.uid), { inGameName: newName });
-                    currentUserProfile.inGameName = newName;
-                    updateUIAfterLogin();
-                    document.getElementById('ingame-name-status').textContent = 'In-game name updated!';
-                    setTimeout(() => document.getElementById('ingame-name-status').textContent = '', 3000);
-                }
-            });
-            
-            document.querySelectorAll('.nav-btn, .mobile-nav-btn').forEach(btn => {
-                btn.addEventListener('click', () => showPage(btn.dataset.page));
-            });
+// --- Other Pages (Alliance, Server, Admin, etc.) - Theming applied ---
+const AllianceInfoPage = () => {
+    const [alliances, setAlliances] = useState([]);
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        const fetchAlliances = async () => {
+            setLoading(true);
+            const querySnapshot = await getDocs(collection(db, "users"));
+            const uniqueAlliances = querySnapshot.docs.reduce((acc, doc) => {
+                const { server, alliance } = doc.data();
+                const key = `${server}-${alliance}`;
+                if (!acc.has(key)) acc.set(key, { server, alliance });
+                return acc;
+            }, new Map());
+            setAlliances(Array.from(uniqueAlliances.values()));
+            setLoading(false);
+        };
+        fetchAlliances();
+    }, []);
+    const tableHeaders = ["Server", "Alliance Tag"];
+    const tableData = alliances.map(a => [a.server, a.alliance]);
+    return <ContentBox title="Registered Alliances">{loading ? <p>Loading...</p> : <InfoTable headers={tableHeaders} data={tableData} />}</ContentBox>;
+};
 
-            const loginModal = document.getElementById('login-modal');
-            const loginForm = document.getElementById('login-form-container');
-            const registerForm = document.getElementById('register-form-container');
-            document.getElementById('show-register-form-btn').addEventListener('click', () => {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-            });
-            document.getElementById('show-login-form-btn').addEventListener('click', () => {
-                registerForm.classList.add('hidden');
-                loginForm.classList.remove('hidden');
-            });
-            document.getElementById('login-sidebar-btn').addEventListener('click', () => loginModal.classList.remove('hidden'));
-            document.getElementById('mobile-last-btn').addEventListener('click', () => {
-                if(currentFirebaseUser) {
-                    showPage('profile');
-                } else {
-                    loginModal.classList.remove('hidden');
-                }
-            });
-            document.getElementById('close-login-modal-btn').addEventListener('click', () => loginModal.classList.add('hidden'));
-            document.getElementById('post-announcement-btn').addEventListener('click', async () => {
-                if (!currentUserProfile || !currentUserProfile.isAdmin) return;
-                const text = document.getElementById('announcement-text').value.trim();
-                if (text) {
-                    try {
-                        await addDoc(collection(db, 'announcements'), {
-                            text: text,
-                            author: currentUserProfile.inGameName,
-                            timestamp: Date.now()
-                        });
-                        document.getElementById('announcement-text').value = '';
-                    } catch (error) {
-                        console.error("Error posting announcement:", error);
-                    }
-                }
-            });
+const ServerInfoPage = () => {
+    const [servers, setServers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        const fetchServers = async () => {
+            setLoading(true);
+            const querySnapshot = await getDocs(collection(db, "users"));
+            const uniqueServers = new Set(querySnapshot.docs.map(doc => doc.data().server));
+            setServers(Array.from(uniqueServers));
+            setLoading(false);
+        };
+        fetchServers();
+    }, []);
+    const tableHeaders = ["Server Number"];
+    const tableData = servers.map(s => [s]);
+    return <ContentBox title="Registered Servers">{loading ? <p>Loading...</p> : <InfoTable headers={tableHeaders} data={tableData} />}</ContentBox>;
+};
 
-            // --- INITIALIZATION ---
-            showPage(localStorage.getItem('lastVisitedPage') || 'home');
-            initializeFirebase();
-        });
-    </script>
-</body>
-</html>
+const AdminPanel = () => {
+    const [pendingR5s, setPendingR5s] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const fetchPendingR5s = async () => {
+        setLoading(true);
+        const q = query(collection(db, "users"), where("rank", "==", "R5"), where("rankVerified", "==", false));
+        const querySnapshot = await getDocs(q);
+        setPendingR5s(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setLoading(false);
+    };
+    useEffect(() => { fetchPendingR5s(); }, []);
+    const handleVerification = async (userId, approve) => {
+        const userDocRef = doc(db, "users", userId);
+        if (approve) await updateDoc(userDocRef, { rankVerified: true });
+        else await deleteDoc(userDocRef);
+        fetchPendingR5s(); 
+    };
+    return <ContentBox title="Admin - R5 Verification">{loading ? <p>Loading...</p> : (pendingR5s.length > 0 ? <div className="space-y-4">{pendingR5s.map(user => (<div key={user.id} className="bg-slate-700/50 p-4 rounded-lg flex items-center justify-between"><div><p className="font-bold text-white">{user.inGameName}</p><p className="text-sm text-slate-400">Server: {user.server} | Alliance: {user.alliance}</p></div><div className="space-x-2"><button onClick={() => handleVerification(user.id, true)} className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-sm font-semibold">Approve</button><button onClick={() => handleVerification(user.id, false)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm font-semibold">Deny</button></div></div>))}</div> : <p>No pending R5 verifications.</p>)}</ContentBox>;
+};
+
+const AllianceManagementPanel = ({ currentUserData }) => {
+    const [pendingR4s, setPendingR4s] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const fetchPendingR4s = async () => {
+        if (!currentUserData) return;
+        setLoading(true);
+        const q = query(collection(db, "users"), where("alliance", "==", currentUserData.alliance), where("server", "==", currentUserData.server), where("rank", "==", "R4"), where("rankVerified", "==", false));
+        const querySnapshot = await getDocs(q);
+        setPendingR4s(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setLoading(false);
+    };
+    useEffect(() => { fetchPendingR4s(); }, [currentUserData]);
+    const handleVerification = async (userId, approve) => {
+        const userDocRef = doc(db, "users", userId);
+        if (approve) await updateDoc(userDocRef, { rankVerified: true });
+        else await deleteDoc(userDocRef);
+        fetchPendingR4s();
+    };
+    return <ContentBox title="Alliance Management - R4 Verification">{loading ? <p>Loading...</p> : (pendingR4s.length > 0 ? <div className="space-y-4">{pendingR4s.map(user => (<div key={user.id} className="bg-slate-700/50 p-4 rounded-lg flex items-center justify-between"><div><p className="font-bold text-white">{user.inGameName}</p><p className="text-sm text-slate-400">Rank: {user.rank}</p></div><div className="space-x-2"><button onClick={() => handleVerification(user.id, true)} className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-sm font-semibold">Approve</button><button onClick={() => handleVerification(user.id, false)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm font-semibold">Deny</button></div></div>))}</div> : <p>No pending R4 verifications in your alliance.</p>)}</ContentBox>;
+};
+
+// --- Content Box Component ---
+const ContentBox = ({ title, children }) => {
+    return (
+        <div className="card w-full h-full p-6 rounded-2xl">
+            <h2 className="text-2xl font-bold text-white font-orbitron mb-4 text-glow-cyan">{title}</h2>
+            <div className="text-slate-300">
+                {children}
+            </div>
+        </div>
+    );
+};

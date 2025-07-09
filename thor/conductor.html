@@ -1600,7 +1600,7 @@
             closePlayerInfoBtn.addEventListener('click', () => playerInfoModal.classList.add('hidden'));
             designateConductorBtn.addEventListener('click', () => {
                 if (!isAuthenticated || infoModalMemberId === null) return;
-                const member = allianceMembers.find(m => m.id === memberId);
+                const member = allianceMembers.find(m => m.id === infoModalMemberId);
                 if (!member) return;
                 showConfirmationModal(`Designate ${member.name}?`, `Are you sure you want to make ${member.name} the conductor?`, () => {
                     currentConductor = member.name;
@@ -1616,16 +1616,48 @@
             function validateMedalAward() {
                 const memberId = parseFloat(awardMedalMemberSelect.value);
                 const medalName = awardMedalTypeSelect.value;
-                if (!memberId || !medalName) { saveAwardMedalBtn.disabled = true; awardMedalValidationMsg.textContent = ''; return; }
-                const sixDaysAgo = Date.now() - (6 * 24 * 60 * 60 * 1000);
-                if (allianceMembers.some(m => m.medals && m.medals.some(med => med.name === medalName && med.awardedDate > sixDaysAgo))) {
-                    awardMedalValidationMsg.textContent = `This medal was already awarded this week.`; saveAwardMedalBtn.disabled = true; return;
+                if (!memberId || !medalName) {
+                    saveAwardMedalBtn.disabled = true;
+                    awardMedalValidationMsg.textContent = '';
+                    return;
                 }
+
+                // Special handling for Mega Express Medal
+                if (medalName === 'Mega Express Medal') {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const startOfToday = today.getTime();
+
+                    const awardsToday = allianceMembers
+                        .flatMap(m => m.medals || [])
+                        .filter(med => med.name === 'Mega Express Medal' && med.awardedDate >= startOfToday)
+                        .length;
+
+                    if (awardsToday >= 2) {
+                        awardMedalValidationMsg.textContent = `Mega Express can only be awarded twice per day.`;
+                        saveAwardMedalBtn.disabled = true;
+                        return;
+                    }
+                } else {
+                    // Existing logic for other medals
+                    const sixDaysAgo = Date.now() - (6 * 24 * 60 * 60 * 1000);
+                    if (allianceMembers.some(m => m.medals && m.medals.some(med => med.name === medalName && med.awardedDate > sixDaysAgo))) {
+                        awardMedalValidationMsg.textContent = `This medal was already awarded this week.`;
+                        saveAwardMedalBtn.disabled = true;
+                        return;
+                    }
+                }
+
+                // Check if the specific member already has this medal active
                 const member = allianceMembers.find(m => m.id === memberId);
                 if (member && member.medals && member.medals.some(m => m.name === medalName && m.expires > Date.now())) {
-                    awardMedalValidationMsg.textContent = `${member.name} already has an active ${medalName}.`; saveAwardMedalBtn.disabled = true; return;
+                    awardMedalValidationMsg.textContent = `${member.name} already has an active ${medalName}.`;
+                    saveAwardMedalBtn.disabled = true;
+                    return;
                 }
-                awardMedalValidationMsg.textContent = ''; saveAwardMedalBtn.disabled = false;
+
+                awardMedalValidationMsg.textContent = '';
+                saveAwardMedalBtn.disabled = false;
             }
             openAwardMedalModalBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
@@ -1700,4 +1732,3 @@
     </script>
 </body>
 </html>
-
