@@ -155,6 +155,20 @@
         .how-it-works-tab-content.active { display: block; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* Conductor Panel Styling */
+        #conductor-panel-wrapper {
+            transition: max-height 0.5s ease-in-out, padding-bottom 0.5s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding-bottom: 0;
+        }
+        #conductor-panel-wrapper.is-visible {
+            max-height: 500px; /* Large enough for content */
+            opacity: 1;
+            padding-bottom: 1rem; /* Reduced gap */
+        }
+
     </style>
 </head>
 <body class="text-slate-300 logged-out">
@@ -176,11 +190,15 @@
                     <h1 class="text-xl font-bold text-white text-center font-orbitron">Conductor</h1>
                 </div>
                 <nav id="desktop-nav" class="flex-grow p-2 space-y-1">
+                    <button data-tab="conductor" class="desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
+                        <i class="fa-solid fa-train w-5 h-5 text-center"></i>
+                        <span class="font-semibold">Conductor</span>
+                    </button>
                     <button data-tab="members" class="desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
                         <i class="fa-solid fa-users w-5 h-5 text-center"></i>
                         <span class="font-semibold">Members</span>
                     </button>
-                    <button data-tab="history" class="desktop-nav-btn active w-full flex items-center p-3 rounded-lg space-x-3">
+                    <button data-tab="history" class="desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
                         <i class="fa-solid fa-clock-rotate-left w-5 h-5 text-center"></i>
                         <span class="font-semibold">History</span>
                     </button>
@@ -204,51 +222,58 @@
 
         <!-- ===== Main Content Area (Mobile & Desktop) ===== -->
         <main class="w-full max-w-md mx-auto lg:max-w-none lg:mx-0 flex-grow flex flex-col min-h-0">
-            <!-- This card contains the sidebar and content panels -->
-            <div class="card rounded-2xl flex-grow flex flex-col min-h-0">
-                
-                <!-- Conductor Display (Inside main card) -->
-                <div class="p-4 md:p-6 flex-shrink-0">
+            
+            <!-- ===== Conductor Panel (now inside main content) ===== -->
+            <div id="conductor-panel-wrapper" class="flex-shrink-0">
+                 <div class="card rounded-2xl p-4 md:p-6">
                     <div class="relative mb-3">
                         <h2 class="text-2xl font-bold text-white text-center text-glow-cyan">Today's Conductor</h2>
                     </div>
                     <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-4 min-h-[90px] flex items-center justify-center text-center">
                         <span id="conductor-name" class="font-orbitron text-3xl md:text-4xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
                     </div>
-
                     <div id="action-buttons-container" class="admin-control mt-4">
                         <div id="random-buttons-container" class="grid grid-cols-1">
                             <button id="random-select-button" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-cyan-300/50">
                                 CHOOSE CONDUCTOR
                             </button>
                         </div>
-                         <div id="pending-buttons-container" class="hidden grid grid-cols-3 gap-3">
+                        <div id="pending-buttons-container" class="hidden grid grid-cols-3 gap-3">
                             <button id="reroll-button" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-slate-400/50">RE-ROLL</button>
                             <button id="lock-in-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-green-300/50">LOCK IN</button>
                             <button id="cancel-selection-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-sm transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-red-400/50">CANCEL</button>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- This card contains the tabbed content panels -->
+            <div class="card rounded-2xl flex-grow flex flex-col min-h-0">
+                
+                <!-- Mobile Nav (now at top of card) -->
+                <div id="mobile-nav" class="lg:hidden border-b border-slate-700/50">
+                    <div class="grid grid-cols-4 text-center">
+                        <button data-tab="conductor" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
+                            <i class="fa-solid fa-train w-5 h-5 mb-1"></i>
+                            <span class="text-xs font-semibold">Conductor</span>
+                        </button>
+                        <button data-tab="members" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
+                            <i class="fa-solid fa-users w-5 h-5 mb-1"></i>
+                            <span class="text-xs font-semibold">Members</span>
+                        </button>
+                        <button data-tab="history" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
+                            <i class="fa-solid fa-clock-rotate-left w-5 h-5 mb-1"></i>
+                            <span class="text-xs font-semibold">History</span>
+                        </button>
+                        <button data-tab="medals" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
+                            <i class="fa-solid fa-medal w-5 h-5 mb-1"></i>
+                            <span class="text-xs font-semibold">Medals</span>
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Main Content Panels -->
                 <div class="flex-grow flex flex-col min-h-0">
-                    <!-- Mobile Nav -->
-                    <div id="mobile-nav" class="lg:hidden mt-2 border-b border-t border-slate-700">
-                        <div class="grid grid-cols-3 text-center">
-                            <button data-tab="members" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
-                                <i class="fa-solid fa-users w-5 h-5 mb-1"></i>
-                                <span class="text-xs font-semibold">Members</span>
-                            </button>
-                            <button data-tab="history" class="mobile-nav-btn active p-3 flex flex-col items-center justify-center">
-                                <i class="fa-solid fa-clock-rotate-left w-5 h-5 mb-1"></i>
-                                <span class="text-xs font-semibold">History</span>
-                            </button>
-                            <button data-tab="medals" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
-                                <i class="fa-solid fa-medal w-5 h-5 mb-1"></i>
-                                <span class="text-xs font-semibold">Medals</span>
-                            </button>
-                        </div>
-                    </div>
                     <!-- Content Panels Wrapper -->
                     <div class="p-4 lg:p-6 flex-grow flex flex-col min-h-0">
                         <div id="content-members" class="hidden h-full flex flex-col">
@@ -580,7 +605,8 @@
             const addMemberButton = document.getElementById('add-member-button');
             const manualPickListContainer = document.getElementById('manual-pick-list-container');
             
-            // Tab containers
+            // Main views and panels
+            const conductorPanelWrapper = document.getElementById('conductor-panel-wrapper');
             const contentMembers = document.getElementById('content-members');
             const contentHistory = document.getElementById('content-history');
             const contentMedals = document.getElementById('content-medals');
@@ -1291,26 +1317,39 @@
             };
             
             // --- TAB SWITCHING LOGIC ---
-            function switchTab(tabName) {
-                // This function handles the main navigation tabs (Members, History, Medals)
-                // Deactivate all main nav buttons
-                document.querySelectorAll('#desktop-nav [data-tab], #mobile-nav [data-tab]').forEach(btn => btn.classList.remove('active'));
-                
-                // Activate the correct main nav buttons
-                document.querySelectorAll(`#desktop-nav [data-tab="${tabName}"], #mobile-nav [data-tab="${tabName}"]`).forEach(btn => btn.classList.add('active'));
-
-                // Hide all main content panels
-                [contentMembers, contentHistory, contentMedals].forEach(p => p.classList.add('hidden'));
+            function switchMainContentTab(tabName) {
+                // Deactivate all main content tabs
+                document.querySelectorAll('#desktop-nav [data-tab], #mobile-nav [data-tab]').forEach(btn => {
+                    if (btn.dataset.tab !== 'conductor') {
+                        btn.classList.remove('active');
+                    }
+                });
+                // Activate the selected main content tab
+                document.querySelectorAll(`[data-tab="${tabName}"]`).forEach(btn => btn.classList.add('active'));
 
                 // Show the correct content panel
+                [contentMembers, contentHistory, contentMedals].forEach(p => p.classList.add('hidden'));
                 const contentPanel = document.getElementById(`content-${tabName}`);
                 if (contentPanel) {
                     contentPanel.classList.remove('hidden');
                 }
             }
-            // Attach listener only to main navigation buttons
-            document.querySelectorAll('#desktop-nav [data-tab], #mobile-nav [data-tab]').forEach(button => {
-                button.addEventListener('click', () => switchTab(button.dataset.tab));
+
+            function toggleConductorPanel() {
+                const isVisible = conductorPanelWrapper.classList.toggle('is-visible');
+                document.querySelectorAll('[data-tab="conductor"]').forEach(b => b.classList.toggle('active', isVisible));
+            }
+
+            // Combined event listener for all navigation
+            document.querySelectorAll('#desktop-nav button, #mobile-nav button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabName = button.dataset.tab;
+                    if (tabName === 'conductor') {
+                        toggleConductorPanel();
+                    } else {
+                        switchMainContentTab(tabName);
+                    }
+                });
             });
 
 
@@ -1603,7 +1642,10 @@
 
             // --- INITIALIZATION ---
             setAuthState(false);
-            switchTab('history');
+            // Set the initial active tab to History
+            switchMainContentTab('history');
+            // Make conductor panel visible by default
+            toggleConductorPanel();
             populateHowItWorksContent();
             populateMedalSelect(awardMedalSelect);
             initializeFirebase();
