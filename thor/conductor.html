@@ -1648,9 +1648,9 @@
                     }
                 }
 
-                // Check if the specific member already has this medal active
+                // Check if the specific member already has this medal active, UNLESS it's a Mega Express Medal
                 const member = allianceMembers.find(m => m.id === memberId);
-                if (member && member.medals && member.medals.some(m => m.name === medalName && m.expires > Date.now())) {
+                if (medalName !== 'Mega Express Medal' && member && member.medals && member.medals.some(m => m.name === medalName && m.expires > Date.now())) {
                     awardMedalValidationMsg.textContent = `${member.name} already has an active ${medalName}.`;
                     saveAwardMedalBtn.disabled = true;
                     return;
