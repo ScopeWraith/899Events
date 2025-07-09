@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Train Conductor Selector</title>
+    <title>THOR Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -168,6 +168,58 @@
             opacity: 1;
             padding-bottom: 1rem; /* Reduced gap */
         }
+        @media (min-width: 1024px) {
+             #conductor-panel-wrapper.is-visible {
+                padding-bottom: 2rem; /* gap-8 on desktop */
+             }
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            width: 36px;
+            height: 20px;
+        }
+        .toggle-switch .toggle-switch-track {
+            background-color: #4b5563; /* gray-600 */
+        }
+        .toggle-switch .toggle-switch-thumb {
+            width: 16px;
+            height: 16px;
+            top: 2px;
+            left: 2px;
+            transform: translateX(0);
+        }
+        .desktop-nav-btn.active .toggle-switch .toggle-switch-track {
+            background-color: #0891b2; /* cyan-600 */
+        }
+        .desktop-nav-btn.active .toggle-switch .toggle-switch-thumb {
+            transform: translateX(16px);
+        }
+
+        /* Mobile Toggle Switch */
+        .toggle-switch-mobile {
+            width: 28px;
+            height: 16px;
+        }
+        .toggle-switch-mobile .toggle-switch-track {
+            background-color: #4b5563; /* gray-600 */
+        }
+        .toggle-switch-mobile .toggle-switch-thumb {
+            width: 12px;
+            height: 12px;
+            top: 2px;
+            left: 2px;
+            transform: translateX(0);
+        }
+        .mobile-nav-btn.active .toggle-switch-mobile .toggle-switch-track {
+            background-color: #0891b2; /* cyan-600 */
+        }
+        .mobile-nav-btn.active .toggle-switch-mobile .toggle-switch-thumb {
+            transform: translateX(12px);
+        }
+        .toggle-switch-track, .toggle-switch-thumb {
+            transition: all 0.2s ease-in-out;
+        }
 
     </style>
 </head>
@@ -187,12 +239,15 @@
         <aside class="hidden lg:flex flex-col w-64 flex-shrink-0">
             <div class="card flex-grow flex flex-col rounded-2xl">
                 <div class="p-4 border-b border-slate-700/50">
-                    <h1 class="text-xl font-bold text-white text-center font-orbitron">Conductor</h1>
+                    <h1 class="text-xl font-bold text-white text-center font-orbitron">THOR Tracker</h1>
                 </div>
                 <nav id="desktop-nav" class="flex-grow p-2 space-y-1">
-                    <button data-tab="conductor" class="desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
-                        <i class="fa-solid fa-train w-5 h-5 text-center"></i>
+                    <button data-tab="conductor" class="desktop-nav-btn w-full flex items-center justify-between p-3 rounded-lg">
                         <span class="font-semibold">Conductor</span>
+                        <div class="toggle-switch relative">
+                            <div class="toggle-switch-track absolute top-0 left-0 right-0 bottom-0 rounded-full"></div>
+                            <div class="toggle-switch-thumb absolute bg-white rounded-full"></div>
+                        </div>
                     </button>
                     <button data-tab="members" class="desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
                         <i class="fa-solid fa-users w-5 h-5 text-center"></i>
@@ -230,7 +285,7 @@
                         <h2 class="text-2xl font-bold text-white text-center text-glow-cyan">Today's Conductor</h2>
                     </div>
                     <div id="conductor-display" class="bg-slate-900/70 rounded-lg p-4 min-h-[90px] flex items-center justify-center text-center">
-                        <span id="conductor-name" class="font-orbitron text-3xl md:text-4xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
+                        <span id="conductor-name" class="font-orbitron text-2xl md:text-3xl font-bold text-slate-500 transition-colors duration-300">SELECT A CONDUCTOR</span>
                     </div>
                     <div id="action-buttons-container" class="admin-control mt-4">
                         <div id="random-buttons-container" class="grid grid-cols-1">
@@ -253,20 +308,23 @@
                 <!-- Mobile Nav (now at top of card) -->
                 <div id="mobile-nav" class="lg:hidden border-b border-slate-700/50">
                     <div class="grid grid-cols-4 text-center">
-                        <button data-tab="conductor" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
-                            <i class="fa-solid fa-train w-5 h-5 mb-1"></i>
+                        <button data-tab="conductor" class="mobile-nav-btn py-3 px-2 flex flex-col items-center justify-center gap-2">
+                            <div class="toggle-switch-mobile relative">
+                                <div class="toggle-switch-track absolute top-0 left-0 right-0 bottom-0 rounded-full"></div>
+                                <div class="toggle-switch-thumb absolute bg-white rounded-full"></div>
+                            </div>
                             <span class="text-xs font-semibold">Conductor</span>
                         </button>
-                        <button data-tab="members" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
-                            <i class="fa-solid fa-users w-5 h-5 mb-1"></i>
+                        <button data-tab="members" class="mobile-nav-btn py-3 px-2 flex flex-col items-center justify-center gap-2">
+                            <i class="fa-solid fa-users w-5 h-5"></i>
                             <span class="text-xs font-semibold">Members</span>
                         </button>
-                        <button data-tab="history" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
-                            <i class="fa-solid fa-clock-rotate-left w-5 h-5 mb-1"></i>
+                        <button data-tab="history" class="mobile-nav-btn py-3 px-2 flex flex-col items-center justify-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left w-5 h-5"></i>
                             <span class="text-xs font-semibold">History</span>
                         </button>
-                        <button data-tab="medals" class="mobile-nav-btn p-3 flex flex-col items-center justify-center">
-                            <i class="fa-solid fa-medal w-5 h-5 mb-1"></i>
+                        <button data-tab="medals" class="mobile-nav-btn py-3 px-2 flex flex-col items-center justify-center gap-2">
+                            <i class="fa-solid fa-medal w-5 h-5"></i>
                             <span class="text-xs font-semibold">Medals</span>
                         </button>
                     </div>
