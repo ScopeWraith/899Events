@@ -1068,7 +1068,7 @@
                     const member = allianceMembers[memberIndex];
                     const now = Date.now();
                     const newMedal = {
-                        id: now,
+                        id: now + Math.random(), // Add random to avoid ID collision
                         name: medalName,
                         awardedDate: now,
                         expires: now + (30 * 24 * 60 * 60 * 1000)
@@ -1090,7 +1090,7 @@
                     <ul class="list-disc list-inside space-y-2 mt-4">
                         <li><strong>Fairness First:</strong> The system uses a "Luck" score to weigh the odds. Higher luck means a better chance of being selected, but it never guarantees it.</li>
                         <li><strong>Cooldown System:</strong> After a member serves as conductor, they enter a cooldown period to ensure others get a turn.</li>
-                        <li><strong>Rewarding Performance:</strong> Higher ranks and special medals provide bonuses to a member's luck and can reduce their cooldown time, rewarding dedication and achievement.</li>
+                        <li><strong>Rewarding Performance:</strong> Higher ranks and special medals provide bonuses to a member's luck and can reduce their cooldown time, rewarding dedication and achievement. Medals can be awarded multiple times and their effects will stack.</li>
                         <li><strong>Admin Management:</strong> Logged-in administrators have full control over the member list, selection history, and medal awards to keep the system up-to-date.</li>
                     </ul>
                 </div>
@@ -1114,7 +1114,7 @@
                     </div>
                      <div>
                         <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Medal Bonuses (30 Day Duration)</h3>
-                        <p class="mb-3">Awarded medals provide powerful, temporary bonuses for 30 days. They can increase luck, reduce cooldowns, or both.</p>
+                        <p class="mb-3">Awarded medals provide powerful, temporary bonuses for 30 days. They can increase luck, reduce cooldowns, or both. Multiple medals of the same type can be awarded, and their effects will stack.</p>
                         <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-800/50"><th class="p-2 font-semibold text-white">Medal Name</th><th class="p-2 font-semibold text-white">Luck Bonus</th><th class="p-2 font-semibold text-white">CD Reduction</th></tr></thead><tbody id="how-it-works-medal-bonus-table"></tbody></table></div>
                     </div>
                 </div>
@@ -1767,6 +1767,8 @@
                 const medalName = awardMedalSelect.value;
                 if(medalName && awardMedal(memberToEditId, medalName)) {
                     renderActiveMedalsInEditModal();
+                    // Also re-render main list to update stats
+                    renderManualPickList();
                 }
             });
             removeSubBoostBtn.addEventListener('click', () => {
@@ -1862,53 +1864,28 @@
                     triggerConfetti();
                 });
             });
-
+            
+            /**
+             * [MODIFIED] Validates if a medal can be awarded.
+             * All previous restrictions have been removed to allow stacking.
+             */
             function validateMedalAward() {
                 const memberId = parseFloat(awardMedalMemberSelect.value);
                 const medalName = awardMedalTypeSelect.value;
+                
+                // The only check is to ensure a member and medal are selected.
                 if (!memberId || !medalName) {
                     saveAwardMedalBtn.disabled = true;
                     awardMedalValidationMsg.textContent = '';
                     return;
                 }
 
-                // Special handling for Mega Express Medal
-                if (medalName === 'Mega Express Medal') {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const startOfToday = today.getTime();
-
-                    const awardsToday = allianceMembers
-                        .flatMap(m => m.medals || [])
-                        .filter(med => med.name === 'Mega Express Medal' && med.awardedDate >= startOfToday)
-                        .length;
-
-                    if (awardsToday >= 2) {
-                        awardMedalValidationMsg.textContent = `Mega Express can only be awarded twice per day.`;
-                        saveAwardMedalBtn.disabled = true;
-                        return;
-                    }
-                } else {
-                    // Existing logic for other medals
-                    const sixDaysAgo = Date.now() - (6 * 24 * 60 * 60 * 1000);
-                    if (allianceMembers.some(m => m.medals && m.medals.some(med => med.name === medalName && med.awardedDate > sixDaysAgo))) {
-                        awardMedalValidationMsg.textContent = `This medal was already awarded this week.`;
-                        saveAwardMedalBtn.disabled = true;
-                        return;
-                    }
-                }
-
-                // Check if the specific member already has this medal active, UNLESS it's a Mega Express Medal
-                const member = allianceMembers.find(m => m.id === memberId);
-                if (medalName !== 'Mega Express Medal' && member && member.medals && member.medals.some(m => m.name === medalName && m.expires > Date.now())) {
-                    awardMedalValidationMsg.textContent = `${member.name} already has an active ${medalName}.`;
-                    saveAwardMedalBtn.disabled = true;
-                    return;
-                }
-
+                // All previous validation checks have been removed to allow medals to be
+                // awarded to any player at any time, and buffs will stack.
                 awardMedalValidationMsg.textContent = '';
                 saveAwardMedalBtn.disabled = false;
             }
+
             openAwardMedalModalBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 awardMedalMemberSelect.innerHTML = '<option value="">Select a member...</option>';
