@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Last War S3 Guide: The Golden Kingdom</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;600;700;800&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #12100E;
+            --color-surface: #1f1c19;
+            --color-primary: #fcd34d; /* Amber-400 */
+            --color-secondary: #ef4444; /* Red-500 */
+            --color-text: #e5e7eb; /* Gray-200 */
+            --color-text-muted: #9ca3af; /* Gray-400 */
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232a2a2a' fill-opacity='0.1'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10-10-4.477-10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10-10-4.477-10-10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        h1, h2, h3, h4, h5, h6, .nav-link, .mobile-nav-link {
+            font-family: 'Changa', sans-serif;
+        }
+
+        .hero-bg {
+            background-image: linear-gradient(to top, rgba(18, 16, 14, 1) 5%, rgba(18, 16, 14, 0.7) 100%), url('https://placehold.co/1920x1080/4a2e1d/d4af37?text=The+Golden+Kingdom');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Parallax effect */
+        }
+
+        .section-title {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: -webkit-linear-gradient(var(--color-primary), var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+            border-radius: 2px;
+        }
+
+        .card {
+            background-color: var(--color-surface);
+            border: 1px solid #444;
+            border-radius: 0.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding-bottom: 4px;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: rgba(18, 16, 14, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #444;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .highlight {
+            color: var(--color-primary);
+            font-weight: 700;
+        }
+         .pro-tip {
+            background-color: rgba(252, 211, 77, 0.05);
+            border-left: 4px solid var(--color-primary);
+        }
+        .pitfall {
+            background-color: rgba(239, 68, 68, 0.05);
+            border-left: 4px solid var(--color-secondary);
+        }
+
+        /* Animations */
+        .animated-item {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .animated-item.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Table Styles */
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .custom-table th, .custom-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        .custom-table th {
+            background-color: rgba(252, 211, 77, 0.1);
+            color: var(--color-primary);
+            font-family: 'Changa', sans-serif;
+            text-transform: uppercase;
+        }
+        .custom-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Hero Section -->
+    <header class="hero-bg text-white text-center py-24 md:py-40">
+        <div class="container mx-auto px-4 animated-item is-visible">
+            <h1 class="text-5xl md:text-8xl font-extrabold uppercase tracking-wider">Last War: Season 3</h1>
+            <h2 class="text-3xl md:text-5xl font-bold mt-2 text-amber-300">The Golden Kingdom</h2>
+            <p class="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-gray-300 leading-relaxed">
+                A definitive strategic briefing to equip your alliance for total domination. Master the new mechanics, execute flawless strategy, and conquer the desert.
+            </p>
+            <a href="#prep" class="mt-10 inline-block bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-4 px-10 rounded-lg text-lg uppercase transition duration-300 shadow-lg shadow-amber-500/30 transform hover:scale-105">
+                Begin Doctrine
+            </a>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="sticky-nav">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-20">
+                <div class="text-white text-2xl font-bold uppercase tracking-widest">S3 Intel</div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#prep" class="nav-link px-2 text-sm">Prep</a>
+                    <a href="#mechanics" class="nav-link px-2 text-sm">Mechanics</a>
+                    <a href="#blueprint" class="nav-link px-2 text-sm">Blueprint</a>
+                    <a href="#heroes" class="nav-link px-2 text-sm">Heroes</a>
+                    <a href="#warfare" class="nav-link px-2 text-sm">Warfare</a>
+                    <a href="#tips" class="nav-link px-2 text-sm">Advanced Tips</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-white focus:outline-none">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu (same as before) -->
+        <div id="mobile-menu" class="md:hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-95 z-40 transform -translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="flex justify-end p-6">
+                 <button id="close-mobile-menu-button" class="text-white focus:outline-none">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="flex flex-col items-center justify-center h-full -mt-16 space-y-8">
+                <a href="#prep" class="mobile-nav-link text-3xl text-white font-bold uppercase">Prep</a>
+                <a href="#mechanics" class="mobile-nav-link text-3xl text-white font-bold uppercase">Mechanics</a>
+                <a href="#blueprint" class="mobile-nav-link text-3xl text-white font-bold uppercase">Blueprint</a>
+                <a href="#heroes" class="mobile-nav-link text-3xl text-white font-bold uppercase">Heroes</a>
+                <a href="#warfare" class="mobile-nav-link text-3xl text-white font-bold uppercase">Warfare</a>
+                <a href="#tips" class="mobile-nav-link text-3xl text-white font-bold uppercase">Tips</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-16">
+
+        <!-- Pre-Season Prep Section -->
+        <section id="prep" class="mb-24 scroll-mt-24">
+            <h2 class="text-4xl md:text-5xl text-center mb-16 section-title animated-item">Pre-Season Doctrine</h2>
+            <div class="card p-8 rounded-lg animated-item">
+                <h3 class="text-2xl font-bold text-amber-400 mb-4">Pre-Season 3 Checklist</h3>
+                <p class="text-gray-400 mb-6">Success in Season 3 is forged in the off-season. Failure to complete these tasks will result in a crippling disadvantage.</p>
+                <table class="custom-table">
+                    <thead>
+                        <tr><th>Task</th><th>Rationale</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Merge/Recruit to 80+ Active Members</strong></td><td>Essential for all seasonal group content like Spice Wars and high-level rallies.</td></tr>
+                        <tr><td><strong>Acquire Eternal Pyramid Decoration</strong></td><td>Critical S3 boost to construction speed and resource collection. Must be from S1/S2 Black Market.</td></tr>
+                        <tr><td><strong>Acquire Meowity Base Skin</strong></td><td>Increases starting capacity of the key S3 building, the Protector's Field, by 500.</td></tr>
+                        <tr><td><strong>Cease Attacking Doom Walkers</strong></td><td>Preserves the massive "first kill" Mithril bonus at the start of S3.</td></tr>
+                        <tr><td><strong>Stack Radar Missions</strong></td><td>Allows immediate triggering of a high-value "Desert Ruin" mission once S3 begins.</td></tr>
+                        <tr><td><strong>Use All Secret Task Map Pieces</strong></td><td>These are converted to basic resources and will NOT carry over into the new S3 treasure system.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- New Mechanics Section -->
+        <section id="mechanics" class="mb-24 scroll-mt-24">
+            <h2 class="text-4xl md:text-5xl text-center mb-16 section-title animated-item">Kingdom Mechanics</h2>
+            <div class="space-y-12">
+                <div class="card p-8 rounded-lg animated-item">
+                    <h3 class="text-2xl font-bold text-amber-400 mb-3 text-center">The Mithril-Sacred Water Economic Loop</h3>
+                    <p class="text-center text-gray-400 mb-6">This cycle is the engine of your seasonal progression. Master it or fall behind.</p>
+                    <div class="text-center text-lg md:text-xl font-semibold tracking-wide">
+                        <span class="highlight">Mithril</span> → Fountains → <span class="highlight">Sacred Water</span> → Curse Lab → <span class="highlight">Curse Resistance</span> → Defeat Enemies → <span class="highlight">Mithril</span>
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="card p-8 rounded-lg animated-item">
+                        <h3 class="text-xl font-bold text-amber-400 mb-3">Curse Resistance (CR)</h3>
+                        <p class="text-gray-300">The most important stat for S3 PvE. If your CR is too low, your power is irrelevant. Increase it via the <span class="highlight">Curse Research Lab</span> and the <span class="highlight">Weekly Pass</span> (+250 CR). A rally leader's CR applies to all members—use this to your advantage!</p>
+                    </div>
+                    <div class="card p-8 rounded-lg pitfall animated-item">
+                        <h3 class="text-xl font-bold text-red-400 mb-3">The Desert Protector Trap</h3>
+                        <p class="text-gray-300">Protectors are powerful, single-use units. <strong class="text-red-500">DO NOT WASTE THEM</strong> on early-game zombies. They are a finite resource intended for the most critical PvP battles: <span class="highlight">Spice Wars</span>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 72-Hour Blueprint Section -->
+        <section id="blueprint" class="mb-24 scroll-mt-24">
+            <h2 class="text-4xl md:text-5xl text-center mb-16 section-title animated-item">First 72-Hour Blueprint</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card p-8 rounded-lg animated-item">
+                    <h3 class="text-2xl font-bold text-amber-400 mb-4">Day One Action Plan</h3>
+                    <ol class="list-decimal list-inside space-y-3 text-gray-300">
+                        <li><span class="font-semibold">Strategic Relocation:</span> Move alliance hive near high-level objectives.</li>
+                        <li><span class="font-semibold">Tactical Spending:</span> Buy Battle/Weekly Pass for immediate resource and CR boosts.</li>
+                        <li><span class="font-semibold">Coordinated Conquest:</span> Rally with high-CR players to chain first-kill Mithril rewards.</li>
+                        <li><span class="font-semibold">Activate Buffs:</span> Use "War Fever" for a constant 1% attack boost.</li>
+                    </ol>
+                </div>
+                <div class="card p-8 rounded-lg animated-item">
+                    <h3 class="text-2xl font-bold text-amber-400 mb-4">Optimal Building Priority</h3>
+                     <ol class="list-decimal list-inside space-y-3 text-gray-300">
+                        <li><span class="font-semibold">Blessing Fountains to Lvl 15:</span> Your #1 Mithril priority to unlock more fountains.</li>
+                        <li><span class="font-semibold">Curse Research Lab:</span> Funnel all Sacred Water here to boost CR.</li>
+                        <li><span class="font-semibold">Level Fountains Evenly:</span> After all are unlocked, for best efficiency.</li>
+                        <li><span class="font-semibold">Protector Altar:</span> Prioritize Altar (strength) over the Protector's Field (capacity).</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hero Guide Section -->
+        <section id="heroes" class="mb-24 scroll-mt-24">
+            <h2 class="text-4xl md:text-5xl text-center mb-16 section-title animated-item">Hero & Squad Command</h2>
+            <div class="card p-8 rounded-lg animated-item">
+                <h3 class="text-2xl font-bold text-amber-400 mb-4">S3 Priority Hero Analysis</h3>
+                <p class="text-gray-400 mb-6">The S3 meta favors heroes with PvE utility for farming Mithril. Focus on these heroes for maximum seasonal effectiveness.</p>
+                <table class="custom-table">
+                    <thead>
+                        <tr><th>Hero</th><th>Type</th><th>Season 3 Bonus</th><th>Priority</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Marshall</strong></td><td>Tank</td><td>10% Dmg Reduction (Monsters), Exclusive Weapon</td><td class="highlight">High</td></tr>
+                        <tr><td><strong>Skyler</strong></td><td>Aircraft</td><td>10% Dmg Reduction (Monsters), Exclusive Weapon</td><td class="highlight">High</td></tr>
+                        <tr><td><strong>McGregor</strong></td><td>Missile</td><td>10% Dmg Reduction (Monsters), Exclusive Weapon</td><td class="highlight">High</td></tr>
+                        <tr><td><strong>Scarlett</strong></td><td>Tank</td><td>5% Dmg Reduction (Monsters), UR Promotion</td><td class="text-amber-500">High (for S3)</td></tr>
+                    </tbody>
+                </table>
+                 <div class="pro-tip p-6 rounded-md mt-6">
+                    <h4 class="text-xl font-bold text-amber-300 mb-2">The Scarlett Dilemma</h4>
+                    <p>Upgrading Scarlett to UR (requires <span class="highlight">1600 purple shards</span>) makes her a top-tier tank for S3. However, her long-term value post-season is debated. Invest heavily if your goal is to win S3; consider alternatives if you're planning for S4 and beyond.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Alliance Warfare Section -->
+        <section id="warfare" class="mb-24 scroll-mt-24">
+            <h2 class="text-4xl md:text-5xl text-center mb-16 section-title animated-item">Alliance Warfare</h2>
+            <div class="card p-8 rounded-lg animated-item">
+                <h3 class="text-2xl font-bold text-amber-400 mb-4">Spice Wars: Tactical Primer</h3>
+                <p class="text-gray-400 mb-6">Spice Wars are the centerpiece of S3 PvP. Victory requires coordination, not just brute force. This is where you use your saved <span class="highlight">Desert Protectors</span>.</p>
+                <table class="custom-table">
+                    <thead>
+                        <tr><th>Phase</th><th>Objective</th><th>Tactical Imperative</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Offense</strong></td><td>Maximize Spice Plunder</td><td>Destroy ALL four outbuildings (5% Spice each) <strong class="text-red-500">BEFORE</strong> attacking the main Alliance Center (10% Spice).</td></tr>
+                        <tr><td><strong>Defense</strong></td><td>Minimize Spice Loss</td><td>Strongest players reinforce the main Center. Use shields (36h-72h) before the battle if you anticipate being a target.</td></tr>
+                        <tr><td><strong>Strategy</strong></td><td>Long-Term Victory</td><td>Avoid accumulating too much Spice early to stay in favorable competitive tiers. Do not "dogpile" an enemy with another alliance.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <!-- Advanced Tips Section -->
+        <section id="tips" class="scroll-mt-24">
+            <h2 class="text-4xl md:text-5xl text-center mb-16 section-title animated-item">The Veteran's Edge</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                 <div class="card p-8 rounded-lg pro-tip animated-item">
+                    <h3 class="text-xl font-bold text-amber-300 mb-3">The Greenification Gambit</h3>
+                    <p class="text-gray-300">The most efficient way to gain Profession XP is not combat. Using 10 stamina to <span class="highlight">"greenify"</span> a desert patch gives ~4,000 XP, roughly 6x more than fighting. This is the optimal path for leveling your profession, especially for F2P players.</p>
+                </div>
+                <div class="card p-8 rounded-lg pitfall animated-item">
+                     <h3 class="text-xl font-bold text-red-400 mb-3">Top 5 Mistakes to Avoid</h3>
+                     <ol class="list-decimal list-inside space-y-2 text-gray-300">
+                        <li><strong class="text-red-500">Wasting Protectors</strong> on early-game PvE.</li>
+                        <li><strong class="text-red-500">Neglecting Drones</strong> & core game power.</li>
+                        <li><strong class="text-red-500">Spreading Upgrades</strong> across too many heroes.</li>
+                        <li><strong class="text-red-500">Ignoring the Greenify XP Method</strong> for profession.</li>
+                        <li><strong class="text-red-500">Destroying the Spice War Center First</strong> & losing plunder.</li>
+                     </ol>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black mt-24 border-t-2 border-gray-800">
+        <div class="container mx-auto py-8 px-4 text-center text-gray-500">
+            <p>&copy; 2025 Alliance Command. Guide based on community-sourced data for Last War: Survival.</p>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <button id="to-top-button" title="Go To Top"
+        class="hidden fixed z-50 bottom-10 right-10 p-4 border-0 w-14 h-14 rounded-full shadow-md bg-amber-500 hover:bg-amber-600 text-gray-900 text-lg font-semibold transition-all duration-300 transform hover:scale-110">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
+
+    <script>
+        // --- Scroll to top button logic ---
+        const toTopButton = document.getElementById('to-top-button');
+        window.onscroll = () => {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                toTopButton.classList.remove('hidden');
+            } else {
+                toTopButton.classList.add('hidden');
+            }
+        };
+        toTopButton.onclick = () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // --- Active nav link highlighting ---
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 120) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // --- Mobile Menu Logic ---
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMobileMenuButton = document.getElementById('close-mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+        function openMenu() { mobileMenu.classList.remove('-translate-x-full'); }
+        function closeMenu() { mobileMenu.classList.add('-translate-x-full'); }
+
+        mobileMenuButton.addEventListener('click', openMenu);
+        closeMobileMenuButton.addEventListener('click', closeMenu);
+        mobileNavLinks.forEach(link => { link.addEventListener('click', closeMenu); });
+
+        // --- Scroll Animation Logic ---
+        const animatedItems = document.querySelectorAll('.animated-item');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        animatedItems.forEach(item => {
+            observer.observe(item);
+        });
+    </script>
+</body>
+</html>
