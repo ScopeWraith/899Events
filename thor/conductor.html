@@ -401,10 +401,15 @@
                     </button>
                 </nav>
                  <div class="p-4 border-t border-slate-700/50 mt-auto flex flex-col items-center justify-between space-y-2">
-                    <button id="how-it-works-button" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center space-x-2">
-                        <i class="fa-solid fa-circle-question w-4 h-4"></i>
-                        <span>How it works!</span>
-                    </button>
+                    <div class="flex items-center space-x-2">
+                        <button id="how-it-works-button" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center space-x-2">
+                            <i class="fa-solid fa-circle-question w-4 h-4"></i>
+                            <span>How it works!</span>
+                        </button>
+                        <button id="settings-button" class="admin-control text-slate-400 hover:text-cyan-400 font-bold py-2 px-2 rounded-lg text-sm transition-colors flex items-center" title="Settings">
+                            <i class="fa-solid fa-cog w-4 h-4"></i>
+                        </button>
+                    </div>
                     <div class="flex-grow text-center">
                         <button id="open-login-modal-btn" class="login-button bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Admin Login</button>
                         <button id="logout-button" class="logout-button bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Logout</button>
@@ -507,10 +512,15 @@
                     </div>
                     <!-- Mobile Footer -->
                     <div class="lg:hidden p-4 border-t border-slate-700/50 mt-auto flex items-center justify-between space-x-4">
-                        <button id="how-it-works-button-mobile" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center space-x-2">
-                            <i class="fa-solid fa-circle-question w-4 h-4"></i>
-                            <span>How it works!</span>
-                        </button>
+                        <div class="flex items-center">
+                            <button id="how-it-works-button-mobile" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center space-x-2">
+                                <i class="fa-solid fa-circle-question w-4 h-4"></i>
+                                <span>How it works!</span>
+                            </button>
+                             <button id="settings-button-mobile" class="admin-control text-slate-400 hover:text-cyan-400 font-bold py-2 px-2 rounded-lg text-xs transition-colors flex items-center" title="Settings">
+                                <i class="fa-solid fa-cog w-4 h-4"></i>
+                            </button>
+                        </div>
                         <div class="flex-grow text-right">
                             <button id="open-login-modal-btn-mobile" class="login-button bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Admin Login</button>
                             <button id="logout-button-mobile" class="logout-button bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors">Logout</button>
@@ -522,6 +532,23 @@
     </div>
 
     <!-- All Modals -->
+    <div id="settings-modal" class="modal-overlay hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-lg rounded-2xl">
+            <h2 class="text-xl font-bold text-white mb-4 text-center">Settings</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="webhook-url-input" class="block text-sm font-medium text-slate-300">Discord Webhook URL</label>
+                    <input type="text" id="webhook-url-input" placeholder="Enter your Discord webhook URL" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                    <p class="text-xs text-slate-400 mt-1">Notifications for new players, rank changes, and medals will be sent here.</p>
+                </div>
+                 <p id="webhook-save-status" class="text-xs text-green-400 h-4 text-center"></p>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancel-settings-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                <button id="save-settings-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Save Settings</button>
+            </div>
+        </div>
+    </div>
     <div id="login-modal" class="modal-overlay hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4 text-center">Admin Login</h2>
@@ -759,6 +786,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // --- CONFIGURATION ---
             const CONFIG = {
+                DISCORD_WEBHOOK_URL: '', // THIS WILL BE POPULATED FROM FIRESTORE
                 RANK_LUCK: { 'R1': 10, 'R2': 25, 'R3': 50, 'R4': 85, 'R5': 130 },
                 MEDAL_LUCK: {
                     'VS Gold': 20, 'VS Silver': 18, 'VS Bronze': 15,
@@ -908,9 +936,19 @@
             const howItWorksContent = document.getElementById('how-it-works-content');
             const howItWorksButtons = [document.getElementById('how-it-works-button'), document.getElementById('how-it-works-button-mobile')];
 
+            // Settings Modal Elements
+            const settingsModal = document.getElementById('settings-modal');
+            const settingsButtons = [document.getElementById('settings-button'), document.getElementById('settings-button-mobile')];
+            const webhookUrlInput = document.getElementById('webhook-url-input');
+            const saveSettingsBtn = document.getElementById('save-settings-btn');
+            const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+            const webhookSaveStatus = document.getElementById('webhook-save-status');
+
+
             // --- LOCAL STATE ---
             let allianceMembers = [];
             let selectionHistory = [];
+            let appSettings = { discordWebhookUrl: '' };
             let currentConductor = 'SELECT A CONDUCTOR';
             let pendingConductor = null;
             let memberToEditId = null;
@@ -1010,6 +1048,10 @@
                                 date: getTimestamp(item.date),
                                 id: item.id || Date.now() + index
                             }));
+                            
+                            appSettings = data.settings || { discordWebhookUrl: '' };
+                            CONFIG.DISCORD_WEBHOOK_URL = appSettings.discordWebhookUrl;
+
 
                             currentConductor = data.currentConductor || 'SELECT A CONDUCTOR';
                         } else {
@@ -1026,6 +1068,41 @@
                     loadingOverlay.innerHTML = `<p class="text-red-400 text-center">Connection Failed.<br>Please check console for errors.</p>`;
                 }
             }
+
+            // --- DISCORD INTEGRATION ---
+            /**
+             * Sends a message to the configured Discord webhook.
+             * @param {object} embed - The Discord embed object to send.
+             */
+            async function sendToDiscord(embed) {
+                if (!CONFIG.DISCORD_WEBHOOK_URL) {
+                    console.log("Discord webhook URL is not configured. Skipping notification.");
+                    return;
+                }
+
+                const payload = {
+                    username: "THOR Tracker",
+                    avatar_url: "https://i.imgur.com/gJ3l4p8.png", // A generic bot avatar
+                    embeds: [embed]
+                };
+
+                try {
+                    const response = await fetch(CONFIG.DISCORD_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!response.ok) {
+                        console.error(`Discord webhook failed with status: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error("Error sending message to Discord:", error);
+                }
+            }
+
 
             // --- DATA MANAGEMENT ---
             async function updateFirestore() {
@@ -1047,7 +1124,8 @@
                     await setDoc(docRef, {
                         members: sanitizedMembers,
                         history: selectionHistory,
-                        currentConductor: currentConductor
+                        currentConductor: currentConductor,
+                        settings: appSettings
                     });
                 } catch (error) {
                     console.error("Error updating Firestore:", error);
@@ -1059,6 +1137,7 @@
                 .map((name, index) => ({ id: Date.now() + index, name: name, rank: 'R1', medals: [], subBoost: false, avatarUrl: null }));
                 selectionHistory = [{ player: "Rat", date: Date.now() - 86400000 * 2, id: Date.now()+1 }, { player: "Lecarre", date: Date.now() - 86400000 * 3, id: Date.now()+2 }, { player: "MagicalMike (AllDayDad)", date: Date.now() - 86400000 * 4, id: Date.now()+3 }];
                 currentConductor = 'SELECT A CONDUCTOR';
+                appSettings = { discordWebhookUrl: '' };
                 if (isAuthenticated) updateFirestore();
             }
 
@@ -1077,6 +1156,16 @@
                     member.medals.push(newMedal);
 
                     updateFirestore();
+
+                    // Send Discord notification
+                    const discordEmbed = {
+                        title: '🏅 Medal Awarded!',
+                        color: 15844367, // Gold color
+                        description: `Congratulations to **${member.name}** for receiving the **${medalName}** medal!`,
+                        timestamp: new Date().toISOString()
+                    };
+                    sendToDiscord(discordEmbed);
+
                     return true;
                 }
                 return false;
@@ -1126,6 +1215,7 @@
                         <li><strong>Award Medals:</strong> Award medals to members to grant them temporary bonuses. This can be done from the "Medals" tab or from the member edit screen.</li>
                         <li><strong>Designate Conductor:</strong> Manually set a member as the conductor by clicking their name in the "Members" list to open the Player Information Card and using the "Designate" button.</li>
                         <li><strong>Manage History:</strong> Manually add or delete past conductor records from the "History" tab to correct errors or fill in missing data.</li>
+                        <li><strong>Settings:</strong> Configure the Discord webhook URL in the settings menu (cog icon) to enable notifications.</li>
                     </ul>
                 </div>`;
                 populateBonusTables();
@@ -1741,10 +1831,21 @@
             saveAddBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 const newName = addNameInput.value.trim();
+                const newRank = addRankSelect.value;
                 if (newName && !allianceMembers.some(m => m.name === newName)) {
-                    allianceMembers.push({ id: Date.now(), name: newName, rank: addRankSelect.value, medals: [], subBoost: false, avatarUrl: null });
+                    allianceMembers.push({ id: Date.now(), name: newName, rank: newRank, medals: [], subBoost: false, avatarUrl: null });
                     updateFirestore();
                     addModal.classList.add('hidden');
+
+                    // Send Discord notification
+                    const discordEmbed = {
+                        title: '👋 New Player Added!',
+                        color: 5814783, // A welcoming blue color
+                        description: `**${newName}** has been added to the tracker with rank **${newRank}**. Welcome!`,
+                        timestamp: new Date().toISOString()
+                    };
+                    sendToDiscord(discordEmbed);
+
                 } else if (newName) {
                     console.log("A member with this name already exists.");
                 }
@@ -1755,9 +1856,26 @@
                 if (!isAuthenticated || memberToEditId === null) return;
                 const memberIndex = allianceMembers.findIndex(m => m.id === memberToEditId);
                 if (memberIndex > -1) {
-                    allianceMembers[memberIndex].name = editNameInput.value.trim();
-                    allianceMembers[memberIndex].rank = editRankSelect.value;
+                    const oldRank = allianceMembers[memberIndex].rank;
+                    const newName = editNameInput.value.trim();
+                    const newRank = editRankSelect.value;
+
+                    allianceMembers[memberIndex].name = newName;
+                    allianceMembers[memberIndex].rank = newRank;
+                    
                     updateFirestore();
+
+                    // Check for rank change and send notification
+                    if (oldRank !== newRank) {
+                        const discordEmbed = {
+                            title: '📈 Rank Change!',
+                            color: 16705372, // A purple color
+                            description: `**${newName}**'s rank has been updated from **${oldRank}** to **${newRank}**.`,
+                            timestamp: new Date().toISOString()
+                        };
+                        sendToDiscord(discordEmbed);
+                    }
+
                     editModal.classList.add('hidden');
                     memberToEditId = null;
                 }
@@ -1926,6 +2044,28 @@
             }
             howItWorksButtons.forEach(btn => btn.addEventListener('click', openHowItWorks));
             
+            // Settings Modal Listeners
+            settingsButtons.forEach(btn => btn.addEventListener('click', () => {
+                if (isAuthenticated) {
+                    webhookUrlInput.value = appSettings.discordWebhookUrl || '';
+                    webhookSaveStatus.textContent = '';
+                    settingsModal.classList.remove('hidden');
+                }
+            }));
+            cancelSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+            saveSettingsBtn.addEventListener('click', () => {
+                if (!isAuthenticated) return;
+                appSettings.discordWebhookUrl = webhookUrlInput.value.trim();
+                CONFIG.DISCORD_WEBHOOK_URL = appSettings.discordWebhookUrl;
+                updateFirestore();
+                webhookSaveStatus.textContent = 'Settings saved!';
+                setTimeout(() => {
+                    webhookSaveStatus.textContent = '';
+                    settingsModal.classList.add('hidden');
+                }, 2000);
+            });
+
+
             // Close modals when clicking outside
             document.querySelectorAll('.modal-overlay').forEach(modal => {
                 modal.addEventListener('click', (e) => {
