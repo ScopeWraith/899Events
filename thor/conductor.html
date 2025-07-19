@@ -2099,7 +2099,7 @@
                 avatarUploadStatus.textContent = 'Uploading...';
                 selectAvatarBtn.disabled = true;
 
-                const storageRef = ref(storage, `avatars/${memberToEditId}`);
+                const storageRef = ref(storage, `avatars/${memberToEditId}/${file.name}`);
 
                 try {
                     const snapshot = await uploadBytes(storageRef, file);
@@ -2141,5 +2141,41 @@
             initializeFirebase();
         });
     </script>
+
+    <!--
+    ================================================================
+    === FIREBASE SECURITY RULES (COPY TO YOUR FIREBASE CONSOLE)  ===
+    ================================================================
+
+    *** Firestore Rules (firestore.rules) ***
+
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        // Allow public read of the conductor data, but only allow authenticated
+        // users (admins who have logged in via the app's password) to write.
+        match /conductors/{docId} {
+          allow read: if true;
+          allow write: if request.auth != null;
+        }
+      }
+    }
+
+    *** Storage Rules (storage.rules) ***
+
+    rules_version = '2';
+    service firebase.storage {
+      match /b/{bucket}/o {
+        // Allow anyone to read avatars (so they can be displayed in the app)
+        // Allow authenticated users (admins) to upload/update/delete avatars.
+        // The path includes the member's ID and the filename for organization.
+        match /avatars/{memberId}/{allPaths=**} {
+          allow read;
+          allow write: if request.auth != null;
+        }
+      }
+    }
+
+    -->
 </body>
 </html>
