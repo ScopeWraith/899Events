@@ -345,26 +345,27 @@
         };
 
         // --- Firebase Configuration ---
-        const firebaseConfig = {
-        apiKey: "AIzaSyD1W6tFMNLWw2WlxzO_M1dgijXQYp6p75w",
-        authDomain: "transfers-a7cbb.firebaseapp.com",
-        projectId: "transfers-a7cbb",
-        storageBucket: "transfers-a7cbb.firebasestorage.app",
-        messagingSenderId: "940205814599",
-        appId: "1:940205814599:web:657408c6d20385cf361262",
-        measurementId: "G-0WL6PQTGJ1"
-        };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : '1:940205814599:web:657408c6d20385cf361262';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'last-war-transfer';
         
         let app, db, auth;
         try {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (authError) {
+                 console.error("Firebase authentication failed:", authError);
+                 if (authError.code === 'auth/operation-not-allowed') {
+                     showNotification("Authentication failed. Please ensure Anonymous sign-in is enabled in your Firebase project.", "error");
+                 } else {
+                     showNotification("Could not authenticate with the server.", "error");
+                 }
             }
         } catch (error) {
             console.error("Firebase initialization failed:", error);
