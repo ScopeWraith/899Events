@@ -345,8 +345,16 @@
         };
 
         // --- Firebase Configuration ---
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'last-war-transfer';
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1W6tFMNLWw2WlxzO_M1dgijXQYp6p75w",
+            authDomain: "transfers-a7cbb.firebaseapp.com",
+            projectId: "transfers-a7cbb",
+            storageBucket: "transfers-a7cbb.firebasestorage.app",
+            messagingSenderId: "940205814599",
+            appId: "1:940205814599:web:657408c6d20385cf361262",
+            measurementId: "G-0WL6PQTGJ1"
+            };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : '1:940205814599:web:657408c6d20385cf361262';
         
         let app, db, auth;
         try {
