@@ -779,11 +779,11 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             // --- CONFIGURATION ---
             const CONFIG = {
                 DISCORD_WEBHOOK_URL: '', // THIS WILL BE POPULATED FROM FIRESTORE
@@ -954,9 +954,11 @@
             let memberToEditId = null;
             let historyToEditId = null;
             let infoModalMemberId = null;
-            let db, docRef, storage;
+            let db, auth, storage;
+            let docRef;
             let confirmCallback = null;
             let isAuthenticated = false;
+            let isAuthReady = false; // Flag to track if initial auth check is done
 
             // --- DATE HELPERS ---
             /**
@@ -1003,7 +1005,7 @@
 
 
             // --- FIREBASE SETUP ---
-            async function initializeFirebase() {
+            function initializeFirebase() {
                 try {
                     const firebaseConfig = {
                       apiKey: "AIzaSyBL9GRWKf15wDTYdguYnQtU28WblgqT5jE",
@@ -1014,53 +1016,29 @@
                       appId: "1:650853696222:web:a3c418857558336bee384f"
                     };
 
-                    const docId = 'conductor-selector-data';
                     const app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     storage = getStorage(app);
-                    const auth = getAuth(app);
-
-                    await signInAnonymously(auth);
-
+                    auth = getAuth(app);
+                    
+                    const docId = 'conductor-selector-data';
                     const collectionPath = `conductors`;
                     docRef = doc(db, collectionPath, docId);
 
-                    onSnapshot(docRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            allianceMembers = (data.members || []).map((member, index) => {
-                                if (typeof member === 'string') {
-                                    return { id: Date.now() + index, name: member, rank: 'R1', medals: [], subBoost: false, avatarUrl: null };
-                                }
-                                // Sanitize medal dates on load
-                                const medals = (member.medals || []).map(m => ({
-                                    ...m,
-                                    id: m.id || Date.now() + Math.random(),
-                                    awardedDate: getTimestamp(m.awardedDate),
-                                    expires: getTimestamp(m.expires)
-                                }));
-                                return { ...member, id: member.id || Date.now() + index, medals: medals, subBoost: member.subBoost || false, avatarUrl: member.avatarUrl || null };
-                            });
-                            
-                            // Sanitize history dates on load
-                            selectionHistory = (data.history || []).map((item, index) => ({
-                                ...item,
-                                date: getTimestamp(item.date),
-                                id: item.id || Date.now() + index
-                            }));
-                            
-                            appSettings = data.settings || { discordWebhookUrl: '' };
-                            CONFIG.DISCORD_WEBHOOK_URL = appSettings.discordWebhookUrl;
-
-
-                            currentConductor = data.currentConductor || 'SELECT A CONDUCTOR';
+                    // Listen for auth state changes
+                    onAuthStateChanged(auth, (user) => {
+                        isAuthReady = true; // Mark that the initial auth check is complete
+                        if (user) {
+                             console.log("User is signed in:", user.uid);
+                             // Now that we are authenticated, we can attach the Firestore listener
+                             attachFirestoreListener();
                         } else {
-                            console.log("No data found in Firestore. Initializing with default data.");
-                            initializeDefaultData();
+                            console.log("User is signed out.");
+                            // Sign in anonymously if no user is found
+                            signInAnonymously(auth).catch(error => {
+                                console.error("Anonymous sign-in failed:", error);
+                            });
                         }
-                        renderAll();
-                        loadingOverlay.style.opacity = '0';
-                        setTimeout(() => loadingOverlay.style.display = 'none', 300);
                     });
 
                 } catch (error) {
@@ -1068,6 +1046,44 @@
                     loadingOverlay.innerHTML = `<p class="text-red-400 text-center">Connection Failed.<br>Please check console for errors.</p>`;
                 }
             }
+            
+            function attachFirestoreListener() {
+                 if (!docRef) return;
+                 onSnapshot(docRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        allianceMembers = (data.members || []).map((member, index) => {
+                            if (typeof member === 'string') {
+                                return { id: Date.now() + index, name: member, rank: 'R1', medals: [], subBoost: false, avatarUrl: null };
+                            }
+                            const medals = (member.medals || []).map(m => ({
+                                ...m,
+                                id: m.id || Date.now() + Math.random(),
+                                awardedDate: getTimestamp(m.awardedDate),
+                                expires: getTimestamp(m.expires)
+                            }));
+                            return { ...member, id: member.id || Date.now() + index, medals: medals, subBoost: member.subBoost || false, avatarUrl: member.avatarUrl || null };
+                        });
+                        
+                        selectionHistory = (data.history || []).map((item, index) => ({
+                            ...item,
+                            date: getTimestamp(item.date),
+                            id: item.id || Date.now() + index
+                        }));
+                        
+                        appSettings = data.settings || { discordWebhookUrl: '' };
+                        CONFIG.DISCORD_WEBHOOK_URL = appSettings.discordWebhookUrl;
+                        currentConductor = data.currentConductor || 'SELECT A CONDUCTOR';
+                    } else {
+                        console.log("No data found in Firestore. Initializing with default data.");
+                        initializeDefaultData();
+                    }
+                    renderAll();
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(() => loadingOverlay.style.display = 'none', 300);
+                });
+            }
+
 
             // --- DISCORD INTEGRATION ---
             /**
@@ -1106,8 +1122,8 @@
 
             // --- DATA MANAGEMENT ---
             async function updateFirestore() {
-                if (!isAuthenticated) {
-                    console.log("Not authenticated. Skipping Firestore update.");
+                if (!isAuthenticated || !isAuthReady) {
+                    console.log("Not authenticated or auth not ready. Skipping Firestore update.");
                     return;
                 }
                 if (!docRef) return;
@@ -2089,7 +2105,10 @@
             // Avatar Upload Logic
             selectAvatarBtn.addEventListener('click', () => avatarUploadInput.click());
             avatarUploadInput.addEventListener('change', async (e) => {
-                if (!isAuthenticated || memberToEditId === null) return;
+                if (!isAuthenticated || memberToEditId === null || !isAuthReady) {
+                    avatarUploadStatus.textContent = 'Authentication not ready.';
+                    return;
+                };
                 const file = e.target.files[0];
                 if (!file) return;
 
