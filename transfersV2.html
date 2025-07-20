@@ -162,34 +162,6 @@
         }
         .form-select-native { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
-        /* Table Styles */
-        #registrationsTable th {
-            padding: 1rem 1.5rem;
-            background-color: rgba(255, 255, 255, 0.02);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-        }
-        #registrationsTable td {
-            padding: 1rem 1.5rem;
-            color: var(--text-primary);
-        }
-        #registrationsTable tbody tr {
-            border-top: 1px solid var(--border-color);
-            transition: background-color 0.2s ease;
-        }
-        #registrationsTable tbody tr:hover {
-            background-color: rgba(79, 70, 229, 0.05);
-        }
-        .table-scroll-container {
-            max-height: 450px; /* Adjust to fit ~8 rows */
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 0.75rem;
-            background-color: rgba(17, 17, 17, 0.7);
-        }
-
         /* Scrollable Content Area */
         .scrollable-content {
             overflow-y: auto;
@@ -198,14 +170,14 @@
         }
 
         /* Custom Animated Scrollbar */
-        .scrollable-content::-webkit-scrollbar, .table-scroll-container::-webkit-scrollbar {
+        .scrollable-content::-webkit-scrollbar, .player-cards-container::-webkit-scrollbar {
             width: 8px;
         }
-        .scrollable-content::-webkit-scrollbar-track, .table-scroll-container::-webkit-scrollbar-track {
+        .scrollable-content::-webkit-scrollbar-track, .player-cards-container::-webkit-scrollbar-track {
             background: rgba(0,0,0,0.2);
             border-radius: 10px;
         }
-        .scrollable-content::-webkit-scrollbar-thumb, .table-scroll-container::-webkit-scrollbar-thumb {
+        .scrollable-content::-webkit-scrollbar-thumb, .player-cards-container::-webkit-scrollbar-thumb {
             background-image: linear-gradient(to top, #4f46e5, #a78bfa);
             border-radius: 10px;
             opacity: 0;
@@ -213,12 +185,41 @@
         }
         .scrollable-content.scrolling::-webkit-scrollbar-thumb,
         .scrollable-content:hover::-webkit-scrollbar-thumb,
-        .table-scroll-container.scrolling::-webkit-scrollbar-thumb,
-        .table-scroll-container:hover::-webkit-scrollbar-thumb {
+        .player-cards-container.scrolling::-webkit-scrollbar-thumb,
+        .player-cards-container:hover::-webkit-scrollbar-thumb {
             opacity: 1;
         }
 
-        /* Seat Color Tags */
+        /* Player Card Styles */
+        .player-card {
+            background-color: rgba(30, 30, 30, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .player-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        .player-card .power-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+        .player-card .power-item .value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5em;
+            color: var(--primary-color);
+        }
+        .player-card .power-item .label {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
         .seat-tag {
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
@@ -230,6 +231,7 @@
         .seat-tag-Blue { background-color: #3b82f6; color: #ffffff; }
         .seat-tag-Purple { background-color: #8b5cf6; color: #ffffff; }
         .seat-tag-Gold { background-color: #f59e0b; color: #ffffff; }
+
     </style>
 </head>
 <body class="antialiased">
@@ -371,23 +373,8 @@
                             <input type="search" id="playerSearch" class="w-full p-3 pl-10 form-input" placeholder="Search by name, server, or alliance...">
                             <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
                         </div>
-                        <div id="table-scroll" class="table-scroll-container">
-                            <table id="registrationsTable" class="w-full text-left whitespace-nowrap">
-                                <thead>
-                                    <tr>
-                                        <th data-i18n="tablePlayerName">Player Name</th>
-                                        <th data-i18n="tableServer">Server</th>
-                                        <th data-i18n="tableAlliance">Alliance</th>
-                                        <th data-i18n="tableTotalPower">Total Power</th>
-                                        <th data-i18n="tableSeat">Seat</th>
-                                        <th class="admin-only hidden" data-i18n="tableTankPower">Tank Power</th>
-                                        <th class="admin-only hidden" data-i18n="tableAirPower">Air Power</th>
-                                        <th class="admin-only hidden" data-i18n="tableMissilePower">Missile Power</th>
-                                        <th class="super-admin-only hidden" data-i18n="tableActions">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="registrationsTableBody"></tbody>
-                            </table>
+                        <div id="player-cards-container" class="player-cards-container grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Player cards will be injected here -->
                         </div>
                     </div>
                     
@@ -533,7 +520,7 @@
         const editModal = document.getElementById('editModal');
         const confirmModal = document.getElementById('confirmModal');
         const registrationForm = document.getElementById('registrationForm');
-        const registrationsTableBody = document.getElementById('registrationsTableBody');
+        const playerCardsContainer = document.getElementById('player-cards-container');
         const superAdminPanel = document.getElementById('superAdminPanel');
         const adminIcon = document.getElementById('admin-icon');
         const adminText = document.getElementById('admin-text');
@@ -541,7 +528,6 @@
         const languageDisplay = document.getElementById('languageDisplay');
         const mainContent = document.getElementById('main-content');
         const playerSearch = document.getElementById('playerSearch');
-        const tableScrollContainer = document.getElementById('table-scroll');
 
         // --- Form Selects ---
         const totalPowerSelect = document.getElementById('totalPower');
@@ -813,7 +799,7 @@
                     document.querySelectorAll('.super-admin-only').forEach(el => el.classList.remove('hidden'));
                 }
             }
-            renderTable();
+            renderPlayerCards();
         };
 
         const switchView = (view) => {
@@ -838,7 +824,7 @@
         };
 
         // --- Data Fetching and Rendering ---
-        const renderTable = () => {
+        const renderPlayerCards = () => {
             const searchTerm = playerSearch.value.toLowerCase();
             
             const filteredPlayers = allPlayers.filter(player => {
@@ -871,41 +857,59 @@
                 return b.totalPower - a.totalPower;
             });
             
-            registrationsTableBody.innerHTML = '';
+            playerCardsContainer.innerHTML = '';
             if (sortedPlayers.length === 0) {
-                registrationsTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-gray-500">No matching players found.</td></tr>`;
+                playerCardsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-1 md:col-span-2">No matching players found.</p>`;
                 return;
             }
 
             sortedPlayers.forEach(player => {
-                const row = document.createElement('tr');
-                if (otherPlayerNames.has(player.playerName.toLowerCase())) {
-                    row.classList.add('bg-red-500/5');
-                }
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                
                 const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
-                row.innerHTML = `
-                    <td>${canViewSensitive ? player.playerName : 'Hidden'}</td>
-                    <td>${player.currentServer}</td>
-                    <td>${canViewSensitive ? player.currentAlliance : '****'}</td>
-                    <td>${formatPower(player.totalPower)}</td>
-                    <td><span class="seat-tag seat-tag-${player.seatColor}">${player.seatColor}</span></td>
-                    <td class="admin-only hidden">${formatPower(player.tankPower)}</td>
-                    <td class="admin-only hidden">${formatPower(player.airPower)}</td>
-                    <td class="admin-only hidden">${formatPower(player.missilePower)}</td>
-                    <td class="super-admin-only hidden">
-                        <button class="edit-btn text-blue-400 hover:text-blue-300 mr-2" data-id="${player.id}"><i class="fas fa-edit"></i></button>
-                        <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
-                    </td>
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="text-xl font-bold">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
+                            <p class="text-sm text-gray-400">${canViewSensitive ? player.currentAlliance : '****'} | Server ${player.currentServer}</p>
+                        </div>
+                        <span class="seat-tag seat-tag-${player.seatColor}">${player.seatColor}</span>
+                    </div>
+                    <div class="border-t border-zinc-700/50 pt-4">
+                        <div class="power-grid">
+                            <div class="power-item">
+                                <div class="value">${formatPower(player.totalPower)}</div>
+                                <div class="label" data-i18n="tableTotalPower">Total Power</div>
+                            </div>
+                            <div class="power-item admin-only ${canViewSensitive ? '' : 'hidden'}">
+                                <div class="value">${formatPower(player.tankPower)}</div>
+                                <div class="label" data-i18n="tableTankPower">Tank Power</div>
+                            </div>
+                            <div class="power-item admin-only ${canViewSensitive ? '' : 'hidden'}">
+                                <div class="value">${formatPower(player.airPower)}</div>
+                                <div class="label" data-i18n="tableAirPower">Air Power</div>
+                            </div>
+                            <div class="power-item admin-only ${canViewSensitive ? '' : 'hidden'}">
+                                <div class="value">${formatPower(player.missilePower)}</div>
+                                <div class="label" data-i18n="tableMissilePower">Missile Power</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="super-admin-only flex justify-end gap-2 mt-auto ${loginState === 'super_admin' ? '' : 'hidden'}">
+                        <button class="edit-btn text-blue-400 hover:text-blue-300 p-2" data-id="${player.id}"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn text-red-400 hover:text-red-300 p-2" data-id="${player.id}"><i class="fas fa-trash"></i></button>
+                    </div>
                 `;
-                registrationsTableBody.appendChild(row);
-                if (canViewSensitive) row.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-                if (loginState === 'super_admin') row.querySelectorAll('.super-admin-only').forEach(el => el.classList.remove('hidden'));
+                playerCardsContainer.appendChild(card);
             });
+            translatePage(currentLanguage); // Re-translate after rendering cards
         };
 
         onSnapshot(query(registrationsCollection), (snapshot) => {
             allPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderTable();
+            renderPlayerCards();
         });
         
         // --- Event Listeners ---
@@ -927,7 +931,7 @@
             }
         });
         
-        playerSearch.addEventListener('input', renderTable);
+        playerSearch.addEventListener('input', renderPlayerCards);
 
         registrationForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1022,7 +1026,7 @@
             container.appendChild(input);
         });
 
-        registrationsTableBody.addEventListener('click', async (e) => {
+        playerCardsContainer.addEventListener('click', async (e) => {
             const button = e.target.closest('button');
             if (!button) return;
             const docId = button.dataset.id;
@@ -1125,7 +1129,7 @@
             });
         }
         setupScrollbarAnimation(mainContent);
-        setupScrollbarAnimation(tableScrollContainer);
+        setupScrollbarAnimation(playerCardsContainer);
 
         // --- Initial Load ---
         populateSelect(totalPowerSelect, 100, 350, 10, 'M');
