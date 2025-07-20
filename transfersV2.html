@@ -203,7 +203,7 @@
             transition: all 0.3s ease-in-out;
             position: relative;
             overflow: hidden;
-            padding: 1.25rem 1.5rem;
+            padding: 1rem 1.5rem;
         }
         .player-card:before {
             content: '';
@@ -1043,41 +1043,35 @@
                 const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
                 
                 card.innerHTML = `
-                    <div class="flex flex-wrap items-center justify-between w-full gap-x-6 gap-y-2">
-                        <!-- Left side: Player Info -->
-                        <div class="flex items-center gap-4 flex-grow min-w-0">
-                            <div>
-                                <h4 class="text-xl font-bold truncate player-name" style="font-family: 'Orbitron', sans-serif;">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
-                                <p class="text-sm text-gray-300 flex items-center gap-4">
-                                    <span><i class="fa-solid fa-shield-halved mr-1.5 opacity-80"></i> ${canViewSensitive ? player.currentAlliance : '****'}</span>
-                                    <span><i class="fa-solid fa-server mr-1.5 opacity-80"></i> ${player.currentServer}</span>
-                                </p>
-                            </div>
+                    <!-- Top Row: Main Info -->
+                    <div class="flex items-baseline justify-between">
+                        <div class="flex items-baseline gap-4 min-w-0">
+                            <h4 class="text-lg font-bold truncate" style="font-family: 'Orbitron', sans-serif;">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
+                            <p class="text-sm text-gray-300 hidden sm:flex items-center flex-shrink-0">
+                                <span class="mr-3"><i class="fa-solid fa-shield-halved mr-1.5 opacity-80"></i>${canViewSensitive ? player.currentAlliance : '****'}</span>
+                                <span><i class="fa-solid fa-server mr-1.5 opacity-80"></i>${player.currentServer}</span>
+                            </p>
                         </div>
-
-                        <!-- Center: Stats -->
-                        <div class="flex items-center gap-4 flex-shrink-0 order-3 sm:order-2 w-full sm:w-auto">
-                            <div class="admin-only ${canViewSensitive ? 'flex' : 'hidden'} items-center gap-4 text-md text-gray-200 font-semibold">
-                                <span><i class="fas fa-shield-halved mr-1.5 opacity-80" title="Tank Power"></i> ${formatPower(player.tankPower)}</span>
-                                <span><i class="fas fa-plane-up mr-1.5 opacity-80" title="Air Power"></i> ${formatPower(player.airPower)}</span>
-                                <span><i class="fas fa-rocket mr-1.5 opacity-80" title="Missile Power"></i> ${formatPower(player.missilePower)}</span>
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl font-bold text-white" style="font-family: 'Orbitron', sans-serif;">
+                                ${formatPower(player.totalPower)}
                             </div>
-                        </div>
-                        
-                        <!-- Right side: Total Power & Actions -->
-                        <div class="flex items-center gap-4 flex-shrink-0 order-2 sm:order-3">
-                            <div class="text-right">
-                                <div class="text-3xl font-bold text-white" style="font-family: 'Orbitron', sans-serif;">${formatPower(player.totalPower)}</div>
-                                <div class="text-xs text-gray-400" data-i18n="tableTotalPower">Total Power</div>
-                            </div>
-                            <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} flex-col gap-2">
+                             <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} items-center gap-2 pl-2 border-l border-white/10">
                                 <button class="edit-btn text-blue-300 hover:text-white" data-id="${player.id}"><i class="fas fa-edit"></i></button>
                                 <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
-                         <!-- Footer: Timestamp -->
-                        <div class="w-full text-xs text-gray-500 mt-2 order-4">
-                            Registered: ${formatTimestamp(player.createdAt)}
+                    </div>
+                    
+                    <!-- Bottom Row: Details (Admin only) -->
+                    <div class="admin-only ${canViewSensitive ? 'flex' : 'hidden'} items-center justify-between text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">
+                        <div class="flex items-center gap-3">
+                            <span><i class="fas fa-shield-halved mr-1 opacity-80" title="Tank Power"></i> ${formatPower(player.tankPower)}</span>
+                            <span><i class="fas fa-plane-up mr-1 opacity-80" title="Air Power"></i> ${formatPower(player.airPower)}</span>
+                            <span><i class="fas fa-rocket mr-1 opacity-80" title="Missile Power"></i> ${formatPower(player.missilePower)}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span><i class="fas fa-clock mr-1 opacity-80"></i> ${formatTimestamp(player.createdAt)}</span>
                         </div>
                     </div>
                 `;
