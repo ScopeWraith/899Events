@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- MODIFIED: Added maximum-scale and user-scalable to prevent zooming on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>THOR Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -359,6 +360,23 @@
         .podium-spot.second .podium-rank-badge { background: #C0C0C0; }
         .podium-spot.third .podium-rank-badge { background: #CD7F32; }
 
+        /* NEW: Tooltip for Medal Leaders */
+        #medal-history-tooltip {
+            position: fixed;
+            display: none;
+            background-color: rgba(15, 23, 42, 0.9); /* bg-slate-900/90 */
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(51, 65, 85, 0.7); /* border-slate-700/70 */
+            color: #e2e8f0; /* text-slate-200 */
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            z-index: 100;
+            pointer-events: none; /* Important */
+            max-width: 280px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: opacity 0.2s ease;
+        }
+
     </style>
 </head>
 <body class="text-slate-300 logged-out">
@@ -502,10 +520,17 @@
                             </div>
                             <div class="flex justify-between items-center mb-3 flex-shrink-0 pt-4">
                                  <h3 class="text-lg font-bold text-white">All Active Medals</h3>
-                                 <button id="open-award-medal-modal-btn" class="admin-control bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
-                                    <i class="fa-solid fa-medal w-4 h-4"></i>
-                                     <span>Award Medals</span>
-                                 </button>
+                                 <div class="flex items-center space-x-2">
+                                     <!-- NEW: Medal Leaders Button -->
+                                     <button id="medal-leaders-button" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
+                                        <i class="fa-solid fa-trophy w-4 h-4"></i>
+                                        <span>Leaders</span>
+                                     </button>
+                                     <button id="open-award-medal-modal-btn" class="admin-control bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
+                                        <i class="fa-solid fa-medal w-4 h-4"></i>
+                                         <span>Award Medals</span>
+                                     </button>
+                                 </div>
                             </div>
                             <div id="medals-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
                         </div>
@@ -774,6 +799,23 @@
         </div>
     </div>
 
+    <!-- NEW: Medal Leaders Modal -->
+    <div id="medal-leaders-modal" class="modal-overlay hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-md rounded-2xl flex flex-col" style="max-height: 80vh;">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-xl font-bold text-white">Medal Leaders</h2>
+                <button id="close-medal-leaders-btn" class="text-3xl font-light leading-none text-slate-400 hover:text-white transition-colors">&times;</button>
+            </div>
+            <p class="text-xs text-slate-400 mb-4 flex-shrink-0">Players sorted by the total number of medals ever earned. Hover over a player for their full history.</p>
+            <div id="medal-leaders-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow">
+                <!-- Leader list will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Tooltip element for medal history -->
+    <div id="medal-history-tooltip"></div>
+
 
     <script type="module">
         // Import Firebase modules
@@ -944,6 +986,13 @@
             const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
             const webhookSaveStatus = document.getElementById('webhook-save-status');
 
+            // NEW: Medal Leaders Modal Elements
+            const medalLeadersModal = document.getElementById('medal-leaders-modal');
+            const medalLeadersButton = document.getElementById('medal-leaders-button');
+            const closeMedalLeadersBtn = document.getElementById('close-medal-leaders-btn');
+            const medalLeadersList = document.getElementById('medal-leaders-list');
+            const medalHistoryTooltip = document.getElementById('medal-history-tooltip');
+
 
             // --- LOCAL STATE ---
             let allianceMembers = [];
@@ -959,6 +1008,7 @@
             let confirmCallback = null;
             let isAuthenticated = false;
             let isAuthReady = false; // Flag to track if initial auth check is done
+            let modalMouseDownTarget = null; // NEW: For improved modal closing
 
             // --- DATE HELPERS ---
             /**
@@ -1535,6 +1585,36 @@
                 container.innerHTML = html;
             };
 
+            // NEW: Render the list for the Medal Leaders modal
+            const renderMedalLeaders = () => {
+                const leaders = allianceMembers.map(member => ({
+                    id: member.id,
+                    name: member.name,
+                    medalCount: (member.medals || []).length,
+                })).filter(m => m.medalCount > 0)
+                   .sort((a, b) => b.medalCount - a.medalCount);
+                
+                if (leaders.length === 0) {
+                    medalLeadersList.innerHTML = `<p class="text-center text-slate-400 italic py-4">No members have earned any medals yet.</p>`;
+                    return;
+                }
+
+                medalLeadersList.innerHTML = leaders.map((leader, index) => {
+                    const rankColor = index === 0 ? 'text-amber-300' : (index === 1 ? 'text-slate-300' : (index === 2 ? 'text-yellow-600' : 'text-slate-400'));
+                    const rankIcon = index === 0 ? 'fa-trophy' : (index === 1 ? 'fa-medal' : (index === 2 ? 'fa-award' : 'fa-star'));
+
+                    return `
+                        <div class="flex items-center gap-4 p-2 rounded-lg hover:bg-slate-700/50 leader-item" data-member-id="${leader.id}">
+                            <div class="flex-shrink-0 w-6 text-center">
+                                <i class="fa-solid ${rankIcon} ${rankColor}"></i>
+                            </div>
+                            <div class="flex-grow font-semibold text-white truncate">${leader.name}</div>
+                            <div class="flex-shrink-0 text-sm font-bold text-amber-400">${leader.medalCount} <span class="text-xs font-normal text-slate-400">medals</span></div>
+                        </div>
+                    `;
+                }).join('');
+            };
+
             const renderAll = () => {
                 renderManualPickList();
                 renderHistory();
@@ -2082,10 +2162,17 @@
             });
 
 
-            // Close modals when clicking outside
+            // MODIFIED: Close modals only when mousedown and mouseup are on the overlay
             document.querySelectorAll('.modal-overlay').forEach(modal => {
-                modal.addEventListener('click', (e) => {
+                modal.addEventListener('mousedown', (e) => {
                     if (e.target === modal) {
+                        modalMouseDownTarget = e.target;
+                    } else {
+                        modalMouseDownTarget = null;
+                    }
+                });
+                modal.addEventListener('mouseup', (e) => {
+                    if (e.target === modal && modalMouseDownTarget === modal) {
                         modal.classList.add('hidden');
                     }
                 });
@@ -2130,7 +2217,7 @@
                     editAvatarPreview.src = downloadURL;
                     avatarUploadStatus.textContent = 'Upload complete!';
                     
-                    renderAll(); // Re-render to update podium if needed
+                    renderAll(); // Re-render to podium if needed
                 } catch (error) {
                     console.error("Avatar upload error:", error);
                     avatarUploadStatus.textContent = 'Upload failed. See console.';
@@ -2146,6 +2233,60 @@
                 if (podiumSpot && podiumSpot.dataset.id) {
                     openPlayerInfoModal(parseFloat(podiumSpot.dataset.id));
                 }
+            });
+
+            // NEW: Medal Leaders Modal & Tooltip Listeners
+            medalLeadersButton.addEventListener('click', () => {
+                renderMedalLeaders();
+                medalLeadersModal.classList.remove('hidden');
+            });
+
+            closeMedalLeadersBtn.addEventListener('click', () => medalLeadersModal.classList.add('hidden'));
+
+            medalLeadersList.addEventListener('mouseover', (e) => {
+                const leaderItem = e.target.closest('.leader-item');
+                if (!leaderItem) return;
+
+                const memberId = parseFloat(leaderItem.dataset.memberId);
+                const member = allianceMembers.find(m => m.id === memberId);
+                if (!member || !member.medals || member.medals.length === 0) return;
+
+                const sortedMedals = [...member.medals].sort((a,b) => b.awardedDate - a.awardedDate);
+                const now = Date.now();
+
+                const tooltipContent = sortedMedals.map(medal => {
+                    const isExpired = medal.expires < now;
+                    return `<div class="flex justify-between items-center ${isExpired ? 'opacity-50' : ''}">
+                                <span class="text-sm ${isExpired ? 'text-slate-400' : 'text-green-300'}">${medal.name}</span>
+                                <span class="text-xs text-slate-400 ml-3">${formatDate(medal.awardedDate)}</span>
+                            </div>`;
+                }).join('');
+
+                medalHistoryTooltip.innerHTML = `<h4 class="font-bold text-white mb-2">${member.name}'s Medals</h4><div class="space-y-1">${tooltipContent}</div>`;
+                medalHistoryTooltip.style.display = 'block';
+            });
+
+            medalLeadersList.addEventListener('mouseout', () => {
+                medalHistoryTooltip.style.display = 'none';
+            });
+            
+            medalLeadersList.addEventListener('mousemove', (e) => {
+                // Position tooltip slightly offset from cursor
+                const offsetX = 15;
+                const offsetY = 15;
+                let x = e.clientX + offsetX;
+                let y = e.clientY + offsetY;
+
+                // Prevent tooltip from going off-screen
+                if (x + medalHistoryTooltip.offsetWidth > window.innerWidth) {
+                    x = e.clientX - medalHistoryTooltip.offsetWidth - offsetX;
+                }
+                if (y + medalHistoryTooltip.offsetHeight > window.innerHeight) {
+                    y = e.clientY - medalHistoryTooltip.offsetHeight - offsetY;
+                }
+
+                medalHistoryTooltip.style.left = `${x}px`;
+                medalHistoryTooltip.style.top = `${y}px`;
             });
 
 
