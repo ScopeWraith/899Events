@@ -203,7 +203,7 @@
             transition: all 0.3s ease-in-out;
             position: relative;
             overflow: hidden;
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1.25rem;
         }
         .player-card:before {
             content: '';
@@ -236,10 +236,10 @@
         .player-card:hover:before { opacity: 0.25; }
         .player-card:hover:after { transform: rotate(0deg); }
 
-        .player-card.seat-White { --glow-color: rgba(229, 231, 235, 0.2); border-left-color: #e5e7eb; --gradient-bg: linear-gradient(135deg, #a0aec0, #718096); }
-        .player-card.seat-Blue { --glow-color: rgba(96, 165, 250, 0.3); border-left-color: #60a5fa; --gradient-bg: linear-gradient(135deg, #60a5fa, #2563eb); }
-        .player-card.seat-Purple { --glow-color: rgba(167, 139, 250, 0.3); border-left-color: #a78bfa; --gradient-bg: linear-gradient(135deg, #a78bfa, #7c3aed); }
-        .player-card.seat-Gold { --glow-color: rgba(251, 191, 36, 0.3); border-left-color: #fbbf24; --gradient-bg: linear-gradient(135deg, #fbbf24, #d97706); }
+        .player-card.seat-White { --glow-color: rgba(226, 232, 240, 0.2); border-left-color: #e2e8f0; --gradient-bg: linear-gradient(135deg, #e2e8f0, #94a3b8); }
+        .player-card.seat-Blue { --glow-color: rgba(125, 211, 252, 0.3); border-left-color: #7dd3fc; --gradient-bg: linear-gradient(135deg, #7dd3fc, #0ea5e9); }
+        .player-card.seat-Purple { --glow-color: rgba(196, 181, 253, 0.3); border-left-color: #c4b5fd; --gradient-bg: linear-gradient(135deg, #c4b5fd, #8b5cf6); }
+        .player-card.seat-Gold { --glow-color: rgba(253, 224, 71, 0.3); border-left-color: #fde047; --gradient-bg: linear-gradient(135deg, #fde047, #f59e0b); }
         
         /* Sidebar Styles */
         #sidebar {
@@ -1044,19 +1044,13 @@
                 
                 card.innerHTML = `
                     <!-- Top Row: Main Info -->
-                    <div class="flex items-baseline justify-between">
-                        <div class="flex items-baseline gap-4 min-w-0">
-                            <h4 class="text-lg font-bold truncate" style="font-family: 'Orbitron', sans-serif;">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
-                            <p class="text-sm text-gray-300 hidden sm:flex items-center flex-shrink-0">
-                                <span class="mr-3"><i class="fa-solid fa-shield-halved mr-1.5 opacity-80"></i>${canViewSensitive ? player.currentAlliance : '****'}</span>
-                                <span><i class="fa-solid fa-server mr-1.5 opacity-80"></i>${player.currentServer}</span>
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="text-2xl font-bold text-white" style="font-family: 'Orbitron', sans-serif;">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-lg font-bold truncate" style="font-family: 'Orbitron', sans-serif;">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
+                        <div class="flex items-center gap-4">
+                            <div class="text-2xl font-bold text-white text-right" style="font-family: 'Orbitron', sans-serif;">
                                 ${formatPower(player.totalPower)}
                             </div>
-                             <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} items-center gap-2 pl-2 border-l border-white/10">
+                            <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} items-center gap-2 pl-3 border-l border-white/10">
                                 <button class="edit-btn text-blue-300 hover:text-white" data-id="${player.id}"><i class="fas fa-edit"></i></button>
                                 <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
                             </div>
@@ -1064,14 +1058,20 @@
                     </div>
                     
                     <!-- Bottom Row: Details (Admin only) -->
-                    <div class="admin-only ${canViewSensitive ? 'flex' : 'hidden'} items-center justify-between text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">
-                        <div class="flex items-center gap-3">
-                            <span><i class="fas fa-shield-halved mr-1 opacity-80" title="Tank Power"></i> ${formatPower(player.tankPower)}</span>
-                            <span><i class="fas fa-plane-up mr-1 opacity-80" title="Air Power"></i> ${formatPower(player.airPower)}</span>
-                            <span><i class="fas fa-rocket mr-1 opacity-80" title="Missile Power"></i> ${formatPower(player.missilePower)}</span>
+                    <div class="admin-only ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-3 gap-x-4 gap-y-1 text-xs text-gray-300 mt-2 pt-2 border-t border-white/20">
+                        <!-- Player Meta -->
+                        <div class="col-span-1">
+                            <div class="flex items-center"><i class="fa-solid fa-shield-halved w-4 mr-1.5 opacity-80"></i> ${player.currentAlliance}</div>
+                            <div class="flex items-center"><i class="fa-solid fa-server w-4 mr-1.5 opacity-80"></i> ${player.currentServer}</div>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span><i class="fas fa-clock mr-1 opacity-80"></i> ${formatTimestamp(player.createdAt)}</span>
+                        <!-- Power Stats -->
+                        <div class="col-span-1">
+                            <div class="flex items-center"><i class="fas fa-shield-halved w-4 mr-1.5 opacity-80" title="Tank Power"></i> ${formatPower(player.tankPower)}</div>
+                            <div class="flex items-center"><i class="fas fa-plane-up w-4 mr-1.5 opacity-80" title="Air Power"></i> ${formatPower(player.airPower)}</div>
+                        </div>
+                        <div class="col-span-1">
+                            <div class="flex items-center"><i class="fas fa-rocket w-4 mr-1.5 opacity-80" title="Missile Power"></i> ${formatPower(player.missilePower)}</div>
+                            <div class="flex items-center"><i class="fas fa-clock w-4 mr-1.5 opacity-80"></i> ${formatTimestamp(player.createdAt)}</div>
                         </div>
                     </div>
                 `;
