@@ -491,6 +491,42 @@
                 notif.remove();
             }, 5000);
         };
+        
+        // This was missing. It handles the confirmation dialog.
+        const showConfirm = (message, callback) => {
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmMessageEl = document.getElementById('confirmMessage');
+            const submitConfirmBtn = document.getElementById('submitConfirm');
+            const cancelConfirmBtn = document.getElementById('cancelConfirm');
+            
+            confirmMessageEl.textContent = message;
+
+            let submitListener, cancelListener;
+
+            const hideConfirm = () => {
+                confirmModal.style.display = 'none';
+                // Remove listeners to prevent multiple executions
+                submitConfirmBtn.removeEventListener('click', submitListener);
+                cancelConfirmBtn.removeEventListener('click', cancelListener);
+            };
+
+            submitListener = () => {
+                if (typeof callback === 'function') {
+                    callback();
+                }
+                hideConfirm();
+            };
+
+            cancelListener = () => {
+                hideConfirm();
+            };
+
+            submitConfirmBtn.addEventListener('click', submitListener);
+            cancelConfirmBtn.addEventListener('click', cancelListener);
+            
+            confirmModal.style.display = 'flex';
+        };
+
 
         // --- Firebase Configuration ---
         const firebaseConfig = {
@@ -1150,7 +1186,8 @@
             if (!docId) return;
 
             if (button.classList.contains('delete-btn')) {
-                showConfirm(translations[currentLanguage].confirmMessage, async () => {
+                const langStrings = translations[currentLanguage] || translations.en;
+                showConfirm(langStrings.confirmMessage, async () => {
                     try {
                         await deleteDoc(doc(db, `/artifacts/${appId}/public/data/registrations`, docId));
                         showNotification('Registration deleted.');
