@@ -196,9 +196,6 @@
             border: 1px solid var(--border-color);
             border-radius: 0.75rem;
             padding: 1.5rem;
-            display: flex;
-            flex-direction: column; /* Start with column for mobile */
-            gap: 1.5rem;
             transition: all 0.2s ease-in-out;
         }
         .player-card:hover {
@@ -224,14 +221,6 @@
         }
         #sidebar-overlay {
             transition: opacity 0.3s ease-in-out;
-        }
-        
-        /* Mobile Optimizations */
-        @media (min-width: 600px) {
-            .player-card {
-                flex-direction: row; /* Switch to row on larger screens */
-                align-items: center;
-            }
         }
         
         /* Prevent iOS zoom on input focus */
