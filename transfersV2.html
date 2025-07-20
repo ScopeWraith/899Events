@@ -203,6 +203,7 @@
             transition: all 0.2s ease-in-out;
             position: relative;
             overflow: hidden;
+            padding: 1rem 1.5rem;
         }
         .player-card:before {
             content: '';
@@ -228,15 +229,12 @@
 
         /* Player Card Zoom Styles */
         .zoom-level-1 .player-card { padding: 0.75rem 1.25rem; }
-        .zoom-level-1 .player-main-info { flex-direction: row; align-items: center; justify-content: space-between; }
         .zoom-level-1 .player-name { font-size: 1.1rem; }
         .zoom-level-1 .player-sub-info, .zoom-level-1 .power-details, .zoom-level-1 .total-power-section, .zoom-level-1 .admin-actions { display: none; }
         
-        .zoom-level-2 .player-card { padding: 1rem 1.5rem; }
         .zoom-level-2 .power-details { display: none; }
 
-        .zoom-level-3 .player-card { padding: 1.5rem; }
-        .zoom-level-3 .power-details { display: grid; }
+        .zoom-level-3 .power-details { display: flex; }
         
         /* Sidebar Styles */
         #sidebar {
@@ -1036,35 +1034,32 @@
                 const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
                 
                 card.innerHTML = `
-                    <div class="flex flex-col sm:flex-row flex-grow gap-4 justify-between">
-                        <div class="flex-grow player-main-info">
-                            <div>
-                                <h4 class="text-xl font-bold player-name">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
+                    <div class="flex items-center justify-between w-full gap-4">
+                        <!-- Left side: Player Info -->
+                        <div class="flex items-center gap-4 flex-grow min-w-0">
+                            <div class="min-w-0">
+                                <h4 class="text-lg font-bold truncate player-name">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
                                 <p class="text-sm text-gray-400 flex items-center gap-3 player-sub-info">
                                     <span><i class="fa-solid fa-shield-halved mr-1"></i> ${canViewSensitive ? player.currentAlliance : '****'}</span>
-                                    <span><i class="fa-solid fa-server mr-1"></i> ${player.currentServer}</span>
+                                    <span class="hidden sm:inline"><i class="fa-solid fa-server mr-1"></i> ${player.currentServer}</span>
                                 </p>
                             </div>
-                            <div class="admin-only power-details ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-3 gap-4 border-t border-zinc-700/50 sm:border-none mt-4 pt-4 sm:mt-0 sm:pt-0">
-                                <div class="text-center">
-                                    <div class="text-lg font-bold"><i class="fas fa-shield-halved text-gray-300 mr-2"></i>${formatPower(player.tankPower)}</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-lg font-bold"><i class="fas fa-plane-up text-gray-300 mr-2"></i>${formatPower(player.airPower)}</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-lg font-bold"><i class="fas fa-rocket text-gray-300 mr-2"></i>${formatPower(player.missilePower)}</div>
-                                </div>
-                            </div>
                         </div>
-                        <div class="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-4 sm:border-l sm:border-zinc-700/50">
+
+                        <!-- Right side: Stats & Actions -->
+                        <div class="flex items-center gap-4 flex-shrink-0">
+                             <div class="admin-only power-details ${canViewSensitive ? 'flex' : 'hidden'} items-center gap-3 text-sm text-gray-300">
+                                <span><i class="fas fa-shield-halved" title="Tank Power"></i> ${formatPower(player.tankPower)}</span>
+                                <span><i class="fas fa-plane-up" title="Air Power"></i> ${formatPower(player.airPower)}</span>
+                                <span><i class="fas fa-rocket" title="Missile Power"></i> ${formatPower(player.missilePower)}</span>
+                            </div>
                             <div class="text-center total-power-section">
-                                <div class="text-3xl font-bold text-white">${formatPower(player.totalPower)}</div>
+                                <div class="text-2xl font-bold text-white">${formatPower(player.totalPower)}</div>
                                 <div class="text-xs text-gray-300" data-i18n="tableTotalPower">Total Power</div>
                             </div>
-                            <div class="super-admin-only admin-actions ${loginState === 'super_admin' ? 'flex' : 'hidden'} gap-2 mt-2">
-                                <button class="edit-btn text-blue-300 hover:text-white" data-id="${player.id}"><i class="fas fa-edit"></i></button>
-                                <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
+                            <div class="super-admin-only admin-actions ${loginState === 'super_admin' ? 'flex' : 'hidden'} gap-2">
+                                <button class="edit-btn text-blue-300 hover:text-white p-2" data-id="${player.id}"><i class="fas fa-edit"></i></button>
+                                <button class="delete-btn text-red-400 hover:text-red-300 p-2" data-id="${player.id}"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
                     </div>
