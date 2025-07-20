@@ -218,6 +218,14 @@
         .seat-tag-Blue { background-color: #3b82f6; color: #ffffff; }
         .seat-tag-Purple { background-color: #8b5cf6; color: #ffffff; }
         .seat-tag-Gold { background-color: #f59e0b; color: #ffffff; }
+        
+        /* Sidebar Styles */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        #sidebar-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
 
     </style>
 </head>
@@ -228,33 +236,44 @@
         <div class="card">
             <!-- Header and Navigation section inside the card -->
             <div class="p-6 sm:px-8 sm:pt-8 sm:pb-4 flex-shrink-0">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+                <div class="flex justify-between items-center gap-4 mb-4">
+                    <!-- Hamburger Menu Button (Mobile) -->
+                    <button id="hamburger-btn" class="md:hidden text-2xl text-gray-400 hover:text-white">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
                     <h1 class="text-3xl md:text-4xl font-bold tracking-wider uppercase flex-shrink-0 flex items-center gap-4">
                         <i class="fa-solid fa-satellite-dish text-indigo-400"></i>
                         <span data-i18n="title">899 Transfers</span>
                     </h1>
-                    <div class="custom-select-wrapper w-full md:w-auto md:max-w-[160px]">
-                        <div class="custom-select-display !py-2 !px-4">
-                            <span id="languageDisplay"><i class="fas fa-language mr-2"></i> English</span>
-                            <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
+
+                    <div class="flex items-center gap-2">
+                        <div class="custom-select-wrapper w-full md:w-auto md:max-w-[160px]">
+                            <div class="custom-select-display !py-2 !px-4">
+                                <span id="languageDisplay"><i class="fas fa-language mr-2"></i> English</span>
+                                <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
+                            </div>
+                            <select id="languageSelector" class="form-select-native">
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                                <option value="zh">中文</option>
+                                <option value="hi">हिन्दी</option>
+                                <option value="ar">العربية</option>
+                                <option value="pt">Português</option>
+                                <option value="ru">Русский</option>
+                                <option value="ja">日本語</option>
+                                <option value="de">Deutsch</option>
+                                <option value="fr">Français</option>
+                                <option value="ko">한국어</option>
+                                <option value="id">Bahasa Indonesia</option>
+                            </select>
                         </div>
-                        <select id="languageSelector" class="form-select-native">
-                            <option value="en">English</option>
-                            <option value="es">Español</option>
-                            <option value="zh">中文</option>
-                            <option value="hi">हिन्दी</option>
-                            <option value="ar">العربية</option>
-                            <option value="pt">Português</option>
-                            <option value="ru">Русский</option>
-                            <option value="ja">日本語</option>
-                            <option value="de">Deutsch</option>
-                            <option value="fr">Français</option>
-                            <option value="ko">한국어</option>
-                            <option value="id">Bahasa Indonesia</option>
-                        </select>
+                        <button id="info-btn" class="p-2 text-gray-400 hover:text-white text-xl">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
                     </div>
                 </div>
-                <nav class="nav-container">
+                <nav id="desktop-nav" class="nav-container hidden md:flex">
                     <button id="tab-register" class="nav-btn"><i class="fas fa-file-signature mr-2"></i><span data-i18n="tabRegister">Registration</span></button>
                     <button id="tab-players" class="nav-btn"><i class="fas fa-users mr-2"></i><span data-i18n="tabPlayers">Registered Players</span></button>
                     <button id="tab-admin" class="nav-btn"><i id="admin-icon" class="fas fa-lock mr-2"></i><span id="admin-text" data-i18n="tabAdmin">Admin</span></button>
@@ -380,9 +399,31 @@
             </main>
         </div>
     </div>
+    
+    <!-- Sidebar for Mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 opacity-0 pointer-events-none"></div>
+    <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-zinc-900 z-50 p-6 transform -translate-x-full">
+        <nav class="flex flex-col gap-4">
+            <button id="sidebar-tab-register" class="nav-btn text-left"><i class="fas fa-file-signature mr-2 w-6"></i><span data-i18n="tabRegister">Registration</span></button>
+            <button id="sidebar-tab-players" class="nav-btn text-left"><i class="fas fa-users mr-2 w-6"></i><span data-i18n="tabPlayers">Registered Players</span></button>
+            <button id="sidebar-tab-admin" class="nav-btn text-left"><i id="sidebar-admin-icon" class="fas fa-lock mr-2 w-6"></i><span id="sidebar-admin-text" data-i18n="tabAdmin">Admin</span></button>
+        </nav>
+    </div>
 
     <!-- Modals and Notifications -->
     <div id="notification-container"></div>
+
+    <div id="infoModal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="p-8 rounded-xl shadow-2xl w-full max-w-lg bg-zinc-900 border border-zinc-700">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white"><i class="fas fa-info-circle mr-2 text-indigo-400"></i><span data-i18n="infoTitle">Information</span></h2>
+                <button id="closeInfoModal" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <p class="text-gray-300" data-i18n="infoText">
+                Welcome to the 899 Transfers registration portal. When you submit your registration, the information is automatically sent to a private Discord channel for server leadership to review. This ensures a streamlined and secure process for all potential transfers. Your data is handled confidentially.
+            </p>
+        </div>
+    </div>
 
     <div id="adminModal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
         <div class="p-8 rounded-xl shadow-2xl w-full max-w-sm bg-zinc-900 border border-zinc-700">
@@ -501,20 +542,33 @@
         const tabRegister = document.getElementById('tab-register');
         const tabPlayers = document.getElementById('tab-players');
         const tabAdmin = document.getElementById('tab-admin');
+        const sidebarTabRegister = document.getElementById('sidebar-tab-register');
+        const sidebarTabPlayers = document.getElementById('sidebar-tab-players');
+        const sidebarTabAdmin = document.getElementById('sidebar-tab-admin');
+        
         const viewRegister = document.getElementById('view-register');
         const viewPlayers = document.getElementById('view-players');
         const adminModal = document.getElementById('adminModal');
         const editModal = document.getElementById('editModal');
         const confirmModal = document.getElementById('confirmModal');
+        const infoModal = document.getElementById('infoModal');
         const registrationForm = document.getElementById('registrationForm');
         const playerCardsContainer = document.getElementById('player-cards-container');
         const superAdminPanel = document.getElementById('superAdminPanel');
         const adminIcon = document.getElementById('admin-icon');
         const adminText = document.getElementById('admin-text');
+        const sidebarAdminIcon = document.getElementById('sidebar-admin-icon');
+        const sidebarAdminText = document.getElementById('sidebar-admin-text');
         const languageSelector = document.getElementById('languageSelector');
         const languageDisplay = document.getElementById('languageDisplay');
         const mainContent = document.getElementById('main-content');
         const playerSearch = document.getElementById('playerSearch');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const infoBtn = document.getElementById('info-btn');
+        const closeInfoModalBtn = document.getElementById('closeInfoModal');
+
 
         // --- Form Selects ---
         const totalPowerSelect = document.getElementById('totalPower');
@@ -546,7 +600,9 @@
                 adminLoginTitle: "Admin Login", placeholderPassword: "Enter Password", btnCancel: "Cancel", btnLogin: "Login",
                 editTitle: "Edit Registration", btnSaveChanges: "Save Changes",
                 confirmTitle: "Are you sure?", confirmMessage: "This action cannot be undone.", btnConfirm: "Confirm",
-                logout: "Logout"
+                logout: "Logout",
+                infoTitle: "Information",
+                infoText: "Welcome to the 899 Transfers registration portal. When you submit your registration, the information is automatically sent to a private Discord channel for server leadership to review. This ensures a streamlined and secure process for all potential transfers. Your data is handled confidentially."
             },
             es: {
                 title: "Transferencias 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Jugadores Registrados", tabAdmin: "Admin",
@@ -561,7 +617,9 @@
                 adminLoginTitle: "Acceso Admin", placeholderPassword: "Ingresar Contraseña", btnCancel: "Cancelar", btnLogin: "Acceder",
                 editTitle: "Editar Registro", btnSaveChanges: "Guardar Cambios",
                 confirmTitle: "¿Estás seguro?", confirmMessage: "Esta acción no se puede deshacer.", btnConfirm: "Confirmar",
-                logout: "Cerrar Sesión"
+                logout: "Cerrar Sesión",
+                infoTitle: "Información",
+                infoText: "Bienvenido al portal de registro de Transferencias 899. Cuando envía su registro, la información se envía automáticamente a un canal privado de Discord para que la revise el liderazgo del servidor. Esto garantiza un proceso simplificado y seguro para todas las transferencias potenciales. Sus datos se manejan de forma confidencial."
             },
             zh: {
                 title: "899 服务器转移", subtitle: "注册门户", tabRegister: "注册", tabPlayers: "已注册玩家", tabAdmin: "管理员",
@@ -576,7 +634,9 @@
                 adminLoginTitle: "管理员登录", placeholderPassword: "输入密码", btnCancel: "取消", btnLogin: "登录",
                 editTitle: "编辑注册信息", btnSaveChanges: "保存更改",
                 confirmTitle: "您确定吗?", confirmMessage: "此操作无法撤销。", btnConfirm: "确认",
-                logout: "登出"
+                logout: "登出",
+                infoTitle: "信息",
+                infoText: "欢迎来到 899 Transfers 注册门户。当您提交注册时，信息会自动发送到服务器领导层专用的 Discord 频道进行审核。这确保了所有潜在转移的流程精简且安全。您的数据将得到保密处理。"
             },
             hi: {
                 title: "899 सर्वर स्थानांतरण", subtitle: "पंजीकरण पोर्टल", tabRegister: "पंजीकरण", tabPlayers: "पंजीकृत खिलाड़ी", tabAdmin: "एडमिन",
@@ -591,7 +651,9 @@
                 adminLoginTitle: "एडमिन लॉगिन", placeholderPassword: "पासवर्ड डालें", btnCancel: "रद्द करें", btnLogin: "लॉगिन करें",
                 editTitle: "पंजीकरण संपादित करें", btnSaveChanges: "बदलाव सहेजें",
                 confirmTitle: "क्या आप निश्चित हैं?", confirmMessage: "यह कार्रवाई पूर्ववत नहीं की जा सकती।", btnConfirm: "पुष्टि करें",
-                logout: "लॉग आउट"
+                logout: "लॉग आउट",
+                infoTitle: "जानकारी",
+                infoText: "899 ट्रांसफ़र पंजीकरण पोर्टल में आपका स्वागत है। जब आप अपना पंजीकरण जमा करते हैं, तो जानकारी स्वचालित रूप से सर्वर नेतृत्व की समीक्षा के लिए एक निजी डिस्कॉर्ड चैनल पर भेज दी जाती है। यह सभी संभावित ट्रांसफ़र के लिए एक सुव्यवस्थित और सुरक्षित प्रक्रिया सुनिश्चित करता है। आपका डेटा गोपनीय रूप से संभाला जाता है।"
             },
             ar: {
                 title: "نقل خادم 899", subtitle: "بوابة التسجيل", tabRegister: "تسجيل", tabPlayers: "اللاعبون المسجلون", tabAdmin: "مشرف",
@@ -606,7 +668,9 @@
                 adminLoginTitle: "تسجيل دخول المشرف", placeholderPassword: "أدخل كلمة المرور", btnCancel: "إلغاء", btnLogin: "تسجيل الدخول",
                 editTitle: "تعديل التسجيل", btnSaveChanges: "حفظ التغييرات",
                 confirmTitle: "هل أنت متأكد؟", confirmMessage: "لا يمكن التراجع عن هذا الإجراء.", btnConfirm: "تأكيد",
-                logout: "تسجيل الخروج"
+                logout: "تسجيل الخروج",
+                infoTitle: "معلومات",
+                infoText: "مرحبًا بك في بوابة تسجيل 899 Transfers. عند إرسال تسجيلك، يتم إرسال المعلومات تلقائيًا إلى قناة Discord خاصة لمراجعتها من قبل قيادة الخادم. وهذا يضمن عملية مبسطة وآمنة لجميع عمليات النقل المحتملة. يتم التعامل مع بياناتك بسرية."
             },
             pt: {
                 title: "Transferências 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Jogadores Registrados", tabAdmin: "Admin",
@@ -621,7 +685,9 @@
                 adminLoginTitle: "Login de Admin", placeholderPassword: "Digite a Senha", btnCancel: "Cancelar", btnLogin: "Login",
                 editTitle: "Editar Registro", btnSaveChanges: "Salvar Alterações",
                 confirmTitle: "Você tem certeza?", confirmMessage: "Esta ação não pode ser desfeita.", btnConfirm: "Confirmar",
-                logout: "Sair"
+                logout: "Sair",
+                infoTitle: "Informação",
+                infoText: "Bem-vindo ao portal de registro de Transferências 899. Ao enviar seu registro, as informações são enviadas automaticamente para um canal privado do Discord para revisão pela liderança do servidor. Isso garante um processo simplificado e seguro para todas as transferências potenciais. Seus dados são tratados com confidencialidade."
             },
             ru: {
                 title: "Трансферы 899", subtitle: "Портал регистрации", tabRegister: "Регистрация", tabPlayers: "Зарегистрированные игроки", tabAdmin: "Админ",
@@ -636,7 +702,9 @@
                 adminLoginTitle: "Вход для админа", placeholderPassword: "Введите пароль", btnCancel: "Отмена", btnLogin: "Войти",
                 editTitle: "Редактировать регистрацию", btnSaveChanges: "Сохранить изменения",
                 confirmTitle: "Вы уверены?", confirmMessage: "Это действие нельзя отменить.", btnConfirm: "Подтвердить",
-                logout: "Выйти"
+                logout: "Выйти",
+                infoTitle: "Информация",
+                infoText: "Добро пожаловать на портал регистрации 899 Transfers. Когда вы отправляете свою регистрацию, информация автоматически отправляется в частный канал Discord для рассмотрения руководством сервера. Это обеспечивает упрощенный и безопасный процесс для всех потенциальных переводов. Ваши данные обрабатываются конфиденциально."
             },
             ja: {
                 title: "899サーバー移籍", subtitle: "登録ポータル", tabRegister: "登録", tabPlayers: "登録済みプレイヤー", tabAdmin: "管理者",
@@ -651,7 +719,9 @@
                 adminLoginTitle: "管理者ログイン", placeholderPassword: "パスワードを入力", btnCancel: "キャンセル", btnLogin: "ログイン",
                 editTitle: "登録を編集", btnSaveChanges: "変更を保存",
                 confirmTitle: "よろしいですか？", confirmMessage: "この操作は元に戻せません。", btnConfirm: "確認",
-                logout: "ログアウト"
+                logout: "ログアウト",
+                infoTitle: "情報",
+                infoText: "899 Transfers 登録ポータルへようこそ。登録を送信すると、情報はサーバーのリーダーシップが確認するためにプライベートなDiscordチャンネルに自動的に送信されます。これにより、すべての潜在的な移籍に対して、合理化された安全なプロセスが保証されます。あなたのデータは機密に扱われます。"
             },
             de: {
                 title: "899 Transfers", subtitle: "Registrierungsportal", tabRegister: "Registrierung", tabPlayers: "Registrierte Spieler", tabAdmin: "Admin",
@@ -666,7 +736,9 @@
                 adminLoginTitle: "Admin-Login", placeholderPassword: "Passwort eingeben", btnCancel: "Abbrechen", btnLogin: "Anmelden",
                 editTitle: "Registrierung bearbeiten", btnSaveChanges: "Änderungen speichern",
                 confirmTitle: "Sind Sie sicher?", confirmMessage: "Diese Aktion kann nicht rückgängig gemacht werden.", btnConfirm: "Bestätigen",
-                logout: "Abmelden"
+                logout: "Abmelden",
+                infoTitle: "Information",
+                infoText: "Willkommen im Registrierungsportal von 899 Transfers. Wenn Sie Ihre Registrierung absenden, werden die Informationen automatisch an einen privaten Discord-Kanal zur Überprüfung durch die Serverleitung gesendet. Dies gewährleistet einen optimierten und sicheren Prozess für alle potenziellen Transfers. Ihre Daten werden vertraulich behandelt."
             },
             fr: {
                 title: "Transferts 899", subtitle: "Portail d'inscription", tabRegister: "Inscription", tabPlayers: "Joueurs inscrits", tabAdmin: "Admin",
@@ -681,7 +753,9 @@
                 adminLoginTitle: "Connexion Admin", placeholderPassword: "Entrez le mot de passe", btnCancel: "Annuler", btnLogin: "Connexion",
                 editTitle: "Modifier l'inscription", btnSaveChanges: "Sauvegarder les modifications",
                 confirmTitle: "Êtes-vous sûr?", confirmMessage: "Cette action est irréversible.", btnConfirm: "Confirmer",
-                logout: "Déconnexion"
+                logout: "Déconnexion",
+                infoTitle: "Information",
+                infoText: "Bienvenue sur le portail d'inscription de 899 Transfers. Lorsque vous soumettez votre inscription, les informations sont automatiquement envoyées à un canal Discord privé pour examen par la direction du serveur. Cela garantit un processus simplifié et sécurisé pour tous les transferts potentiels. Vos données sont traitées de manière confidentielle."
             },
             ko: {
                 title: "899 서버 이전", subtitle: "등록 포털", tabRegister: "등록", tabPlayers: "등록된 플레이어", tabAdmin: "관리자",
@@ -696,7 +770,9 @@
                 adminLoginTitle: "관리자 로그인", placeholderPassword: "비밀번호 입력", btnCancel: "취소", btnLogin: "로그인",
                 editTitle: "등록 수정", btnSaveChanges: "변경 사항 저장",
                 confirmTitle: "확실합니까?", confirmMessage: "이 작업은 되돌릴 수 없습니다.", btnConfirm: "확인",
-                logout: "로그아웃"
+                logout: "로그아웃",
+                infoTitle: "정보",
+                infoText: "899 Transfers 등록 포털에 오신 것을 환영합니다. 등록을 제출하면 정보가 서버 리더십의 검토를 위해 비공개 Discord 채널로 자동 전송됩니다. 이를 통해 모든 잠재적 이전에 대해 간소화되고 안전한 프로세스를 보장합니다. 귀하의 데이터는 기밀로 처리됩니다."
             },
             id: {
                 title: "Transfer 899", subtitle: "Portal Registrasi", tabRegister: "Registrasi", tabPlayers: "Pemain Terdaftar", tabAdmin: "Admin",
@@ -711,7 +787,9 @@
                 adminLoginTitle: "Login Admin", placeholderPassword: "Masukkan Kata Sandi", btnCancel: "Batal", btnLogin: "Login",
                 editTitle: "Edit Registrasi", btnSaveChanges: "Simpan Perubahan",
                 confirmTitle: "Apakah Anda yakin?", confirmMessage: "Tindakan ini tidak dapat dibatalkan.", btnConfirm: "Konfirmasi",
-                logout: "Keluar"
+                logout: "Keluar",
+                infoTitle: "Informasi",
+                infoText: "Selamat datang di portal pendaftaran 899 Transfers. Saat Anda mengirimkan pendaftaran, informasi tersebut secara otomatis dikirim ke saluran Discord pribadi untuk ditinjau oleh pimpinan server. Hal ini memastikan proses yang efisien dan aman untuk semua transfer potensial. Data Anda ditangani secara rahasia."
             }
         };
 
@@ -760,6 +838,10 @@
             });
             if(loginState !== 'guest') {
                 adminText.textContent = langStrings.logout;
+                sidebarAdminText.textContent = langStrings.logout;
+            } else {
+                adminText.textContent = langStrings.tabAdmin;
+                sidebarAdminText.textContent = langStrings.tabAdmin;
             }
 
             // Update custom select placeholders
@@ -774,11 +856,15 @@
             const langStrings = translations[currentLanguage] || translations.en;
             if (loginState === 'guest') {
                 adminIcon.className = 'fas fa-lock mr-2';
+                sidebarAdminIcon.className = 'fas fa-lock mr-2 w-6';
                 adminText.textContent = langStrings.tabAdmin;
+                sidebarAdminText.textContent = langStrings.tabAdmin;
                 tabAdmin.classList.remove('active');
             } else {
                 adminIcon.className = 'fas fa-sign-out-alt mr-2';
+                sidebarAdminIcon.className = 'fas fa-sign-out-alt mr-2 w-6';
                 adminText.textContent = langStrings.logout;
+                sidebarAdminText.textContent = langStrings.logout;
                 if (loginState === 'admin' || loginState === 'super_admin') {
                     document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
                 }
@@ -794,19 +880,21 @@
             viewPlayers.classList.add('hidden');
             superAdminPanel.classList.add('hidden');
             
-            tabRegister.classList.remove('active');
-            tabPlayers.classList.remove('active');
-            tabAdmin.classList.remove('active');
+            const allNavButtons = [tabRegister, tabPlayers, tabAdmin, sidebarTabRegister, sidebarTabPlayers, sidebarTabAdmin];
+            allNavButtons.forEach(btn => btn.classList.remove('active'));
 
             if (view === 'register') {
                 viewRegister.classList.remove('hidden');
                 tabRegister.classList.add('active');
+                sidebarTabRegister.classList.add('active');
             } else if (view === 'players') {
                 viewPlayers.classList.remove('hidden');
                 tabPlayers.classList.add('active');
+                sidebarTabPlayers.classList.add('active');
             } else if (view === 'admin') {
                 superAdminPanel.classList.remove('hidden');
                 tabAdmin.classList.add('active');
+                sidebarTabAdmin.classList.add('active');
             }
         };
 
@@ -903,9 +991,15 @@
         });
         
         // --- Event Listeners ---
-        tabRegister.addEventListener('click', () => switchView('register'));
-        tabPlayers.addEventListener('click', () => switchView('players'));
-        tabAdmin.addEventListener('click', () => {
+        [tabRegister, sidebarTabRegister].forEach(btn => btn.addEventListener('click', () => {
+            switchView('register');
+            closeSidebar();
+        }));
+        [tabPlayers, sidebarTabPlayers].forEach(btn => btn.addEventListener('click', () => {
+            switchView('players');
+            closeSidebar();
+        }));
+        [tabAdmin, sidebarTabAdmin].forEach(btn => btn.addEventListener('click', () => {
             if (loginState === 'guest') {
                 adminModal.style.display = 'flex';
             } else if (loginState === 'super_admin') {
@@ -919,7 +1013,8 @@
                     showNotification('You have been logged out.');
                 }
             }
-        });
+            closeSidebar();
+        }));
         
         playerSearch.addEventListener('input', renderPlayerCards);
 
@@ -1106,6 +1201,25 @@
             languageDisplay.innerHTML = `<i class="fas fa-language mr-2"></i> ${e.target.options[e.target.selectedIndex].text}`;
             translatePage(selectedLang);
         });
+
+        // --- Sidebar Logic ---
+        const openSidebar = () => {
+            sidebar.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            sidebarOverlay.classList.add('opacity-100');
+        };
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.remove('opacity-100');
+            sidebarOverlay.classList.add('opacity-0', 'pointer-events-none');
+        };
+        hamburgerBtn.addEventListener('click', openSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        // --- Info Modal Logic ---
+        infoBtn.addEventListener('click', () => infoModal.style.display = 'flex');
+        closeInfoModalBtn.addEventListener('click', () => infoModal.style.display = 'none');
+
 
         // --- Animated Scrollbar Logic ---
         let scrollTimeout;
