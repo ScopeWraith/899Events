@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>899 Transfers - Registration Portal</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -496,663 +497,659 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- Firebase Configuration ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyD1W6tFMNLWw2WlxzO_M1dgijXQYp6p75w",
-            authDomain: "transfers-a7cbb.firebaseapp.com",
-            projectId: "transfers-a7cbb",
-            storageBucket: "transfers-a7cbb.firebasestorage.app",
-            messagingSenderId: "940205814599",
-            appId: "1:940205814599:web:657408c6d20385cf361262",
-            measurementId: "G-0WL6PQTGJ1"
+        document.addEventListener('DOMContentLoaded', async () => {
+            // --- Firebase Configuration ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyD1W6tFMNLWw2WlxzO_M1dgijXQYp6p75w",
+                authDomain: "transfers-a7cbb.firebaseapp.com",
+                projectId: "transfers-a7cbb",
+                storageBucket: "transfers-a7cbb.firebasestorage.app",
+                messagingSenderId: "940205814599",
+                appId: "1:940205814599:web:657408c6d20385cf361262",
+                measurementId: "G-0WL6PQTGJ1"
             };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : '1:940205814599:web:657408c6d20385cf361262';
-        
-        let app, db, auth;
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
+            const appId = typeof __app_id !== 'undefined' ? __app_id : '1:940205814599:web:657408c6d20385cf361262';
+            
+            let app, db, auth;
+            
+            // --- Helper Function ---
+            const showNotification = (message, type = 'success') => {
+                const container = document.getElementById('notification-container');
+                const notif = document.createElement('div');
+                notif.className = `notification ${type}`;
+                notif.textContent = message;
+                container.appendChild(notif);
+                setTimeout(() => {
+                    notif.remove();
+                }, 5000);
+            };
+
             try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-            } catch (authError) {
-                 console.error("Firebase authentication failed:", authError);
-                 if (authError.code === 'auth/operation-not-allowed') {
-                     showNotification("Authentication failed. Please ensure Anonymous sign-in is enabled in your Firebase project.", "error");
-                 } else {
-                     showNotification("Could not authenticate with the server.", "error");
-                 }
-            }
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            showNotification("Could not connect to the database. Please refresh.", "error");
-        }
-
-        // --- Collections ---
-        const registrationsCollection = collection(db, `/artifacts/${appId}/public/data/registrations`);
-        const configDoc = doc(db, `/artifacts/${appId}/public/data/config`, 'settings');
-
-        // --- State Management ---
-        let loginState = 'guest'; // 'guest', 'admin', 'super_admin'
-        let allPlayers = [];
-        let otherPlayerNames = new Set();
-        let currentLanguage = 'en';
-        let confirmCallback = null;
-
-        // --- UI Elements ---
-        const tabRegister = document.getElementById('tab-register');
-        const tabPlayers = document.getElementById('tab-players');
-        const tabAdmin = document.getElementById('tab-admin');
-        const sidebarTabRegister = document.getElementById('sidebar-tab-register');
-        const sidebarTabPlayers = document.getElementById('sidebar-tab-players');
-        const sidebarTabAdmin = document.getElementById('sidebar-tab-admin');
-        
-        const viewRegister = document.getElementById('view-register');
-        const viewPlayers = document.getElementById('view-players');
-        const adminModal = document.getElementById('adminModal');
-        const editModal = document.getElementById('editModal');
-        const confirmModal = document.getElementById('confirmModal');
-        const infoModal = document.getElementById('infoModal');
-        const registrationForm = document.getElementById('registrationForm');
-        const playerCardsContainer = document.getElementById('player-cards-container');
-        const superAdminPanel = document.getElementById('superAdminPanel');
-        const adminIcon = document.getElementById('admin-icon');
-        const adminText = document.getElementById('admin-text');
-        const sidebarAdminIcon = document.getElementById('sidebar-admin-icon');
-        const sidebarAdminText = document.getElementById('sidebar-admin-text');
-        const mainContent = document.getElementById('main-content');
-        const playerSearch = document.getElementById('playerSearch');
-        const hamburgerBtn = document.getElementById('hamburger-btn');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-        const infoBtn = document.getElementById('info-btn');
-        const closeInfoModalBtn = document.getElementById('closeInfoModal');
-        const confirmMessageEl = document.getElementById('confirmMessage');
-        const cancelConfirmBtn = document.getElementById('cancelConfirm');
-        const submitConfirmBtn = document.getElementById('submitConfirm');
-        const languageBtn = document.getElementById('language-btn');
-        const languageFlag = document.getElementById('language-flag');
-        const languageName = document.getElementById('language-name');
-        const languageModal = document.getElementById('languageModal');
-        const closeLanguageModalBtn = document.getElementById('closeLanguageModal');
-        const languageOptionsContainer = document.getElementById('language-options-container');
-
-
-        // --- Form Selects ---
-        const totalPowerSelect = document.getElementById('totalPower');
-        const tankPowerSelect = document.getElementById('tankPower');
-        const airPowerSelect = document.getElementById('airPower');
-        const missilePowerSelect = document.getElementById('missilePower');
-        const seatColorSelect = document.getElementById('seatColor');
-        const editSeatColorSelect = document.getElementById('editSeatColor');
-        const serverSelect = document.getElementById('currentServer');
-
-        const totalPowerDisplay = document.getElementById('totalPowerDisplay');
-        const tankPowerDisplay = document.getElementById('tankPowerDisplay');
-        const airPowerDisplay = document.getElementById('airPowerDisplay');
-        const missilePowerDisplay = document.getElementById('missilePowerDisplay');
-        const seatColorDisplay = document.getElementById('seatColorDisplay');
-        const editSeatColorDisplay = document.getElementById('editSeatColorDisplay');
-        const serverDisplay = document.getElementById('serverDisplay');
-
-        // --- Language Data with Flags ---
-        const languages = {
-            en: { name: 'English', flag: '🇬🇧' },
-            es: { name: 'Español', flag: '🇪🇸' },
-            zh: { name: '中文', flag: '🇨🇳' },
-            hi: { name: 'हिन्दी', flag: '🇮🇳' },
-            ar: { name: 'العربية', flag: '🇸🇦' },
-            pt: { name: 'Português', flag: '🇧🇷' },
-            ru: { name: 'Русский', flag: '🇷🇺' },
-            ja: { name: '日本語', flag: '🇯🇵' },
-            de: { name: 'Deutsch', flag: '🇩🇪' },
-            fr: { name: 'Français', flag: '🇫🇷' },
-            ko: { name: '한국어', flag: '🇰🇷' },
-            id: { name: 'Bahasa Indonesia', flag: '🇮🇩' }
-        };
-
-        // --- Translation Data ---
-        const translations = {
-            en: {
-                title: "899 Transfers", subtitle: "Registration Portal", tabRegister: "Registration", tabPlayers: "Transfers", tabAdmin: "Admin",
-                labelPlayerInfo: "Player Information", placeholderPlayerName: "Player Name", placeholderServer: "Current Server", placeholderAlliance: "Current Alliance Tag (e.g., ABCD)",
-                labelSeatColor: "Seat Color", placeholderSeatColor: "Seat Color", optionSelectSeatColor: "Select a Seat Color...", optionWhite: "White", optionBlue: "Blue", optionPurple: "Purple", optionGold: "Gold",
-                labelPowerStats: "Power Profile", placeholderTotalPower: "Total Power", placeholderTankPower: "Tank Power", placeholderAirPower: "Air Power", placeholderMissilePower: "Missile Power",
-                labelTransferDetails: "Transfer Details", labelAdditionalPlayers: "Additional Players",
-                labelAlliancePref: "Alliance Preference", optionNo: "No", optionYes: "Yes", placeholderPrefAlliance: "Preferred Alliance Tag",
-                labelBringOthers: "Bringing Others?", btnAddPlayer: "Add Another Player", btnSubmit: "Submit Registration",
-                tablePlayerName: "Player Name", tableServer: "Server", tableAlliance: "Alliance", tableTotalPower: "Total Power", tableSeat: "Seat", tableTankPower: "Tank Power", tableAirPower: "Air Power", tableMissilePower: "Missile Power", tableActions: "Actions",
-                superAdminTitle: "Super Admin", webhooksTitle: "Discord Webhooks", placeholderWebhook: "Discord Webhook URL", btnSaveWebhooks: "Save Webhooks",
-                adminLoginTitle: "Admin Login", placeholderPassword: "Enter Password", btnCancel: "Cancel", btnLogin: "Login",
-                editTitle: "Edit Registration", btnSaveChanges: "Save Changes",
-                confirmTitle: "Are you sure?", confirmMessage: "This action cannot be undone.", btnConfirm: "Confirm",
-                logout: "Logout",
-                infoTitle: "Information",
-                infoText: "Welcome to the 899 Transfers registration portal. When you submit your registration, the information is automatically sent to a private Discord channel for server leadership to review. This ensures a streamlined and secure process for all potential transfers. Your data is handled confidentially."
-            },
-            // ... other translations are identical and omitted for brevity
-            id: {
-                title: "Transfer 899", subtitle: "Portal Registrasi", tabRegister: "Registrasi", tabPlayers: "Transfer", tabAdmin: "Admin",
-                labelPlayerInfo: "Informasi Pemain", placeholderPlayerName: "Nama Pemain", placeholderServer: "Server Saat Ini", placeholderAlliance: "Tag Aliansi (cth: ABCD)",
-                labelSeatColor: "Warna Kursi", placeholderSeatColor: "Warna Kursi", optionSelectSeatColor: "Pilih Warna Kursi...", optionWhite: "Putih", optionBlue: "Biru", optionPurple: "Ungu", optionGold: "Emas",
-                labelPowerStats: "Profil Kekuatan", placeholderTotalPower: "Total Kekuatan", placeholderTankPower: "Kekuatan Tank", placeholderAirPower: "Kekuatan Udara", placeholderMissilePower: "Kekuatan Misil",
-                labelTransferDetails: "Detail Transfer", labelAdditionalPlayers: "Pemain Tambahan",
-                labelAlliancePref: "Preferensi Aliansi", optionNo: "Tidak", optionYes: "Ya", placeholderPrefAlliance: "Tag Aliansi Pilihan",
-                labelBringOthers: "Membawa pemain lain?", btnAddPlayer: "Tambah Pemain Lain", btnSubmit: "Kirim Registrasi",
-                tablePlayerName: "Nama Pemain", tableServer: "Server", tableAlliance: "Aliansi", tableTotalPower: "Total Kekuatan", tableSeat: "Kursi", tableTankPower: "Kekuatan Tank", tableAirPower: "Kekuatan Udara", tableMissilePower: "Kekuatan Misil", tableActions: "Aksi",
-                superAdminTitle: "Super Admin", webhooksTitle: "Webhook Discord", placeholderWebhook: "URL Webhook Discord", btnSaveWebhooks: "Simpan Webhook",
-                adminLoginTitle: "Login Admin", placeholderPassword: "Masukkan Kata Sandi", btnCancel: "Batal", btnLogin: "Login",
-                editTitle: "Edit Registrasi", btnSaveChanges: "Simpan Perubahan",
-                confirmTitle: "Apakah Anda yakin?", confirmMessage: "Tindakan ini tidak dapat dibatalkan.", btnConfirm: "Konfirmasi",
-                logout: "Keluar",
-                infoTitle: "Informasi",
-                infoText: "Selamat datang di portal pendaftaran 899 Transfers. Saat Anda mengirimkan pendaftaran, informasi tersebut secara otomatis dikirim ke saluran Discord pribadi untuk ditinjau oleh pimpinan server. Hal ini memastikan proses yang efisien dan aman untuk semua transfer potensial. Data Anda ditangani secara rahasia."
-            }
-        };
-
-        // --- Helper Functions ---
-        const showNotification = (message, type = 'success') => {
-            const container = document.getElementById('notification-container');
-            const notif = document.createElement('div');
-            notif.className = `notification ${type}`;
-            notif.textContent = message;
-            container.appendChild(notif);
-            setTimeout(() => {
-                notif.remove();
-            }, 5000);
-        };
-
-        const formatPower = (num) => {
-            if (num === null || num === undefined || num === '' || num === 0) return 'N/A';
-            const number = Number(num);
-            if (number >= 1000000) return `${(number / 1000000).toFixed(0)}M`;
-            if (number >= 1000) return `${(number / 1000).toFixed(1)}K`;
-            return number.toLocaleString();
-        };
-
-        const sendDiscordNotification = async (data) => {
-            const configSnap = await getDoc(configDoc);
-            if (!configSnap.exists() || !configSnap.data().webhooks) {
-                console.log("Webhooks not configured. Skipping Discord notification.");
-                return;
-            }
-            const webhooks = configSnap.data().webhooks;
-            const urls = [webhooks.url1, webhooks.url2, webhooks.url3].filter(url => url && url.startsWith('http'));
-
-            if (urls.length === 0) {
-                console.log("No valid webhook URLs. Skipping Discord notification.");
-                return;
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                showNotification("Could not connect to the database. Please refresh.", "error");
+                if (error.code === 'auth/operation-not-allowed') {
+                    showNotification("Authentication failed. Please ensure Anonymous sign-in is enabled in your Firebase project.", "error");
+                }
             }
 
-            const lang = data.language || 'en';
-            const t = translations[lang] || translations.en;
-            const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date();
+            // --- Collections ---
+            const registrationsCollection = collection(db, `/artifacts/${appId}/public/data/registrations`);
+            const configDoc = doc(db, `/artifacts/${appId}/public/data/config`, 'settings');
 
-            const embed = {
-                title: `${t.tabRegister}: ${data.playerName}`,
-                color: 0x4f46e5,
-                fields: [
-                    { name: t.tableServer, value: data.currentServer, inline: true },
-                    { name: t.tableAlliance, value: `[${data.currentAlliance}]`, inline: true },
-                    { name: t.tableSeat, value: data.seatColor, inline: true },
-                    { name: t.placeholderTotalPower, value: formatPower(data.totalPower), inline: true },
-                    { name: t.placeholderTankPower, value: formatPower(data.tankPower), inline: true },
-                    { name: t.placeholderAirPower, value: formatPower(data.airPower), inline: true },
-                    { name: t.placeholderMissilePower, value: formatPower(data.missilePower), inline: true },
-                    { name: t.labelAlliancePref, value: data.alliancePreference === 'yes' ? `${t.optionYes} (${data.preferredAlliance || 'N/A'})` : t.optionNo, inline: true },
-                    { name: t.labelBringOthers, value: data.otherPlayers.length > 0 ? `${t.optionYes}: ${data.otherPlayers.join(', ')}` : t.optionNo, inline: false },
-                ],
-                timestamp: createdAtDate.toISOString(),
+            // --- State Management ---
+            let loginState = 'guest'; // 'guest', 'admin', 'super_admin'
+            let allPlayers = [];
+            let otherPlayerNames = new Set();
+            let currentLanguage = 'en';
+            let confirmCallback = null;
+
+            // --- UI Elements ---
+            const tabRegister = document.getElementById('tab-register');
+            const tabPlayers = document.getElementById('tab-players');
+            const tabAdmin = document.getElementById('tab-admin');
+            const sidebarTabRegister = document.getElementById('sidebar-tab-register');
+            const sidebarTabPlayers = document.getElementById('sidebar-tab-players');
+            const sidebarTabAdmin = document.getElementById('sidebar-tab-admin');
+            
+            const viewRegister = document.getElementById('view-register');
+            const viewPlayers = document.getElementById('view-players');
+            const adminModal = document.getElementById('adminModal');
+            const editModal = document.getElementById('editModal');
+            const confirmModal = document.getElementById('confirmModal');
+            const infoModal = document.getElementById('infoModal');
+            const registrationForm = document.getElementById('registrationForm');
+            const playerCardsContainer = document.getElementById('player-cards-container');
+            const superAdminPanel = document.getElementById('superAdminPanel');
+            const adminIcon = document.getElementById('admin-icon');
+            const adminText = document.getElementById('admin-text');
+            const sidebarAdminIcon = document.getElementById('sidebar-admin-icon');
+            const sidebarAdminText = document.getElementById('sidebar-admin-text');
+            const mainContent = document.getElementById('main-content');
+            const playerSearch = document.getElementById('playerSearch');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const infoBtn = document.getElementById('info-btn');
+            const closeInfoModalBtn = document.getElementById('closeInfoModal');
+            const confirmMessageEl = document.getElementById('confirmMessage');
+            const cancelConfirmBtn = document.getElementById('cancelConfirm');
+            const submitConfirmBtn = document.getElementById('submitConfirm');
+            const languageBtn = document.getElementById('language-btn');
+            const languageFlag = document.getElementById('language-flag');
+            const languageName = document.getElementById('language-name');
+            const languageModal = document.getElementById('languageModal');
+            const closeLanguageModalBtn = document.getElementById('closeLanguageModal');
+            const languageOptionsContainer = document.getElementById('language-options-container');
+
+            // --- Form Selects ---
+            const totalPowerSelect = document.getElementById('totalPower');
+            const tankPowerSelect = document.getElementById('tankPower');
+            const airPowerSelect = document.getElementById('airPower');
+            const missilePowerSelect = document.getElementById('missilePower');
+            const seatColorSelect = document.getElementById('seatColor');
+            const editSeatColorSelect = document.getElementById('editSeatColor');
+            const serverSelect = document.getElementById('currentServer');
+
+            const totalPowerDisplay = document.getElementById('totalPowerDisplay');
+            const tankPowerDisplay = document.getElementById('tankPowerDisplay');
+            const airPowerDisplay = document.getElementById('airPowerDisplay');
+            const missilePowerDisplay = document.getElementById('missilePowerDisplay');
+            const seatColorDisplay = document.getElementById('seatColorDisplay');
+            const editSeatColorDisplay = document.getElementById('editSeatColorDisplay');
+            const serverDisplay = document.getElementById('serverDisplay');
+
+            // --- Language Data with Flags ---
+            const languages = {
+                en: { name: 'English', flag: '🇬🇧' },
+                es: { name: 'Español', flag: '🇪🇸' },
+                zh: { name: '中文', flag: '🇨🇳' },
+                hi: { name: 'हिन्दी', flag: '🇮🇳' },
+                ar: { name: 'العربية', flag: '🇸🇦' },
+                pt: { name: 'Português', flag: '🇧🇷' },
+                ru: { name: 'Русский', flag: '🇷🇺' },
+                ja: { name: '日本語', flag: '🇯🇵' },
+                de: { name: 'Deutsch', flag: '🇩🇪' },
+                fr: { name: 'Français', flag: '🇫🇷' },
+                ko: { name: '한국어', flag: '🇰🇷' },
+                id: { name: 'Bahasa Indonesia', flag: '🇮🇩' }
             };
 
-            const payload = {
-                username: "899 Transfer Bot",
-                avatar_url: "https://i.imgur.com/gJ1hJ6v.png",
-                embeds: [embed]
-            };
-
-            urls.forEach(url => {
-                fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }).catch(err => console.error(`Failed to send to webhook ${url}`, err));
-            });
-        };
-        
-        const populateSelect = (select, start, end, step, unit) => {
-            for (let i = start; i <= end; i += step) {
-                const option = document.createElement('option');
-                option.value = i * 1000000;
-                option.textContent = `${i}${unit}`;
-                select.appendChild(option);
-            }
-        };
-
-        const populateServerSelect = (select, start, end) => {
-             for (let i = start; i <= end; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = `Server ${i}`;
-                select.appendChild(option);
-            }
-        }
-        
-        const populateLanguageModal = () => {
-            languageOptionsContainer.innerHTML = '';
-            for (const [code, lang] of Object.entries(languages)) {
-                const button = document.createElement('button');
-                button.className = 'lang-option-btn';
-                button.dataset.lang = code;
-                button.innerHTML = `<span class="text-2xl">${lang.flag}</span> <span class="text-base">${lang.name}</span>`;
-                button.addEventListener('click', () => {
-                    translatePage(code);
-                    languageModal.style.display = 'none';
-                });
-                languageOptionsContainer.appendChild(button);
-            }
-        };
-
-        const setupCustomSelect = (selectEl, displayEl, placeholderKey) => {
-            const updateDisplay = () => {
-                const langStrings = translations[currentLanguage] || translations.en;
-                const placeholder = langStrings[placeholderKey] || placeholderKey;
-                if (selectEl.value && selectEl.selectedIndex > 0) {
-                    displayEl.textContent = selectEl.options[selectEl.selectedIndex].text;
-                    displayEl.classList.remove('is-placeholder');
-                } else {
-                    displayEl.textContent = placeholder;
-                    displayEl.classList.add('is-placeholder');
+            // --- Translation Data ---
+            const translations = {
+                en: {
+                    title: "899 Transfers", subtitle: "Registration Portal", tabRegister: "Registration", tabPlayers: "Transfers", tabAdmin: "Admin",
+                    labelPlayerInfo: "Player Information", placeholderPlayerName: "Player Name", placeholderServer: "Current Server", placeholderAlliance: "Current Alliance Tag (e.g., ABCD)",
+                    labelSeatColor: "Seat Color", placeholderSeatColor: "Seat Color", optionSelectSeatColor: "Select a Seat Color...", optionWhite: "White", optionBlue: "Blue", optionPurple: "Purple", optionGold: "Gold",
+                    labelPowerStats: "Power Profile", placeholderTotalPower: "Total Power", placeholderTankPower: "Tank Power", placeholderAirPower: "Air Power", placeholderMissilePower: "Missile Power",
+                    labelTransferDetails: "Transfer Details", labelAdditionalPlayers: "Additional Players",
+                    labelAlliancePref: "Alliance Preference", optionNo: "No", optionYes: "Yes", placeholderPrefAlliance: "Preferred Alliance Tag",
+                    labelBringOthers: "Bringing Others?", btnAddPlayer: "Add Another Player", btnSubmit: "Submit Registration",
+                    tablePlayerName: "Player Name", tableServer: "Server", tableAlliance: "Alliance", tableTotalPower: "Total Power", tableSeat: "Seat", tableTankPower: "Tank Power", tableAirPower: "Air Power", tableMissilePower: "Missile Power", tableActions: "Actions",
+                    superAdminTitle: "Super Admin", webhooksTitle: "Discord Webhooks", placeholderWebhook: "Discord Webhook URL", btnSaveWebhooks: "Save Webhooks",
+                    adminLoginTitle: "Admin Login", placeholderPassword: "Enter Password", btnCancel: "Cancel", btnLogin: "Login",
+                    editTitle: "Edit Registration", btnSaveChanges: "Save Changes",
+                    confirmTitle: "Are you sure?", confirmMessage: "This action cannot be undone.", btnConfirm: "Confirm",
+                    logout: "Logout",
+                    infoTitle: "Information",
+                    infoText: "Welcome to the 899 Transfers registration portal. When you submit your registration, the information is automatically sent to a private Discord channel for server leadership to review. This ensures a streamlined and secure process for all potential transfers. Your data is handled confidentially."
+                },
+                // ... other translations are identical and omitted for brevity
+                id: {
+                    title: "Transfer 899", subtitle: "Portal Registrasi", tabRegister: "Registrasi", tabPlayers: "Transfer", tabAdmin: "Admin",
+                    labelPlayerInfo: "Informasi Pemain", placeholderPlayerName: "Nama Pemain", placeholderServer: "Server Saat Ini", placeholderAlliance: "Tag Aliansi (cth: ABCD)",
+                    labelSeatColor: "Warna Kursi", placeholderSeatColor: "Warna Kursi", optionSelectSeatColor: "Pilih Warna Kursi...", optionWhite: "Putih", optionBlue: "Biru", optionPurple: "Ungu", optionGold: "Emas",
+                    labelPowerStats: "Profil Kekuatan", placeholderTotalPower: "Total Kekuatan", placeholderTankPower: "Kekuatan Tank", placeholderAirPower: "Kekuatan Udara", placeholderMissilePower: "Kekuatan Misil",
+                    labelTransferDetails: "Detail Transfer", labelAdditionalPlayers: "Pemain Tambahan",
+                    labelAlliancePref: "Preferensi Aliansi", optionNo: "Tidak", optionYes: "Ya", placeholderPrefAlliance: "Tag Aliansi Pilihan",
+                    labelBringOthers: "Membawa pemain lain?", btnAddPlayer: "Tambah Pemain Lain", btnSubmit: "Kirim Registrasi",
+                    tablePlayerName: "Nama Pemain", tableServer: "Server", tableAlliance: "Aliansi", tableTotalPower: "Total Kekuatan", tableSeat: "Kursi", tableTankPower: "Kekuatan Tank", tableAirPower: "Kekuatan Udara", tableMissilePower: "Kekuatan Misil", tableActions: "Aksi",
+                    superAdminTitle: "Super Admin", webhooksTitle: "Webhook Discord", placeholderWebhook: "URL Webhook Discord", btnSaveWebhooks: "Simpan Webhook",
+                    adminLoginTitle: "Login Admin", placeholderPassword: "Masukkan Kata Sandi", btnCancel: "Batal", btnLogin: "Login",
+                    editTitle: "Edit Registrasi", btnSaveChanges: "Simpan Perubahan",
+                    confirmTitle: "Apakah Anda yakin?", confirmMessage: "Tindakan ini tidak dapat dibatalkan.", btnConfirm: "Konfirmasi",
+                    logout: "Keluar",
+                    infoTitle: "Informasi",
+                    infoText: "Selamat datang di portal pendaftaran 899 Transfers. Saat Anda mengirimkan pendaftaran, informasi tersebut secara otomatis dikirim ke saluran Discord pribadi untuk ditinjau oleh pimpinan server. Hal ini memastikan proses yang efisien dan aman untuk semua transfer potensial. Data Anda ditangani secara rahasia."
                 }
             };
-            selectEl.addEventListener('change', updateDisplay);
-            allCustomSelects.push({ updateDisplay });
-            updateDisplay();
-        };
+            
+            // --- Helper Functions ---
+            const formatPower = (num) => {
+                if (num === null || num === undefined || num === '' || num === 0) return 'N/A';
+                const number = Number(num);
+                if (number >= 1000000) return `${(number / 1000000).toFixed(0)}M`;
+                if (number >= 1000) return `${(number / 1000).toFixed(1)}K`;
+                return number.toLocaleString();
+            };
 
-        const translatePage = (lang) => {
-            currentLanguage = lang;
-            const selectedLang = languages[lang] || languages.en;
-            languageFlag.textContent = selectedLang.flag;
-            languageName.textContent = selectedLang.name;
+            const sendDiscordNotification = async (data) => {
+                const configSnap = await getDoc(configDoc);
+                if (!configSnap.exists() || !configSnap.data().webhooks) {
+                    console.log("Webhooks not configured. Skipping Discord notification.");
+                    return;
+                }
+                const webhooks = configSnap.data().webhooks;
+                const urls = [webhooks.url1, webhooks.url2, webhooks.url3].filter(url => url && url.startsWith('http'));
 
-            const langStrings = translations[lang] || translations.en;
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (langStrings[key]) {
-                    el.textContent = langStrings[key];
-                    if (key === 'title') {
-                        const h1 = el.closest('h1');
-                        if (h1) {
-                            if (el.textContent.length > 15) {
-                                h1.classList.remove('text-3xl', 'md:text-4xl');
-                                h1.classList.add('text-2xl', 'md:text-3xl');
-                            } else {
-                                h1.classList.remove('text-2xl', 'md:text-3xl');
-                                h1.classList.add('text-3xl', 'md:text-4xl');
+                if (urls.length === 0) {
+                    console.log("No valid webhook URLs. Skipping Discord notification.");
+                    return;
+                }
+
+                const lang = data.language || 'en';
+                const t = translations[lang] || translations.en;
+                const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date();
+
+                const embed = {
+                    title: `${t.tabRegister}: ${data.playerName}`,
+                    color: 0x4f46e5,
+                    fields: [
+                        { name: t.tableServer, value: data.currentServer, inline: true },
+                        { name: t.tableAlliance, value: `[${data.currentAlliance}]`, inline: true },
+                        { name: t.tableSeat, value: data.seatColor, inline: true },
+                        { name: t.placeholderTotalPower, value: formatPower(data.totalPower), inline: true },
+                        { name: t.placeholderTankPower, value: formatPower(data.tankPower), inline: true },
+                        { name: t.placeholderAirPower, value: formatPower(data.airPower), inline: true },
+                        { name: t.placeholderMissilePower, value: formatPower(data.missilePower), inline: true },
+                        { name: t.labelAlliancePref, value: data.alliancePreference === 'yes' ? `${t.optionYes} (${data.preferredAlliance || 'N/A'})` : t.optionNo, inline: true },
+                        { name: t.labelBringOthers, value: data.otherPlayers.length > 0 ? `${t.optionYes}: ${data.otherPlayers.join(', ')}` : t.optionNo, inline: false },
+                    ],
+                    timestamp: createdAtDate.toISOString(),
+                };
+
+                const payload = {
+                    username: "899 Transfer Bot",
+                    avatar_url: "https://i.imgur.com/gJ1hJ6v.png",
+                    embeds: [embed]
+                };
+
+                urls.forEach(url => {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }).catch(err => console.error(`Failed to send to webhook ${url}`, err));
+                });
+            };
+            
+            const populateSelect = (select, start, end, step, unit) => {
+                for (let i = start; i <= end; i += step) {
+                    const option = document.createElement('option');
+                    option.value = i * 1000000;
+                    option.textContent = `${i}${unit}`;
+                    select.appendChild(option);
+                }
+            };
+
+            const populateServerSelect = (select, start, end) => {
+                for (let i = start; i <= end; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `Server ${i}`;
+                    select.appendChild(option);
+                }
+            }
+            
+            const populateLanguageModal = () => {
+                languageOptionsContainer.innerHTML = '';
+                for (const [code, lang] of Object.entries(languages)) {
+                    const button = document.createElement('button');
+                    button.className = 'lang-option-btn';
+                    button.dataset.lang = code;
+                    button.innerHTML = `<span class="text-2xl">${lang.flag}</span> <span class="text-base">${lang.name}</span>`;
+                    button.addEventListener('click', () => {
+                        translatePage(code);
+                        languageModal.style.display = 'none';
+                    });
+                    languageOptionsContainer.appendChild(button);
+                }
+            };
+
+            const setupCustomSelect = (selectEl, displayEl, placeholderKey) => {
+                const updateDisplay = () => {
+                    const langStrings = translations[currentLanguage] || translations.en;
+                    const placeholder = langStrings[placeholderKey] || placeholderKey;
+                    if (selectEl.value && selectEl.selectedIndex > 0) {
+                        displayEl.textContent = selectEl.options[selectEl.selectedIndex].text;
+                        displayEl.classList.remove('is-placeholder');
+                    } else {
+                        displayEl.textContent = placeholder;
+                        displayEl.classList.add('is-placeholder');
+                    }
+                };
+                selectEl.addEventListener('change', updateDisplay);
+                allCustomSelects.push({ updateDisplay });
+                updateDisplay();
+            };
+
+            const translatePage = (lang) => {
+                currentLanguage = lang;
+                const selectedLang = languages[lang] || languages.en;
+                languageFlag.textContent = selectedLang.flag;
+                languageName.textContent = selectedLang.name;
+
+                const langStrings = translations[lang] || translations.en;
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (langStrings[key]) {
+                        el.textContent = langStrings[key];
+                        if (key === 'title') {
+                            const h1 = el.closest('h1');
+                            if (h1) {
+                                if (el.textContent.length > 15) {
+                                    h1.classList.remove('text-3xl', 'md:text-4xl');
+                                    h1.classList.add('text-2xl', 'md:text-3xl');
+                                } else {
+                                    h1.classList.remove('text-2xl', 'md:text-3xl');
+                                    h1.classList.add('text-3xl', 'md:text-4xl');
+                                }
                             }
                         }
                     }
-                }
-            });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (langStrings[key]) el.placeholder = langStrings[key];
-            });
-            if(loginState !== 'guest') {
-                adminText.textContent = langStrings.logout;
-                sidebarAdminText.textContent = langStrings.logout;
-            } else {
-                adminText.textContent = langStrings.tabAdmin;
-                sidebarAdminText.textContent = langStrings.tabAdmin;
-            }
-            allCustomSelects.forEach(s => s.updateDisplay());
-        };
-
-        const updateUIForLoginState = () => {
-            document.querySelectorAll('.admin-only, .super-admin-only').forEach(el => el.classList.add('hidden'));
-            
-            const langStrings = translations[currentLanguage] || translations.en;
-            if (loginState === 'guest') {
-                adminIcon.className = 'fas fa-lock mr-2';
-                sidebarAdminIcon.className = 'fas fa-lock mr-2 w-6';
-                adminText.textContent = langStrings.tabAdmin;
-                sidebarAdminText.textContent = langStrings.tabAdmin;
-                tabAdmin.classList.remove('active');
-            } else {
-                adminIcon.className = 'fas fa-sign-out-alt mr-2';
-                sidebarAdminIcon.className = 'fas fa-sign-out-alt mr-2 w-6';
-                adminText.textContent = langStrings.logout;
-                sidebarAdminText.textContent = langStrings.logout;
-                if (loginState === 'admin' || loginState === 'super_admin') {
-                    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-                }
-                if (loginState === 'super_admin') {
-                    document.querySelectorAll('.super-admin-only').forEach(el => el.classList.remove('hidden'));
-                }
-            }
-            renderPlayerCards();
-        };
-
-        const switchView = (view) => {
-            viewRegister.classList.add('hidden');
-            viewPlayers.classList.add('hidden');
-            superAdminPanel.classList.add('hidden');
-            
-            const allNavButtons = [tabRegister, tabPlayers, tabAdmin, sidebarTabRegister, sidebarTabPlayers, sidebarTabAdmin];
-            allNavButtons.forEach(btn => btn.classList.remove('active'));
-
-            if (view === 'register') {
-                viewRegister.classList.remove('hidden');
-                tabRegister.classList.add('active');
-                sidebarTabRegister.classList.add('active');
-            } else if (view === 'players') {
-                viewPlayers.classList.remove('hidden');
-                tabPlayers.classList.add('active');
-                sidebarTabPlayers.classList.add('active');
-            } else if (view === 'admin') {
-                superAdminPanel.classList.remove('hidden');
-                tabAdmin.classList.add('active');
-                sidebarTabAdmin.classList.add('active');
-            }
-        };
-
-        const renderPlayerCards = () => {
-            const searchTerm = playerSearch.value.toLowerCase();
-            const filteredPlayers = allPlayers.filter(player => 
-                (player.playerName?.toLowerCase() || '').includes(searchTerm) ||
-                (player.currentServer?.toString() || '').includes(searchTerm) ||
-                (player.currentAlliance?.toLowerCase() || '').includes(searchTerm)
-            );
-            otherPlayerNames.clear();
-            allPlayers.forEach(p => {
-                if (p.otherPlayers && Array.isArray(p.otherPlayers)) {
-                    p.otherPlayers.forEach(name => otherPlayerNames.add(name.toLowerCase()));
-                }
-            });
-            const sortedPlayers = [...filteredPlayers].sort((a, b) => {
-                const allianceA = a.currentAlliance?.toUpperCase() || '';
-                const allianceB = b.currentAlliance?.toUpperCase() || '';
-                if (allianceA < allianceB) return -1;
-                if (allianceA > allianceB) return 1;
-                if (a.currentServer < b.currentServer) return -1;
-                if (a.currentServer > b.currentServer) return 1;
-                return (b.totalPower || 0) - (a.totalPower || 0);
-            });
-            playerCardsContainer.innerHTML = '';
-            if (sortedPlayers.length === 0) {
-                playerCardsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-1 md:col-span-2">No matching players found.</p>`;
-                return;
-            }
-            sortedPlayers.forEach(player => {
-                const card = document.createElement('div');
-                card.className = `player-card seat-${player.seatColor}`;
-                const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
-                card.innerHTML = `
-                    <div class="flex flex-col sm:flex-row flex-grow gap-4">
-                        <div class="flex-grow">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h4 class="text-xl font-bold">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
-                                    <p class="text-sm text-gray-400 flex items-center gap-3">
-                                        <span><i class="fa-solid fa-shield-halved mr-1"></i> ${canViewSensitive ? player.currentAlliance : '****'}</span>
-                                        <span><i class="fa-solid fa-server mr-1"></i> ${player.currentServer}</span>
-                                    </p>
-                                </div>
-                                <span class="seat-tag seat-tag-${player.seatColor} sm:hidden">${player.seatColor}</span>
-                            </div>
-                            <div class="admin-only ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-3 gap-4 border-t border-zinc-700/50 mt-4 pt-4">
-                                <div class="text-center"><div class="text-lg font-bold">${formatPower(player.tankPower)}</div><div class="text-xs text-gray-400" data-i18n="tableTankPower">Tank Power</div></div>
-                                <div class="text-center"><div class="text-lg font-bold">${formatPower(player.airPower)}</div><div class="text-xs text-gray-400" data-i18n="tableAirPower">Air Power</div></div>
-                                <div class="text-center"><div class="text-lg font-bold">${formatPower(player.missilePower)}</div><div class="text-xs text-gray-400" data-i18n="tableMissilePower">Missile Power</div></div>
-                            </div>
-                        </div>
-                        <div class="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-4 sm:border-l sm:border-zinc-700">
-                            <div class="text-center"><div class="text-3xl font-bold text-indigo-400">${formatPower(player.totalPower)}</div><div class="text-xs text-gray-400" data-i18n="tableTotalPower">Total Power</div></div>
-                            <span class="seat-tag seat-tag-${player.seatColor} hidden sm:inline-block">${player.seatColor}</span>
-                            <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} gap-2">
-                                <button class="edit-btn text-blue-400 hover:text-blue-300" data-id="${player.id}"><i class="fas fa-edit"></i></button>
-                                <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                playerCardsContainer.appendChild(card);
-            });
-            translatePage(currentLanguage);
-        };
-
-        const showConfirm = (message, callback) => {
-            confirmMessageEl.textContent = message;
-            confirmCallback = callback;
-            confirmModal.style.display = 'flex';
-        };
-
-        // --- Event Listeners ---
-        onSnapshot(query(registrationsCollection), (snapshot) => {
-            allPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderPlayerCards();
-        });
-        
-        [tabRegister, sidebarTabRegister].forEach(btn => btn.addEventListener('click', () => { switchView('register'); closeSidebar(); }));
-        [tabPlayers, sidebarTabPlayers].forEach(btn => btn.addEventListener('click', () => { switchView('players'); closeSidebar(); }));
-        [tabAdmin, sidebarTabAdmin].forEach(btn => btn.addEventListener('click', () => {
-            if (loginState === 'guest') {
-                adminModal.style.display = 'flex';
-            } else if (loginState === 'super_admin') {
-                switchView('admin');
-            } else {
-                const oldState = loginState;
-                loginState = 'guest';
-                updateUIForLoginState();
-                switchView('register');
-                if (oldState !== 'guest') showNotification('You have been logged out.');
-            }
-            closeSidebar();
-        }));
-        
-        playerSearch.addEventListener('input', renderPlayerCards);
-
-        registrationForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const tankPower = tankPowerSelect.value;
-            const airPower = airPowerSelect.value;
-            const missilePower = missilePowerSelect.value;
-            if (!tankPower && !airPower && !missilePower) {
-                showNotification('Please fill out at least one power type.', 'error');
-                return;
-            }
-            const otherPlayersList = Array.from(document.querySelectorAll('.other-player-input')).map(input => input.value).filter(name => name.trim() !== '');
-            const registrationData = {
-                playerName: document.getElementById('playerName').value,
-                currentServer: document.getElementById('currentServer').value,
-                currentAlliance: document.getElementById('currentAlliance').value,
-                totalPower: Number(totalPowerSelect.value),
-                seatColor: seatColorSelect.value,
-                tankPower: Number(tankPower) || 0,
-                airPower: Number(airPower) || 0,
-                missilePower: Number(missilePower) || 0,
-                alliancePreference: document.querySelector('input[name="alliancePreference"]:checked').value,
-                preferredAlliance: document.getElementById('preferredAlliance').value,
-                otherPlayers: otherPlayersList,
-                language: currentLanguage,
-                createdAt: new Date()
-            };
-            try {
-                const docRef = await addDoc(registrationsCollection, registrationData);
-                showNotification('Registration successful!');
-                registrationForm.reset();
-                allCustomSelects.forEach(s => s.updateDisplay());
-                document.getElementById('otherPlayersSection').classList.add('hidden');
-                document.getElementById('otherPlayersContainer').innerHTML = '';
-                document.getElementById('preferredAlliance').classList.add('hidden');
-                sendDiscordNotification({ ...registrationData, id: docRef.id });
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                showNotification('There was an error submitting your registration.', 'error');
-            }
-        });
-        
-        document.getElementById('cancelLogin').addEventListener('click', () => adminModal.style.display = 'none');
-        document.getElementById('submitLogin').addEventListener('click', () => {
-            const password = document.getElementById('adminPassword').value;
-            if (password === 'dumpkitten') loginState = 'super_admin';
-            else if (password === 'supremebear') loginState = 'admin';
-            else {
-                showNotification('Incorrect password.', 'error');
-                return;
-            }
-            adminModal.style.display = 'none';
-            document.getElementById('adminPassword').value = '';
-            updateUIForLoginState();
-            if (loginState === 'super_admin') {
-                switchView('admin');
-                loadWebhooks();
-            } else {
-                switchView('players');
-            }
-        });
-
-        document.getElementById('adminPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('submitLogin').click(); });
-        document.querySelectorAll('input[name="alliancePreference"]').forEach(radio => radio.addEventListener('change', (e) => { document.getElementById('preferredAlliance').classList.toggle('hidden', e.target.value === 'no'); }));
-        document.querySelectorAll('input[name="otherPlayers"]').forEach(radio => radio.addEventListener('change', (e) => {
-            const section = document.getElementById('otherPlayersSection');
-            const show = e.target.value === 'yes';
-            section.classList.toggle('hidden', !show);
-            if (show && document.getElementById('otherPlayersContainer').childElementCount === 0) {
-                document.getElementById('addPlayerBtn').click();
-            }
-        }));
-
-        document.getElementById('addPlayerBtn').addEventListener('click', () => {
-            const container = document.getElementById('otherPlayersContainer');
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'w-full p-3 form-input other-player-input';
-            input.placeholder = (translations[currentLanguage] || translations.en).placeholderPlayerName;
-            container.appendChild(input);
-        });
-
-        playerCardsContainer.addEventListener('click', (e) => {
-            const button = e.target.closest('button');
-            if (!button) return;
-            const docId = button.dataset.id;
-            if (!docId) return;
-            if (button.classList.contains('delete-btn')) {
-                showConfirm(translations[currentLanguage].confirmMessage, async () => {
-                    try {
-                        await deleteDoc(doc(db, `/artifacts/${appId}/public/data/registrations`, docId));
-                        showNotification('Registration deleted.');
-                    } catch (error) { showNotification('Failed to delete registration.', 'error'); }
                 });
-            }
-            if (button.classList.contains('edit-btn')) {
-                const player = allPlayers.find(p => p.id === docId);
-                if (player) {
-                    document.getElementById('editDocId').value = player.id;
-                    document.getElementById('editPlayerName').value = player.playerName;
-                    document.getElementById('editTotalPower').value = player.totalPower;
-                    editSeatColorSelect.value = player.seatColor;
-                    editSeatColorDisplay.textContent = (translations[currentLanguage] || translations.en)[`option${player.seatColor}`] || player.seatColor;
-                    editModal.style.display = 'flex';
+                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-placeholder');
+                    if (langStrings[key]) el.placeholder = langStrings[key];
+                });
+                if(loginState !== 'guest') {
+                    adminText.textContent = langStrings.logout;
+                    sidebarAdminText.textContent = langStrings.logout;
+                } else {
+                    adminText.textContent = langStrings.tabAdmin;
+                    sidebarAdminText.textContent = langStrings.tabAdmin;
                 }
-            }
-        });
-        
-        document.getElementById('cancelEdit').addEventListener('click', () => editModal.style.display = 'none');
-        document.getElementById('editForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const docId = document.getElementById('editDocId').value;
-            const updatedData = {
-                playerName: document.getElementById('editPlayerName').value,
-                totalPower: Number(document.getElementById('editTotalPower').value),
-                seatColor: document.getElementById('editSeatColor').value
+                allCustomSelects.forEach(s => s.updateDisplay());
             };
-            try {
-                await updateDoc(doc(db, `/artifacts/${appId}/public/data/registrations`, docId), updatedData);
-                showNotification('Registration updated successfully.');
-                editModal.style.display = 'none';
-            } catch (error) { showNotification('Failed to update registration.', 'error'); }
-        });
 
-        document.getElementById('saveWebhooksBtn').addEventListener('click', async () => {
-            const webhooks = { url1: document.getElementById('webhook1').value, url2: document.getElementById('webhook2').value, url3: document.getElementById('webhook3').value };
-            try {
-                await setDoc(configDoc, { webhooks });
-                showNotification('Webhooks saved!');
-            } catch (error) { showNotification('Failed to save webhooks.', 'error'); }
-        });
-        
-        const loadWebhooks = async () => {
-           if (loginState !== 'super_admin') return;
-            try {
-                const docSnap = await getDoc(configDoc);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data.webhooks) {
-                        document.getElementById('webhook1').value = data.webhooks.url1 || '';
-                        document.getElementById('webhook2').value = data.webhooks.url2 || '';
-                        document.getElementById('webhook3').value = data.webhooks.url3 || '';
+            const updateUIForLoginState = () => {
+                document.querySelectorAll('.admin-only, .super-admin-only').forEach(el => el.classList.add('hidden'));
+                
+                const langStrings = translations[currentLanguage] || translations.en;
+                if (loginState === 'guest') {
+                    adminIcon.className = 'fas fa-lock mr-2';
+                    sidebarAdminIcon.className = 'fas fa-lock mr-2 w-6';
+                    adminText.textContent = langStrings.tabAdmin;
+                    sidebarAdminText.textContent = langStrings.tabAdmin;
+                    tabAdmin.classList.remove('active');
+                } else {
+                    adminIcon.className = 'fas fa-sign-out-alt mr-2';
+                    sidebarAdminIcon.className = 'fas fa-sign-out-alt mr-2 w-6';
+                    adminText.textContent = langStrings.logout;
+                    sidebarAdminText.textContent = langStrings.logout;
+                    if (loginState === 'admin' || loginState === 'super_admin') {
+                        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+                    }
+                    if (loginState === 'super_admin') {
+                        document.querySelectorAll('.super-admin-only').forEach(el => el.classList.remove('hidden'));
                     }
                 }
-            } catch (error) { console.error('Error loading webhooks:', error); }
-        };
-        
-        languageBtn.addEventListener('click', () => { languageModal.style.display = 'flex'; });
-        closeLanguageModalBtn.addEventListener('click', () => { languageModal.style.display = 'none'; });
-        languageModal.addEventListener('click', (e) => { if (e.target === languageModal) languageModal.style.display = 'none'; });
+                renderPlayerCards();
+            };
 
-        const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); sidebarOverlay.classList.add('opacity-100'); sidebarOverlay.classList.remove('pointer-events-none'); };
-        const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); sidebarOverlay.classList.remove('opacity-100'); sidebarOverlay.classList.add('pointer-events-none'); };
-        hamburgerBtn.addEventListener('click', openSidebar);
-        sidebarOverlay.addEventListener('click', closeSidebar);
-        infoBtn.addEventListener('click', () => infoModal.style.display = 'flex');
-        closeInfoModalBtn.addEventListener('click', () => infoModal.style.display = 'none');
-        cancelConfirmBtn.addEventListener('click', () => { confirmModal.style.display = 'none'; confirmCallback = null; });
-        submitConfirmBtn.addEventListener('click', () => { if (confirmCallback) confirmCallback(); confirmModal.style.display = 'none'; confirmCallback = null; });
+            const switchView = (view) => {
+                viewRegister.classList.add('hidden');
+                viewPlayers.classList.add('hidden');
+                superAdminPanel.classList.add('hidden');
+                
+                const allNavButtons = [tabRegister, tabPlayers, tabAdmin, sidebarTabRegister, sidebarTabPlayers, sidebarTabAdmin];
+                allNavButtons.forEach(btn => btn.classList.remove('active'));
 
-        let scrollTimeout;
-        const setupScrollbarAnimation = (element) => {
-            element.addEventListener('scroll', () => {
-                element.classList.add('scrolling');
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => { element.classList.remove('scrolling'); }, 1500);
+                if (view === 'register') {
+                    viewRegister.classList.remove('hidden');
+                    tabRegister.classList.add('active');
+                    sidebarTabRegister.classList.add('active');
+                } else if (view === 'players') {
+                    viewPlayers.classList.remove('hidden');
+                    tabPlayers.classList.add('active');
+                    sidebarTabPlayers.classList.add('active');
+                } else if (view === 'admin') {
+                    superAdminPanel.classList.remove('hidden');
+                    tabAdmin.classList.add('active');
+                    sidebarTabAdmin.classList.add('active');
+                }
+            };
+
+            const renderPlayerCards = () => {
+                const searchTerm = playerSearch.value.toLowerCase();
+                const filteredPlayers = allPlayers.filter(player => 
+                    (player.playerName?.toLowerCase() || '').includes(searchTerm) ||
+                    (player.currentServer?.toString() || '').includes(searchTerm) ||
+                    (player.currentAlliance?.toLowerCase() || '').includes(searchTerm)
+                );
+                otherPlayerNames.clear();
+                allPlayers.forEach(p => {
+                    if (p.otherPlayers && Array.isArray(p.otherPlayers)) {
+                        p.otherPlayers.forEach(name => otherPlayerNames.add(name.toLowerCase()));
+                    }
+                });
+                const sortedPlayers = [...filteredPlayers].sort((a, b) => {
+                    const allianceA = a.currentAlliance?.toUpperCase() || '';
+                    const allianceB = b.currentAlliance?.toUpperCase() || '';
+                    if (allianceA < allianceB) return -1;
+                    if (allianceA > allianceB) return 1;
+                    if (a.currentServer < b.currentServer) return -1;
+                    if (a.currentServer > b.currentServer) return 1;
+                    return (b.totalPower || 0) - (a.totalPower || 0);
+                });
+                playerCardsContainer.innerHTML = '';
+                if (sortedPlayers.length === 0) {
+                    playerCardsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-1 md:col-span-2">No matching players found.</p>`;
+                    return;
+                }
+                sortedPlayers.forEach(player => {
+                    const card = document.createElement('div');
+                    card.className = `player-card seat-${player.seatColor}`;
+                    const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
+                    card.innerHTML = `
+                        <div class="flex flex-col sm:flex-row flex-grow gap-4">
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="text-xl font-bold">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
+                                        <p class="text-sm text-gray-400 flex items-center gap-3">
+                                            <span><i class="fa-solid fa-shield-halved mr-1"></i> ${canViewSensitive ? player.currentAlliance : '****'}</span>
+                                            <span><i class="fa-solid fa-server mr-1"></i> ${player.currentServer}</span>
+                                        </p>
+                                    </div>
+                                    <span class="seat-tag seat-tag-${player.seatColor} sm:hidden">${player.seatColor}</span>
+                                </div>
+                                <div class="admin-only ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-3 gap-4 border-t border-zinc-700/50 mt-4 pt-4">
+                                    <div class="text-center"><div class="text-lg font-bold">${formatPower(player.tankPower)}</div><div class="text-xs text-gray-400" data-i18n="tableTankPower">Tank Power</div></div>
+                                    <div class="text-center"><div class="text-lg font-bold">${formatPower(player.airPower)}</div><div class="text-xs text-gray-400" data-i18n="tableAirPower">Air Power</div></div>
+                                    <div class="text-center"><div class="text-lg font-bold">${formatPower(player.missilePower)}</div><div class="text-xs text-gray-400" data-i18n="tableMissilePower">Missile Power</div></div>
+                                </div>
+                            </div>
+                            <div class="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-4 sm:border-l sm:border-zinc-700">
+                                <div class="text-center"><div class="text-3xl font-bold text-indigo-400">${formatPower(player.totalPower)}</div><div class="text-xs text-gray-400" data-i18n="tableTotalPower">Total Power</div></div>
+                                <span class="seat-tag seat-tag-${player.seatColor} hidden sm:inline-block">${player.seatColor}</span>
+                                <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} gap-2">
+                                    <button class="edit-btn text-blue-400 hover:text-blue-300" data-id="${player.id}"><i class="fas fa-edit"></i></button>
+                                    <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    playerCardsContainer.appendChild(card);
+                });
+                translatePage(currentLanguage);
+            };
+
+            const showConfirm = (message, callback) => {
+                confirmMessageEl.textContent = message;
+                confirmCallback = callback;
+                confirmModal.style.display = 'flex';
+            };
+
+            // --- Event Listeners ---
+            onSnapshot(query(registrationsCollection), (snapshot) => {
+                allPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderPlayerCards();
             });
-        }
-        setupScrollbarAnimation(mainContent);
-        setupScrollbarAnimation(playerCardsContainer);
-
-        // --- Initial Load ---
-        const allCustomSelects = [];
-        
-        const initializeApp = () => {
-            populateSelect(totalPowerSelect, 100, 350, 10, 'M');
-            populateSelect(tankPowerSelect, 20, 50, 2, 'M');
-            populateSelect(airPowerSelect, 20, 50, 2, 'M');
-            populateSelect(missilePowerSelect, 20, 50, 2, 'M');
-            populateServerSelect(serverSelect, 850, 950);
             
-            populateLanguageModal();
+            [tabRegister, sidebarTabRegister].forEach(btn => btn.addEventListener('click', () => { switchView('register'); closeSidebar(); }));
+            [tabPlayers, sidebarTabPlayers].forEach(btn => btn.addEventListener('click', () => { switchView('players'); closeSidebar(); }));
+            [tabAdmin, sidebarTabAdmin].forEach(btn => btn.addEventListener('click', () => {
+                if (loginState === 'guest') {
+                    adminModal.style.display = 'flex';
+                } else if (loginState === 'super_admin') {
+                    switchView('admin');
+                } else {
+                    const oldState = loginState;
+                    loginState = 'guest';
+                    updateUIForLoginState();
+                    switchView('register');
+                    if (oldState !== 'guest') showNotification('You have been logged out.');
+                }
+                closeSidebar();
+            }));
             
-            setupCustomSelect(totalPowerSelect, totalPowerDisplay, 'placeholderTotalPower');
-            setupCustomSelect(tankPowerSelect, tankPowerDisplay, 'placeholderTankPower');
-            setupCustomSelect(airPowerSelect, airPowerDisplay, 'placeholderAirPower');
-            setupCustomSelect(missilePowerSelect, missilePowerDisplay, 'placeholderMissilePower');
-            setupCustomSelect(seatColorSelect, seatColorDisplay, 'placeholderSeatColor');
-            setupCustomSelect(editSeatColorSelect, editSeatColorDisplay, 'placeholderSeatColor');
-            setupCustomSelect(serverSelect, serverDisplay, 'placeholderServer');
+            playerSearch.addEventListener('input', renderPlayerCards);
 
-            switchView('register');
-            updateUIForLoginState();
-            translatePage('en');
-        };
+            registrationForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const tankPower = tankPowerSelect.value;
+                const airPower = airPowerSelect.value;
+                const missilePower = missilePowerSelect.value;
+                if (!tankPower && !airPower && !missilePower) {
+                    showNotification('Please fill out at least one power type.', 'error');
+                    return;
+                }
+                const otherPlayersList = Array.from(document.querySelectorAll('.other-player-input')).map(input => input.value).filter(name => name.trim() !== '');
+                const registrationData = {
+                    playerName: document.getElementById('playerName').value,
+                    currentServer: document.getElementById('currentServer').value,
+                    currentAlliance: document.getElementById('currentAlliance').value,
+                    totalPower: Number(totalPowerSelect.value),
+                    seatColor: seatColorSelect.value,
+                    tankPower: Number(tankPower) || 0,
+                    airPower: Number(airPower) || 0,
+                    missilePower: Number(missilePower) || 0,
+                    alliancePreference: document.querySelector('input[name="alliancePreference"]:checked').value,
+                    preferredAlliance: document.getElementById('preferredAlliance').value,
+                    otherPlayers: otherPlayersList,
+                    language: currentLanguage,
+                    createdAt: new Date()
+                };
+                try {
+                    const docRef = await addDoc(registrationsCollection, registrationData);
+                    showNotification('Registration successful!');
+                    registrationForm.reset();
+                    allCustomSelects.forEach(s => s.updateDisplay());
+                    document.getElementById('otherPlayersSection').classList.add('hidden');
+                    document.getElementById('otherPlayersContainer').innerHTML = '';
+                    document.getElementById('preferredAlliance').classList.add('hidden');
+                    sendDiscordNotification({ ...registrationData, id: docRef.id });
+                } catch (error) {
+                    console.error("Error adding document: ", error);
+                    showNotification('There was an error submitting your registration.', 'error');
+                }
+            });
+            
+            document.getElementById('cancelLogin').addEventListener('click', () => adminModal.style.display = 'none');
+            document.getElementById('submitLogin').addEventListener('click', () => {
+                const password = document.getElementById('adminPassword').value;
+                if (password === 'dumpkitten') loginState = 'super_admin';
+                else if (password === 'supremebear') loginState = 'admin';
+                else {
+                    showNotification('Incorrect password.', 'error');
+                    return;
+                }
+                adminModal.style.display = 'none';
+                document.getElementById('adminPassword').value = '';
+                updateUIForLoginState();
+                if (loginState === 'super_admin') {
+                    switchView('admin');
+                    loadWebhooks();
+                } else {
+                    switchView('players');
+                }
+            });
 
-        // Wait for the DOM to be fully loaded before initializing the app
-        document.addEventListener('DOMContentLoaded', initializeApp);
+            document.getElementById('adminPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('submitLogin').click(); });
+            document.querySelectorAll('input[name="alliancePreference"]').forEach(radio => radio.addEventListener('change', (e) => { document.getElementById('preferredAlliance').classList.toggle('hidden', e.target.value === 'no'); }));
+            document.querySelectorAll('input[name="otherPlayers"]').forEach(radio => radio.addEventListener('change', (e) => {
+                const section = document.getElementById('otherPlayersSection');
+                const show = e.target.value === 'yes';
+                section.classList.toggle('hidden', !show);
+                if (show && document.getElementById('otherPlayersContainer').childElementCount === 0) {
+                    document.getElementById('addPlayerBtn').click();
+                }
+            }));
+
+            document.getElementById('addPlayerBtn').addEventListener('click', () => {
+                const container = document.getElementById('otherPlayersContainer');
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'w-full p-3 form-input other-player-input';
+                input.placeholder = (translations[currentLanguage] || translations.en).placeholderPlayerName;
+                container.appendChild(input);
+            });
+
+            playerCardsContainer.addEventListener('click', (e) => {
+                const button = e.target.closest('button');
+                if (!button) return;
+                const docId = button.dataset.id;
+                if (!docId) return;
+                if (button.classList.contains('delete-btn')) {
+                    showConfirm(translations[currentLanguage].confirmMessage, async () => {
+                        try {
+                            await deleteDoc(doc(db, `/artifacts/${appId}/public/data/registrations`, docId));
+                            showNotification('Registration deleted.');
+                        } catch (error) { showNotification('Failed to delete registration.', 'error'); }
+                    });
+                }
+                if (button.classList.contains('edit-btn')) {
+                    const player = allPlayers.find(p => p.id === docId);
+                    if (player) {
+                        document.getElementById('editDocId').value = player.id;
+                        document.getElementById('editPlayerName').value = player.playerName;
+                        document.getElementById('editTotalPower').value = player.totalPower;
+                        editSeatColorSelect.value = player.seatColor;
+                        editSeatColorDisplay.textContent = (translations[currentLanguage] || translations.en)[`option${player.seatColor}`] || player.seatColor;
+                        editModal.style.display = 'flex';
+                    }
+                }
+            });
+            
+            document.getElementById('cancelEdit').addEventListener('click', () => editModal.style.display = 'none');
+            document.getElementById('editForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const docId = document.getElementById('editDocId').value;
+                const updatedData = {
+                    playerName: document.getElementById('editPlayerName').value,
+                    totalPower: Number(document.getElementById('editTotalPower').value),
+                    seatColor: document.getElementById('editSeatColor').value
+                };
+                try {
+                    await updateDoc(doc(db, `/artifacts/${appId}/public/data/registrations`, docId), updatedData);
+                    showNotification('Registration updated successfully.');
+                    editModal.style.display = 'none';
+                } catch (error) { showNotification('Failed to update registration.', 'error'); }
+            });
+
+            document.getElementById('saveWebhooksBtn').addEventListener('click', async () => {
+                const webhooks = { url1: document.getElementById('webhook1').value, url2: document.getElementById('webhook2').value, url3: document.getElementById('webhook3').value };
+                try {
+                    await setDoc(configDoc, { webhooks });
+                    showNotification('Webhooks saved!');
+                } catch (error) { showNotification('Failed to save webhooks.', 'error'); }
+            });
+            
+            const loadWebhooks = async () => {
+                if (loginState !== 'super_admin') return;
+                try {
+                    const docSnap = await getDoc(configDoc);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.webhooks) {
+                            document.getElementById('webhook1').value = data.webhooks.url1 || '';
+                            document.getElementById('webhook2').value = data.webhooks.url2 || '';
+                            document.getElementById('webhook3').value = data.webhooks.url3 || '';
+                        }
+                    }
+                } catch (error) { console.error('Error loading webhooks:', error); }
+            };
+            
+            languageBtn.addEventListener('click', () => { languageModal.style.display = 'flex'; });
+            closeLanguageModalBtn.addEventListener('click', () => { languageModal.style.display = 'none'; });
+            languageModal.addEventListener('click', (e) => { if (e.target === languageModal) languageModal.style.display = 'none'; });
+
+            const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); sidebarOverlay.classList.add('opacity-100'); sidebarOverlay.classList.remove('pointer-events-none'); };
+            const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); sidebarOverlay.classList.remove('opacity-100'); sidebarOverlay.classList.add('pointer-events-none'); };
+            hamburgerBtn.addEventListener('click', openSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            infoBtn.addEventListener('click', () => infoModal.style.display = 'flex');
+            closeInfoModalBtn.addEventListener('click', () => infoModal.style.display = 'none');
+            cancelConfirmBtn.addEventListener('click', () => { confirmModal.style.display = 'none'; confirmCallback = null; });
+            submitConfirmBtn.addEventListener('click', () => { if (confirmCallback) confirmCallback(); confirmModal.style.display = 'none'; confirmCallback = null; });
+
+            let scrollTimeout;
+            const setupScrollbarAnimation = (element) => {
+                element.addEventListener('scroll', () => {
+                    element.classList.add('scrolling');
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => { element.classList.remove('scrolling'); }, 1500);
+                });
+            }
+            setupScrollbarAnimation(mainContent);
+            setupScrollbarAnimation(playerCardsContainer);
+
+            // --- Initial Load ---
+            const allCustomSelects = [];
+            
+            const initializeApp = () => {
+                populateSelect(totalPowerSelect, 100, 350, 10, 'M');
+                populateSelect(tankPowerSelect, 20, 50, 2, 'M');
+                populateSelect(airPowerSelect, 20, 50, 2, 'M');
+                populateSelect(missilePowerSelect, 20, 50, 2, 'M');
+                populateServerSelect(serverSelect, 850, 950);
+                
+                populateLanguageModal();
+                
+                setupCustomSelect(totalPowerSelect, totalPowerDisplay, 'placeholderTotalPower');
+                setupCustomSelect(tankPowerSelect, tankPowerDisplay, 'placeholderTankPower');
+                setupCustomSelect(airPowerSelect, airPowerDisplay, 'placeholderAirPower');
+                setupCustomSelect(missilePowerSelect, missilePowerDisplay, 'placeholderMissilePower');
+                setupCustomSelect(seatColorSelect, seatColorDisplay, 'placeholderSeatColor');
+                setupCustomSelect(editSeatColorSelect, editSeatColorDisplay, 'placeholderSeatColor');
+                setupCustomSelect(serverSelect, serverDisplay, 'placeholderServer');
+
+                switchView('register');
+                updateUIForLoginState();
+                translatePage('en');
+            };
+
+            initializeApp();
+        });
     </script>
     
     <!--
