@@ -30,8 +30,8 @@
             --text-tertiary: #71717a; /* Zinc 500 */
         }
         html {
-            /* Scaling down the entire site by another 20% */
             font-size: 70%; /* 11.2px base */
+            height: 100%;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -40,6 +40,14 @@
                 radial-gradient(at 0% 100%, hsla(244, 70%, 48%, 0.2) 0px, transparent 50%),
                 radial-gradient(at 80% 0%, hsla(339, 70%, 48%, 0.2) 0px, transparent 50%);
             color: var(--text-primary);
+            height: 100%;
+            margin: 0;
+        }
+        #app {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         h1, h2, h3 {
             font-family: 'Orbitron', sans-serif;
@@ -86,6 +94,7 @@
             display: flex;
             flex-direction: column;
             max-height: 90vh;
+            width: 100%;
         }
         .nav-container { 
             display: flex;
@@ -188,22 +197,25 @@
         .scrollable-content {
             overflow-y: auto;
             overflow-x: hidden;
+            padding-right: 8px; /* Add padding to prevent content from hiding under scrollbar */
         }
 
-        /* Custom Scrollbar */
+        /* Custom Animated Scrollbar */
         .scrollable-content::-webkit-scrollbar {
             width: 8px;
         }
         .scrollable-content::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
+            background: transparent;
         }
         .scrollable-content::-webkit-scrollbar-thumb {
             background: var(--text-tertiary);
             border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
         }
-        .scrollable-content::-webkit-scrollbar-thumb:hover {
-            background: var(--text-secondary);
+        .scrollable-content.scrolling::-webkit-scrollbar-thumb,
+        .scrollable-content:hover::-webkit-scrollbar-thumb {
+            opacity: 1;
         }
     </style>
 </head>
@@ -213,8 +225,8 @@
         
         <div class="card">
             <!-- Header and Navigation section inside the card -->
-            <div class="p-6 sm:p-8 flex-shrink-0">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+            <div class="p-6 sm:px-8 sm:pt-8 sm:pb-4 flex-shrink-0">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
                     <h1 class="text-3xl md:text-4xl font-bold tracking-wider uppercase flex-shrink-0 flex items-center gap-4">
                         <i class="fa-solid fa-satellite-dish text-indigo-400"></i>
                         <span data-i18n="title">899 Transfers</span>
@@ -248,9 +260,9 @@
             </div>
 
 
-            <main class="scrollable-content">
+            <main id="main-content" class="scrollable-content flex-grow">
                 <!-- Content Area -->
-                <div class="px-6 sm:px-8 pb-6 sm:pb-8">
+                <div class="px-6 sm:px-8 pb-6 sm:pb-8 pt-4">
                     <!-- Registration View -->
                     <div id="view-register">
                         <form id="registrationForm" class="space-y-4">
@@ -510,6 +522,7 @@
         const adminText = document.getElementById('admin-text');
         const languageSelector = document.getElementById('languageSelector');
         const languageDisplay = document.getElementById('languageDisplay');
+        const mainContent = document.getElementById('main-content');
 
         // --- Form Selects ---
         const totalPowerSelect = document.getElementById('totalPower');
@@ -813,6 +826,16 @@
             const selectedLang = e.target.value;
             languageDisplay.innerHTML = `<i class="fas fa-language mr-2"></i> ${e.target.options[e.target.selectedIndex].text}`;
             translatePage(selectedLang);
+        });
+
+        // --- Animated Scrollbar Logic ---
+        let scrollTimeout;
+        mainContent.addEventListener('scroll', () => {
+            mainContent.classList.add('scrolling');
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                mainContent.classList.remove('scrolling');
+            }, 1500);
         });
 
         // --- Initial Load ---
