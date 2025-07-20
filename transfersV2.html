@@ -30,8 +30,8 @@
             --text-tertiary: #71717a; /* Zinc 500 */
         }
         html {
-            /* Scaling down the entire site */
-            font-size: 87.5%; /* 14px base */
+            /* Scaling down the entire site by another 20% */
+            font-size: 70%; /* 11.2px base */
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -176,7 +176,7 @@
 </head>
 <body class="antialiased">
 
-    <div id="app" class="container mx-auto p-4 sm:p-6 max-w-6xl">
+    <div id="app" class="container mx-auto p-4 sm:p-6 max-w-4xl">
         
         <header class="text-center mb-6 relative">
             <h1 class="text-4xl md:text-5xl font-bold tracking-wider uppercase" data-i18n="title">899 Transfers</h1>
@@ -221,29 +221,29 @@
                     <!-- Registration View -->
                     <div id="view-register">
                         <form id="registrationForm" class="space-y-8">
-                            <!-- Main Grid for Form Layout -->
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-8">
+                            
+                            <!-- Single Column Layout -->
+                            <div class="space-y-8">
                                 
-                                <!-- Left Column: Player & Power -->
-                                <div class="space-y-8">
-                                    <!-- Player Information Section -->
-                                    <div>
-                                        <h3 class="flex items-center text-lg font-bold text-gray-300 mb-4 tracking-wider"><i class="fa-solid fa-user-astronaut w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPlayerInfo">PLAYER INFORMATION</span></h3>
-                                        <div class="space-y-4">
-                                            <input type="text" id="playerName" class="w-full p-3 form-input" data-i18n-placeholder="placeholderPlayerName" placeholder="Player Name" required>
-                                            <input type="number" id="currentServer" class="w-full p-3 form-input" data-i18n-placeholder="placeholderServer" placeholder="Current Server (850-950)" min="850" max="950" required>
-                                            <input type="text" id="currentAlliance" class="w-full p-3 form-input" data-i18n-placeholder="placeholderAlliance" placeholder="Current Alliance Tag (e.g., ABCD)" maxlength="4" required>
-                                        </div>
+                                <!-- Player Information Section -->
+                                <div>
+                                    <h3 class="flex items-center text-lg font-bold text-gray-300 mb-4 tracking-wider"><i class="fa-solid fa-user-astronaut w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPlayerInfo">PLAYER INFORMATION</span></h3>
+                                    <div class="space-y-4">
+                                        <input type="text" id="playerName" class="w-full p-3 form-input" data-i18n-placeholder="placeholderPlayerName" placeholder="Player Name" required>
+                                        <input type="number" id="currentServer" class="w-full p-3 form-input" data-i18n-placeholder="placeholderServer" placeholder="Current Server (850-950)" min="850" max="950" required>
+                                        <input type="text" id="currentAlliance" class="w-full p-3 form-input" data-i18n-placeholder="placeholderAlliance" placeholder="Current Alliance Tag (e.g., ABCD)" maxlength="4" required>
                                     </div>
+                                </div>
 
-                                    <!-- Power Stats Section -->
-                                    <div>
-                                        <h3 class="flex items-center text-lg font-bold text-gray-300 mb-4 tracking-wider"><i class="fa-solid fa-bolt-lightning w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPowerStats">POWER PROFILE</span></h3>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div class="custom-select-wrapper">
-                                                <div class="custom-select-display"><span id="totalPowerDisplay">Select Total Power...</span><i class="fas fa-chevron-down text-gray-500"></i></div>
-                                                <select id="totalPower" class="form-select-native" required><option value="" disabled selected>Select Total Power...</option></select>
-                                            </div>
+                                <!-- Power Stats Section -->
+                                <div>
+                                    <h3 class="flex items-center text-lg font-bold text-gray-300 mb-4 tracking-wider"><i class="fa-solid fa-bolt-lightning w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPowerStats">POWER PROFILE</span></h3>
+                                    <div class="space-y-4">
+                                        <div class="custom-select-wrapper">
+                                            <div class="custom-select-display"><span id="totalPowerDisplay">Select Total Power...</span><i class="fas fa-chevron-down text-gray-500"></i></div>
+                                            <select id="totalPower" class="form-select-native" required><option value="" disabled selected>Select Total Power...</option></select>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div class="custom-select-wrapper">
                                                 <div class="custom-select-display"><span id="tankPowerDisplay">Tank Power...</span><i class="fas fa-chevron-down text-gray-500"></i></div>
                                                 <select id="tankPower" class="form-select-native"><option value="" disabled selected>Select Tank Power...</option></select>
@@ -260,46 +260,43 @@
                                     </div>
                                 </div>
 
-                                <!-- Right Column: Options & Additional Players -->
-                                <div class="space-y-8">
-                                    <!-- Transfer Details Section -->
-                                    <div>
-                                        <h3 class="flex items-center text-lg font-bold text-gray-300 mb-4 tracking-wider"><i class="fa-solid fa-map-location-dot w-6 mr-3 text-indigo-400"></i><span data-i18n="labelTransferDetails">TRANSFER DETAILS</span></h3>
-                                        <div class="space-y-4">
-                                            <div class="custom-select-wrapper">
-                                                <div class="custom-select-display"><span id="seatColorDisplay" data-i18n="placeholderSeatColor">Select a Seat Color...</span><i class="fas fa-chevron-down text-gray-500"></i></div>
-                                                <select id="seatColor" class="form-select-native" required>
-                                                    <option value="" disabled selected data-i18n="optionSelectSeatColor">Select a Seat Color...</option>
-                                                    <option value="White" data-i18n="optionWhite">White</option>
-                                                    <option value="Blue" data-i18n="optionBlue">Blue</option>
-                                                    <option value="Purple" data-i18n="optionPurple">Purple</option>
-                                                    <option value="Gold" data-i18n="optionGold">Gold</option>
-                                                </select>
+                                <!-- Transfer Details Section -->
+                                <div>
+                                    <h3 class="flex items-center text-lg font-bold text-gray-300 mb-4 tracking-wider"><i class="fa-solid fa-map-location-dot w-6 mr-3 text-indigo-400"></i><span data-i18n="labelTransferDetails">TRANSFER DETAILS</span></h3>
+                                    <div class="space-y-4">
+                                        <div class="custom-select-wrapper">
+                                            <div class="custom-select-display"><span id="seatColorDisplay" data-i18n="placeholderSeatColor">Select a Seat Color...</span><i class="fas fa-chevron-down text-gray-500"></i></div>
+                                            <select id="seatColor" class="form-select-native" required>
+                                                <option value="" disabled selected data-i18n="optionSelectSeatColor">Select a Seat Color...</option>
+                                                <option value="White" data-i18n="optionWhite">White</option>
+                                                <option value="Blue" data-i18n="optionBlue">Blue</option>
+                                                <option value="Purple" data-i18n="optionPurple">Purple</option>
+                                                <option value="Gold" data-i18n="optionGold">Gold</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-400 mb-2" data-i18n="labelAlliancePref">Alliance Preference?</label>
+                                            <div class="flex items-center space-x-4">
+                                                <label class="custom-radio-label flex-1"><input type="radio" name="alliancePreference" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
+                                                <label class="custom-radio-label flex-1"><input type="radio" name="alliancePreference" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
                                             </div>
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-400 mb-2" data-i18n="labelAlliancePref">Alliance Preference?</label>
-                                                <div class="flex items-center space-x-4">
-                                                    <label class="custom-radio-label flex-1"><input type="radio" name="alliancePreference" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
-                                                    <label class="custom-radio-label flex-1"><input type="radio" name="alliancePreference" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
-                                                </div>
-                                                <input type="text" id="preferredAlliance" class="w-full mt-3 p-3 form-input hidden" data-i18n-placeholder="placeholderPrefAlliance" placeholder="Preferred Alliance Tag" maxlength="4">
-                                            </div>
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-400 mb-2" data-i18n="labelBringOthers">Bringing Others?</label>
-                                                <div class="flex items-center space-x-4">
-                                                    <label class="custom-radio-label flex-1"><input type="radio" name="otherPlayers" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
-                                                    <label class="custom-radio-label flex-1"><input type="radio" name="otherPlayers" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
-                                                </div>
+                                            <input type="text" id="preferredAlliance" class="w-full mt-3 p-3 form-input hidden" data-i18n-placeholder="placeholderPrefAlliance" placeholder="Preferred Alliance Tag" maxlength="4">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-400 mb-2" data-i18n="labelBringOthers">Bringing Others?</label>
+                                            <div class="flex items-center space-x-4">
+                                                <label class="custom-radio-label flex-1"><input type="radio" name="otherPlayers" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
+                                                <label class="custom-radio-label flex-1"><input type="radio" name="otherPlayers" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <!-- Additional Players Section -->
-                                    <div id="otherPlayersSection" class="hidden">
-                                        <h3 class="flex items-center text-lg font-bold text-gray-300 mb-4 tracking-wider"><i class="fa-solid fa-users w-6 mr-3 text-indigo-400"></i><span data-i18n="labelAdditionalPlayers">ADDITIONAL PLAYERS</span></h3>
-                                        <div id="otherPlayersContainer" class="space-y-3"></div>
-                                        <button type="button" id="addPlayerBtn" class="w-full mt-3 text-sm py-2 px-4 rounded-lg bg-gray-500/20 hover:bg-gray-500/40 text-gray-300"><i class="fas fa-plus mr-2"></i><span data-i18n="btnAddPlayer">Add Another Player</span></button>
-                                    </div>
+                                </div>
+                                
+                                <!-- Additional Players Section -->
+                                <div id="otherPlayersSection" class="hidden">
+                                    <h3 class="flex items-center text-lg font-bold text-gray-300 mb-4 tracking-wider"><i class="fa-solid fa-users w-6 mr-3 text-indigo-400"></i><span data-i18n="labelAdditionalPlayers">ADDITIONAL PLAYERS</span></h3>
+                                    <div id="otherPlayersContainer" class="space-y-3"></div>
+                                    <button type="button" id="addPlayerBtn" class="w-full mt-3 text-sm py-2 px-4 rounded-lg bg-gray-500/20 hover:bg-gray-500/40 text-gray-300"><i class="fas fa-plus mr-2"></i><span data-i18n="btnAddPlayer">Add Another Player</span></button>
                                 </div>
                             </div>
 
@@ -699,7 +696,7 @@
                 tankPowerDisplay.textContent = 'Tank Power...';
                 airPowerDisplay.textContent = 'Air Power...';
                 missilePowerDisplay.textContent = 'Missile Power...';
-                seatColorDisplay.textContent = translations[currentLanguage].placeholderSeatColor;
+                seatColorDisplay.textContent = (translations[currentLanguage] || translations.en).placeholderSeatColor;
                 document.getElementById('otherPlayersSection').classList.add('hidden');
                 document.getElementById('otherPlayersContainer').innerHTML = '';
                 document.getElementById('preferredAlliance').classList.add('hidden');
