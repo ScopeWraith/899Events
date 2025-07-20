@@ -290,9 +290,14 @@
                                 <div>
                                     <h3 class="flex items-center text-lg font-bold text-gray-300 mb-2 tracking-wider"><i class="fa-solid fa-user-astronaut w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPlayerInfo">PLAYER INFORMATION</span></h3>
                                     <div class="space-y-2">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <div class="custom-select-wrapper">
+                                                <div class="custom-select-display"><span id="serverDisplay" data-i18n="placeholderServer">Current Server...</span><i class="fas fa-chevron-down text-gray-500"></i></div>
+                                                <select id="currentServer" class="form-select-native" required><option value="" disabled selected>Select Server...</option></select>
+                                            </div>
+                                            <input type="text" id="currentAlliance" class="w-full p-3 form-input" data-i18n-placeholder="placeholderAlliance" placeholder="Current Alliance Tag (e.g., ABCD)" maxlength="4" required>
+                                        </div>
                                         <input type="text" id="playerName" class="w-full p-3 form-input" data-i18n-placeholder="placeholderPlayerName" placeholder="Player Name" required>
-                                        <input type="number" id="currentServer" class="w-full p-3 form-input" data-i18n-placeholder="placeholderServer" placeholder="Current Server (850-950)" min="850" max="950" required>
-                                        <input type="text" id="currentAlliance" class="w-full p-3 form-input" data-i18n-placeholder="placeholderAlliance" placeholder="Current Alliance Tag (e.g., ABCD)" maxlength="4" required>
                                     </div>
                                 </div>
 
@@ -335,16 +340,17 @@
                                                 <option value="Gold" data-i18n="optionGold">Gold</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-400 mb-2" data-i18n="labelAlliancePref">Alliance Preference?</label>
+                                        <div class="flex items-center justify-between gap-4">
+                                            <label class="text-sm font-medium text-gray-400" data-i18n="labelAlliancePref">Alliance Preference?</label>
                                             <div class="flex items-center space-x-2">
                                                 <label class="custom-radio-label flex-1"><input type="radio" name="alliancePreference" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
                                                 <label class="custom-radio-label flex-1"><input type="radio" name="alliancePreference" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
                                             </div>
-                                            <input type="text" id="preferredAlliance" class="w-full mt-2 p-3 form-input hidden" data-i18n-placeholder="placeholderPrefAlliance" placeholder="Preferred Alliance Tag" maxlength="4">
                                         </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-400 mb-2" data-i18n="labelBringOthers">Bringing Others?</label>
+                                        <input type="text" id="preferredAlliance" class="w-full p-3 form-input hidden" data-i18n-placeholder="placeholderPrefAlliance" placeholder="Preferred Alliance Tag" maxlength="4">
+                                        
+                                        <div class="flex items-center justify-between gap-4">
+                                            <label class="text-sm font-medium text-gray-400" data-i18n="labelBringOthers">Bringing Others?</label>
                                             <div class="flex items-center space-x-2">
                                                 <label class="custom-radio-label flex-1"><input type="radio" name="otherPlayers" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
                                                 <label class="custom-radio-label flex-1"><input type="radio" name="otherPlayers" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
@@ -572,6 +578,7 @@
         const missilePowerSelect = document.getElementById('missilePower');
         const seatColorSelect = document.getElementById('seatColor');
         const editSeatColorSelect = document.getElementById('editSeatColor');
+        const serverSelect = document.getElementById('currentServer');
 
         const totalPowerDisplay = document.getElementById('totalPowerDisplay');
         const tankPowerDisplay = document.getElementById('tankPowerDisplay');
@@ -579,12 +586,13 @@
         const missilePowerDisplay = document.getElementById('missilePowerDisplay');
         const seatColorDisplay = document.getElementById('seatColorDisplay');
         const editSeatColorDisplay = document.getElementById('editSeatColorDisplay');
+        const serverDisplay = document.getElementById('serverDisplay');
 
         // --- Translation Data ---
         const translations = {
             en: {
                 title: "899 Transfers", subtitle: "Registration Portal", tabRegister: "Registration", tabPlayers: "Registered Players", tabAdmin: "Admin",
-                labelPlayerInfo: "Player Information", placeholderPlayerName: "Player Name", placeholderServer: "Current Server (850-950)", placeholderAlliance: "Current Alliance Tag (e.g., ABCD)",
+                labelPlayerInfo: "Player Information", placeholderPlayerName: "Player Name", placeholderServer: "Current Server...", placeholderAlliance: "Current Alliance Tag (e.g., ABCD)",
                 labelSeatColor: "Seat Color", placeholderSeatColor: "Select a Seat Color...", optionSelectSeatColor: "Select a Seat Color...", optionWhite: "White", optionBlue: "Blue", optionPurple: "Purple", optionGold: "Gold",
                 labelPowerStats: "Power Profile", placeholderTankPower: "Tank Power...", placeholderAirPower: "Air Power...", placeholderMissilePower: "Missile Power...",
                 labelTransferDetails: "Transfer Details", labelAdditionalPlayers: "Additional Players",
@@ -601,7 +609,7 @@
             },
             es: {
                 title: "Transferencias 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Jugadores Registrados", tabAdmin: "Admin",
-                labelPlayerInfo: "Información del Jugador", placeholderPlayerName: "Nombre del Jugador", placeholderServer: "Servidor Actual (850-950)", placeholderAlliance: "Etiqueta de Alianza (ej. ABCD)",
+                labelPlayerInfo: "Información del Jugador", placeholderPlayerName: "Nombre del Jugador", placeholderServer: "Servidor Actual...", placeholderAlliance: "Etiqueta de Alianza (ej. ABCD)",
                 labelSeatColor: "Color de Asiento", placeholderSeatColor: "Selecciona un Color...", optionSelectSeatColor: "Selecciona un Color...", optionWhite: "Blanco", optionBlue: "Azul", optionPurple: "Morado", optionGold: "Dorado",
                 labelPowerStats: "Perfil de Poder", placeholderTankPower: "Poder de Tanque...", placeholderAirPower: "Poder Aéreo...", placeholderMissilePower: "Poder de Misiles...",
                 labelTransferDetails: "Detalles de Transferencia", labelAdditionalPlayers: "Jugadores Adicionales",
@@ -618,7 +626,7 @@
             },
             zh: {
                 title: "899 服务器转移", subtitle: "注册门户", tabRegister: "注册", tabPlayers: "已注册玩家", tabAdmin: "管理员",
-                labelPlayerInfo: "玩家信息", placeholderPlayerName: "玩家名称", placeholderServer: "当前服务器 (850-950)", placeholderAlliance: "当前联盟标签 (例如 ABCD)",
+                labelPlayerInfo: "玩家信息", placeholderPlayerName: "玩家名称", placeholderServer: "当前服务器...", placeholderAlliance: "当前联盟标签 (例如 ABCD)",
                 labelSeatColor: "席位颜色", placeholderSeatColor: "选择席位颜色...", optionSelectSeatColor: "选择席位颜色...", optionWhite: "白色", optionBlue: "蓝色", optionPurple: "紫色", optionGold: "金色",
                 labelPowerStats: "战力资料", placeholderTankPower: "坦克战力...", placeholderAirPower: "空军战力...", placeholderMissilePower: "导弹战力...",
                 labelTransferDetails: "转移详情", labelAdditionalPlayers: "其他玩家",
@@ -635,7 +643,7 @@
             },
             hi: {
                 title: "899 सर्वर स्थानांतरण", subtitle: "पंजीकरण पोर्टल", tabRegister: "पंजीकरण", tabPlayers: "पंजीकृत खिलाड़ी", tabAdmin: "एडमिन",
-                labelPlayerInfo: "खिलाड़ी की जानकारी", placeholderPlayerName: "खिलाड़ी का नाम", placeholderServer: "वर्तमान सर्वर (850-950)", placeholderAlliance: "वर्तमान गठबंधन टैग (उदा. ABCD)",
+                labelPlayerInfo: "खिलाड़ी की जानकारी", placeholderPlayerName: "खिलाड़ी का नाम", placeholderServer: "वर्तमान सर्वर...", placeholderAlliance: "वर्तमान गठबंधन टैग (उदा. ABCD)",
                 labelSeatColor: "सीट का रंग", placeholderSeatColor: "एक सीट का रंग चुनें...", optionSelectSeatColor: "एक सीट का रंग चुनें...", optionWhite: "सफ़ेद", optionBlue: "नीला", optionPurple: "बैंगनी", optionGold: "सुनहरा",
                 labelPowerStats: "शक्ति प्रोफाइल", placeholderTankPower: "टैंक शक्ति...", placeholderAirPower: "वायु शक्ति...", placeholderMissilePower: "मिसाइल शक्ति...",
                 labelTransferDetails: "स्थानांतरण विवरण", labelAdditionalPlayers: "अतिरिक्त खिलाड़ी",
@@ -652,7 +660,7 @@
             },
             ar: {
                 title: "نقل خادم 899", subtitle: "بوابة التسجيل", tabRegister: "تسجيل", tabPlayers: "اللاعبون المسجلون", tabAdmin: "مشرف",
-                labelPlayerInfo: "معلومات اللاعب", placeholderPlayerName: "اسم اللاعب", placeholderServer: "الخادم الحالي (850-950)", placeholderAlliance: "علامة التحالف الحالية (مثل ABCD)",
+                labelPlayerInfo: "معلومات اللاعب", placeholderPlayerName: "اسم اللاعب", placeholderServer: "الخادم الحالي...", placeholderAlliance: "علامة التحالف الحالية (مثل ABCD)",
                 labelSeatColor: "لون المقعد", placeholderSeatColor: "اختر لون المقعد...", optionSelectSeatColor: "اختر لون المقعد...", optionWhite: "أبيض", optionBlue: "أزرق", optionPurple: "أرجواني", optionGold: "ذهبي",
                 labelPowerStats: "ملف القوة", placeholderTankPower: "قوة الدبابات...", placeholderAirPower: "قوة الطيران...", placeholderMissilePower: "قوة الصواريخ...",
                 labelTransferDetails: "تفاصيل النقل", labelAdditionalPlayers: "لاعبون إضافيون",
@@ -669,7 +677,7 @@
             },
             pt: {
                 title: "Transferências 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Jogadores Registrados", tabAdmin: "Admin",
-                labelPlayerInfo: "Informações do Jogador", placeholderPlayerName: "Nome do Jogador", placeholderServer: "Servidor Atual (850-950)", placeholderAlliance: "Tag da Aliança (ex: ABCD)",
+                labelPlayerInfo: "Informações do Jogador", placeholderPlayerName: "Nome do Jogador", placeholderServer: "Servidor Atual...", placeholderAlliance: "Tag da Aliança (ex: ABCD)",
                 labelSeatColor: "Cor do Assento", placeholderSeatColor: "Selecione uma Cor...", optionSelectSeatColor: "Selecione uma Cor...", optionWhite: "Branco", optionBlue: "Azul", optionPurple: "Roxo", optionGold: "Dourado",
                 labelPowerStats: "Perfil de Poder", placeholderTankPower: "Poder de Tanque...", placeholderAirPower: "Poder Aéreo...", placeholderMissilePower: "Poder de Míssil...",
                 labelTransferDetails: "Detalhes da Transferência", labelAdditionalPlayers: "Jogadores Adicionais",
@@ -686,7 +694,7 @@
             },
             ru: {
                 title: "Трансферы 899", subtitle: "Портал регистрации", tabRegister: "Регистрация", tabPlayers: "Зарегистрированные игроки", tabAdmin: "Админ",
-                labelPlayerInfo: "Информация об игроке", placeholderPlayerName: "Имя игрока", placeholderServer: "Текущий сервер (850-950)", placeholderAlliance: "Тег альянса (напр. ABCD)",
+                labelPlayerInfo: "Информация об игроке", placeholderPlayerName: "Имя игрока", placeholderServer: "Текущий сервер...", placeholderAlliance: "Тег альянса (напр. ABCD)",
                 labelSeatColor: "Цвет места", placeholderSeatColor: "Выберите цвет...", optionSelectSeatColor: "Выберите цвет...", optionWhite: "Белый", optionBlue: "Синий", optionPurple: "Фиолетовый", optionGold: "Золотой",
                 labelPowerStats: "Профиль мощности", placeholderTankPower: "Мощь танков...", placeholderAirPower: "Мощь авиации...", placeholderMissilePower: "Мощь ракет...",
                 labelTransferDetails: "Детали переноса", labelAdditionalPlayers: "Дополнительные игроки",
@@ -703,7 +711,7 @@
             },
             ja: {
                 title: "899サーバー移籍", subtitle: "登録ポータル", tabRegister: "登録", tabPlayers: "登録済みプレイヤー", tabAdmin: "管理者",
-                labelPlayerInfo: "プレイヤー情報", placeholderPlayerName: "プレイヤー名", placeholderServer: "現在のサーバー (850-950)", placeholderAlliance: "現在の同盟タグ (例: ABCD)",
+                labelPlayerInfo: "プレイヤー情報", placeholderPlayerName: "プレイヤー名", placeholderServer: "現在のサーバー...", placeholderAlliance: "現在の同盟タグ (例: ABCD)",
                 labelSeatColor: "座席の色", placeholderSeatColor: "色を選択...", optionSelectSeatColor: "色を選択...", optionWhite: "白", optionBlue: "青", optionPurple: "紫", optionGold: "金",
                 labelPowerStats: "戦力プロフィール", placeholderTankPower: "戦車戦力...", placeholderAirPower: "空軍戦力...", placeholderMissilePower: "ミサイル戦力...",
                 labelTransferDetails: "移籍詳細", labelAdditionalPlayers: "追加プレイヤー",
@@ -720,7 +728,7 @@
             },
             de: {
                 title: "899 Transfers", subtitle: "Registrierungsportal", tabRegister: "Registrierung", tabPlayers: "Registrierte Spieler", tabAdmin: "Admin",
-                labelPlayerInfo: "Spielerinformationen", placeholderPlayerName: "Spielername", placeholderServer: "Aktueller Server (850-950)", placeholderAlliance: "Allianz-Tag (z.B. ABCD)",
+                labelPlayerInfo: "Spielerinformationen", placeholderPlayerName: "Spielername", placeholderServer: "Aktueller Server...", placeholderAlliance: "Allianz-Tag (z.B. ABCD)",
                 labelSeatColor: "Sitzfarbe", placeholderSeatColor: "Wähle eine Farbe...", optionSelectSeatColor: "Wähle eine Farbe...", optionWhite: "Weiß", optionBlue: "Blau", optionPurple: "Lila", optionGold: "Gold",
                 labelPowerStats: "Stärkeprofil", placeholderTankPower: "Panzerstärke...", placeholderAirPower: "Luftstärke...", placeholderMissilePower: "Raketenstärke...",
                 labelTransferDetails: "Transferdetails", labelAdditionalPlayers: "Zusätzliche Spieler",
@@ -737,7 +745,7 @@
             },
             fr: {
                 title: "Transferts 899", subtitle: "Portail d'inscription", tabRegister: "Inscription", tabPlayers: "Joueurs inscrits", tabAdmin: "Admin",
-                labelPlayerInfo: "Informations du joueur", placeholderPlayerName: "Nom du joueur", placeholderServer: "Serveur actuel (850-950)", placeholderAlliance: "Tag d'alliance (ex: ABCD)",
+                labelPlayerInfo: "Informations du joueur", placeholderPlayerName: "Nom du joueur", placeholderServer: "Serveur actuel...", placeholderAlliance: "Tag d'alliance (ex: ABCD)",
                 labelSeatColor: "Couleur du siège", placeholderSeatColor: "Sélectionnez une couleur...", optionSelectSeatColor: "Sélectionnez une couleur...", optionWhite: "Blanc", optionBlue: "Bleu", optionPurple: "Violet", optionGold: "Or",
                 labelPowerStats: "Profil de puissance", placeholderTankPower: "Puissance des chars...", placeholderAirPower: "Puissance aérienne...", placeholderMissilePower: "Puissance des missiles...",
                 labelTransferDetails: "Détails du transfert", labelAdditionalPlayers: "Joueurs supplémentaires",
@@ -754,7 +762,7 @@
             },
             ko: {
                 title: "899 서버 이전", subtitle: "등록 포털", tabRegister: "등록", tabPlayers: "등록된 플레이어", tabAdmin: "관리자",
-                labelPlayerInfo: "플레이어 정보", placeholderPlayerName: "플레이어 이름", placeholderServer: "현재 서버 (850-950)", placeholderAlliance: "현재 동맹 태그 (예: ABCD)",
+                labelPlayerInfo: "플레이어 정보", placeholderPlayerName: "플레이어 이름", placeholderServer: "현재 서버...", placeholderAlliance: "현재 동맹 태그 (예: ABCD)",
                 labelSeatColor: "좌석 색상", placeholderSeatColor: "색상 선택...", optionSelectSeatColor: "색상 선택...", optionWhite: "흰색", optionBlue: "파란색", optionPurple: "보라색", optionGold: "금색",
                 labelPowerStats: "전투력 프로필", placeholderTankPower: "탱크 전투력...", placeholderAirPower: "공군 전투력...", placeholderMissilePower: "미사일 전투력...",
                 labelTransferDetails: "이전 세부 정보", labelAdditionalPlayers: "추가 플레이어",
@@ -771,7 +779,7 @@
             },
             id: {
                 title: "Transfer 899", subtitle: "Portal Registrasi", tabRegister: "Registrasi", tabPlayers: "Pemain Terdaftar", tabAdmin: "Admin",
-                labelPlayerInfo: "Informasi Pemain", placeholderPlayerName: "Nama Pemain", placeholderServer: "Server Saat Ini (850-950)", placeholderAlliance: "Tag Aliansi (cth: ABCD)",
+                labelPlayerInfo: "Informasi Pemain", placeholderPlayerName: "Nama Pemain", placeholderServer: "Server Saat Ini...", placeholderAlliance: "Tag Aliansi (cth: ABCD)",
                 labelSeatColor: "Warna Kursi", placeholderSeatColor: "Pilih Warna Kursi...", optionSelectSeatColor: "Pilih Warna Kursi...", optionWhite: "Putih", optionBlue: "Biru", optionPurple: "Ungu", optionGold: "Emas",
                 labelPowerStats: "Profil Kekuatan", placeholderTankPower: "Kekuatan Tank...", placeholderAirPower: "Kekuatan Udara...", placeholderMissilePower: "Kekuatan Misil...",
                 labelTransferDetails: "Detail Transfer", labelAdditionalPlayers: "Pemain Tambahan",
@@ -805,6 +813,15 @@
                 select.appendChild(option);
             }
         };
+
+        const populateServerSelect = (select, start, end) => {
+             for (let i = start; i <= end; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Server ${i}`;
+                select.appendChild(option);
+            }
+        }
         
         const setupCustomSelect = (selectEl, displayEl, placeholderKey) => {
             const langStrings = translations[currentLanguage] || translations.en;
@@ -843,6 +860,7 @@
             if (!tankPowerSelect.value) tankPowerDisplay.textContent = langStrings.placeholderTankPower;
             if (!airPowerSelect.value) airPowerDisplay.textContent = langStrings.placeholderAirPower;
             if (!missilePowerSelect.value) missilePowerDisplay.textContent = langStrings.placeholderMissilePower;
+            if (!serverSelect.value) serverDisplay.textContent = langStrings.placeholderServer;
         };
 
         const updateUIForLoginState = () => {
@@ -1054,6 +1072,7 @@
                 airPowerDisplay.textContent = langStrings.placeholderAirPower;
                 missilePowerDisplay.textContent = langStrings.placeholderMissilePower;
                 seatColorDisplay.textContent = langStrings.placeholderSeatColor;
+                serverDisplay.textContent = langStrings.placeholderServer;
                 document.getElementById('otherPlayersSection').classList.add('hidden');
                 document.getElementById('otherPlayersContainer').innerHTML = '';
                 document.getElementById('preferredAlliance').classList.add('hidden');
@@ -1240,6 +1259,7 @@
         populateSelect(tankPowerSelect, 20, 50, 2, 'M');
         populateSelect(airPowerSelect, 20, 50, 2, 'M');
         populateSelect(missilePowerSelect, 20, 50, 2, 'M');
+        populateServerSelect(serverSelect, 850, 950);
         
         setupCustomSelect(totalPowerSelect, totalPowerDisplay, 'Select Total Power...');
         setupCustomSelect(tankPowerSelect, tankPowerDisplay, 'placeholderTankPower');
@@ -1247,6 +1267,7 @@
         setupCustomSelect(missilePowerSelect, missilePowerDisplay, 'placeholderMissilePower');
         setupCustomSelect(seatColorSelect, seatColorDisplay, 'placeholderSeatColor');
         setupCustomSelect(editSeatColorSelect, editSeatColorDisplay, 'placeholderSeatColor');
+        setupCustomSelect(serverSelect, serverDisplay, 'placeholderServer');
 
         switchView('register');
         updateUIForLoginState();
