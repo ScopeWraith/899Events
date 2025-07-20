@@ -83,6 +83,9 @@
             border-radius: 1rem;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
         }
         .nav-container { 
             display: flex;
@@ -180,6 +183,28 @@
             overflow: hidden;
             background-color: rgba(17, 17, 17, 0.7);
         }
+
+        /* Scrollable Content Area */
+        .scrollable-content {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        .scrollable-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scrollable-content::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background: var(--text-tertiary);
+            border-radius: 10px;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -188,7 +213,7 @@
         
         <div class="card">
             <!-- Header and Navigation section inside the card -->
-            <div class="p-6 sm:p-8">
+            <div class="p-6 sm:p-8 flex-shrink-0">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
                     <h1 class="text-3xl md:text-4xl font-bold tracking-wider uppercase flex-shrink-0 flex items-center gap-4">
                         <i class="fa-solid fa-satellite-dish text-indigo-400"></i>
@@ -223,15 +248,15 @@
             </div>
 
 
-            <main class="px-6 sm:px-8 pb-6 sm:pb-8 pt-0">
+            <main class="scrollable-content">
                 <!-- Content Area -->
-                <div>
+                <div class="px-6 sm:px-8 pb-6 sm:pb-8">
                     <!-- Registration View -->
                     <div id="view-register">
-                        <form id="registrationForm" class="space-y-5">
+                        <form id="registrationForm" class="space-y-4">
                             
                             <!-- Single Column Layout -->
-                            <div class="space-y-5">
+                            <div class="space-y-4">
                                 
                                 <!-- Player Information Section -->
                                 <div>
