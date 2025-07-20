@@ -274,7 +274,7 @@
                 </div>
                 <nav id="desktop-nav" class="nav-container hidden md:flex">
                     <button id="tab-register" class="nav-btn"><i class="fas fa-file-signature mr-2"></i><span data-i18n="tabRegister">Registration</span></button>
-                    <button id="tab-players" class="nav-btn"><i class="fas fa-users mr-2"></i><span data-i18n="tabPlayers">Registered Players</span></button>
+                    <button id="tab-players" class="nav-btn"><i class="fas fa-people-arrows mr-2"></i><span data-i18n="tabPlayers">Transfers</span></button>
                     <button id="tab-admin" class="nav-btn"><i id="admin-icon" class="fas fa-lock mr-2"></i><span id="admin-text" data-i18n="tabAdmin">Admin</span></button>
                 </nav>
             </div>
@@ -292,7 +292,7 @@
                                 
                                 <!-- Player Information Section -->
                                 <div>
-                                    <h3 class="flex items-center text-lg font-bold text-gray-300 mt-3 mb-2 tracking-wider"><i class="fa-solid fa-user-astronaut w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPlayerInfo">PLAYER INFORMATION</span></h3>
+                                    <h3 class="flex items-center justify-center text-lg font-bold text-gray-300 mt-3 mb-2 tracking-wider"><i class="fa-solid fa-user-astronaut w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPlayerInfo">PLAYER INFORMATION</span></h3>
                                     <div class="space-y-2">
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             <div class="custom-select-wrapper">
@@ -317,7 +317,7 @@
 
                                 <!-- Power Stats Section -->
                                 <div>
-                                    <h3 class="flex items-center text-lg font-bold text-gray-300 mb-2 tracking-wider"><i class="fa-solid fa-bolt-lightning w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPowerStats">POWER PROFILE</span></h3>
+                                    <h3 class="flex items-center justify-center text-lg font-bold text-gray-300 mb-2 tracking-wider"><i class="fa-solid fa-bolt-lightning w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPowerStats">POWER PROFILE</span></h3>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                                         <div class="custom-select-wrapper">
                                             <div class="custom-select-display"><span id="totalPowerDisplay" data-i18n="placeholderTotalPower">Total Power</span><i class="fas fa-chevron-down text-gray-500"></i></div>
@@ -405,7 +405,7 @@
     <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-zinc-900 z-50 p-6 transform -translate-x-full">
         <nav class="flex flex-col gap-4">
             <button id="sidebar-tab-register" class="nav-btn text-left"><i class="fas fa-file-signature mr-2 w-6"></i><span data-i18n="tabRegister">Registration</span></button>
-            <button id="sidebar-tab-players" class="nav-btn text-left"><i class="fas fa-users mr-2 w-6"></i><span data-i18n="tabPlayers">Registered Players</span></button>
+            <button id="sidebar-tab-players" class="nav-btn text-left"><i class="fas fa-people-arrows mr-2 w-6"></i><span data-i18n="tabPlayers">Transfers</span></button>
             <button id="sidebar-tab-admin" class="nav-btn text-left"><i id="sidebar-admin-icon" class="fas fa-lock mr-2 w-6"></i><span id="sidebar-admin-text" data-i18n="tabAdmin">Admin</span></button>
         </nav>
     </div>
@@ -590,7 +590,7 @@
         // --- Translation Data ---
         const translations = {
             en: {
-                title: "899 Transfers", subtitle: "Registration Portal", tabRegister: "Registration", tabPlayers: "Registered Players", tabAdmin: "Admin",
+                title: "899 Transfers", subtitle: "Registration Portal", tabRegister: "Registration", tabPlayers: "Transfers", tabAdmin: "Admin",
                 labelPlayerInfo: "Player Information", placeholderPlayerName: "Player Name", placeholderServer: "Current Server", placeholderAlliance: "Current Alliance Tag (e.g., ABCD)",
                 labelSeatColor: "Seat Color", placeholderSeatColor: "Seat Color", optionSelectSeatColor: "Select a Seat Color...", optionWhite: "White", optionBlue: "Blue", optionPurple: "Purple", optionGold: "Gold",
                 labelPowerStats: "Power Profile", placeholderTotalPower: "Total Power", placeholderTankPower: "Tank Power", placeholderAirPower: "Air Power", placeholderMissilePower: "Missile Power",
@@ -607,7 +607,7 @@
                 infoText: "Welcome to the 899 Transfers registration portal. When you submit your registration, the information is automatically sent to a private Discord channel for server leadership to review. This ensures a streamlined and secure process for all potential transfers. Your data is handled confidentially."
             },
             es: {
-                title: "Transferencias 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Jugadores Registrados", tabAdmin: "Admin",
+                title: "Transferencias 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Transferencias", tabAdmin: "Admin",
                 labelPlayerInfo: "Información del Jugador", placeholderPlayerName: "Nombre del Jugador", placeholderServer: "Servidor Actual", placeholderAlliance: "Etiqueta de Alianza (ej. ABCD)",
                 labelSeatColor: "Color de Asiento", placeholderSeatColor: "Color de Asiento", optionSelectSeatColor: "Selecciona un Color...", optionWhite: "Blanco", optionBlue: "Azul", optionPurple: "Morado", optionGold: "Dorado",
                 labelPowerStats: "Perfil de Poder", placeholderTotalPower: "Poder Total", placeholderTankPower: "Poder de Tanque", placeholderAirPower: "Poder Aéreo", placeholderMissilePower: "Poder de Misiles",
@@ -624,7 +624,7 @@
                 infoText: "Bienvenido al portal de registro de Transferencias 899. Cuando envía su registro, la información se envía automáticamente a un canal privado de Discord para que la revise el liderazgo del servidor. Esto garantiza un proceso simplificado y seguro para todas las transferencias potenciales. Sus datos se manejan de forma confidencial."
             },
             zh: {
-                title: "899 服务器转移", subtitle: "注册门户", tabRegister: "注册", tabPlayers: "已注册玩家", tabAdmin: "管理员",
+                title: "899 服务器转移", subtitle: "注册门户", tabRegister: "注册", tabPlayers: "转移列表", tabAdmin: "管理员",
                 labelPlayerInfo: "玩家信息", placeholderPlayerName: "玩家名称", placeholderServer: "当前服务器", placeholderAlliance: "当前联盟标签 (例如 ABCD)",
                 labelSeatColor: "席位颜色", placeholderSeatColor: "席位颜色", optionSelectSeatColor: "选择席位颜色...", optionWhite: "白色", optionBlue: "蓝色", optionPurple: "紫色", optionGold: "金色",
                 labelPowerStats: "战力资料", placeholderTotalPower: "总战力", placeholderTankPower: "坦克战力", placeholderAirPower: "空军战力", placeholderMissilePower: "导弹战力",
@@ -641,7 +641,7 @@
                 infoText: "欢迎来到 899 Transfers 注册门户。当您提交注册时，信息会自动发送到服务器领导层专用的 Discord 频道进行审核。这确保了所有潜在转移的流程精简且安全。您的数据将得到保密处理。"
             },
             hi: {
-                title: "899 सर्वर स्थानांतरण", subtitle: "पंजीकरण पोर्टल", tabRegister: "पंजीकरण", tabPlayers: "पंजीकृत खिलाड़ी", tabAdmin: "एडमिन",
+                title: "899 सर्वर स्थानांतरण", subtitle: "पंजीकरण पोर्टल", tabRegister: "पंजीकरण", tabPlayers: "स्थानांतरण", tabAdmin: "एडमिन",
                 labelPlayerInfo: "खिलाड़ी की जानकारी", placeholderPlayerName: "खिलाड़ी का नाम", placeholderServer: "वर्तमान सर्वर", placeholderAlliance: "वर्तमान गठबंधन टैग (उदा. ABCD)",
                 labelSeatColor: "सीट का रंग", placeholderSeatColor: "सीट का रंग", optionSelectSeatColor: "एक सीट का रंग चुनें...", optionWhite: "सफ़ेद", optionBlue: "नीला", optionPurple: "बैंगनी", optionGold: "सुनहरा",
                 labelPowerStats: "शक्ति प्रोफाइल", placeholderTotalPower: "कुल शक्ति", placeholderTankPower: "टैंक शक्ति", placeholderAirPower: "वायु शक्ति", placeholderMissilePower: "मिसाइल शक्ति",
@@ -658,7 +658,7 @@
                 infoText: "899 ट्रांसफ़र पंजीकरण पोर्टल में आपका स्वागत है। जब आप अपना पंजीकरण जमा करते हैं, तो जानकारी स्वचालित रूप से सर्वर नेतृत्व की समीक्षा के लिए एक निजी डिस्कॉर्ड चैनल पर भेज दी जाती है। यह सभी संभावित ट्रांसफ़र के लिए एक सुव्यवस्थित और सुरक्षित प्रक्रिया सुनिश्चित करता है। आपका डेटा गोपनीय रूप से संभाला जाता है।"
             },
             ar: {
-                title: "نقل خادم 899", subtitle: "بوابة التسجيل", tabRegister: "تسجيل", tabPlayers: "اللاعبون المسجلون", tabAdmin: "مشرف",
+                title: "نقل خادم 899", subtitle: "بوابة التسجيل", tabRegister: "تسجيل", tabPlayers: "الانتقالات", tabAdmin: "مشرف",
                 labelPlayerInfo: "معلومات اللاعب", placeholderPlayerName: "اسم اللاعب", placeholderServer: "الخادم الحالي", placeholderAlliance: "علامة التحالف الحالية (مثل ABCD)",
                 labelSeatColor: "لون المقعد", placeholderSeatColor: "لون المقعد", optionSelectSeatColor: "اختر لون المقعد...", optionWhite: "أبيض", optionBlue: "أزرق", optionPurple: "أرجواني", optionGold: "ذهبي",
                 labelPowerStats: "ملف القوة", placeholderTotalPower: "إجمالي القوة", placeholderTankPower: "قوة الدبابات", placeholderAirPower: "قوة الطيران", placeholderMissilePower: "قوة الصواريخ",
@@ -675,7 +675,7 @@
                 infoText: "مرحبًا بك في بوابة تسجيل 899 Transfers. عند إرسال تسجيلك، يتم إرسال المعلومات تلقائيًا إلى قناة Discord خاصة لمراجعتها من قبل قيادة الخادم. وهذا يضمن عملية مبسطة وآمنة لجميع عمليات النقل المحتملة. يتم التعامل مع بياناتك بسرية."
             },
             pt: {
-                title: "Transferências 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Jogadores Registrados", tabAdmin: "Admin",
+                title: "Transferências 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Transferências", tabAdmin: "Admin",
                 labelPlayerInfo: "Informações do Jogador", placeholderPlayerName: "Nome do Jogador", placeholderServer: "Servidor Atual", placeholderAlliance: "Tag da Aliança (ex: ABCD)",
                 labelSeatColor: "Cor do Assento", placeholderSeatColor: "Cor do Assento", optionSelectSeatColor: "Selecione uma Cor...", optionWhite: "Branco", optionBlue: "Azul", optionPurple: "Roxo", optionGold: "Dourado",
                 labelPowerStats: "Perfil de Poder", placeholderTotalPower: "Poder Total", placeholderTankPower: "Poder de Tanque", placeholderAirPower: "Poder Aéreo", placeholderMissilePower: "Poder de Míssil",
@@ -692,7 +692,7 @@
                 infoText: "Bem-vindo ao portal de registro de Transferências 899. Ao enviar seu registro, as informações são enviadas automaticamente para um canal privado do Discord para revisão pela liderança do servidor. Isso garante um processo simplificado e seguro para todas as transferências potenciais. Seus dados são tratados com confidencialidade."
             },
             ru: {
-                title: "Трансферы 899", subtitle: "Портал регистрации", tabRegister: "Регистрация", tabPlayers: "Зарегистрированные игроки", tabAdmin: "Админ",
+                title: "Трансферы 899", subtitle: "Портал регистрации", tabRegister: "Регистрация", tabPlayers: "Трансферы", tabAdmin: "Админ",
                 labelPlayerInfo: "Информация об игроке", placeholderPlayerName: "Имя игрока", placeholderServer: "Текущий сервер", placeholderAlliance: "Тег альянса (напр. ABCD)",
                 labelSeatColor: "Цвет места", placeholderSeatColor: "Цвет места", optionSelectSeatColor: "Выберите цвет...", optionWhite: "Белый", optionBlue: "Синий", optionPurple: "Фиолетовый", optionGold: "Золотой",
                 labelPowerStats: "Профиль мощности", placeholderTotalPower: "Общая мощь", placeholderTankPower: "Мощь танков", placeholderAirPower: "Мощь авиации", placeholderMissilePower: "Мощь ракет",
@@ -709,7 +709,7 @@
                 infoText: "Добро пожаловать на портал регистрации 899 Transfers. Когда вы отправляете свою регистрацию, информация автоматически отправляется в частный канал Discord для рассмотрения руководством сервера. Это обеспечивает упрощенный и безопасный процесс для всех потенциальных переводов. Ваши данные обрабатываются конфиденциально."
             },
             ja: {
-                title: "899サーバー移籍", subtitle: "登録ポータル", tabRegister: "登録", tabPlayers: "登録済みプレイヤー", tabAdmin: "管理者",
+                title: "899サーバー移籍", subtitle: "登録ポータル", tabRegister: "登録", tabPlayers: "移籍", tabAdmin: "管理者",
                 labelPlayerInfo: "プレイヤー情報", placeholderPlayerName: "プレイヤー名", placeholderServer: "現在のサーバー", placeholderAlliance: "現在の同盟タグ (例: ABCD)",
                 labelSeatColor: "座席の色", placeholderSeatColor: "座席の色", optionSelectSeatColor: "色を選択...", optionWhite: "白", optionBlue: "青", optionPurple: "紫", optionGold: "金",
                 labelPowerStats: "戦力プロフィール", placeholderTotalPower: "総戦力", placeholderTankPower: "戦車戦力", placeholderAirPower: "空軍戦力", placeholderMissilePower: "ミサイル戦力",
@@ -726,7 +726,7 @@
                 infoText: "899 Transfers 登録ポータルへようこそ。登録を送信すると、情報はサーバーのリーダーシップが確認するためにプライベートなDiscordチャンネルに自動的に送信されます。これにより、すべての潜在的な移籍に対して、合理化された安全なプロセスが保証されます。あなたのデータは機密に扱われます。"
             },
             de: {
-                title: "899 Transfers", subtitle: "Registrierungsportal", tabRegister: "Registrierung", tabPlayers: "Registrierte Spieler", tabAdmin: "Admin",
+                title: "899 Transfers", subtitle: "Registrierungsportal", tabRegister: "Registrierung", tabPlayers: "Transfers", tabAdmin: "Admin",
                 labelPlayerInfo: "Spielerinformationen", placeholderPlayerName: "Spielername", placeholderServer: "Aktueller Server", placeholderAlliance: "Allianz-Tag (z.B. ABCD)",
                 labelSeatColor: "Sitzfarbe", placeholderSeatColor: "Sitzfarbe", optionSelectSeatColor: "Wähle eine Farbe...", optionWhite: "Weiß", optionBlue: "Blau", optionPurple: "Lila", optionGold: "Gold",
                 labelPowerStats: "Stärkeprofil", placeholderTotalPower: "Gesamtstärke", placeholderTankPower: "Panzerstärke", placeholderAirPower: "Luftstärke", placeholderMissilePower: "Raketenstärke",
@@ -743,7 +743,7 @@
                 infoText: "Willkommen im Registrierungsportal von 899 Transfers. Wenn Sie Ihre Registrierung absenden, werden die Informationen automatisch an einen privaten Discord-Kanal zur Überprüfung durch die Serverleitung gesendet. Dies gewährleistet einen optimierten und sicheren Prozess für alle potenziellen Transfers. Ihre Daten werden vertraulich behandelt."
             },
             fr: {
-                title: "Transferts 899", subtitle: "Portail d'inscription", tabRegister: "Inscription", tabPlayers: "Joueurs inscrits", tabAdmin: "Admin",
+                title: "Transferts 899", subtitle: "Portail d'inscription", tabRegister: "Inscription", tabPlayers: "Transferts", tabAdmin: "Admin",
                 labelPlayerInfo: "Informations du joueur", placeholderPlayerName: "Nom du joueur", placeholderServer: "Serveur actuel", placeholderAlliance: "Tag d'alliance (ex: ABCD)",
                 labelSeatColor: "Couleur du siège", placeholderSeatColor: "Couleur du siège", optionSelectSeatColor: "Sélectionnez une couleur...", optionWhite: "Blanc", optionBlue: "Bleu", optionPurple: "Violet", optionGold: "Or",
                 labelPowerStats: "Profil de puissance", placeholderTotalPower: "Puissance totale", placeholderTankPower: "Puissance des chars", placeholderAirPower: "Puissance aérienne", placeholderMissilePower: "Puissance des missiles",
@@ -760,7 +760,7 @@
                 infoText: "Bienvenue sur le portail d'inscription de 899 Transfers. Lorsque vous soumettez votre inscription, les informations sont automatiquement envoyées à un canal Discord privé pour examen par la direction du serveur. Cela garantit un processus simplifié et sécurisé pour tous les transferts potentiels. Vos données sont traitées de manière confidentielle."
             },
             ko: {
-                title: "899 서버 이전", subtitle: "등록 포털", tabRegister: "등록", tabPlayers: "등록된 플레이어", tabAdmin: "관리자",
+                title: "899 서버 이전", subtitle: "등록 포털", tabRegister: "등록", tabPlayers: "이적", tabAdmin: "관리자",
                 labelPlayerInfo: "플레이어 정보", placeholderPlayerName: "플레이어 이름", placeholderServer: "현재 서버", placeholderAlliance: "현재 동맹 태그 (예: ABCD)",
                 labelSeatColor: "좌석 색상", placeholderSeatColor: "좌석 색상", optionSelectSeatColor: "색상 선택...", optionWhite: "흰색", optionBlue: "파란색", optionPurple: "보라색", optionGold: "금색",
                 labelPowerStats: "전투력 프로필", placeholderTotalPower: "총 전투력", placeholderTankPower: "탱크 전투력", placeholderAirPower: "공군 전투력", placeholderMissilePower: "미사일 전투력",
@@ -777,7 +777,7 @@
                 infoText: "899 Transfers 등록 포털에 오신 것을 환영합니다. 등록을 제출하면 정보가 서버 리더십의 검토를 위해 비공개 Discord 채널로 자동 전송됩니다. 이를 통해 모든 잠재적 이전에 대해 간소화되고 안전한 프로세스를 보장합니다. 귀하의 데이터는 기밀로 처리됩니다."
             },
             id: {
-                title: "Transfer 899", subtitle: "Portal Registrasi", tabRegister: "Registrasi", tabPlayers: "Pemain Terdaftar", tabAdmin: "Admin",
+                title: "Transfer 899", subtitle: "Portal Registrasi", tabRegister: "Registrasi", tabPlayers: "Transfer", tabAdmin: "Admin",
                 labelPlayerInfo: "Informasi Pemain", placeholderPlayerName: "Nama Pemain", placeholderServer: "Server Saat Ini", placeholderAlliance: "Tag Aliansi (cth: ABCD)",
                 labelSeatColor: "Warna Kursi", placeholderSeatColor: "Warna Kursi", optionSelectSeatColor: "Pilih Warna Kursi...", optionWhite: "Putih", optionBlue: "Biru", optionPurple: "Ungu", optionGold: "Emas",
                 labelPowerStats: "Profil Kekuatan", placeholderTotalPower: "Total Kekuatan", placeholderTankPower: "Kekuatan Tank", placeholderAirPower: "Kekuatan Udara", placeholderMissilePower: "Kekuatan Misil",
