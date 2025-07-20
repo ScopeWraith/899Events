@@ -844,7 +844,23 @@
             const langStrings = translations[lang] || translations.en;
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (langStrings[key]) el.textContent = langStrings[key];
+                if (langStrings[key]) {
+                    el.textContent = langStrings[key];
+
+                    // Dynamically scale font size for the main title
+                    if (key === 'title') {
+                        const h1 = el.closest('h1');
+                        if (h1) {
+                            if (el.textContent.length > 15) {
+                                h1.classList.remove('text-3xl', 'md:text-4xl');
+                                h1.classList.add('text-2xl', 'md:text-3xl');
+                            } else {
+                                h1.classList.remove('text-2xl', 'md:text-3xl');
+                                h1.classList.add('text-3xl', 'md:text-4xl');
+                            }
+                        }
+                    }
+                }
             });
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-i18n-placeholder');
@@ -1090,6 +1106,13 @@
             document.getElementById('adminPassword').value = '';
             updateUIForLoginState();
             loadWebhooks();
+        });
+
+        document.getElementById('adminPassword').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent default behavior (like form submission)
+                document.getElementById('submitLogin').click();
+            }
         });
 
         document.querySelectorAll('input[name="alliancePreference"]').forEach(radio => {
