@@ -196,22 +196,47 @@
 
         /* Player Card Styles */
         .player-card {
-            background-color: rgba(30, 30, 30, 0.6);
+            background-image: var(--gradient-bg);
             border: 1px solid var(--border-color);
             border-left-width: 4px;
             border-radius: 0.75rem;
-            padding: 1.5rem;
             transition: all 0.2s ease-in-out;
             position: relative;
+            overflow: hidden;
+        }
+        .player-card:before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background-color: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1;
+        }
+        .player-card > * {
+            position: relative;
+            z-index: 2;
         }
         .player-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 0 15px var(--glow-color, rgba(79, 70, 229, 0.4));
         }
-        .player-card.seat-White { --glow-color: rgba(229, 231, 235, 0.4); border-left-color: #e5e7eb; }
-        .player-card.seat-Blue { --glow-color: rgba(59, 130, 246, 0.4); border-left-color: #3b82f6; }
-        .player-card.seat-Purple { --glow-color: rgba(139, 92, 246, 0.4); border-left-color: #8b5cf6; }
-        .player-card.seat-Gold { --glow-color: rgba(245, 158, 11, 0.4); border-left-color: #f59e0b; }
+        .player-card.seat-White { --glow-color: rgba(229, 231, 235, 0.4); border-left-color: #e5e7eb; --gradient-bg: linear-gradient(135deg, #4a5568, #2d3748); }
+        .player-card.seat-Blue { --glow-color: rgba(59, 130, 246, 0.4); border-left-color: #3b82f6; --gradient-bg: linear-gradient(135deg, #3b82f6, #1e40af); }
+        .player-card.seat-Purple { --glow-color: rgba(139, 92, 246, 0.4); border-left-color: #8b5cf6; --gradient-bg: linear-gradient(135deg, #8b5cf6, #5b21b6); }
+        .player-card.seat-Gold { --glow-color: rgba(245, 158, 11, 0.4); border-left-color: #f59e0b; --gradient-bg: linear-gradient(135deg, #f59e0b, #b45309); }
+
+        /* Player Card Zoom Styles */
+        .zoom-level-1 .player-card { padding: 0.75rem 1.25rem; }
+        .zoom-level-1 .player-main-info { flex-direction: row; align-items: center; justify-content: space-between; }
+        .zoom-level-1 .player-name { font-size: 1.1rem; }
+        .zoom-level-1 .player-sub-info, .zoom-level-1 .power-details, .zoom-level-1 .total-power-section, .zoom-level-1 .admin-actions { display: none; }
+        
+        .zoom-level-2 .player-card { padding: 1rem 1.5rem; }
+        .zoom-level-2 .power-details { display: none; }
+
+        .zoom-level-3 .player-card { padding: 1.5rem; }
+        .zoom-level-3 .power-details { display: grid; }
         
         /* Sidebar Styles */
         #sidebar {
@@ -375,11 +400,18 @@
 
                     <!-- Players View -->
                     <div id="view-players" class="hidden">
-                        <div class="relative mt-2 mb-2">
-                            <input type="search" id="playerSearch" class="w-full p-3 pl-10 form-input" placeholder="Search by name, server, or alliance...">
-                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                        <div class="flex justify-between items-center mt-2 mb-2 gap-4">
+                            <div class="relative flex-grow">
+                                <input type="search" id="playerSearch" class="w-full p-3 pl-10 form-input" placeholder="Search by name, server, or alliance...">
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-400">Zoom:</span>
+                                <button id="zoom-out-btn" class="p-2 w-10 h-10 rounded-md bg-zinc-800 hover:bg-zinc-700 text-lg">-</button>
+                                <button id="zoom-in-btn" class="p-2 w-10 h-10 rounded-md bg-zinc-800 hover:bg-zinc-700 text-lg">+</button>
+                            </div>
                         </div>
-                        <div id="player-cards-container" class="player-cards-container flex flex-col gap-4">
+                        <div id="player-cards-container" class="player-cards-container flex flex-col gap-2">
                             <!-- Player cards will be injected here -->
                         </div>
                     </div>
@@ -492,7 +524,6 @@
             }, 5000);
         };
         
-        // This was missing. It handles the confirmation dialog.
         const showConfirm = (message, callback) => {
             const confirmModal = document.getElementById('confirmModal');
             const confirmMessageEl = document.getElementById('confirmMessage');
@@ -505,7 +536,6 @@
 
             const hideConfirm = () => {
                 confirmModal.style.display = 'none';
-                // Remove listeners to prevent multiple executions
                 submitConfirmBtn.removeEventListener('click', submitListener);
                 cancelConfirmBtn.removeEventListener('click', cancelListener);
             };
@@ -573,6 +603,7 @@
         let allPlayers = [];
         let otherPlayerNames = new Set();
         let currentLanguage = 'en';
+        let cardZoomLevel = 2; // 1: compact, 2: default, 3: detailed
 
         // --- UI Elements ---
         const tabRegister = document.getElementById('tab-register');
@@ -604,6 +635,8 @@
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         const infoBtn = document.getElementById('info-btn');
         const closeInfoModalBtn = document.getElementById('closeInfoModal');
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
 
 
         // --- Form Selects ---
@@ -962,6 +995,7 @@
 
         // --- Data Fetching and Rendering ---
         const renderPlayerCards = () => {
+            playerCardsContainer.className = `player-cards-container flex flex-col gap-2 zoom-level-${cardZoomLevel}`;
             const searchTerm = playerSearch.value.toLowerCase();
             
             const filteredPlayers = allPlayers.filter(player => {
@@ -980,17 +1014,12 @@
             });
 
             const sortedPlayers = [...filteredPlayers].sort((a, b) => {
-                // Primary sort: Alliance Tag (case-insensitive)
                 const allianceA = a.currentAlliance.toUpperCase();
                 const allianceB = b.currentAlliance.toUpperCase();
                 if (allianceA < allianceB) return -1;
                 if (allianceA > allianceB) return 1;
-
-                // Secondary sort: Server (numerical)
                 if (a.currentServer < b.currentServer) return -1;
                 if (a.currentServer > b.currentServer) return 1;
-
-                // Tertiary sort: Total Power (descending)
                 return b.totalPower - a.totalPower;
             });
             
@@ -1007,41 +1036,34 @@
                 const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
                 
                 card.innerHTML = `
-                    <div class="flex flex-col sm:flex-row flex-grow gap-4">
-                        <div class="flex-grow">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h4 class="text-xl font-bold">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
-                                    <p class="text-sm text-gray-400 flex items-center gap-3">
-                                        <span><i class="fa-solid fa-shield-halved mr-1"></i> ${canViewSensitive ? player.currentAlliance : '****'}</span>
-                                        <span><i class="fa-solid fa-server mr-1"></i> ${player.currentServer}</span>
-                                    </p>
-                                </div>
-                                <span class="seat-tag seat-tag-${player.seatColor} sm:hidden">${player.seatColor}</span>
+                    <div class="flex flex-col sm:flex-row flex-grow gap-4 justify-between">
+                        <div class="flex-grow player-main-info">
+                            <div>
+                                <h4 class="text-xl font-bold player-name">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
+                                <p class="text-sm text-gray-400 flex items-center gap-3 player-sub-info">
+                                    <span><i class="fa-solid fa-shield-halved mr-1"></i> ${canViewSensitive ? player.currentAlliance : '****'}</span>
+                                    <span><i class="fa-solid fa-server mr-1"></i> ${player.currentServer}</span>
+                                </p>
                             </div>
-                            <div class="admin-only ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-3 gap-4 border-t border-zinc-700/50 mt-4 pt-4">
+                            <div class="admin-only power-details ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-3 gap-4 border-t border-zinc-700/50 sm:border-none mt-4 pt-4 sm:mt-0 sm:pt-0">
                                 <div class="text-center">
-                                    <div class="text-lg font-bold">${formatPower(player.tankPower)}</div>
-                                    <div class="text-xs text-gray-400" data-i18n="tableTankPower">Tank Power</div>
+                                    <div class="text-lg font-bold"><i class="fas fa-shield-halved text-gray-300 mr-2"></i>${formatPower(player.tankPower)}</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-lg font-bold">${formatPower(player.airPower)}</div>
-                                    <div class="text-xs text-gray-400" data-i18n="tableAirPower">Air Power</div>
+                                    <div class="text-lg font-bold"><i class="fas fa-plane-up text-gray-300 mr-2"></i>${formatPower(player.airPower)}</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-lg font-bold">${formatPower(player.missilePower)}</div>
-                                    <div class="text-xs text-gray-400" data-i18n="tableMissilePower">Missile Power</div>
+                                    <div class="text-lg font-bold"><i class="fas fa-rocket text-gray-300 mr-2"></i>${formatPower(player.missilePower)}</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-4 sm:border-l sm:border-zinc-700">
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-indigo-400">${formatPower(player.totalPower)}</div>
-                                <div class="text-xs text-gray-400" data-i18n="tableTotalPower">Total Power</div>
+                        <div class="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-4 sm:border-l sm:border-zinc-700/50">
+                            <div class="text-center total-power-section">
+                                <div class="text-3xl font-bold text-white">${formatPower(player.totalPower)}</div>
+                                <div class="text-xs text-gray-300" data-i18n="tableTotalPower">Total Power</div>
                             </div>
-                            <span class="seat-tag seat-tag-${player.seatColor} hidden sm:inline-block">${player.seatColor}</span>
-                            <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} gap-2">
-                                <button class="edit-btn text-blue-400 hover:text-blue-300" data-id="${player.id}"><i class="fas fa-edit"></i></button>
+                            <div class="super-admin-only admin-actions ${loginState === 'super_admin' ? 'flex' : 'hidden'} gap-2 mt-2">
+                                <button class="edit-btn text-blue-300 hover:text-white" data-id="${player.id}"><i class="fas fa-edit"></i></button>
                                 <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
@@ -1049,7 +1071,7 @@
                 `;
                 playerCardsContainer.appendChild(card);
             });
-            translatePage(currentLanguage); // Re-translate after rendering cards
+            translatePage(currentLanguage);
         };
 
         onSnapshot(query(registrationsCollection), (snapshot) => {
@@ -1071,7 +1093,7 @@
                 adminModal.style.display = 'flex';
             } else if (loginState === 'super_admin') {
                 switchView('admin');
-            } else { // 'admin' or 'super_admin' logs out
+            } else { 
                 const oldState = loginState;
                 loginState = 'guest';
                 updateUIForLoginState();
@@ -1111,14 +1133,14 @@
                 createdAt: new Date()
             };
             try {
-                await addDoc(registrationsCollection, registrationData);
+                const docRef = await addDoc(registrationsCollection, registrationData);
                 showNotification('Registration successful!');
                 registrationForm.reset();
                 allCustomSelects.forEach(s => s.updateDisplay());
                 document.getElementById('otherPlayersSection').classList.add('hidden');
                 document.getElementById('otherPlayersContainer').innerHTML = '';
                 document.getElementById('preferredAlliance').classList.add('hidden');
-                sendDiscordNotification(registrationData);
+                sendDiscordNotification(registrationData, docRef.id);
             } catch (error) {
                 console.error("Error adding document: ", error);
                 showNotification('There was an error submitting your registration.', 'error');
@@ -1146,7 +1168,7 @@
 
         document.getElementById('adminPassword').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Prevent default behavior (like form submission)
+                e.preventDefault();
                 document.getElementById('submitLogin').click();
             }
         });
@@ -1261,12 +1283,67 @@
             }
         };
 
-        const sendDiscordNotification = async (data) => {
-           // ... (rest of the logic is unchanged)
+        const sendDiscordNotification = async (data, docId) => {
+            const docSnap = await getDoc(configDoc);
+            if (!docSnap.exists()) {
+                console.log("No webhook configuration found.");
+                return;
+            }
+            const config = docSnap.data();
+            const webhooks = config.webhooks ? Object.values(config.webhooks).filter(url => url) : [];
+            if (webhooks.length === 0) {
+                console.log("No webhook URLs configured.");
+                return;
+            }
+
+            const colorMap = { White: 0xffffff, Blue: 0x3b82f6, Purple: 0x8b5cf6, Gold: 0xf59e0b };
+            const embed = {
+                title: `New Transfer Registration: ${data.playerName}`,
+                color: colorMap[data.seatColor] || 0x71717a,
+                fields: [
+                    { name: "Alliance", value: `[${data.currentAlliance}]`, inline: true },
+                    { name: "Server", value: data.currentServer, inline: true },
+                    { name: "Seat", value: data.seatColor, inline: true },
+                    { name: "Total Power", value: `**${formatPower(data.totalPower)}**`, inline: false },
+                    { name: "Tank Power", value: formatPower(data.tankPower), inline: true },
+                    { name: "Air Power", value: formatPower(data.airPower), inline: true },
+                    { name: "Missile Power", value: formatPower(data.missilePower), inline: true },
+                ],
+                footer: { text: `Doc ID: ${docId}` },
+                timestamp: new Date().toISOString()
+            };
+
+            if (data.otherPlayers && data.otherPlayers.length > 0) {
+                embed.fields.push({ name: "Accompanying Players", value: data.otherPlayers.join(', '), inline: false });
+            }
+            if (data.alliancePreference === 'yes' && data.preferredAlliance) {
+                embed.fields.push({ name: "Preferred Alliance", value: `[${data.preferredAlliance}]`, inline: false });
+            }
+
+            const payload = {
+                username: "899 Transfer Bot",
+                avatar_url: "https://i.imgur.com/g6d3v4E.png",
+                embeds: [embed]
+            };
+
+            webhooks.forEach(url => {
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(response => {
+                    if (!response.ok) {
+                        console.error(`Failed to send Discord notification to ${url}`, response.status, response.statusText);
+                    }
+                }).catch(error => {
+                    console.error(`Error sending Discord notification to ${url}:`, error);
+                });
+            });
         };
         
         languageSelector.addEventListener('change', (e) => {
             const selectedLang = e.target.value;
+            localStorage.setItem('preferredLanguage', selectedLang);
             languageDisplay.innerHTML = `<i class="fas fa-language mr-2"></i> ${e.target.options[e.target.selectedIndex].text}`;
             translatePage(selectedLang);
         });
@@ -1289,6 +1366,19 @@
         infoBtn.addEventListener('click', () => infoModal.style.display = 'flex');
         closeInfoModalBtn.addEventListener('click', () => infoModal.style.display = 'none');
 
+        // --- Card Zoom Logic ---
+        zoomInBtn.addEventListener('click', () => {
+            if (cardZoomLevel < 3) {
+                cardZoomLevel++;
+                renderPlayerCards();
+            }
+        });
+        zoomOutBtn.addEventListener('click', () => {
+            if (cardZoomLevel > 1) {
+                cardZoomLevel--;
+                renderPlayerCards();
+            }
+        });
 
         // --- Animated Scrollbar Logic ---
         let scrollTimeout;
@@ -1322,7 +1412,19 @@
 
         switchView('register');
         updateUIForLoginState();
-        translatePage('en');
+        
+        // Auto-detect language
+        const savedLang = localStorage.getItem('preferredLanguage');
+        const browserLang = navigator.language.split('-')[0];
+        const initialLang = savedLang || (translations[browserLang] ? browserLang : 'en');
+        
+        languageSelector.value = initialLang;
+        const selectedOption = languageSelector.querySelector(`option[value="${initialLang}"]`);
+        if (selectedOption) {
+             languageDisplay.innerHTML = `<i class="fas fa-language mr-2"></i> ${selectedOption.text}`;
+        }
+        translatePage(initialLang);
+
     </script>
     
     <!--
