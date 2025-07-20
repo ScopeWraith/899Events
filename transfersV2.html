@@ -235,7 +235,7 @@
         
         <div class="card">
             <!-- Header and Navigation section inside the card -->
-            <div class="p-6 sm:px-8 sm:pt-8 sm:pb-4 flex-shrink-0 relative">
+            <div class="p-6 pb-0 sm:px-8 sm:pt-8 flex-shrink-0 relative">
                 <!-- Hamburger Menu Button (Mobile) -->
                 <button id="hamburger-btn" class="md:hidden absolute top-6 left-6 text-2xl text-gray-400 hover:text-white z-10">
                     <i class="fas fa-bars"></i>
@@ -246,7 +246,7 @@
                     <i class="fas fa-info-circle"></i>
                 </button>
 
-                <div class="flex flex-col items-center gap-4 mb-4">
+                <div class="flex flex-col items-center gap-1">
                     <h1 class="text-3xl md:text-4xl font-bold tracking-wider uppercase flex items-center gap-4">
                         <i class="fa-solid fa-satellite-dish text-indigo-400"></i>
                         <span data-i18n="title">899 Transfers</span>
@@ -282,7 +282,7 @@
 
             <main id="main-content" class="scrollable-content flex-grow">
                 <!-- Content Area -->
-                <div class="px-6 sm:px-8 pb-6 sm:pb-8 pt-4">
+                <div class="px-6 sm:px-8 pb-6 sm:pb-8 pt-0">
                     <!-- Registration View -->
                     <div id="view-register">
                         <form id="registrationForm" class="space-y-4">
@@ -292,7 +292,7 @@
                                 
                                 <!-- Player Information Section -->
                                 <div>
-                                    <h3 class="flex items-center text-lg font-bold text-gray-300 mb-2 tracking-wider"><i class="fa-solid fa-user-astronaut w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPlayerInfo">PLAYER INFORMATION</span></h3>
+                                    <h3 class="flex items-center text-lg font-bold text-gray-300 mt-3 mb-2 tracking-wider"><i class="fa-solid fa-user-astronaut w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPlayerInfo">PLAYER INFORMATION</span></h3>
                                     <div class="space-y-2">
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             <div class="custom-select-wrapper">
@@ -343,8 +343,8 @@
                                     <div class="flex items-center justify-between gap-4">
                                         <label class="text-sm font-medium text-gray-400" data-i18n="labelAlliancePref">Alliance Preference?</label>
                                         <div class="flex items-center space-x-2">
-                                            <label class="custom-radio-label flex-1"><input type="radio" name="alliancePreference" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
-                                            <label class="custom-radio-label flex-1"><input type="radio" name="alliancePreference" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
+                                            <label class="custom-radio-label flex-1 pt-1 pb-1"><input type="radio" name="alliancePreference" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
+                                            <label class="custom-radio-label flex-1 pt-1 pb-1"><input type="radio" name="alliancePreference" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
                                         </div>
                                     </div>
                                     <input type="text" id="preferredAlliance" class="w-full p-3 form-input hidden" data-i18n-placeholder="placeholderPrefAlliance" placeholder="Preferred Alliance Tag" maxlength="4">
@@ -352,8 +352,8 @@
                                     <div class="flex items-center justify-between gap-4">
                                         <label class="text-sm font-medium text-gray-400" data-i18n="labelBringOthers">Bringing Others?</label>
                                         <div class="flex items-center space-x-2">
-                                            <label class="custom-radio-label flex-1"><input type="radio" name="otherPlayers" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
-                                            <label class="custom-radio-label flex-1"><input type="radio" name="otherPlayers" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
+                                            <label class="custom-radio-label flex-1 pt-1 pb-1"><input type="radio" name="otherPlayers" value="no" checked><span class="radio-dot"></span> <span data-i18n="optionNo">No</span></label>
+                                            <label class="custom-radio-label flex-1 pt-1 pb-1"><input type="radio" name="otherPlayers" value="yes"><span class="radio-dot"></span> <span data-i18n="optionYes">Yes</span></label>
                                         </div>
                                     </div>
                                 </div>
@@ -367,7 +367,7 @@
                             </div>
 
                             <!-- Submit Button -->
-                            <div class="pt-4 mt-4 border-t border-zinc-700/50">
+                            <div class="pt-4 border-t border-zinc-700/50">
                                 <button type="submit" class="w-full p-4 rounded-lg btn-primary text-lg"><i class="fas fa-paper-plane mr-2"></i><span data-i18n="btnSubmit">Submit Registration</span></button>
                             </div>
                         </form>
