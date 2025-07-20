@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>899 Transfers - Registration Portal</title>
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -222,25 +221,6 @@
             transition: opacity 0.3s ease-in-out;
         }
         
-        /* Language Modal Button Style */
-        .lang-option-btn {
-            background-color: var(--input-background);
-            border: 1px solid #27272a;
-            color: var(--text-primary);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: all 0.2s ease-in-out;
-            font-weight: 500;
-        }
-        .lang-option-btn:hover {
-            border-color: var(--primary-color);
-            background-color: rgba(79, 70, 229, 0.1);
-        }
-
         /* Prevent iOS zoom on input focus */
         @media screen and (-webkit-min-device-pixel-ratio:0) and (max-device-width: 767px) {
             .form-input, .custom-select-display {
@@ -255,7 +235,7 @@
         
         <div class="card">
             <!-- Header and Navigation section inside the card -->
-            <div class="p-6 pb-0 sm:px-8 sm:pt-8 flex-shrink-0 relative">
+            <div class="p-6 pb-0 mr-3 sm:px-8 sm:pt-8 flex-shrink-0 relative">
                 <!-- Hamburger Menu Button (Mobile) -->
                 <button id="hamburger-btn" class="md:hidden absolute top-6 left-6 text-2xl text-gray-400 hover:text-white z-10">
                     <i class="fas fa-bars"></i>
@@ -271,11 +251,26 @@
                         <i class="fa-solid fa-satellite-dish text-indigo-400"></i>
                         <span data-i18n="title">899 Transfers</span>
                     </h1>
-                    <button id="language-btn" class="flex items-center gap-2 py-2 px-4 mt-4 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors">
-                        <span id="language-flag" class="text-lg"></span>
-                        <span id="language-name" class="text-sm font-medium"></span>
-                        <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
-                    </button>
+                    <div class="custom-select-wrapper w-full md:w-auto md:max-w-[160px]">
+                        <div class="custom-select-display !py-2 !px-4 mt-4">
+                            <span id="languageDisplay"><i class="fas fa-language mr-4"></i> English</span>
+                            <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
+                        </div>
+                        <select id="languageSelector" class="form-select-native">
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                            <option value="zh">中文</option>
+                            <option value="hi">हिन्दी</option>
+                            <option value="ar">العربية</option>
+                            <option value="pt">Português</option>
+                            <option value="ru">Русский</option>
+                            <option value="ja">日本語</option>
+                            <option value="de">Deutsch</option>
+                            <option value="fr">Français</option>
+                            <option value="ko">한국어</option>
+                            <option value="id">Bahasa Indonesia</option>
+                        </select>
+                    </div>
                 </div>
                 <nav id="desktop-nav" class="nav-container hidden md:flex">
                     <button id="tab-register" class="nav-btn"><i class="fas fa-file-signature mr-2"></i><span data-i18n="tabRegister">Registration</span></button>
@@ -300,7 +295,7 @@
                                     <h3 class="flex items-center justify-center text-lg font-bold text-gray-300 mt-3 mb-2 tracking-wider"><i class="fa-solid fa-user-astronaut w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPlayerInfo">PLAYER INFORMATION</span></h3>
                                     <div class="space-y-2">
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            <div class="custom-select-wrapper pr-6">
+                                            <div class="custom-select-wrapper">
                                                 <div class="custom-select-display"><span id="serverDisplay" data-i18n="placeholderServer">Current Server</span><i class="fas fa-chevron-down text-gray-500"></i></div>
                                                 <select id="currentServer" class="form-select-native" required><option value="" disabled selected>Select Server...</option></select>
                                             </div>
@@ -479,677 +474,818 @@
         </div>
     </div>
 
-    <div id="languageModal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="p-8 rounded-xl shadow-2xl w-full max-w-md bg-zinc-900 border border-zinc-700">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white"><i class="fas fa-language mr-3 text-indigo-400"></i>Select a Language</h2>
-                <button id="closeLanguageModal" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-            </div>
-            <div id="language-options-container" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <!-- Language buttons will be injected here by JavaScript -->
-            </div>
-        </div>
-    </div>
-
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            // --- Firebase Configuration ---
-            const firebaseConfig = {
-                apiKey: "AIzaSyD1W6tFMNLWw2WlxzO_M1dgijXQYp6p75w",
-                authDomain: "transfers-a7cbb.firebaseapp.com",
-                projectId: "transfers-a7cbb",
-                storageBucket: "transfers-a7cbb.firebasestorage.app",
-                messagingSenderId: "940205814599",
-                appId: "1:940205814599:web:657408c6d20385cf361262",
-                measurementId: "G-0WL6PQTGJ1"
-            };
-            const appId = typeof __app_id !== 'undefined' ? __app_id : '1:940205814599:web:657408c6d20385cf361262';
-            
-            let app, db, auth;
-            
-            // --- Helper Function ---
-            const showNotification = (message, type = 'success') => {
-                const container = document.getElementById('notification-container');
-                const notif = document.createElement('div');
-                notif.className = `notification ${type}`;
-                notif.textContent = message;
-                container.appendChild(notif);
-                setTimeout(() => {
-                    notif.remove();
-                }, 5000);
-            };
+        // --- Helper Functions (defined first to prevent reference errors) ---
+        const showNotification = (message, type = 'success') => {
+            const container = document.getElementById('notification-container');
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.textContent = message;
+            container.appendChild(notif);
+            setTimeout(() => {
+                notif.remove();
+            }, 5000);
+        };
 
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1W6tFMNLWw2WlxzO_M1dgijXQYp6p75w",
+            authDomain: "transfers-a7cbb.firebaseapp.com",
+            projectId: "transfers-a7cbb",
+            storageBucket: "transfers-a7cbb.firebasestorage.app",
+            messagingSenderId: "940205814599",
+            appId: "1:940205814599:web:657408c6d20385cf361262",
+            measurementId: "G-0WL6PQTGJ1"
+            };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : '1:940205814599:web:657408c6d20385cf361262';
+        
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
             try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                showNotification("Could not connect to the database. Please refresh.", "error");
-                if (error.code === 'auth/operation-not-allowed') {
-                    showNotification("Authentication failed. Please ensure Anonymous sign-in is enabled in your Firebase project.", "error");
-                }
+            } catch (authError) {
+                 console.error("Firebase authentication failed:", authError);
+                 if (authError.code === 'auth/operation-not-allowed') {
+                     showNotification("Authentication failed. Please ensure Anonymous sign-in is enabled in your Firebase project.", "error");
+                 } else {
+                     showNotification("Could not authenticate with the server.", "error");
+                 }
             }
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            showNotification("Could not connect to the database. Please refresh.", "error");
+        }
 
-            // --- Collections ---
-            const registrationsCollection = collection(db, `/artifacts/${appId}/public/data/registrations`);
-            const configDoc = doc(db, `/artifacts/${appId}/public/data/config`, 'settings');
+        // --- Collections ---
+        const registrationsCollection = collection(db, `/artifacts/${appId}/public/data/registrations`);
+        const configDoc = doc(db, `/artifacts/${appId}/public/data/config`, 'settings');
 
-            // --- State Management ---
-            let loginState = 'guest'; // 'guest', 'admin', 'super_admin'
-            let allPlayers = [];
-            let otherPlayerNames = new Set();
-            let currentLanguage = 'en';
-            let confirmCallback = null;
+        // --- State Management ---
+        let loginState = 'guest'; // 'guest', 'admin', 'super_admin'
+        let allPlayers = [];
+        let otherPlayerNames = new Set();
+        let currentLanguage = 'en';
 
-            // --- UI Elements ---
-            const tabRegister = document.getElementById('tab-register');
-            const tabPlayers = document.getElementById('tab-players');
-            const tabAdmin = document.getElementById('tab-admin');
-            const sidebarTabRegister = document.getElementById('sidebar-tab-register');
-            const sidebarTabPlayers = document.getElementById('sidebar-tab-players');
-            const sidebarTabAdmin = document.getElementById('sidebar-tab-admin');
-            
-            const viewRegister = document.getElementById('view-register');
-            const viewPlayers = document.getElementById('view-players');
-            const adminModal = document.getElementById('adminModal');
-            const editModal = document.getElementById('editModal');
-            const confirmModal = document.getElementById('confirmModal');
-            const infoModal = document.getElementById('infoModal');
-            const registrationForm = document.getElementById('registrationForm');
-            const playerCardsContainer = document.getElementById('player-cards-container');
-            const superAdminPanel = document.getElementById('superAdminPanel');
-            const adminIcon = document.getElementById('admin-icon');
-            const adminText = document.getElementById('admin-text');
-            const sidebarAdminIcon = document.getElementById('sidebar-admin-icon');
-            const sidebarAdminText = document.getElementById('sidebar-admin-text');
-            const mainContent = document.getElementById('main-content');
-            const playerSearch = document.getElementById('playerSearch');
-            const hamburgerBtn = document.getElementById('hamburger-btn');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            const infoBtn = document.getElementById('info-btn');
-            const closeInfoModalBtn = document.getElementById('closeInfoModal');
-            const confirmMessageEl = document.getElementById('confirmMessage');
-            const cancelConfirmBtn = document.getElementById('cancelConfirm');
-            const submitConfirmBtn = document.getElementById('submitConfirm');
-            const languageBtn = document.getElementById('language-btn');
-            const languageFlag = document.getElementById('language-flag');
-            const languageName = document.getElementById('language-name');
-            const languageModal = document.getElementById('languageModal');
-            const closeLanguageModalBtn = document.getElementById('closeLanguageModal');
-            const languageOptionsContainer = document.getElementById('language-options-container');
+        // --- UI Elements ---
+        const tabRegister = document.getElementById('tab-register');
+        const tabPlayers = document.getElementById('tab-players');
+        const tabAdmin = document.getElementById('tab-admin');
+        const sidebarTabRegister = document.getElementById('sidebar-tab-register');
+        const sidebarTabPlayers = document.getElementById('sidebar-tab-players');
+        const sidebarTabAdmin = document.getElementById('sidebar-tab-admin');
+        
+        const viewRegister = document.getElementById('view-register');
+        const viewPlayers = document.getElementById('view-players');
+        const adminModal = document.getElementById('adminModal');
+        const editModal = document.getElementById('editModal');
+        const confirmModal = document.getElementById('confirmModal');
+        const infoModal = document.getElementById('infoModal');
+        const registrationForm = document.getElementById('registrationForm');
+        const playerCardsContainer = document.getElementById('player-cards-container');
+        const superAdminPanel = document.getElementById('superAdminPanel');
+        const adminIcon = document.getElementById('admin-icon');
+        const adminText = document.getElementById('admin-text');
+        const sidebarAdminIcon = document.getElementById('sidebar-admin-icon');
+        const sidebarAdminText = document.getElementById('sidebar-admin-text');
+        const languageSelector = document.getElementById('languageSelector');
+        const languageDisplay = document.getElementById('languageDisplay');
+        const mainContent = document.getElementById('main-content');
+        const playerSearch = document.getElementById('playerSearch');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const infoBtn = document.getElementById('info-btn');
+        const closeInfoModalBtn = document.getElementById('closeInfoModal');
 
-            // --- Form Selects ---
-            const totalPowerSelect = document.getElementById('totalPower');
-            const tankPowerSelect = document.getElementById('tankPower');
-            const airPowerSelect = document.getElementById('airPower');
-            const missilePowerSelect = document.getElementById('missilePower');
-            const seatColorSelect = document.getElementById('seatColor');
-            const editSeatColorSelect = document.getElementById('editSeatColor');
-            const serverSelect = document.getElementById('currentServer');
 
-            const totalPowerDisplay = document.getElementById('totalPowerDisplay');
-            const tankPowerDisplay = document.getElementById('tankPowerDisplay');
-            const airPowerDisplay = document.getElementById('airPowerDisplay');
-            const missilePowerDisplay = document.getElementById('missilePowerDisplay');
-            const seatColorDisplay = document.getElementById('seatColorDisplay');
-            const editSeatColorDisplay = document.getElementById('editSeatColorDisplay');
-            const serverDisplay = document.getElementById('serverDisplay');
+        // --- Form Selects ---
+        const totalPowerSelect = document.getElementById('totalPower');
+        const tankPowerSelect = document.getElementById('tankPower');
+        const airPowerSelect = document.getElementById('airPower');
+        const missilePowerSelect = document.getElementById('missilePower');
+        const seatColorSelect = document.getElementById('seatColor');
+        const editSeatColorSelect = document.getElementById('editSeatColor');
+        const serverSelect = document.getElementById('currentServer');
 
-            // --- Language Data with Flags ---
-            const languages = {
-                en: { name: 'English', flag: '🇬🇧' },
-                es: { name: 'Español', flag: '🇪🇸' },
-                zh: { name: '中文', flag: '🇨🇳' },
-                hi: { name: 'हिन्दी', flag: '🇮🇳' },
-                ar: { name: 'العربية', flag: '🇸🇦' },
-                pt: { name: 'Português', flag: '🇧🇷' },
-                ru: { name: 'Русский', flag: '🇷🇺' },
-                ja: { name: '日本語', flag: '🇯🇵' },
-                de: { name: 'Deutsch', flag: '🇩🇪' },
-                fr: { name: 'Français', flag: '🇫🇷' },
-                ko: { name: '한국어', flag: '🇰🇷' },
-                id: { name: 'Bahasa Indonesia', flag: '🇮🇩' }
-            };
+        const totalPowerDisplay = document.getElementById('totalPowerDisplay');
+        const tankPowerDisplay = document.getElementById('tankPowerDisplay');
+        const airPowerDisplay = document.getElementById('airPowerDisplay');
+        const missilePowerDisplay = document.getElementById('missilePowerDisplay');
+        const seatColorDisplay = document.getElementById('seatColorDisplay');
+        const editSeatColorDisplay = document.getElementById('editSeatColorDisplay');
+        const serverDisplay = document.getElementById('serverDisplay');
 
-            // --- Translation Data ---
-            const translations = {
-                en: {
-                    title: "899 Transfers", subtitle: "Registration Portal", tabRegister: "Registration", tabPlayers: "Transfers", tabAdmin: "Admin",
-                    labelPlayerInfo: "Player Information", placeholderPlayerName: "Player Name", placeholderServer: "Current Server", placeholderAlliance: "Current Alliance Tag (e.g., ABCD)",
-                    labelSeatColor: "Seat Color", placeholderSeatColor: "Seat Color", optionSelectSeatColor: "Select a Seat Color...", optionWhite: "White", optionBlue: "Blue", optionPurple: "Purple", optionGold: "Gold",
-                    labelPowerStats: "Power Profile", placeholderTotalPower: "Total Power", placeholderTankPower: "Tank Power", placeholderAirPower: "Air Power", placeholderMissilePower: "Missile Power",
-                    labelTransferDetails: "Transfer Details", labelAdditionalPlayers: "Additional Players",
-                    labelAlliancePref: "Alliance Preference", optionNo: "No", optionYes: "Yes", placeholderPrefAlliance: "Preferred Alliance Tag",
-                    labelBringOthers: "Bringing Others?", btnAddPlayer: "Add Another Player", btnSubmit: "Submit Registration",
-                    tablePlayerName: "Player Name", tableServer: "Server", tableAlliance: "Alliance", tableTotalPower: "Total Power", tableSeat: "Seat", tableTankPower: "Tank Power", tableAirPower: "Air Power", tableMissilePower: "Missile Power", tableActions: "Actions",
-                    superAdminTitle: "Super Admin", webhooksTitle: "Discord Webhooks", placeholderWebhook: "Discord Webhook URL", btnSaveWebhooks: "Save Webhooks",
-                    adminLoginTitle: "Admin Login", placeholderPassword: "Enter Password", btnCancel: "Cancel", btnLogin: "Login",
-                    editTitle: "Edit Registration", btnSaveChanges: "Save Changes",
-                    confirmTitle: "Are you sure?", confirmMessage: "This action cannot be undone.", btnConfirm: "Confirm",
-                    logout: "Logout",
-                    infoTitle: "Information",
-                    infoText: "Welcome to the 899 Transfers registration portal. When you submit your registration, the information is automatically sent to a private Discord channel for server leadership to review. This ensures a streamlined and secure process for all potential transfers. Your data is handled confidentially."
-                },
-                // ... other translations are identical and omitted for brevity
-                id: {
-                    title: "Transfer 899", subtitle: "Portal Registrasi", tabRegister: "Registrasi", tabPlayers: "Transfer", tabAdmin: "Admin",
-                    labelPlayerInfo: "Informasi Pemain", placeholderPlayerName: "Nama Pemain", placeholderServer: "Server Saat Ini", placeholderAlliance: "Tag Aliansi (cth: ABCD)",
-                    labelSeatColor: "Warna Kursi", placeholderSeatColor: "Warna Kursi", optionSelectSeatColor: "Pilih Warna Kursi...", optionWhite: "Putih", optionBlue: "Biru", optionPurple: "Ungu", optionGold: "Emas",
-                    labelPowerStats: "Profil Kekuatan", placeholderTotalPower: "Total Kekuatan", placeholderTankPower: "Kekuatan Tank", placeholderAirPower: "Kekuatan Udara", placeholderMissilePower: "Kekuatan Misil",
-                    labelTransferDetails: "Detail Transfer", labelAdditionalPlayers: "Pemain Tambahan",
-                    labelAlliancePref: "Preferensi Aliansi", optionNo: "Tidak", optionYes: "Ya", placeholderPrefAlliance: "Tag Aliansi Pilihan",
-                    labelBringOthers: "Membawa pemain lain?", btnAddPlayer: "Tambah Pemain Lain", btnSubmit: "Kirim Registrasi",
-                    tablePlayerName: "Nama Pemain", tableServer: "Server", tableAlliance: "Aliansi", tableTotalPower: "Total Kekuatan", tableSeat: "Kursi", tableTankPower: "Kekuatan Tank", tableAirPower: "Kekuatan Udara", tableMissilePower: "Kekuatan Misil", tableActions: "Aksi",
-                    superAdminTitle: "Super Admin", webhooksTitle: "Webhook Discord", placeholderWebhook: "URL Webhook Discord", btnSaveWebhooks: "Simpan Webhook",
-                    adminLoginTitle: "Login Admin", placeholderPassword: "Masukkan Kata Sandi", btnCancel: "Batal", btnLogin: "Login",
-                    editTitle: "Edit Registrasi", btnSaveChanges: "Simpan Perubahan",
-                    confirmTitle: "Apakah Anda yakin?", confirmMessage: "Tindakan ini tidak dapat dibatalkan.", btnConfirm: "Konfirmasi",
-                    logout: "Keluar",
-                    infoTitle: "Informasi",
-                    infoText: "Selamat datang di portal pendaftaran 899 Transfers. Saat Anda mengirimkan pendaftaran, informasi tersebut secara otomatis dikirim ke saluran Discord pribadi untuk ditinjau oleh pimpinan server. Hal ini memastikan proses yang efisien dan aman untuk semua transfer potensial. Data Anda ditangani secara rahasia."
-                }
-            };
-            
-            // --- Helper Functions ---
-            const formatPower = (num) => {
-                if (num === null || num === undefined || num === '' || num === 0) return 'N/A';
-                const number = Number(num);
-                if (number >= 1000000) return `${(number / 1000000).toFixed(0)}M`;
-                if (number >= 1000) return `${(number / 1000).toFixed(1)}K`;
-                return number.toLocaleString();
-            };
-
-            const sendDiscordNotification = async (data) => {
-                const configSnap = await getDoc(configDoc);
-                if (!configSnap.exists() || !configSnap.data().webhooks) {
-                    console.log("Webhooks not configured. Skipping Discord notification.");
-                    return;
-                }
-                const webhooks = configSnap.data().webhooks;
-                const urls = [webhooks.url1, webhooks.url2, webhooks.url3].filter(url => url && url.startsWith('http'));
-
-                if (urls.length === 0) {
-                    console.log("No valid webhook URLs. Skipping Discord notification.");
-                    return;
-                }
-
-                const lang = data.language || 'en';
-                const t = translations[lang] || translations.en;
-                const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date();
-
-                const embed = {
-                    title: `${t.tabRegister}: ${data.playerName}`,
-                    color: 0x4f46e5,
-                    fields: [
-                        { name: t.tableServer, value: data.currentServer, inline: true },
-                        { name: t.tableAlliance, value: `[${data.currentAlliance}]`, inline: true },
-                        { name: t.tableSeat, value: data.seatColor, inline: true },
-                        { name: t.placeholderTotalPower, value: formatPower(data.totalPower), inline: true },
-                        { name: t.placeholderTankPower, value: formatPower(data.tankPower), inline: true },
-                        { name: t.placeholderAirPower, value: formatPower(data.airPower), inline: true },
-                        { name: t.placeholderMissilePower, value: formatPower(data.missilePower), inline: true },
-                        { name: t.labelAlliancePref, value: data.alliancePreference === 'yes' ? `${t.optionYes} (${data.preferredAlliance || 'N/A'})` : t.optionNo, inline: true },
-                        { name: t.labelBringOthers, value: data.otherPlayers.length > 0 ? `${t.optionYes}: ${data.otherPlayers.join(', ')}` : t.optionNo, inline: false },
-                    ],
-                    timestamp: createdAtDate.toISOString(),
-                };
-
-                const payload = {
-                    username: "899 Transfer Bot",
-                    avatar_url: "https://i.imgur.com/gJ1hJ6v.png",
-                    embeds: [embed]
-                };
-
-                urls.forEach(url => {
-                    fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    }).catch(err => console.error(`Failed to send to webhook ${url}`, err));
-                });
-            };
-            
-            const populateSelect = (select, start, end, step, unit) => {
-                for (let i = start; i <= end; i += step) {
-                    const option = document.createElement('option');
-                    option.value = i * 1000000;
-                    option.textContent = `${i}${unit}`;
-                    select.appendChild(option);
-                }
-            };
-
-            const populateServerSelect = (select, start, end) => {
-                for (let i = start; i <= end; i++) {
-                    const option = document.createElement('option');
-                    option.value = i;
-                    option.textContent = `Server ${i}`;
-                    select.appendChild(option);
-                }
+        // --- Translation Data ---
+        const translations = {
+            en: {
+                title: "899 Transfers", subtitle: "Registration Portal", tabRegister: "Registration", tabPlayers: "Transfers", tabAdmin: "Admin",
+                labelPlayerInfo: "Player Information", placeholderPlayerName: "Player Name", placeholderServer: "Current Server", placeholderAlliance: "Current Alliance Tag (e.g., ABCD)",
+                labelSeatColor: "Seat Color", placeholderSeatColor: "Seat Color", optionSelectSeatColor: "Select a Seat Color...", optionWhite: "White", optionBlue: "Blue", optionPurple: "Purple", optionGold: "Gold",
+                labelPowerStats: "Power Profile", placeholderTotalPower: "Total Power", placeholderTankPower: "Tank Power", placeholderAirPower: "Air Power", placeholderMissilePower: "Missile Power",
+                labelTransferDetails: "Transfer Details", labelAdditionalPlayers: "Additional Players",
+                labelAlliancePref: "Alliance Preference", optionNo: "No", optionYes: "Yes", placeholderPrefAlliance: "Preferred Alliance Tag",
+                labelBringOthers: "Bringing Others?", btnAddPlayer: "Add Another Player", btnSubmit: "Submit Registration",
+                tablePlayerName: "Player Name", tableServer: "Server", tableAlliance: "Alliance", tableTotalPower: "Total Power", tableSeat: "Seat", tableTankPower: "Tank Power", tableAirPower: "Air Power", tableMissilePower: "Missile Power", tableActions: "Actions",
+                superAdminTitle: "Super Admin", webhooksTitle: "Discord Webhooks", placeholderWebhook: "Discord Webhook URL", btnSaveWebhooks: "Save Webhooks",
+                adminLoginTitle: "Admin Login", placeholderPassword: "Enter Password", btnCancel: "Cancel", btnLogin: "Login",
+                editTitle: "Edit Registration", btnSaveChanges: "Save Changes",
+                confirmTitle: "Are you sure?", confirmMessage: "This action cannot be undone.", btnConfirm: "Confirm",
+                logout: "Logout",
+                infoTitle: "Information",
+                infoText: "Welcome to the 899 Transfers registration portal. When you submit your registration, the information is automatically sent to a private Discord channel for server leadership to review. This ensures a streamlined and secure process for all potential transfers. Your data is handled confidentially."
+            },
+            es: {
+                title: "Transferencias 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Transferencias", tabAdmin: "Admin",
+                labelPlayerInfo: "Información del Jugador", placeholderPlayerName: "Nombre del Jugador", placeholderServer: "Servidor Actual", placeholderAlliance: "Etiqueta de Alianza (ej. ABCD)",
+                labelSeatColor: "Color de Asiento", placeholderSeatColor: "Color de Asiento", optionSelectSeatColor: "Selecciona un Color...", optionWhite: "Blanco", optionBlue: "Azul", optionPurple: "Morado", optionGold: "Dorado",
+                labelPowerStats: "Perfil de Poder", placeholderTotalPower: "Poder Total", placeholderTankPower: "Poder de Tanque", placeholderAirPower: "Poder Aéreo", placeholderMissilePower: "Poder de Misiles",
+                labelTransferDetails: "Detalles de Transferencia", labelAdditionalPlayers: "Jugadores Adicionales",
+                labelAlliancePref: "Preferencia de Alianza", optionNo: "No", optionYes: "Sí", placeholderPrefAlliance: "Etiqueta de Alianza Preferida",
+                labelBringOthers: "¿Traes a otros jugadores?", btnAddPlayer: "Añadir Otro Jugador", btnSubmit: "Enviar Registro",
+                tablePlayerName: "Nombre del Jugador", tableServer: "Servidor", tableAlliance: "Alianza", tableTotalPower: "Poder Total", tableSeat: "Asiento", tableTankPower: "Poder Tanque", tableAirPower: "Poder Aéreo", tableMissilePower: "Poder Misiles", tableActions: "Acciones",
+                superAdminTitle: "Super Admin", webhooksTitle: "Webhooks de Discord", placeholderWebhook: "URL de Webhook", btnSaveWebhooks: "Guardar Webhooks",
+                adminLoginTitle: "Acceso Admin", placeholderPassword: "Ingresar Contraseña", btnCancel: "Cancelar", btnLogin: "Acceder",
+                editTitle: "Editar Registro", btnSaveChanges: "Guardar Cambios",
+                confirmTitle: "¿Estás seguro?", confirmMessage: "Esta acción no se puede deshacer.", btnConfirm: "Confirmar",
+                logout: "Cerrar Sesión",
+                infoTitle: "Información",
+                infoText: "Bienvenido al portal de registro de Transferencias 899. Cuando envía su registro, la información se envía automáticamente a un canal privado de Discord para que la revise el liderazgo del servidor. Esto garantiza un proceso simplificado y seguro para todas las transferencias potenciales. Sus datos se manejan de forma confidencial."
+            },
+            zh: {
+                title: "899 服务器转移", subtitle: "注册门户", tabRegister: "注册", tabPlayers: "转移列表", tabAdmin: "管理员",
+                labelPlayerInfo: "玩家信息", placeholderPlayerName: "玩家名称", placeholderServer: "当前服务器", placeholderAlliance: "当前联盟标签 (例如 ABCD)",
+                labelSeatColor: "席位颜色", placeholderSeatColor: "席位颜色", optionSelectSeatColor: "选择席位颜色...", optionWhite: "白色", optionBlue: "蓝色", optionPurple: "紫色", optionGold: "金色",
+                labelPowerStats: "战力资料", placeholderTotalPower: "总战力", placeholderTankPower: "坦克战力", placeholderAirPower: "空军战力", placeholderMissilePower: "导弹战力",
+                labelTransferDetails: "转移详情", labelAdditionalPlayers: "其他玩家",
+                labelAlliancePref: "联盟偏好", optionNo: "否", optionYes: "是", placeholderPrefAlliance: "首选联盟标签",
+                labelBringOthers: "有其他玩家同行吗?", btnAddPlayer: "添加另一名玩家", btnSubmit: "提交注册",
+                tablePlayerName: "玩家名称", tableServer: "服务器", tableAlliance: "联盟", tableTotalPower: "总战力", tableSeat: "席位", tableTankPower: "坦克战力", tableAirPower: "空军战力", tableMissilePower: "导弹战力", tableActions: "操作",
+                superAdminTitle: "超级管理员", webhooksTitle: "Discord Webhooks", placeholderWebhook: "Discord Webhook 网址", btnSaveWebhooks: "保存 Webhooks",
+                adminLoginTitle: "管理员登录", placeholderPassword: "输入密码", btnCancel: "取消", btnLogin: "登录",
+                editTitle: "编辑注册信息", btnSaveChanges: "保存更改",
+                confirmTitle: "您确定吗?", confirmMessage: "此操作无法撤销。", btnConfirm: "确认",
+                logout: "登出",
+                infoTitle: "信息",
+                infoText: "欢迎来到 899 Transfers 注册门户。当您提交注册时，信息会自动发送到服务器领导层专用的 Discord 频道进行审核。这确保了所有潜在转移的流程精简且安全。您的数据将得到保密处理。"
+            },
+            hi: {
+                title: "899 सर्वर स्थानांतरण", subtitle: "पंजीकरण पोर्टल", tabRegister: "पंजीकरण", tabPlayers: "स्थानांतरण", tabAdmin: "एडमिन",
+                labelPlayerInfo: "खिलाड़ी की जानकारी", placeholderPlayerName: "खिलाड़ी का नाम", placeholderServer: "वर्तमान सर्वर", placeholderAlliance: "वर्तमान गठबंधन टैग (उदा. ABCD)",
+                labelSeatColor: "सीट का रंग", placeholderSeatColor: "सीट का रंग", optionSelectSeatColor: "एक सीट का रंग चुनें...", optionWhite: "सफ़ेद", optionBlue: "नीला", optionPurple: "बैंगनी", optionGold: "सुनहरा",
+                labelPowerStats: "शक्ति प्रोफाइल", placeholderTotalPower: "कुल शक्ति", placeholderTankPower: "टैंक शक्ति", placeholderAirPower: "वायु शक्ति", placeholderMissilePower: "मिसाइल शक्ति",
+                labelTransferDetails: "स्थानांतरण विवरण", labelAdditionalPlayers: "अतिरिक्त खिलाड़ी",
+                labelAlliancePref: "गठबंधन वरीयता", optionNo: "नहीं", optionYes: "हाँ", placeholderPrefAlliance: "पसंदीदा गठबंधन टैग",
+                labelBringOthers: "अन्य खिलाड़ियों को ला रहे हैं?", btnAddPlayer: "एक और खिलाड़ी जोड़ें", btnSubmit: "पंजीकरण जमा करें",
+                tablePlayerName: "खिलाड़ी का नाम", tableServer: "सर्वर", tableAlliance: "गठबंधन", tableTotalPower: "कुल शक्ति", tableSeat: "सीट", tableTankPower: "टैंक शक्ति", tableAirPower: "वायु शक्ति", tableMissilePower: "मिसाइल शक्ति", tableActions: "कार्रवाइयाँ",
+                superAdminTitle: "सुपर एडमिन", webhooksTitle: "डिस्कॉर्ड वेबहुक", placeholderWebhook: "डिस्कॉर्ड वेबहुक यूआरएल", btnSaveWebhooks: "वेबहुक सहेजें",
+                adminLoginTitle: "एडमिन लॉगिन", placeholderPassword: "पासवर्ड डालें", btnCancel: "रद्द करें", btnLogin: "लॉगिन करें",
+                editTitle: "पंजीकरण संपादित करें", btnSaveChanges: "बदलाव सहेजें",
+                confirmTitle: "क्या आप निश्चित हैं?", confirmMessage: "यह कार्रवाई पूर्ववत नहीं की जा सकती।", btnConfirm: "पुष्टि करें",
+                logout: "लॉग आउट",
+                infoTitle: "जानकारी",
+                infoText: "899 ट्रांसफ़र पंजीकरण पोर्टल में आपका स्वागत है। जब आप अपना पंजीकरण जमा करते हैं, तो जानकारी स्वचालित रूप से सर्वर नेतृत्व की समीक्षा के लिए एक निजी डिस्कॉर्ड चैनल पर भेज दी जाती है। यह सभी संभावित ट्रांसफ़र के लिए एक सुव्यवस्थित और सुरक्षित प्रक्रिया सुनिश्चित करता है। आपका डेटा गोपनीय रूप से संभाला जाता है।"
+            },
+            ar: {
+                title: "نقل خادم 899", subtitle: "بوابة التسجيل", tabRegister: "تسجيل", tabPlayers: "الانتقالات", tabAdmin: "مشرف",
+                labelPlayerInfo: "معلومات اللاعب", placeholderPlayerName: "اسم اللاعب", placeholderServer: "الخادم الحالي", placeholderAlliance: "علامة التحالف الحالية (مثل ABCD)",
+                labelSeatColor: "لون المقعد", placeholderSeatColor: "لون المقعد", optionSelectSeatColor: "اختر لون المقعد...", optionWhite: "أبيض", optionBlue: "أزرق", optionPurple: "أرجواني", optionGold: "ذهبي",
+                labelPowerStats: "ملف القوة", placeholderTotalPower: "إجمالي القوة", placeholderTankPower: "قوة الدبابات", placeholderAirPower: "قوة الطيران", placeholderMissilePower: "قوة الصواريخ",
+                labelTransferDetails: "تفاصيل النقل", labelAdditionalPlayers: "لاعبون إضافيون",
+                labelAlliancePref: "تفضيل التحالف", optionNo: "لا", optionYes: "نعم", placeholderPrefAlliance: "علامة التحالف المفضلة",
+                labelBringOthers: "هل تحضر لاعبين آخرين؟", btnAddPlayer: "إضافة لاعب آخر", btnSubmit: "إرسال التسجيل",
+                tablePlayerName: "اسم اللاعب", tableServer: "الخادم", tableAlliance: "التحالف", tableTotalPower: "إجمالي القوة", tableSeat: "المقعد", tableTankPower: "قوة الدبابات", tableAirPower: "قوة الطيران", tableMissilePower: "قوة الصواريخ", tableActions: "الإجراءات",
+                superAdminTitle: "مشرف خارق", webhooksTitle: "Discord Webhooks", placeholderWebhook: "رابط Discord Webhook", btnSaveWebhooks: "حفظ Webhooks",
+                adminLoginTitle: "تسجيل دخول المشرف", placeholderPassword: "أدخل كلمة المرور", btnCancel: "إلغاء", btnLogin: "تسجيل الدخول",
+                editTitle: "تعديل التسجيل", btnSaveChanges: "حفظ التغييرات",
+                confirmTitle: "هل أنت متأكد؟", confirmMessage: "لا يمكن التراجع عن هذا الإجراء.", btnConfirm: "تأكيد",
+                logout: "تسجيل الخروج",
+                infoTitle: "معلومات",
+                infoText: "مرحبًا بك في بوابة تسجيل 899 Transfers. عند إرسال تسجيلك، يتم إرسال المعلومات تلقائيًا إلى قناة Discord خاصة لمراجعتها من قبل قيادة الخادم. وهذا يضمن عملية مبسطة وآمنة لجميع عمليات النقل المحتملة. يتم التعامل مع بياناتك بسرية."
+            },
+            pt: {
+                title: "Transferências 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Transferências", tabAdmin: "Admin",
+                labelPlayerInfo: "Informações do Jogador", placeholderPlayerName: "Nome do Jogador", placeholderServer: "Servidor Atual", placeholderAlliance: "Tag da Aliança (ex: ABCD)",
+                labelSeatColor: "Cor do Assento", placeholderSeatColor: "Cor do Assento", optionSelectSeatColor: "Selecione uma Cor...", optionWhite: "Branco", optionBlue: "Azul", optionPurple: "Roxo", optionGold: "Dourado",
+                labelPowerStats: "Perfil de Poder", placeholderTotalPower: "Poder Total", placeholderTankPower: "Poder de Tanque", placeholderAirPower: "Poder Aéreo", placeholderMissilePower: "Poder de Míssil",
+                labelTransferDetails: "Detalhes da Transferência", labelAdditionalPlayers: "Jogadores Adicionais",
+                labelAlliancePref: "Preferência de Aliança", optionNo: "Não", optionYes: "Sim", placeholderPrefAlliance: "Tag da Aliança Preferida",
+                labelBringOthers: "Trazendo outros jogadores?", btnAddPlayer: "Adicionar Outro Jogador", btnSubmit: "Enviar Registro",
+                tablePlayerName: "Nome do Jogador", tableServer: "Servidor", tableAlliance: "Aliança", tableTotalPower: "Poder Total", tableSeat: "Assento", tableTankPower: "Poder Tanque", tableAirPower: "Poder Aéreo", tableMissilePower: "Poder Míssil", tableActions: "Ações",
+                superAdminTitle: "Super Admin", webhooksTitle: "Webhooks do Discord", placeholderWebhook: "URL do Webhook", btnSaveWebhooks: "Salvar Webhooks",
+                adminLoginTitle: "Login de Admin", placeholderPassword: "Digite a Senha", btnCancel: "Cancelar", btnLogin: "Login",
+                editTitle: "Editar Registro", btnSaveChanges: "Salvar Alterações",
+                confirmTitle: "Você tem certeza?", confirmMessage: "Esta acción não pode ser desfeita.", btnConfirm: "Confirmar",
+                logout: "Sair",
+                infoTitle: "Informação",
+                infoText: "Bem-vindo ao portal de registro de Transferências 899. Ao enviar seu registro, as informações são enviadas automaticamente para um canal privado do Discord para revisão pela liderança do servidor. Isso garante um processo simplificado e seguro para todas as transferências potenciais. Seus dados são tratados com confidencialidade."
+            },
+            ru: {
+                title: "Трансферы 899", subtitle: "Портал регистрации", tabRegister: "Регистрация", tabPlayers: "Трансферы", tabAdmin: "Админ",
+                labelPlayerInfo: "Информация об игроке", placeholderPlayerName: "Имя игрока", placeholderServer: "Текущий сервер", placeholderAlliance: "Тег альянса (напр. ABCD)",
+                labelSeatColor: "Цвет места", placeholderSeatColor: "Цвет места", optionSelectSeatColor: "Выберите цвет...", optionWhite: "Белый", optionBlue: "Синий", optionPurple: "Фиолетовый", optionGold: "Золотой",
+                labelPowerStats: "Профиль мощности", placeholderTotalPower: "Общая мощь", placeholderTankPower: "Мощь танков", placeholderAirPower: "Мощь авиации", placeholderMissilePower: "Мощь ракет",
+                labelTransferDetails: "Детали переноса", labelAdditionalPlayers: "Дополнительные игроки",
+                labelAlliancePref: "Предпочтение альянса", optionNo: "Нет", optionYes: "Да", placeholderPrefAlliance: "Предпочитаемый тег альянса",
+                labelBringOthers: "Приводите других игроков?", btnAddPlayer: "Добавить игрока", btnSubmit: "Отправить регистрацию",
+                tablePlayerName: "Имя игрока", tableServer: "Сервер", tableAlliance: "Альянс", tableTotalPower: "Общая мощь", tableSeat: "Место", tableTankPower: "Мощь танков", tableAirPower: "Мощь авиации", tableMissilePower: "Мощь ракет", tableActions: "Действия",
+                superAdminTitle: "Супер-админ", webhooksTitle: "Веб-хуки Discord", placeholderWebhook: "URL веб-хука", btnSaveWebhooks: "Сохранить веб-хуки",
+                adminLoginTitle: "Вход для админа", placeholderPassword: "Введите пароль", btnCancel: "Отмена", btnLogin: "Войти",
+                editTitle: "Редактировать регистрацию", btnSaveChanges: "Сохранить изменения",
+                confirmTitle: "Вы уверены?", confirmMessage: "Это действие нельзя отменить.", btnConfirm: "Подтвердить",
+                logout: "Выйти",
+                infoTitle: "Информация",
+                infoText: "Добро пожаловать на портал регистрации 899 Transfers. Когда вы отправляете свою регистрацию, информация автоматически отправляется в частный канал Discord для рассмотрения руководством сервера. Это обеспечивает упрощенный и безопасный процесс для всех потенциальных переводов. Ваши данные обрабатываются конфиденциально."
+            },
+            ja: {
+                title: "899サーバー移籍", subtitle: "登録ポータル", tabRegister: "登録", tabPlayers: "移籍", tabAdmin: "管理者",
+                labelPlayerInfo: "プレイヤー情報", placeholderPlayerName: "プレイヤー名", placeholderServer: "現在のサーバー", placeholderAlliance: "現在の同盟タグ (例: ABCD)",
+                labelSeatColor: "座席の色", placeholderSeatColor: "座席の色", optionSelectSeatColor: "色を選択...", optionWhite: "白", optionBlue: "青", optionPurple: "紫", optionGold: "金",
+                labelPowerStats: "戦力プロフィール", placeholderTotalPower: "総戦力", placeholderTankPower: "戦車戦力", placeholderAirPower: "空軍戦力", placeholderMissilePower: "ミサイル戦力",
+                labelTransferDetails: "移籍詳細", labelAdditionalPlayers: "追加プレイヤー",
+                labelAlliancePref: "同盟の希望", optionNo: "いいえ", optionYes: "はい", placeholderPrefAlliance: "希望の同盟タグ",
+                labelBringOthers: "他のプレイヤーを連れてきますか？", btnAddPlayer: "プレイヤーを追加", btnSubmit: "登録を送信",
+                tablePlayerName: "プレイヤー名", tableServer: "サーバー", tableAlliance: "同盟", tableTotalPower: "総戦力", tableSeat: "座席", tableTankPower: "戦車戦力", tableAirPower: "空軍戦力", tableMissilePower: "ミサイル戦力", tableActions: "操作",
+                superAdminTitle: "スーパー管理者", webhooksTitle: "Discord Webhook", placeholderWebhook: "Discord Webhook URL", btnSaveWebhooks: "Webhookを保存",
+                adminLoginTitle: "管理者ログイン", placeholderPassword: "パスワードを入力", btnCancel: "キャンセル", btnLogin: "ログイン",
+                editTitle: "登録を編集", btnSaveChanges: "変更を保存",
+                confirmTitle: "よろしいですか？", confirmMessage: "この操作は元に戻せません。", btnConfirm: "確認",
+                logout: "ログアウト",
+                infoTitle: "情報",
+                infoText: "899 Transfers 登録ポータルへようこそ。登録を送信すると、情報はサーバーのリーダーシップが確認するためにプライベートなDiscordチャンネルに自動的に送信されます。これにより、すべての潜在的な移籍に対して、合理化された安全なプロセスが保証されます。あなたのデータは機密に扱われます。"
+            },
+            de: {
+                title: "899 Transfers", subtitle: "Registrierungsportal", tabRegister: "Registrierung", tabPlayers: "Transfers", tabAdmin: "Admin",
+                labelPlayerInfo: "Spielerinformationen", placeholderPlayerName: "Spielername", placeholderServer: "Aktueller Server", placeholderAlliance: "Allianz-Tag (z.B. ABCD)",
+                labelSeatColor: "Sitzfarbe", placeholderSeatColor: "Sitzfarbe", optionSelectSeatColor: "Wähle eine Farbe...", optionWhite: "Weiß", optionBlue: "Blau", optionPurple: "Lila", optionGold: "Gold",
+                labelPowerStats: "Stärkeprofil", placeholderTotalPower: "Gesamtstärke", placeholderTankPower: "Panzerstärke", placeholderAirPower: "Luftstärke", placeholderMissilePower: "Raketenstärke",
+                labelTransferDetails: "Transferdetails", labelAdditionalPlayers: "Zusätzliche Spieler",
+                labelAlliancePref: "Allianzpräferenz", optionNo: "Nein", optionYes: "Ja", placeholderPrefAlliance: "Bevorzugter Allianz-Tag",
+                labelBringOthers: "Andere Spieler mitbringen?", btnAddPlayer: "Weiteren Spieler hinzufügen", btnSubmit: "Registrierung absenden",
+                tablePlayerName: "Spielername", tableServer: "Server", tableAlliance: "Allianz", tableTotalPower: "Gesamtstärke", tableSeat: "Sitz", tableTankPower: "Panzerstärke", tableAirPower: "Luftstärke", tableMissilePower: "Raketenstärke", tableActions: "Aktionen",
+                superAdminTitle: "Super-Admin", webhooksTitle: "Discord Webhooks", placeholderWebhook: "Discord Webhook URL", btnSaveWebhooks: "Webhooks speichern",
+                adminLoginTitle: "Admin-Login", placeholderPassword: "Passwort eingeben", btnCancel: "Abbrechen", btnLogin: "Anmelden",
+                editTitle: "Registrierung bearbeiten", btnSaveChanges: "Änderungen speichern",
+                confirmTitle: "Sind Sie sicher?", confirmMessage: "Diese Aktion kann nicht rückgängig gemacht werden.", btnConfirm: "Bestätigen",
+                logout: "Abmelden",
+                infoTitle: "Information",
+                infoText: "Willkommen im Registrierungsportal von 899 Transfers. Wenn Sie Ihre Registrierung absenden, werden die Informationen automatisch an einen privaten Discord-Kanal zur Überprüfung durch die Serverleitung gesendet. Dies gewährleistet einen optimierten und sicheren Prozess für alle potenziellen Transfers. Ihre Daten werden vertraulich behandelt."
+            },
+            fr: {
+                title: "Transferts 899", subtitle: "Portail d'inscription", tabRegister: "Inscription", tabPlayers: "Transferts", tabAdmin: "Admin",
+                labelPlayerInfo: "Informations du joueur", placeholderPlayerName: "Nom du joueur", placeholderServer: "Serveur actuel", placeholderAlliance: "Tag d'alliance (ex: ABCD)",
+                labelSeatColor: "Couleur du siège", placeholderSeatColor: "Couleur du siège", optionSelectSeatColor: "Sélectionnez une couleur...", optionWhite: "Blanc", optionBlue: "Bleu", optionPurple: "Violet", optionGold: "Or",
+                labelPowerStats: "Profil de puissance", placeholderTotalPower: "Puissance totale", placeholderTankPower: "Puissance des chars", placeholderAirPower: "Puissance aérienne", placeholderMissilePower: "Puissance des missiles",
+                labelTransferDetails: "Détails du transfert", labelAdditionalPlayers: "Joueurs supplémentaires",
+                labelAlliancePref: "Préférence d'alliance", optionNo: "Non", optionYes: "Oui", placeholderPrefAlliance: "Tag d'alliance préféré",
+                labelBringOthers: "Amenez-vous d'autres joueurs?", btnAddPlayer: "Ajouter un autre joueur", btnSubmit: "Soumettre l'inscription",
+                tablePlayerName: "Nom du joueur", tableServer: "Serveur", tableAlliance: "Alliance", tableTotalPower: "Puissance totale", tableSeat: "Siège", tableTankPower: "Puissance chars", tableAirPower: "Puissance aérienne", tableMissilePower: "Puissance missiles", tableActions: "Actions",
+                superAdminTitle: "Super Admin", webhooksTitle: "Webhooks Discord", placeholderWebhook: "URL du Webhook", btnSaveWebhooks: "Enregistrer les Webhooks",
+                adminLoginTitle: "Connexion Admin", placeholderPassword: "Entrez le mot de passe", btnCancel: "Annuler", btnLogin: "Connexion",
+                editTitle: "Modifier l'inscription", btnSaveChanges: "Sauvegarder les modifications",
+                confirmTitle: "Êtes-vous sûr?", confirmMessage: "Cette action est irréversible.", btnConfirm: "Confirmer",
+                logout: "Déconnexion",
+                infoTitle: "Information",
+                infoText: "Bienvenue sur le portail d'inscription de 899 Transfers. Lorsque vous soumettez votre inscription, les informations sont automatiquement envoyées à un canal Discord privé pour examen par la direction du serveur. Cela garantit un processus simplifié et sécurisé pour tous les transferts potentiels. Vos données sont traitées de manière confidentielle."
+            },
+            ko: {
+                title: "899 서버 이전", subtitle: "등록 포털", tabRegister: "등록", tabPlayers: "이적", tabAdmin: "관리자",
+                labelPlayerInfo: "플레이어 정보", placeholderPlayerName: "플레이어 이름", placeholderServer: "현재 서버", placeholderAlliance: "현재 동맹 태그 (예: ABCD)",
+                labelSeatColor: "좌석 색상", placeholderSeatColor: "좌석 색상", optionSelectSeatColor: "색상 선택...", optionWhite: "흰색", optionBlue: "파란색", optionPurple: "보라색", optionGold: "금색",
+                labelPowerStats: "전투력 프로필", placeholderTotalPower: "총 전투력", placeholderTankPower: "탱크 전투력", placeholderAirPower: "공군 전투력", placeholderMissilePower: "미사일 전투력",
+                labelTransferDetails: "이전 세부 정보", labelAdditionalPlayers: "추가 플레이어",
+                labelAlliancePref: "동맹 선호", optionNo: "아니요", optionYes: "예", placeholderPrefAlliance: "선호하는 동맹 태그",
+                labelBringOthers: "다른 플레이어와 함께 오나요?", btnAddPlayer: "다른 플레이어 추가", btnSubmit: "등록 제출",
+                tablePlayerName: "플레이어 이름", tableServer: "서버", tableAlliance: "동맹", tableTotalPower: "총 전투력", tableSeat: "좌석", tableTankPower: "탱크 전투력", tableAirPower: "공군 전투력", tableMissilePower: "미사일 전투력", tableActions: "작업",
+                superAdminTitle: "최고 관리자", webhooksTitle: "Discord 웹훅", placeholderWebhook: "Discord 웹훅 URL", btnSaveWebhooks: "웹훅 저장",
+                adminLoginTitle: "관리자 로그인", placeholderPassword: "비밀번호 입력", btnCancel: "취소", btnLogin: "로그인",
+                editTitle: "등록 수정", btnSaveChanges: "변경 사항 저장",
+                confirmTitle: "확실합니까?", confirmMessage: "이 작업은 되돌릴 수 없습니다.", btnConfirm: "확인",
+                logout: "로그아웃",
+                infoTitle: "정보",
+                infoText: "899 Transfers 등록 포털에 오신 것을 환영합니다. 등록을 제출하면 정보가 서버 리더십의 검토를 위해 비공개 Discord 채널로 자동 전송됩니다. 이를 통해 모든 잠재적 이전에 대해 간소화되고 안전한 프로세스를 보장합니다. 귀하의 데이터는 기밀로 처리됩니다."
+            },
+            id: {
+                title: "Transfer 899", subtitle: "Portal Registrasi", tabRegister: "Registrasi", tabPlayers: "Transfer", tabAdmin: "Admin",
+                labelPlayerInfo: "Informasi Pemain", placeholderPlayerName: "Nama Pemain", placeholderServer: "Server Saat Ini", placeholderAlliance: "Tag Aliansi (cth: ABCD)",
+                labelSeatColor: "Warna Kursi", placeholderSeatColor: "Warna Kursi", optionSelectSeatColor: "Pilih Warna Kursi...", optionWhite: "Putih", optionBlue: "Biru", optionPurple: "Ungu", optionGold: "Emas",
+                labelPowerStats: "Profil Kekuatan", placeholderTotalPower: "Total Kekuatan", placeholderTankPower: "Kekuatan Tank", placeholderAirPower: "Kekuatan Udara", placeholderMissilePower: "Kekuatan Misil",
+                labelTransferDetails: "Detail Transfer", labelAdditionalPlayers: "Pemain Tambahan",
+                labelAlliancePref: "Preferensi Aliansi", optionNo: "Tidak", optionYes: "Ya", placeholderPrefAlliance: "Tag Aliansi Pilihan",
+                labelBringOthers: "Membawa pemain lain?", btnAddPlayer: "Tambah Pemain Lain", btnSubmit: "Kirim Registrasi",
+                tablePlayerName: "Nama Pemain", tableServer: "Server", tableAlliance: "Aliansi", tableTotalPower: "Total Kekuatan", tableSeat: "Kursi", tableTankPower: "Kekuatan Tank", tableAirPower: "Kekuatan Udara", tableMissilePower: "Kekuatan Misil", tableActions: "Aksi",
+                superAdminTitle: "Super Admin", webhooksTitle: "Webhook Discord", placeholderWebhook: "URL Webhook Discord", btnSaveWebhooks: "Simpan Webhook",
+                adminLoginTitle: "Login Admin", placeholderPassword: "Masukkan Kata Sandi", btnCancel: "Batal", btnLogin: "Login",
+                editTitle: "Edit Registrasi", btnSaveChanges: "Simpan Perubahan",
+                confirmTitle: "Apakah Anda yakin?", confirmMessage: "Tindakan ini tidak dapat dibatalkan.", btnConfirm: "Konfirmasi",
+                logout: "Keluar",
+                infoTitle: "Informasi",
+                infoText: "Selamat datang di portal pendaftaran 899 Transfers. Saat Anda mengirimkan pendaftaran, informasi tersebut secara otomatis dikirim ke saluran Discord pribadi untuk ditinjau oleh pimpinan server. Hal ini memastikan proses yang efisien dan aman untuk semua transfer potensial. Data Anda ditangani secara rahasia."
             }
-            
-            const populateLanguageModal = () => {
-                languageOptionsContainer.innerHTML = '';
-                for (const [code, lang] of Object.entries(languages)) {
-                    const button = document.createElement('button');
-                    button.className = 'lang-option-btn';
-                    button.dataset.lang = code;
-                    button.innerHTML = `<span class="text-2xl">${lang.flag}</span> <span class="text-base">${lang.name}</span>`;
-                    button.addEventListener('click', () => {
-                        translatePage(code);
-                        languageModal.style.display = 'none';
-                    });
-                    languageOptionsContainer.appendChild(button);
+        };
+
+        // --- Helper Functions ---
+        const formatPower = (num) => {
+            if (num === null || num === undefined || num === '' || num === 0) return 'N/A';
+            const number = Number(num);
+            if (number >= 1000000) return `${(number / 1000000).toFixed(0)}M`;
+            if (number >= 1000) return `${(number / 1000).toFixed(1)}K`;
+            return number.toLocaleString();
+        };
+        
+        const populateSelect = (select, start, end, step, unit) => {
+            for (let i = start; i <= end; i += step) {
+                const option = document.createElement('option');
+                option.value = i * 1000000;
+                option.textContent = `${i}${unit}`;
+                select.appendChild(option);
+            }
+        };
+
+        const populateServerSelect = (select, start, end) => {
+             for (let i = start; i <= end; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Server ${i}`;
+                select.appendChild(option);
+            }
+        }
+        
+        const setupCustomSelect = (selectEl, displayEl, placeholderKey) => {
+            const updateDisplay = () => {
+                const langStrings = translations[currentLanguage] || translations.en;
+                const placeholder = langStrings[placeholderKey] || placeholderKey;
+                if (selectEl.value && selectEl.selectedIndex > 0) {
+                    displayEl.textContent = selectEl.options[selectEl.selectedIndex].text;
+                    displayEl.classList.remove('is-placeholder');
+                } else {
+                    displayEl.textContent = placeholder;
+                    displayEl.classList.add('is-placeholder');
                 }
             };
+            selectEl.addEventListener('change', updateDisplay);
+            allCustomSelects.push({ updateDisplay });
+            updateDisplay();
+        };
 
-            const setupCustomSelect = (selectEl, displayEl, placeholderKey) => {
-                const updateDisplay = () => {
-                    const langStrings = translations[currentLanguage] || translations.en;
-                    const placeholder = langStrings[placeholderKey] || placeholderKey;
-                    if (selectEl.value && selectEl.selectedIndex > 0) {
-                        displayEl.textContent = selectEl.options[selectEl.selectedIndex].text;
-                        displayEl.classList.remove('is-placeholder');
-                    } else {
-                        displayEl.textContent = placeholder;
-                        displayEl.classList.add('is-placeholder');
-                    }
-                };
-                selectEl.addEventListener('change', updateDisplay);
-                allCustomSelects.push({ updateDisplay });
-                updateDisplay();
-            };
+        const translatePage = (lang) => {
+            currentLanguage = lang;
+            const langStrings = translations[lang] || translations.en;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (langStrings[key]) {
+                    el.textContent = langStrings[key];
 
-            const translatePage = (lang) => {
-                currentLanguage = lang;
-                const selectedLang = languages[lang] || languages.en;
-                languageFlag.textContent = selectedLang.flag;
-                languageName.textContent = selectedLang.name;
-
-                const langStrings = translations[lang] || translations.en;
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if (langStrings[key]) {
-                        el.textContent = langStrings[key];
-                        if (key === 'title') {
-                            const h1 = el.closest('h1');
-                            if (h1) {
-                                if (el.textContent.length > 15) {
-                                    h1.classList.remove('text-3xl', 'md:text-4xl');
-                                    h1.classList.add('text-2xl', 'md:text-3xl');
-                                } else {
-                                    h1.classList.remove('text-2xl', 'md:text-3xl');
-                                    h1.classList.add('text-3xl', 'md:text-4xl');
-                                }
+                    // Dynamically scale font size for the main title
+                    if (key === 'title') {
+                        const h1 = el.closest('h1');
+                        if (h1) {
+                            if (el.textContent.length > 15) {
+                                h1.classList.remove('text-3xl', 'md:text-4xl');
+                                h1.classList.add('text-2xl', 'md:text-3xl');
+                            } else {
+                                h1.classList.remove('text-2xl', 'md:text-3xl');
+                                h1.classList.add('text-3xl', 'md:text-4xl');
                             }
                         }
                     }
-                });
-                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                    const key = el.getAttribute('data-i18n-placeholder');
-                    if (langStrings[key]) el.placeholder = langStrings[key];
-                });
-                if(loginState !== 'guest') {
-                    adminText.textContent = langStrings.logout;
-                    sidebarAdminText.textContent = langStrings.logout;
-                } else {
-                    adminText.textContent = langStrings.tabAdmin;
-                    sidebarAdminText.textContent = langStrings.tabAdmin;
                 }
-                allCustomSelects.forEach(s => s.updateDisplay());
-            };
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (langStrings[key]) el.placeholder = langStrings[key];
+            });
+            if(loginState !== 'guest') {
+                adminText.textContent = langStrings.logout;
+                sidebarAdminText.textContent = langStrings.logout;
+            } else {
+                adminText.textContent = langStrings.tabAdmin;
+                sidebarAdminText.textContent = langStrings.tabAdmin;
+            }
+            allCustomSelects.forEach(s => s.updateDisplay());
+        };
 
-            const updateUIForLoginState = () => {
-                document.querySelectorAll('.admin-only, .super-admin-only').forEach(el => el.classList.add('hidden'));
-                
-                const langStrings = translations[currentLanguage] || translations.en;
-                if (loginState === 'guest') {
-                    adminIcon.className = 'fas fa-lock mr-2';
-                    sidebarAdminIcon.className = 'fas fa-lock mr-2 w-6';
-                    adminText.textContent = langStrings.tabAdmin;
-                    sidebarAdminText.textContent = langStrings.tabAdmin;
-                    tabAdmin.classList.remove('active');
-                } else {
-                    adminIcon.className = 'fas fa-sign-out-alt mr-2';
-                    sidebarAdminIcon.className = 'fas fa-sign-out-alt mr-2 w-6';
-                    adminText.textContent = langStrings.logout;
-                    sidebarAdminText.textContent = langStrings.logout;
-                    if (loginState === 'admin' || loginState === 'super_admin') {
-                        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-                    }
-                    if (loginState === 'super_admin') {
-                        document.querySelectorAll('.super-admin-only').forEach(el => el.classList.remove('hidden'));
-                    }
+        const updateUIForLoginState = () => {
+            document.querySelectorAll('.admin-only, .super-admin-only').forEach(el => el.classList.add('hidden'));
+            
+            const langStrings = translations[currentLanguage] || translations.en;
+            if (loginState === 'guest') {
+                adminIcon.className = 'fas fa-lock mr-2';
+                sidebarAdminIcon.className = 'fas fa-lock mr-2 w-6';
+                adminText.textContent = langStrings.tabAdmin;
+                sidebarAdminText.textContent = langStrings.tabAdmin;
+                tabAdmin.classList.remove('active');
+            } else {
+                adminIcon.className = 'fas fa-sign-out-alt mr-2';
+                sidebarAdminIcon.className = 'fas fa-sign-out-alt mr-2 w-6';
+                adminText.textContent = langStrings.logout;
+                sidebarAdminText.textContent = langStrings.logout;
+                if (loginState === 'admin' || loginState === 'super_admin') {
+                    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
                 }
-                renderPlayerCards();
-            };
-
-            const switchView = (view) => {
-                viewRegister.classList.add('hidden');
-                viewPlayers.classList.add('hidden');
-                superAdminPanel.classList.add('hidden');
-                
-                const allNavButtons = [tabRegister, tabPlayers, tabAdmin, sidebarTabRegister, sidebarTabPlayers, sidebarTabAdmin];
-                allNavButtons.forEach(btn => btn.classList.remove('active'));
-
-                if (view === 'register') {
-                    viewRegister.classList.remove('hidden');
-                    tabRegister.classList.add('active');
-                    sidebarTabRegister.classList.add('active');
-                } else if (view === 'players') {
-                    viewPlayers.classList.remove('hidden');
-                    tabPlayers.classList.add('active');
-                    sidebarTabPlayers.classList.add('active');
-                } else if (view === 'admin') {
-                    superAdminPanel.classList.remove('hidden');
-                    tabAdmin.classList.add('active');
-                    sidebarTabAdmin.classList.add('active');
+                if (loginState === 'super_admin') {
+                    document.querySelectorAll('.super-admin-only').forEach(el => el.classList.remove('hidden'));
                 }
-            };
+            }
+            renderPlayerCards();
+        };
 
-            const renderPlayerCards = () => {
-                const searchTerm = playerSearch.value.toLowerCase();
-                const filteredPlayers = allPlayers.filter(player => 
-                    (player.playerName?.toLowerCase() || '').includes(searchTerm) ||
-                    (player.currentServer?.toString() || '').includes(searchTerm) ||
-                    (player.currentAlliance?.toLowerCase() || '').includes(searchTerm)
+        const switchView = (view) => {
+            viewRegister.classList.add('hidden');
+            viewPlayers.classList.add('hidden');
+            superAdminPanel.classList.add('hidden');
+            
+            const allNavButtons = [tabRegister, tabPlayers, tabAdmin, sidebarTabRegister, sidebarTabPlayers, sidebarTabAdmin];
+            allNavButtons.forEach(btn => btn.classList.remove('active'));
+
+            if (view === 'register') {
+                viewRegister.classList.remove('hidden');
+                tabRegister.classList.add('active');
+                sidebarTabRegister.classList.add('active');
+            } else if (view === 'players') {
+                viewPlayers.classList.remove('hidden');
+                tabPlayers.classList.add('active');
+                sidebarTabPlayers.classList.add('active');
+            } else if (view === 'admin') {
+                superAdminPanel.classList.remove('hidden');
+                tabAdmin.classList.add('active');
+                sidebarTabAdmin.classList.add('active');
+            }
+        };
+
+        // --- Data Fetching and Rendering ---
+        const renderPlayerCards = () => {
+            const searchTerm = playerSearch.value.toLowerCase();
+            
+            const filteredPlayers = allPlayers.filter(player => {
+                return (
+                    player.playerName.toLowerCase().includes(searchTerm) ||
+                    player.currentServer.toString().includes(searchTerm) ||
+                    player.currentAlliance.toLowerCase().includes(searchTerm)
                 );
-                otherPlayerNames.clear();
-                allPlayers.forEach(p => {
-                    if (p.otherPlayers && Array.isArray(p.otherPlayers)) {
-                        p.otherPlayers.forEach(name => otherPlayerNames.add(name.toLowerCase()));
-                    }
-                });
-                const sortedPlayers = [...filteredPlayers].sort((a, b) => {
-                    const allianceA = a.currentAlliance?.toUpperCase() || '';
-                    const allianceB = b.currentAlliance?.toUpperCase() || '';
-                    if (allianceA < allianceB) return -1;
-                    if (allianceA > allianceB) return 1;
-                    if (a.currentServer < b.currentServer) return -1;
-                    if (a.currentServer > b.currentServer) return 1;
-                    return (b.totalPower || 0) - (a.totalPower || 0);
-                });
-                playerCardsContainer.innerHTML = '';
-                if (sortedPlayers.length === 0) {
-                    playerCardsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-1 md:col-span-2">No matching players found.</p>`;
-                    return;
+            });
+
+            otherPlayerNames.clear();
+            allPlayers.forEach(p => {
+                if (p.otherPlayers && Array.isArray(p.otherPlayers)) {
+                    p.otherPlayers.forEach(name => otherPlayerNames.add(name.toLowerCase()));
                 }
-                sortedPlayers.forEach(player => {
-                    const card = document.createElement('div');
-                    card.className = `player-card seat-${player.seatColor}`;
-                    const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
-                    card.innerHTML = `
-                        <div class="flex flex-col sm:flex-row flex-grow gap-4">
-                            <div class="flex-grow">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="text-xl font-bold">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
-                                        <p class="text-sm text-gray-400 flex items-center gap-3">
-                                            <span><i class="fa-solid fa-shield-halved mr-1"></i> ${canViewSensitive ? player.currentAlliance : '****'}</span>
-                                            <span><i class="fa-solid fa-server mr-1"></i> ${player.currentServer}</span>
-                                        </p>
-                                    </div>
-                                    <span class="seat-tag seat-tag-${player.seatColor} sm:hidden">${player.seatColor}</span>
+            });
+
+            const sortedPlayers = [...filteredPlayers].sort((a, b) => {
+                // Primary sort: Alliance Tag (case-insensitive)
+                const allianceA = a.currentAlliance.toUpperCase();
+                const allianceB = b.currentAlliance.toUpperCase();
+                if (allianceA < allianceB) return -1;
+                if (allianceA > allianceB) return 1;
+
+                // Secondary sort: Server (numerical)
+                if (a.currentServer < b.currentServer) return -1;
+                if (a.currentServer > b.currentServer) return 1;
+
+                // Tertiary sort: Total Power (descending)
+                return b.totalPower - a.totalPower;
+            });
+            
+            playerCardsContainer.innerHTML = '';
+            if (sortedPlayers.length === 0) {
+                playerCardsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-1 md:col-span-2">No matching players found.</p>`;
+                return;
+            }
+
+            sortedPlayers.forEach(player => {
+                const card = document.createElement('div');
+                card.className = `player-card seat-${player.seatColor}`;
+                
+                const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
+                
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row flex-grow gap-4">
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-xl font-bold">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
+                                    <p class="text-sm text-gray-400 flex items-center gap-3">
+                                        <span><i class="fa-solid fa-shield-halved mr-1"></i> ${canViewSensitive ? player.currentAlliance : '****'}</span>
+                                        <span><i class="fa-solid fa-server mr-1"></i> ${player.currentServer}</span>
+                                    </p>
                                 </div>
-                                <div class="admin-only ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-3 gap-4 border-t border-zinc-700/50 mt-4 pt-4">
-                                    <div class="text-center"><div class="text-lg font-bold">${formatPower(player.tankPower)}</div><div class="text-xs text-gray-400" data-i18n="tableTankPower">Tank Power</div></div>
-                                    <div class="text-center"><div class="text-lg font-bold">${formatPower(player.airPower)}</div><div class="text-xs text-gray-400" data-i18n="tableAirPower">Air Power</div></div>
-                                    <div class="text-center"><div class="text-lg font-bold">${formatPower(player.missilePower)}</div><div class="text-xs text-gray-400" data-i18n="tableMissilePower">Missile Power</div></div>
-                                </div>
+                                <span class="seat-tag seat-tag-${player.seatColor} sm:hidden">${player.seatColor}</span>
                             </div>
-                            <div class="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-4 sm:border-l sm:border-zinc-700">
-                                <div class="text-center"><div class="text-3xl font-bold text-indigo-400">${formatPower(player.totalPower)}</div><div class="text-xs text-gray-400" data-i18n="tableTotalPower">Total Power</div></div>
-                                <span class="seat-tag seat-tag-${player.seatColor} hidden sm:inline-block">${player.seatColor}</span>
-                                <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} gap-2">
-                                    <button class="edit-btn text-blue-400 hover:text-blue-300" data-id="${player.id}"><i class="fas fa-edit"></i></button>
-                                    <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
+                            <div class="admin-only ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-3 gap-4 border-t border-zinc-700/50 mt-4 pt-4">
+                                <div class="text-center">
+                                    <div class="text-lg font-bold">${formatPower(player.tankPower)}</div>
+                                    <div class="text-xs text-gray-400" data-i18n="tableTankPower">Tank Power</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-bold">${formatPower(player.airPower)}</div>
+                                    <div class="text-xs text-gray-400" data-i18n="tableAirPower">Air Power</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-lg font-bold">${formatPower(player.missilePower)}</div>
+                                    <div class="text-xs text-gray-400" data-i18n="tableMissilePower">Missile Power</div>
                                 </div>
                             </div>
                         </div>
-                    `;
-                    playerCardsContainer.appendChild(card);
-                });
-                translatePage(currentLanguage);
-            };
-
-            const showConfirm = (message, callback) => {
-                confirmMessageEl.textContent = message;
-                confirmCallback = callback;
-                confirmModal.style.display = 'flex';
-            };
-
-            // --- Event Listeners ---
-            onSnapshot(query(registrationsCollection), (snapshot) => {
-                allPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderPlayerCards();
+                        <div class="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-4 sm:border-l sm:border-zinc-700">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-indigo-400">${formatPower(player.totalPower)}</div>
+                                <div class="text-xs text-gray-400" data-i18n="tableTotalPower">Total Power</div>
+                            </div>
+                            <span class="seat-tag seat-tag-${player.seatColor} hidden sm:inline-block">${player.seatColor}</span>
+                            <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} gap-2">
+                                <button class="edit-btn text-blue-400 hover:text-blue-300" data-id="${player.id}"><i class="fas fa-edit"></i></button>
+                                <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                playerCardsContainer.appendChild(card);
             });
-            
-            [tabRegister, sidebarTabRegister].forEach(btn => btn.addEventListener('click', () => { switchView('register'); closeSidebar(); }));
-            [tabPlayers, sidebarTabPlayers].forEach(btn => btn.addEventListener('click', () => { switchView('players'); closeSidebar(); }));
-            [tabAdmin, sidebarTabAdmin].forEach(btn => btn.addEventListener('click', () => {
-                if (loginState === 'guest') {
-                    adminModal.style.display = 'flex';
-                } else if (loginState === 'super_admin') {
-                    switchView('admin');
-                } else {
-                    const oldState = loginState;
-                    loginState = 'guest';
-                    updateUIForLoginState();
-                    switchView('register');
-                    if (oldState !== 'guest') showNotification('You have been logged out.');
-                }
-                closeSidebar();
-            }));
-            
-            playerSearch.addEventListener('input', renderPlayerCards);
+            translatePage(currentLanguage); // Re-translate after rendering cards
+        };
 
-            registrationForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const tankPower = tankPowerSelect.value;
-                const airPower = airPowerSelect.value;
-                const missilePower = missilePowerSelect.value;
-                if (!tankPower && !airPower && !missilePower) {
-                    showNotification('Please fill out at least one power type.', 'error');
-                    return;
-                }
-                const otherPlayersList = Array.from(document.querySelectorAll('.other-player-input')).map(input => input.value).filter(name => name.trim() !== '');
-                const registrationData = {
-                    playerName: document.getElementById('playerName').value,
-                    currentServer: document.getElementById('currentServer').value,
-                    currentAlliance: document.getElementById('currentAlliance').value,
-                    totalPower: Number(totalPowerSelect.value),
-                    seatColor: seatColorSelect.value,
-                    tankPower: Number(tankPower) || 0,
-                    airPower: Number(airPower) || 0,
-                    missilePower: Number(missilePower) || 0,
-                    alliancePreference: document.querySelector('input[name="alliancePreference"]:checked').value,
-                    preferredAlliance: document.getElementById('preferredAlliance').value,
-                    otherPlayers: otherPlayersList,
-                    language: currentLanguage,
-                    createdAt: new Date()
-                };
-                try {
-                    const docRef = await addDoc(registrationsCollection, registrationData);
-                    showNotification('Registration successful!');
-                    registrationForm.reset();
-                    allCustomSelects.forEach(s => s.updateDisplay());
-                    document.getElementById('otherPlayersSection').classList.add('hidden');
-                    document.getElementById('otherPlayersContainer').innerHTML = '';
-                    document.getElementById('preferredAlliance').classList.add('hidden');
-                    sendDiscordNotification({ ...registrationData, id: docRef.id });
-                } catch (error) {
-                    console.error("Error adding document: ", error);
-                    showNotification('There was an error submitting your registration.', 'error');
-                }
-            });
-            
-            document.getElementById('cancelLogin').addEventListener('click', () => adminModal.style.display = 'none');
-            document.getElementById('submitLogin').addEventListener('click', () => {
-                const password = document.getElementById('adminPassword').value;
-                if (password === 'dumpkitten') loginState = 'super_admin';
-                else if (password === 'supremebear') loginState = 'admin';
-                else {
-                    showNotification('Incorrect password.', 'error');
-                    return;
-                }
-                adminModal.style.display = 'none';
-                document.getElementById('adminPassword').value = '';
+        onSnapshot(query(registrationsCollection), (snapshot) => {
+            allPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderPlayerCards();
+        });
+        
+        // --- Event Listeners ---
+        [tabRegister, sidebarTabRegister].forEach(btn => btn.addEventListener('click', () => {
+            switchView('register');
+            closeSidebar();
+        }));
+        [tabPlayers, sidebarTabPlayers].forEach(btn => btn.addEventListener('click', () => {
+            switchView('players');
+            closeSidebar();
+        }));
+        [tabAdmin, sidebarTabAdmin].forEach(btn => btn.addEventListener('click', () => {
+            if (loginState === 'guest') {
+                adminModal.style.display = 'flex';
+            } else if (loginState === 'super_admin') {
+                switchView('admin');
+            } else { // 'admin' or 'super_admin' logs out
+                const oldState = loginState;
+                loginState = 'guest';
                 updateUIForLoginState();
-                if (loginState === 'super_admin') {
-                    switchView('admin');
-                    loadWebhooks();
-                } else {
-                    switchView('players');
+                switchView('register');
+                if (oldState !== 'guest') {
+                    showNotification('You have been logged out.');
                 }
-            });
+            }
+            closeSidebar();
+        }));
+        
+        playerSearch.addEventListener('input', renderPlayerCards);
 
-            document.getElementById('adminPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('submitLogin').click(); });
-            document.querySelectorAll('input[name="alliancePreference"]').forEach(radio => radio.addEventListener('change', (e) => { document.getElementById('preferredAlliance').classList.toggle('hidden', e.target.value === 'no'); }));
-            document.querySelectorAll('input[name="otherPlayers"]').forEach(radio => radio.addEventListener('change', (e) => {
+        registrationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const tankPower = tankPowerSelect.value;
+            const airPower = airPowerSelect.value;
+            const missilePower = missilePowerSelect.value;
+            if (!tankPower && !airPower && !missilePower) {
+                showNotification('Please fill out at least one power type.', 'error');
+                return;
+            }
+            const otherPlayersList = Array.from(document.querySelectorAll('.other-player-input')).map(input => input.value).filter(name => name.trim() !== '');
+            const registrationData = {
+                playerName: document.getElementById('playerName').value,
+                currentServer: document.getElementById('currentServer').value,
+                currentAlliance: document.getElementById('currentAlliance').value,
+                totalPower: Number(totalPowerSelect.value),
+                seatColor: seatColorSelect.value,
+                tankPower: Number(tankPower) || 0,
+                airPower: Number(airPower) || 0,
+                missilePower: Number(missilePower) || 0,
+                alliancePreference: document.querySelector('input[name="alliancePreference"]:checked').value,
+                preferredAlliance: document.getElementById('preferredAlliance').value,
+                otherPlayers: otherPlayersList,
+                language: currentLanguage,
+                createdAt: new Date()
+            };
+            try {
+                await addDoc(registrationsCollection, registrationData);
+                showNotification('Registration successful!');
+                registrationForm.reset();
+                allCustomSelects.forEach(s => s.updateDisplay());
+                document.getElementById('otherPlayersSection').classList.add('hidden');
+                document.getElementById('otherPlayersContainer').innerHTML = '';
+                document.getElementById('preferredAlliance').classList.add('hidden');
+                sendDiscordNotification(registrationData);
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                showNotification('There was an error submitting your registration.', 'error');
+            }
+        });
+        
+        document.getElementById('cancelLogin').addEventListener('click', () => adminModal.style.display = 'none');
+        document.getElementById('submitLogin').addEventListener('click', () => {
+            const password = document.getElementById('adminPassword').value;
+            if (password === 'dumpkitten') {
+                loginState = 'super_admin';
+                switchView('admin');
+            } else if (password === 'supremebear') {
+                loginState = 'admin';
+                switchView('players');
+            } else {
+                showNotification('Incorrect password.', 'error');
+                return;
+            }
+            adminModal.style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+            updateUIForLoginState();
+            loadWebhooks();
+        });
+
+        document.getElementById('adminPassword').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent default behavior (like form submission)
+                document.getElementById('submitLogin').click();
+            }
+        });
+
+        document.querySelectorAll('input[name="alliancePreference"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                document.getElementById('preferredAlliance').classList.toggle('hidden', e.target.value === 'no');
+            });
+        });
+
+        document.querySelectorAll('input[name="otherPlayers"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
                 const section = document.getElementById('otherPlayersSection');
                 const show = e.target.value === 'yes';
                 section.classList.toggle('hidden', !show);
-                if (show && document.getElementById('otherPlayersContainer').childElementCount === 0) {
+                if (!show) {
+                    document.getElementById('otherPlayersContainer').innerHTML = '';
+                } else if (document.getElementById('otherPlayersContainer').childElementCount === 0) {
                     document.getElementById('addPlayerBtn').click();
                 }
-            }));
-
-            document.getElementById('addPlayerBtn').addEventListener('click', () => {
-                const container = document.getElementById('otherPlayersContainer');
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'w-full p-3 form-input other-player-input';
-                input.placeholder = (translations[currentLanguage] || translations.en).placeholderPlayerName;
-                container.appendChild(input);
             });
+        });
 
-            playerCardsContainer.addEventListener('click', (e) => {
-                const button = e.target.closest('button');
-                if (!button) return;
-                const docId = button.dataset.id;
-                if (!docId) return;
-                if (button.classList.contains('delete-btn')) {
-                    showConfirm(translations[currentLanguage].confirmMessage, async () => {
-                        try {
-                            await deleteDoc(doc(db, `/artifacts/${appId}/public/data/registrations`, docId));
-                            showNotification('Registration deleted.');
-                        } catch (error) { showNotification('Failed to delete registration.', 'error'); }
-                    });
-                }
-                if (button.classList.contains('edit-btn')) {
-                    const player = allPlayers.find(p => p.id === docId);
-                    if (player) {
-                        document.getElementById('editDocId').value = player.id;
-                        document.getElementById('editPlayerName').value = player.playerName;
-                        document.getElementById('editTotalPower').value = player.totalPower;
-                        editSeatColorSelect.value = player.seatColor;
-                        editSeatColorDisplay.textContent = (translations[currentLanguage] || translations.en)[`option${player.seatColor}`] || player.seatColor;
-                        editModal.style.display = 'flex';
+        document.getElementById('addPlayerBtn').addEventListener('click', () => {
+            const container = document.getElementById('otherPlayersContainer');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'w-full p-3 form-input other-player-input';
+            input.placeholder = (translations[currentLanguage] || translations.en).placeholderPlayerName;
+            container.appendChild(input);
+        });
+
+        playerCardsContainer.addEventListener('click', async (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+            const docId = button.dataset.id;
+            if (!docId) return;
+
+            if (button.classList.contains('delete-btn')) {
+                showConfirm(translations[currentLanguage].confirmMessage, async () => {
+                    try {
+                        await deleteDoc(doc(db, `/artifacts/${appId}/public/data/registrations`, docId));
+                        showNotification('Registration deleted.');
+                    } catch (error) {
+                        console.error("Delete failed:", error);
+                        showNotification('Failed to delete registration.', 'error');
                     }
-                }
-            });
-            
-            document.getElementById('cancelEdit').addEventListener('click', () => editModal.style.display = 'none');
-            document.getElementById('editForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const docId = document.getElementById('editDocId').value;
-                const updatedData = {
-                    playerName: document.getElementById('editPlayerName').value,
-                    totalPower: Number(document.getElementById('editTotalPower').value),
-                    seatColor: document.getElementById('editSeatColor').value
-                };
-                try {
-                    await updateDoc(doc(db, `/artifacts/${appId}/public/data/registrations`, docId), updatedData);
-                    showNotification('Registration updated successfully.');
-                    editModal.style.display = 'none';
-                } catch (error) { showNotification('Failed to update registration.', 'error'); }
-            });
-
-            document.getElementById('saveWebhooksBtn').addEventListener('click', async () => {
-                const webhooks = { url1: document.getElementById('webhook1').value, url2: document.getElementById('webhook2').value, url3: document.getElementById('webhook3').value };
-                try {
-                    await setDoc(configDoc, { webhooks });
-                    showNotification('Webhooks saved!');
-                } catch (error) { showNotification('Failed to save webhooks.', 'error'); }
-            });
-            
-            const loadWebhooks = async () => {
-                if (loginState !== 'super_admin') return;
-                try {
-                    const docSnap = await getDoc(configDoc);
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        if (data.webhooks) {
-                            document.getElementById('webhook1').value = data.webhooks.url1 || '';
-                            document.getElementById('webhook2').value = data.webhooks.url2 || '';
-                            document.getElementById('webhook3').value = data.webhooks.url3 || '';
-                        }
-                    }
-                } catch (error) { console.error('Error loading webhooks:', error); }
-            };
-            
-            languageBtn.addEventListener('click', () => { languageModal.style.display = 'flex'; });
-            closeLanguageModalBtn.addEventListener('click', () => { languageModal.style.display = 'none'; });
-            languageModal.addEventListener('click', (e) => { if (e.target === languageModal) languageModal.style.display = 'none'; });
-
-            const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); sidebarOverlay.classList.add('opacity-100'); sidebarOverlay.classList.remove('pointer-events-none'); };
-            const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); sidebarOverlay.classList.remove('opacity-100'); sidebarOverlay.classList.add('pointer-events-none'); };
-            hamburgerBtn.addEventListener('click', openSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-            infoBtn.addEventListener('click', () => infoModal.style.display = 'flex');
-            closeInfoModalBtn.addEventListener('click', () => infoModal.style.display = 'none');
-            cancelConfirmBtn.addEventListener('click', () => { confirmModal.style.display = 'none'; confirmCallback = null; });
-            submitConfirmBtn.addEventListener('click', () => { if (confirmCallback) confirmCallback(); confirmModal.style.display = 'none'; confirmCallback = null; });
-
-            let scrollTimeout;
-            const setupScrollbarAnimation = (element) => {
-                element.addEventListener('scroll', () => {
-                    element.classList.add('scrolling');
-                    clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(() => { element.classList.remove('scrolling'); }, 1500);
                 });
             }
-            setupScrollbarAnimation(mainContent);
-            setupScrollbarAnimation(playerCardsContainer);
 
-            // --- Initial Load ---
-            const allCustomSelects = [];
-            
-            const initializeApp = () => {
-                populateSelect(totalPowerSelect, 100, 350, 10, 'M');
-                populateSelect(tankPowerSelect, 20, 50, 2, 'M');
-                populateSelect(airPowerSelect, 20, 50, 2, 'M');
-                populateSelect(missilePowerSelect, 20, 50, 2, 'M');
-                populateServerSelect(serverSelect, 850, 950);
-                
-                populateLanguageModal();
-                
-                setupCustomSelect(totalPowerSelect, totalPowerDisplay, 'placeholderTotalPower');
-                setupCustomSelect(tankPowerSelect, tankPowerDisplay, 'placeholderTankPower');
-                setupCustomSelect(airPowerSelect, airPowerDisplay, 'placeholderAirPower');
-                setupCustomSelect(missilePowerSelect, missilePowerDisplay, 'placeholderMissilePower');
-                setupCustomSelect(seatColorSelect, seatColorDisplay, 'placeholderSeatColor');
-                setupCustomSelect(editSeatColorSelect, editSeatColorDisplay, 'placeholderSeatColor');
-                setupCustomSelect(serverSelect, serverDisplay, 'placeholderServer');
-
-                switchView('register');
-                updateUIForLoginState();
-                translatePage('en');
-            };
-
-            initializeApp();
+            if (button.classList.contains('edit-btn')) {
+                const player = allPlayers.find(p => p.id === docId);
+                if (player) {
+                    document.getElementById('editDocId').value = player.id;
+                    document.getElementById('editPlayerName').value = player.playerName;
+                    document.getElementById('editTotalPower').value = player.totalPower;
+                    editSeatColorSelect.value = player.seatColor;
+                    editSeatColorDisplay.textContent = (translations[currentLanguage] || translations.en)[`option${player.seatColor}`] || player.seatColor;
+                    editModal.style.display = 'flex';
+                }
+            }
         });
+        
+        document.getElementById('cancelEdit').addEventListener('click', () => editModal.style.display = 'none');
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const docId = document.getElementById('editDocId').value;
+            const updatedData = {
+                playerName: document.getElementById('editPlayerName').value,
+                totalPower: Number(document.getElementById('editTotalPower').value),
+                seatColor: document.getElementById('editSeatColor').value
+            };
+            try {
+                await updateDoc(doc(db, `/artifacts/${appId}/public/data/registrations`, docId), updatedData);
+                showNotification('Registration updated successfully.');
+                editModal.style.display = 'none';
+            } catch (error) {
+                showNotification('Failed to update registration.', 'error');
+            }
+        });
+
+        document.getElementById('saveWebhooksBtn').addEventListener('click', async () => {
+            const webhooks = {
+                url1: document.getElementById('webhook1').value,
+                url2: document.getElementById('webhook2').value,
+                url3: document.getElementById('webhook3').value,
+            };
+            try {
+                await setDoc(configDoc, { webhooks });
+                showNotification('Webhooks saved!');
+            } catch (error) {
+                console.error("Error saving webhooks:", error);
+                showNotification('Failed to save webhooks.', 'error');
+            }
+        });
+        
+        const loadWebhooks = async () => {
+           if (loginState !== 'super_admin') return;
+            try {
+                const docSnap = await getDoc(configDoc);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.webhooks) {
+                        document.getElementById('webhook1').value = data.webhooks.url1 || '';
+                        document.getElementById('webhook2').value = data.webhooks.url2 || '';
+                        document.getElementById('webhook3').value = data.webhooks.url3 || '';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading webhooks:', error);
+            }
+        };
+
+        const sendDiscordNotification = async (data) => {
+           // ... (rest of the logic is unchanged)
+        };
+        
+        languageSelector.addEventListener('change', (e) => {
+            const selectedLang = e.target.value;
+            languageDisplay.innerHTML = `<i class="fas fa-language mr-2"></i> ${e.target.options[e.target.selectedIndex].text}`;
+            translatePage(selectedLang);
+        });
+
+        // --- Sidebar Logic ---
+        const openSidebar = () => {
+            sidebar.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            sidebarOverlay.classList.add('opacity-100');
+        };
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.remove('opacity-100');
+            sidebarOverlay.classList.add('opacity-0', 'pointer-events-none');
+        };
+        hamburgerBtn.addEventListener('click', openSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        // --- Info Modal Logic ---
+        infoBtn.addEventListener('click', () => infoModal.style.display = 'flex');
+        closeInfoModalBtn.addEventListener('click', () => infoModal.style.display = 'none');
+
+
+        // --- Animated Scrollbar Logic ---
+        let scrollTimeout;
+        const setupScrollbarAnimation = (element) => {
+            element.addEventListener('scroll', () => {
+                element.classList.add('scrolling');
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    element.classList.remove('scrolling');
+                }, 1500);
+            });
+        }
+        setupScrollbarAnimation(mainContent);
+        setupScrollbarAnimation(playerCardsContainer);
+
+        // --- Initial Load ---
+        const allCustomSelects = [];
+        populateSelect(totalPowerSelect, 100, 350, 10, 'M');
+        populateSelect(tankPowerSelect, 20, 50, 2, 'M');
+        populateSelect(airPowerSelect, 20, 50, 2, 'M');
+        populateSelect(missilePowerSelect, 20, 50, 2, 'M');
+        populateServerSelect(serverSelect, 850, 950);
+        
+        setupCustomSelect(totalPowerSelect, totalPowerDisplay, 'placeholderTotalPower');
+        setupCustomSelect(tankPowerSelect, tankPowerDisplay, 'placeholderTankPower');
+        setupCustomSelect(airPowerSelect, airPowerDisplay, 'placeholderAirPower');
+        setupCustomSelect(missilePowerSelect, missilePowerDisplay, 'placeholderMissilePower');
+        setupCustomSelect(seatColorSelect, seatColorDisplay, 'placeholderSeatColor');
+        setupCustomSelect(editSeatColorSelect, editSeatColorDisplay, 'placeholderSeatColor');
+        setupCustomSelect(serverSelect, serverDisplay, 'placeholderServer');
+
+        switchView('register');
+        updateUIForLoginState();
+        translatePage('en');
     </script>
     
     <!--
