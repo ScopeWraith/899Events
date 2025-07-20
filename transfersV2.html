@@ -539,7 +539,7 @@
         const seatColorDisplay = document.getElementById('seatColorDisplay');
         const editSeatColorDisplay = document.getElementById('editSeatColorDisplay');
 
-        // --- Translation Data (abbreviated for brevity) ---
+        // --- Translation Data ---
         const translations = {
             en: {
                 title: "899 Transfers", subtitle: "Registration Portal", tabRegister: "Registration", tabPlayers: "Registered Players", tabAdmin: "Admin",
@@ -555,7 +555,160 @@
                 confirmTitle: "Are you sure?", confirmMessage: "This action cannot be undone.", btnConfirm: "Confirm",
                 logout: "Logout"
             },
-            // Other languages would go here...
+            es: {
+                title: "Transferencias 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Jugadores Registrados", tabAdmin: "Admin",
+                labelPlayerInfo: "Información del Jugador", placeholderPlayerName: "Nombre del Jugador", placeholderServer: "Servidor Actual (850-950)", placeholderAlliance: "Etiqueta de Alianza (ej. ABCD)",
+                labelSeatColor: "Color de Asiento", placeholderSeatColor: "Selecciona un Color...", optionSelectSeatColor: "Selecciona un Color...", optionWhite: "Blanco", optionBlue: "Azul", optionPurple: "Morado", optionGold: "Dorado",
+                labelPowerStats: "Perfil de Poder", labelTransferDetails: "Detalles de Transferencia", labelAdditionalPlayers: "Jugadores Adicionales",
+                labelAlliancePref: "Preferencia de Alianza", optionNo: "No", optionYes: "Sí", placeholderPrefAlliance: "Etiqueta de Alianza Preferida",
+                labelBringOthers: "¿Traes a otros jugadores?", btnAddPlayer: "Añadir Otro Jugador", btnSubmit: "Enviar Registro",
+                tablePlayerName: "Nombre del Jugador", tableServer: "Servidor", tableAlliance: "Alianza", tableTotalPower: "Poder Total", tableSeat: "Asiento", tableTankPower: "Poder Tanque", tableAirPower: "Poder Aéreo", tableMissilePower: "Poder Misiles", tableActions: "Acciones",
+                superAdminTitle: "Super Admin", webhooksTitle: "Webhooks de Discord", placeholderWebhook: "URL de Webhook", btnSaveWebhooks: "Guardar Webhooks",
+                adminLoginTitle: "Acceso Admin", placeholderPassword: "Ingresar Contraseña", btnCancel: "Cancelar", btnLogin: "Acceder",
+                editTitle: "Editar Registro", btnSaveChanges: "Guardar Cambios",
+                confirmTitle: "¿Estás seguro?", confirmMessage: "Esta acción no se puede deshacer.", btnConfirm: "Confirmar",
+                logout: "Cerrar Sesión"
+            },
+            zh: {
+                title: "899 服务器转移", subtitle: "注册门户", tabRegister: "注册", tabPlayers: "已注册玩家", tabAdmin: "管理员",
+                labelPlayerInfo: "玩家信息", placeholderPlayerName: "玩家名称", placeholderServer: "当前服务器 (850-950)", placeholderAlliance: "当前联盟标签 (例如 ABCD)",
+                labelSeatColor: "席位颜色", placeholderSeatColor: "选择席位颜色...", optionSelectSeatColor: "选择席位颜色...", optionWhite: "白色", optionBlue: "蓝色", optionPurple: "紫色", optionGold: "金色",
+                labelPowerStats: "战力资料", labelTransferDetails: "转移详情", labelAdditionalPlayers: "其他玩家",
+                labelAlliancePref: "联盟偏好", optionNo: "否", optionYes: "是", placeholderPrefAlliance: "首选联盟标签",
+                labelBringOthers: "有其他玩家同行吗?", btnAddPlayer: "添加另一名玩家", btnSubmit: "提交注册",
+                tablePlayerName: "玩家名称", tableServer: "服务器", tableAlliance: "联盟", tableTotalPower: "总战力", tableSeat: "席位", tableTankPower: "坦克战力", tableAirPower: "空军战力", tableMissilePower: "导弹战力", tableActions: "操作",
+                superAdminTitle: "超级管理员", webhooksTitle: "Discord Webhooks", placeholderWebhook: "Discord Webhook 网址", btnSaveWebhooks: "保存 Webhooks",
+                adminLoginTitle: "管理员登录", placeholderPassword: "输入密码", btnCancel: "取消", btnLogin: "登录",
+                editTitle: "编辑注册信息", btnSaveChanges: "保存更改",
+                confirmTitle: "您确定吗?", confirmMessage: "此操作无法撤销。", btnConfirm: "确认",
+                logout: "登出"
+            },
+            hi: {
+                title: "899 सर्वर स्थानांतरण", subtitle: "पंजीकरण पोर्टल", tabRegister: "पंजीकरण", tabPlayers: "पंजीकृत खिलाड़ी", tabAdmin: "एडमिन",
+                labelPlayerInfo: "खिलाड़ी की जानकारी", placeholderPlayerName: "खिलाड़ी का नाम", placeholderServer: "वर्तमान सर्वर (850-950)", placeholderAlliance: "वर्तमान गठबंधन टैग (उदा. ABCD)",
+                labelSeatColor: "सीट का रंग", placeholderSeatColor: "एक सीट का रंग चुनें...", optionSelectSeatColor: "एक सीट का रंग चुनें...", optionWhite: "सफ़ेद", optionBlue: "नीला", optionPurple: "बैंगनी", optionGold: "सुनहरा",
+                labelPowerStats: "शक्ति प्रोफाइल", labelTransferDetails: "स्थानांतरण विवरण", labelAdditionalPlayers: "अतिरिक्त खिलाड़ी",
+                labelAlliancePref: "गठबंधन वरीयता", optionNo: "नहीं", optionYes: "हाँ", placeholderPrefAlliance: "पसंदीदा गठबंधन टैग",
+                labelBringOthers: "अन्य खिलाड़ियों को ला रहे हैं?", btnAddPlayer: "एक और खिलाड़ी जोड़ें", btnSubmit: "पंजीकरण जमा करें",
+                tablePlayerName: "खिलाड़ी का नाम", tableServer: "सर्वर", tableAlliance: "गठबंधन", tableTotalPower: "कुल शक्ति", tableSeat: "सीट", tableTankPower: "टैंक शक्ति", tableAirPower: "वायु शक्ति", tableMissilePower: "मिसाइल शक्ति", tableActions: "कार्रवाइयाँ",
+                superAdminTitle: "सुपर एडमिन", webhooksTitle: "डिस्कॉर्ड वेबहुक", placeholderWebhook: "डिस्कॉर्ड वेबहुक यूआरएल", btnSaveWebhooks: "वेबहुक सहेजें",
+                adminLoginTitle: "एडमिन लॉगिन", placeholderPassword: "पासवर्ड डालें", btnCancel: "रद्द करें", btnLogin: "लॉगिन करें",
+                editTitle: "पंजीकरण संपादित करें", btnSaveChanges: "बदलाव सहेजें",
+                confirmTitle: "क्या आप निश्चित हैं?", confirmMessage: "यह कार्रवाई पूर्ववत नहीं की जा सकती।", btnConfirm: "पुष्टि करें",
+                logout: "लॉग आउट"
+            },
+            ar: {
+                title: "نقل خادم 899", subtitle: "بوابة التسجيل", tabRegister: "تسجيل", tabPlayers: "اللاعبون المسجلون", tabAdmin: "مشرف",
+                labelPlayerInfo: "معلومات اللاعب", placeholderPlayerName: "اسم اللاعب", placeholderServer: "الخادم الحالي (850-950)", placeholderAlliance: "علامة التحالف الحالية (مثل ABCD)",
+                labelSeatColor: "لون المقعد", placeholderSeatColor: "اختر لون المقعد...", optionSelectSeatColor: "اختر لون المقعد...", optionWhite: "أبيض", optionBlue: "أزرق", optionPurple: "أرجواني", optionGold: "ذهبي",
+                labelPowerStats: "ملف القوة", labelTransferDetails: "تفاصيل النقل", labelAdditionalPlayers: "لاعبون إضافيون",
+                labelAlliancePref: "تفضيل التحالف", optionNo: "لا", optionYes: "نعم", placeholderPrefAlliance: "علامة التحالف المفضلة",
+                labelBringOthers: "هل تحضر لاعبين آخرين؟", btnAddPlayer: "إضافة لاعب آخر", btnSubmit: "إرسال التسجيل",
+                tablePlayerName: "اسم اللاعب", tableServer: "الخادم", tableAlliance: "التحالف", tableTotalPower: "إجمالي القوة", tableSeat: "المقعد", tableTankPower: "قوة الدبابات", tableAirPower: "قوة الطيران", tableMissilePower: "قوة الصواريخ", tableActions: "الإجراءات",
+                superAdminTitle: "مشرف خارق", webhooksTitle: "Discord Webhooks", placeholderWebhook: "رابط Discord Webhook", btnSaveWebhooks: "حفظ Webhooks",
+                adminLoginTitle: "تسجيل دخول المشرف", placeholderPassword: "أدخل كلمة المرور", btnCancel: "إلغاء", btnLogin: "تسجيل الدخول",
+                editTitle: "تعديل التسجيل", btnSaveChanges: "حفظ التغييرات",
+                confirmTitle: "هل أنت متأكد؟", confirmMessage: "لا يمكن التراجع عن هذا الإجراء.", btnConfirm: "تأكيد",
+                logout: "تسجيل الخروج"
+            },
+            pt: {
+                title: "Transferências 899", subtitle: "Portal de Registro", tabRegister: "Registro", tabPlayers: "Jogadores Registrados", tabAdmin: "Admin",
+                labelPlayerInfo: "Informações do Jogador", placeholderPlayerName: "Nome do Jogador", placeholderServer: "Servidor Atual (850-950)", placeholderAlliance: "Tag da Aliança (ex: ABCD)",
+                labelSeatColor: "Cor do Assento", placeholderSeatColor: "Selecione uma Cor...", optionSelectSeatColor: "Selecione uma Cor...", optionWhite: "Branco", optionBlue: "Azul", optionPurple: "Roxo", optionGold: "Dourado",
+                labelPowerStats: "Perfil de Poder", labelTransferDetails: "Detalhes da Transferência", labelAdditionalPlayers: "Jogadores Adicionais",
+                labelAlliancePref: "Preferência de Aliança", optionNo: "Não", optionYes: "Sim", placeholderPrefAlliance: "Tag da Aliança Preferida",
+                labelBringOthers: "Trazendo outros jogadores?", btnAddPlayer: "Adicionar Outro Jogador", btnSubmit: "Enviar Registro",
+                tablePlayerName: "Nome do Jogador", tableServer: "Servidor", tableAlliance: "Aliança", tableTotalPower: "Poder Total", tableSeat: "Assento", tableTankPower: "Poder Tanque", tableAirPower: "Poder Aéreo", tableMissilePower: "Poder Míssil", tableActions: "Ações",
+                superAdminTitle: "Super Admin", webhooksTitle: "Webhooks do Discord", placeholderWebhook: "URL do Webhook", btnSaveWebhooks: "Salvar Webhooks",
+                adminLoginTitle: "Login de Admin", placeholderPassword: "Digite a Senha", btnCancel: "Cancelar", btnLogin: "Login",
+                editTitle: "Editar Registro", btnSaveChanges: "Salvar Alterações",
+                confirmTitle: "Você tem certeza?", confirmMessage: "Esta ação não pode ser desfeita.", btnConfirm: "Confirmar",
+                logout: "Sair"
+            },
+            ru: {
+                title: "Трансферы 899", subtitle: "Портал регистрации", tabRegister: "Регистрация", tabPlayers: "Зарегистрированные игроки", tabAdmin: "Админ",
+                labelPlayerInfo: "Информация об игроке", placeholderPlayerName: "Имя игрока", placeholderServer: "Текущий сервер (850-950)", placeholderAlliance: "Тег альянса (напр. ABCD)",
+                labelSeatColor: "Цвет места", placeholderSeatColor: "Выберите цвет...", optionSelectSeatColor: "Выберите цвет...", optionWhite: "Белый", optionBlue: "Синий", optionPurple: "Фиолетовый", optionGold: "Золотой",
+                labelPowerStats: "Профиль мощности", labelTransferDetails: "Детали переноса", labelAdditionalPlayers: "Дополнительные игроки",
+                labelAlliancePref: "Предпочтение альянса", optionNo: "Нет", optionYes: "Да", placeholderPrefAlliance: "Предпочитаемый тег альянса",
+                labelBringOthers: "Приводите других игроков?", btnAddPlayer: "Добавить игрока", btnSubmit: "Отправить регистрацию",
+                tablePlayerName: "Имя игрока", tableServer: "Сервер", tableAlliance: "Альянс", tableTotalPower: "Общая мощь", tableSeat: "Место", tableTankPower: "Мощь танков", tableAirPower: "Мощь авиации", tableMissilePower: "Мощь ракет", tableActions: "Действия",
+                superAdminTitle: "Супер-админ", webhooksTitle: "Веб-хуки Discord", placeholderWebhook: "URL веб-хука", btnSaveWebhooks: "Сохранить веб-хуки",
+                adminLoginTitle: "Вход для админа", placeholderPassword: "Введите пароль", btnCancel: "Отмена", btnLogin: "Войти",
+                editTitle: "Редактировать регистрацию", btnSaveChanges: "Сохранить изменения",
+                confirmTitle: "Вы уверены?", confirmMessage: "Это действие нельзя отменить.", btnConfirm: "Подтвердить",
+                logout: "Выйти"
+            },
+            ja: {
+                title: "899サーバー移籍", subtitle: "登録ポータル", tabRegister: "登録", tabPlayers: "登録済みプレイヤー", tabAdmin: "管理者",
+                labelPlayerInfo: "プレイヤー情報", placeholderPlayerName: "プレイヤー名", placeholderServer: "現在のサーバー (850-950)", placeholderAlliance: "現在の同盟タグ (例: ABCD)",
+                labelSeatColor: "座席の色", placeholderSeatColor: "色を選択...", optionSelectSeatColor: "色を選択...", optionWhite: "白", optionBlue: "青", optionPurple: "紫", optionGold: "金",
+                labelPowerStats: "戦力プロフィール", labelTransferDetails: "移籍詳細", labelAdditionalPlayers: "追加プレイヤー",
+                labelAlliancePref: "同盟の希望", optionNo: "いいえ", optionYes: "はい", placeholderPrefAlliance: "希望の同盟タグ",
+                labelBringOthers: "他のプレイヤーを連れてきますか？", btnAddPlayer: "プレイヤーを追加", btnSubmit: "登録を送信",
+                tablePlayerName: "プレイヤー名", tableServer: "サーバー", tableAlliance: "同盟", tableTotalPower: "総戦力", tableSeat: "座席", tableTankPower: "戦車戦力", tableAirPower: "空軍戦力", tableMissilePower: "ミサイル戦力", tableActions: "操作",
+                superAdminTitle: "スーパー管理者", webhooksTitle: "Discord Webhook", placeholderWebhook: "Discord Webhook URL", btnSaveWebhooks: "Webhookを保存",
+                adminLoginTitle: "管理者ログイン", placeholderPassword: "パスワードを入力", btnCancel: "キャンセル", btnLogin: "ログイン",
+                editTitle: "登録を編集", btnSaveChanges: "変更を保存",
+                confirmTitle: "よろしいですか？", confirmMessage: "この操作は元に戻せません。", btnConfirm: "確認",
+                logout: "ログアウト"
+            },
+            de: {
+                title: "899 Transfers", subtitle: "Registrierungsportal", tabRegister: "Registrierung", tabPlayers: "Registrierte Spieler", tabAdmin: "Admin",
+                labelPlayerInfo: "Spielerinformationen", placeholderPlayerName: "Spielername", placeholderServer: "Aktueller Server (850-950)", placeholderAlliance: "Allianz-Tag (z.B. ABCD)",
+                labelSeatColor: "Sitzfarbe", placeholderSeatColor: "Wähle eine Farbe...", optionSelectSeatColor: "Wähle eine Farbe...", optionWhite: "Weiß", optionBlue: "Blau", optionPurple: "Lila", optionGold: "Gold",
+                labelPowerStats: "Stärkeprofil", labelTransferDetails: "Transferdetails", labelAdditionalPlayers: "Zusätzliche Spieler",
+                labelAlliancePref: "Allianzpräferenz", optionNo: "Nein", optionYes: "Ja", placeholderPrefAlliance: "Bevorzugter Allianz-Tag",
+                labelBringOthers: "Andere Spieler mitbringen?", btnAddPlayer: "Weiteren Spieler hinzufügen", btnSubmit: "Registrierung absenden",
+                tablePlayerName: "Spielername", tableServer: "Server", tableAlliance: "Allianz", tableTotalPower: "Gesamtstärke", tableSeat: "Sitz", tableTankPower: "Panzerstärke", tableAirPower: "Luftstärke", tableMissilePower: "Raketenstärke", tableActions: "Aktionen",
+                superAdminTitle: "Super-Admin", webhooksTitle: "Discord Webhooks", placeholderWebhook: "Discord Webhook URL", btnSaveWebhooks: "Webhooks speichern",
+                adminLoginTitle: "Admin-Login", placeholderPassword: "Passwort eingeben", btnCancel: "Abbrechen", btnLogin: "Anmelden",
+                editTitle: "Registrierung bearbeiten", btnSaveChanges: "Änderungen speichern",
+                confirmTitle: "Sind Sie sicher?", confirmMessage: "Diese Aktion kann nicht rückgängig gemacht werden.", btnConfirm: "Bestätigen",
+                logout: "Abmelden"
+            },
+            fr: {
+                title: "Transferts 899", subtitle: "Portail d'inscription", tabRegister: "Inscription", tabPlayers: "Joueurs inscrits", tabAdmin: "Admin",
+                labelPlayerInfo: "Informations du joueur", placeholderPlayerName: "Nom du joueur", placeholderServer: "Serveur actuel (850-950)", placeholderAlliance: "Tag d'alliance (ex: ABCD)",
+                labelSeatColor: "Couleur du siège", placeholderSeatColor: "Sélectionnez une couleur...", optionSelectSeatColor: "Sélectionnez une couleur...", optionWhite: "Blanc", optionBlue: "Bleu", optionPurple: "Violet", optionGold: "Or",
+                labelPowerStats: "Profil de puissance", labelTransferDetails: "Détails du transfert", labelAdditionalPlayers: "Joueurs supplémentaires",
+                labelAlliancePref: "Préférence d'alliance", optionNo: "Non", optionYes: "Oui", placeholderPrefAlliance: "Tag d'alliance préféré",
+                labelBringOthers: "Amenez-vous d'autres joueurs?", btnAddPlayer: "Ajouter un autre joueur", btnSubmit: "Soumettre l'inscription",
+                tablePlayerName: "Nom du joueur", tableServer: "Serveur", tableAlliance: "Alliance", tableTotalPower: "Puissance totale", tableSeat: "Siège", tableTankPower: "Puissance chars", tableAirPower: "Puissance aérienne", tableMissilePower: "Puissance missiles", tableActions: "Actions",
+                superAdminTitle: "Super Admin", webhooksTitle: "Webhooks Discord", placeholderWebhook: "URL du Webhook", btnSaveWebhooks: "Enregistrer les Webhooks",
+                adminLoginTitle: "Connexion Admin", placeholderPassword: "Entrez le mot de passe", btnCancel: "Annuler", btnLogin: "Connexion",
+                editTitle: "Modifier l'inscription", btnSaveChanges: "Sauvegarder les modifications",
+                confirmTitle: "Êtes-vous sûr?", confirmMessage: "Cette action est irréversible.", btnConfirm: "Confirmer",
+                logout: "Déconnexion"
+            },
+            ko: {
+                title: "899 서버 이전", subtitle: "등록 포털", tabRegister: "등록", tabPlayers: "등록된 플레이어", tabAdmin: "관리자",
+                labelPlayerInfo: "플레이어 정보", placeholderPlayerName: "플레이어 이름", placeholderServer: "현재 서버 (850-950)", placeholderAlliance: "현재 동맹 태그 (예: ABCD)",
+                labelSeatColor: "좌석 색상", placeholderSeatColor: "색상 선택...", optionSelectSeatColor: "색상 선택...", optionWhite: "흰색", optionBlue: "파란색", optionPurple: "보라색", optionGold: "금색",
+                labelPowerStats: "전투력 프로필", labelTransferDetails: "이전 세부 정보", labelAdditionalPlayers: "추가 플레이어",
+                labelAlliancePref: "동맹 선호", optionNo: "아니요", optionYes: "예", placeholderPrefAlliance: "선호하는 동맹 태그",
+                labelBringOthers: "다른 플레이어와 함께 오나요?", btnAddPlayer: "다른 플레이어 추가", btnSubmit: "등록 제출",
+                tablePlayerName: "플레이어 이름", tableServer: "서버", tableAlliance: "동맹", tableTotalPower: "총 전투력", tableSeat: "좌석", tableTankPower: "탱크 전투력", tableAirPower: "공군 전투력", tableMissilePower: "미사일 전투력", tableActions: "작업",
+                superAdminTitle: "최고 관리자", webhooksTitle: "Discord 웹훅", placeholderWebhook: "Discord 웹훅 URL", btnSaveWebhooks: "웹훅 저장",
+                adminLoginTitle: "관리자 로그인", placeholderPassword: "비밀번호 입력", btnCancel: "취소", btnLogin: "로그인",
+                editTitle: "등록 수정", btnSaveChanges: "변경 사항 저장",
+                confirmTitle: "확실합니까?", confirmMessage: "이 작업은 되돌릴 수 없습니다.", btnConfirm: "확인",
+                logout: "로그아웃"
+            },
+            id: {
+                title: "Transfer 899", subtitle: "Portal Registrasi", tabRegister: "Registrasi", tabPlayers: "Pemain Terdaftar", tabAdmin: "Admin",
+                labelPlayerInfo: "Informasi Pemain", placeholderPlayerName: "Nama Pemain", placeholderServer: "Server Saat Ini (850-950)", placeholderAlliance: "Tag Aliansi (cth: ABCD)",
+                labelSeatColor: "Warna Kursi", placeholderSeatColor: "Pilih Warna Kursi...", optionSelectSeatColor: "Pilih Warna Kursi...", optionWhite: "Putih", optionBlue: "Biru", optionPurple: "Ungu", optionGold: "Emas",
+                labelPowerStats: "Profil Kekuatan", labelTransferDetails: "Detail Transfer", labelAdditionalPlayers: "Pemain Tambahan",
+                labelAlliancePref: "Preferensi Aliansi", optionNo: "Tidak", optionYes: "Ya", placeholderPrefAlliance: "Tag Aliansi Pilihan",
+                labelBringOthers: "Membawa pemain lain?", btnAddPlayer: "Tambah Pemain Lain", btnSubmit: "Kirim Registrasi",
+                tablePlayerName: "Nama Pemain", tableServer: "Server", tableAlliance: "Aliansi", tableTotalPower: "Total Kekuatan", tableSeat: "Kursi", tableTankPower: "Kekuatan Tank", tableAirPower: "Kekuatan Udara", tableMissilePower: "Kekuatan Misil", tableActions: "Aksi",
+                superAdminTitle: "Super Admin", webhooksTitle: "Webhook Discord", placeholderWebhook: "URL Webhook Discord", btnSaveWebhooks: "Simpan Webhook",
+                adminLoginTitle: "Login Admin", placeholderPassword: "Masukkan Kata Sandi", btnCancel: "Batal", btnLogin: "Login",
+                editTitle: "Edit Registrasi", btnSaveChanges: "Simpan Perubahan",
+                confirmTitle: "Apakah Anda yakin?", confirmMessage: "Tindakan ini tidak dapat dibatalkan.", btnConfirm: "Konfirmasi",
+                logout: "Keluar"
+            }
         };
 
         // --- Helper Functions ---
