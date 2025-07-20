@@ -197,28 +197,15 @@
             border-radius: 0.75rem;
             padding: 1.5rem;
             display: flex;
-            flex-direction: column;
-            gap: 1rem;
+            flex-direction: row;
+            align-items: center;
+            gap: 1.5rem;
             transition: all 0.2s ease-in-out;
         }
         .player-card:hover {
             border-color: var(--primary-color);
             transform: translateY(-2px);
-        }
-        .player-card .power-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            text-align: center;
-        }
-        .player-card .power-item .value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5em;
-            color: var(--primary-color);
-        }
-        .player-card .power-item .label {
-            font-size: 0.9em;
-            color: var(--text-secondary);
+            box-shadow: 0 0 15px rgba(79, 70, 229, 0.4);
         }
         .seat-tag {
             padding: 0.25rem 0.75rem;
@@ -373,7 +360,7 @@
                             <input type="search" id="playerSearch" class="w-full p-3 pl-10 form-input" placeholder="Search by name, server, or alliance...">
                             <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
                         </div>
-                        <div id="player-cards-container" class="player-cards-container grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div id="player-cards-container" class="player-cards-container flex flex-col gap-4">
                             <!-- Player cards will be injected here -->
                         </div>
                     </div>
@@ -870,36 +857,39 @@
                 const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
                 
                 card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="text-xl font-bold">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
-                            <p class="text-sm text-gray-400">${canViewSensitive ? player.currentAlliance : '****'} | Server ${player.currentServer}</p>
+                    <div class="flex-grow">
+                        <h4 class="text-xl font-bold">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
+                        <p class="text-sm text-gray-400 flex items-center gap-3">
+                            <span><i class="fa-solid fa-shield-halved mr-1"></i> ${canViewSensitive ? player.currentAlliance : '****'}</span>
+                            <span><i class="fa-solid fa-server mr-1"></i> ${player.currentServer}</span>
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-4 flex-shrink-0">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-indigo-400">${formatPower(player.totalPower)}</div>
+                            <div class="text-xs text-gray-400" data-i18n="tableTotalPower">Total Power</div>
                         </div>
+                        <div class="admin-only ${canViewSensitive ? 'flex' : 'hidden'} gap-4 border-l border-zinc-700 pl-4">
+                            <div class="text-center">
+                                <div class="text-lg font-bold">${formatPower(player.tankPower)}</div>
+                                <div class="text-xs text-gray-400" data-i18n="tableTankPower">Tank Power</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-lg font-bold">${formatPower(player.airPower)}</div>
+                                <div class="text-xs text-gray-400" data-i18n="tableAirPower">Air Power</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-lg font-bold">${formatPower(player.missilePower)}</div>
+                                <div class="text-xs text-gray-400" data-i18n="tableMissilePower">Missile Power</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center gap-2 pl-4 border-l border-zinc-700">
                         <span class="seat-tag seat-tag-${player.seatColor}">${player.seatColor}</span>
-                    </div>
-                    <div class="border-t border-zinc-700/50 pt-4">
-                        <div class="power-grid">
-                            <div class="power-item">
-                                <div class="value">${formatPower(player.totalPower)}</div>
-                                <div class="label" data-i18n="tableTotalPower">Total Power</div>
-                            </div>
-                            <div class="power-item admin-only ${canViewSensitive ? '' : 'hidden'}">
-                                <div class="value">${formatPower(player.tankPower)}</div>
-                                <div class="label" data-i18n="tableTankPower">Tank Power</div>
-                            </div>
-                            <div class="power-item admin-only ${canViewSensitive ? '' : 'hidden'}">
-                                <div class="value">${formatPower(player.airPower)}</div>
-                                <div class="label" data-i18n="tableAirPower">Air Power</div>
-                            </div>
-                            <div class="power-item admin-only ${canViewSensitive ? '' : 'hidden'}">
-                                <div class="value">${formatPower(player.missilePower)}</div>
-                                <div class="label" data-i18n="tableMissilePower">Missile Power</div>
-                            </div>
+                        <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} gap-2">
+                            <button class="edit-btn text-blue-400 hover:text-blue-300" data-id="${player.id}"><i class="fas fa-edit"></i></button>
+                            <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
                         </div>
-                    </div>
-                    <div class="super-admin-only flex justify-end gap-2 mt-auto ${loginState === 'super_admin' ? '' : 'hidden'}">
-                        <button class="edit-btn text-blue-400 hover:text-blue-300 p-2" data-id="${player.id}"><i class="fas fa-edit"></i></button>
-                        <button class="delete-btn text-red-400 hover:text-red-300 p-2" data-id="${player.id}"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
                 playerCardsContainer.appendChild(card);
