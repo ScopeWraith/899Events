@@ -196,7 +196,7 @@
 
         /* Player Card Styles */
         .player-card {
-            background-color: #1a1a1a;
+            background-color: #111;
             border: 1px solid var(--border-color);
             border-left-width: 5px;
             border-radius: 0.75rem;
@@ -210,20 +210,9 @@
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
             background-image: var(--gradient-bg);
-            opacity: 0.2;
+            opacity: 0.4;
             z-index: 1;
             transition: opacity 0.3s ease;
-        }
-         .player-card:after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
-            transform: rotate(15deg);
-            transition: transform 0.5s ease;
         }
         .player-card > * {
             position: relative;
@@ -233,13 +222,12 @@
             transform: translateY(-4px) scale(1.02);
             box-shadow: 0 10px 30px var(--glow-color, rgba(79, 70, 229, 0.3));
         }
-        .player-card:hover:before { opacity: 0.3; }
-        .player-card:hover:after { transform: rotate(0deg); }
+        .player-card:hover:before { opacity: 0.6; }
 
-        .player-card.seat-White { --glow-color: rgba(226, 232, 240, 0.2); border-left-color: #e2e8f0; --gradient-bg: linear-gradient(135deg, #e2e8f0, #94a3b8); }
-        .player-card.seat-Blue { --glow-color: rgba(125, 211, 252, 0.3); border-left-color: #7dd3fc; --gradient-bg: linear-gradient(135deg, #7dd3fc, #0ea5e9); }
-        .player-card.seat-Purple { --glow-color: rgba(196, 181, 253, 0.3); border-left-color: #c4b5fd; --gradient-bg: linear-gradient(135deg, #c4b5fd, #8b5cf6); }
-        .player-card.seat-Gold { --glow-color: rgba(253, 224, 71, 0.3); border-left-color: #fde047; --gradient-bg: linear-gradient(135deg, #fde047, #f59e0b); }
+        .player-card.seat-White { --glow-color: rgba(226, 232, 240, 0.2); border-left-color: #e2e8f0; --gradient-bg: linear-gradient(135deg, #cbd5e1, #1e293b); }
+        .player-card.seat-Blue { --glow-color: rgba(96, 165, 250, 0.3); border-left-color: #60a5fa; --gradient-bg: linear-gradient(135deg, #38bdf8, #1e3a8a); }
+        .player-card.seat-Purple { --glow-color: rgba(167, 139, 250, 0.3); border-left-color: #a78bfa; --gradient-bg: linear-gradient(135deg, #a78bfa, #581c87); }
+        .player-card.seat-Gold { --glow-color: rgba(251, 191, 36, 0.3); border-left-color: #fde047; --gradient-bg: linear-gradient(135deg, #facc15, #92400e); }
         
         /* Sidebar Styles */
         #sidebar {
@@ -1007,7 +995,7 @@
             
             const filteredPlayers = allPlayers.filter(player => {
                 return (
-                    player.playerName.toLowerCase().includes(searchTerm) ||
+                    (player.playerName && player.playerName.toLowerCase().includes(searchTerm)) ||
                     (player.currentServer && player.currentServer.toString().includes(searchTerm)) ||
                     (player.currentAlliance && player.currentAlliance.toLowerCase().includes(searchTerm))
                 );
@@ -1049,8 +1037,8 @@
                     <div class="flex flex-col">
                         <!-- Top Row: Main Info -->
                         <div class="flex items-center justify-between">
-                            <h4 class="text-lg font-bold truncate" style="font-family: 'Orbitron', sans-serif;">
-                                ${canViewSensitive ? `[${player.currentServer}] (${player.currentAlliance}) - ${player.playerName}` : 'Hidden'}
+                            <h4 class="text-base font-bold truncate" style="font-family: 'Orbitron', sans-serif;">
+                                ${canViewSensitive ? `[${player.currentServer}] (${player.currentAlliance}) - ${player.playerName}` : `[${player.currentServer}]`}
                             </h4>
                             <div class="flex items-center gap-4">
                                 <div class="text-2xl font-bold text-white text-right" style="font-family: 'Orbitron', sans-serif;">
@@ -1064,22 +1052,17 @@
                         </div>
                         
                         <!-- Bottom Row: Details (Admin only) -->
-                        <div class="admin-only ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-xs text-gray-300 mt-2 pt-2 border-t border-white/20">
-                            <!-- Power Stats -->
-                            <div class="col-span-2 sm:col-span-1 flex flex-col gap-1">
-                                <div class="flex items-center"><i class="fas fa-crosshairs w-4 mr-1.5 opacity-80" title="Total Power"></i> Total: ${formatPower(player.totalPower)}</div>
-                                <div class="flex items-center"><i class="fas fa-shield-halved w-4 mr-1.5 opacity-80" title="Tank Power"></i> Tank: ${formatPower(player.tankPower)}</div>
-                            </div>
-                            <div class="col-span-2 sm:col-span-1 flex flex-col gap-1">
-                                <div class="flex items-center"><i class="fas fa-jet-fighter w-4 mr-1.5 opacity-80" title="Air Power"></i> Air: ${formatPower(player.airPower)}</div>
-                                <div class="flex items-center"><i class="fas fa-rocket w-4 mr-1.5 opacity-80" title="Missile Power"></i> Missile: ${formatPower(player.missilePower)}</div>
-                            </div>
-                            <!-- Meta Info -->
-                            <div class="col-span-2 sm:col-span-1 flex flex-col gap-1">
+                        <div class="admin-only ${canViewSensitive ? 'block' : 'hidden'} mt-2 pt-2 border-t border-white/10">
+                            <div class="grid grid-cols-3 gap-x-4 gap-y-1 text-xs text-gray-200">
+                                <!-- Power Stats -->
+                                <div class="flex items-center"><i class="fas fa-crosshairs w-4 mr-1.5 opacity-80" title="Total Power"></i> ${formatPower(player.totalPower)}</div>
+                                <div class="flex items-center"><i class="fas fa-jet-fighter w-4 mr-1.5 opacity-80" title="Air Power"></i> ${formatPower(player.airPower)}</div>
                                 <div class="flex items-center"><i class="fas fa-clock w-4 mr-1.5 opacity-80"></i> ${formatTimestamp(player.createdAt)}</div>
+                                <div class="flex items-center"><i class="fas fa-shield-halved w-4 mr-1.5 opacity-80" title="Tank Power"></i> ${formatPower(player.tankPower)}</div>
+                                <div class="flex items-center"><i class="fas fa-rocket w-4 mr-1.5 opacity-80" title="Missile Power"></i> ${formatPower(player.missilePower)}</div>
                                 <div class="flex items-center gap-3">
-                                    <label class="flex items-center"><input type="checkbox" ${alliancePrefChecked} disabled class="mr-1.5"> Alliance Pref.</label>
-                                    <label class="flex items-center"><input type="checkbox" ${bringingOthersChecked} disabled class="mr-1.5"> Has Group</label>
+                                    <label class="flex items-center"><input type="checkbox" ${alliancePrefChecked} disabled class="mr-1.5"> Pref.</label>
+                                    <label class="flex items-center"><input type="checkbox" ${bringingOthersChecked} disabled class="mr-1.5"> Group</label>
                                 </div>
                             </div>
                         </div>
