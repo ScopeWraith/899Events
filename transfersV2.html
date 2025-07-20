@@ -197,8 +197,7 @@
             border-radius: 0.75rem;
             padding: 1.5rem;
             display: flex;
-            flex-direction: row;
-            align-items: center;
+            flex-direction: column; /* Start with column for mobile */
             gap: 1.5rem;
             transition: all 0.2s ease-in-out;
         }
@@ -225,6 +224,21 @@
         }
         #sidebar-overlay {
             transition: opacity 0.3s ease-in-out;
+        }
+        
+        /* Mobile Optimizations */
+        @media (min-width: 600px) {
+            .player-card {
+                flex-direction: row; /* Switch to row on larger screens */
+                align-items: center;
+            }
+        }
+        
+        /* Prevent iOS zoom on input focus */
+        @media screen and (-webkit-min-device-pixel-ratio:0) and (max-device-width: 767px) {
+            .form-input, .custom-select-display {
+                font-size: 16px !important;
+            }
         }
 
     </style>
