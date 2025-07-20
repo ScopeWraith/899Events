@@ -235,42 +235,41 @@
         
         <div class="card">
             <!-- Header and Navigation section inside the card -->
-            <div class="p-6 sm:px-8 sm:pt-8 sm:pb-4 flex-shrink-0">
-                <div class="flex justify-between items-center gap-4 mb-4">
-                    <!-- Hamburger Menu Button (Mobile) -->
-                    <button id="hamburger-btn" class="md:hidden text-2xl text-gray-400 hover:text-white">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    
-                    <h1 class="text-3xl md:text-4xl font-bold tracking-wider uppercase flex-shrink-0 flex items-center gap-4">
+            <div class="p-6 sm:px-8 sm:pt-8 sm:pb-4 flex-shrink-0 relative">
+                <!-- Hamburger Menu Button (Mobile) -->
+                <button id="hamburger-btn" class="md:hidden absolute top-6 left-6 text-2xl text-gray-400 hover:text-white z-10">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <!-- Info Button -->
+                <button id="info-btn" class="absolute top-6 right-6 p-2 text-gray-400 hover:text-white text-xl z-10">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+
+                <div class="flex flex-col items-center gap-4 mb-4">
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-wider uppercase flex items-center gap-4">
                         <i class="fa-solid fa-satellite-dish text-indigo-400"></i>
                         <span data-i18n="title">899 Transfers</span>
                     </h1>
-
-                    <div class="flex items-center gap-2">
-                        <div class="custom-select-wrapper w-full md:w-auto md:max-w-[160px]">
-                            <div class="custom-select-display !py-2 !px-4">
-                                <span id="languageDisplay"><i class="fas fa-language mr-2"></i> English</span>
-                                <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
-                            </div>
-                            <select id="languageSelector" class="form-select-native">
-                                <option value="en">English</option>
-                                <option value="es">Español</option>
-                                <option value="zh">中文</option>
-                                <option value="hi">हिन्दी</option>
-                                <option value="ar">العربية</option>
-                                <option value="pt">Português</option>
-                                <option value="ru">Русский</option>
-                                <option value="ja">日本語</option>
-                                <option value="de">Deutsch</option>
-                                <option value="fr">Français</option>
-                                <option value="ko">한국어</option>
-                                <option value="id">Bahasa Indonesia</option>
-                            </select>
+                    <div class="custom-select-wrapper w-full md:w-auto md:max-w-[160px]">
+                        <div class="custom-select-display !py-2 !px-4">
+                            <span id="languageDisplay"><i class="fas fa-language mr-2"></i> English</span>
+                            <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
                         </div>
-                        <button id="info-btn" class="p-2 text-gray-400 hover:text-white text-xl">
-                            <i class="fas fa-info-circle"></i>
-                        </button>
+                        <select id="languageSelector" class="form-select-native">
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                            <option value="zh">中文</option>
+                            <option value="hi">हिन्दी</option>
+                            <option value="ar">العربية</option>
+                            <option value="pt">Português</option>
+                            <option value="ru">Русский</option>
+                            <option value="ja">日本語</option>
+                            <option value="de">Deutsch</option>
+                            <option value="fr">Français</option>
+                            <option value="ko">한국어</option>
+                            <option value="id">Bahasa Indonesia</option>
+                        </select>
                     </div>
                 </div>
                 <nav id="desktop-nav" class="nav-container hidden md:flex">
