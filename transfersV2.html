@@ -210,7 +210,7 @@
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
             background-image: var(--gradient-bg);
-            opacity: 0.15;
+            opacity: 0.2;
             z-index: 1;
             transition: opacity 0.3s ease;
         }
@@ -221,7 +221,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
             transform: rotate(15deg);
             transition: transform 0.5s ease;
         }
@@ -233,7 +233,7 @@
             transform: translateY(-4px) scale(1.02);
             box-shadow: 0 10px 30px var(--glow-color, rgba(79, 70, 229, 0.3));
         }
-        .player-card:hover:before { opacity: 0.25; }
+        .player-card:hover:before { opacity: 0.3; }
         .player-card:hover:after { transform: rotate(0deg); }
 
         .player-card.seat-White { --glow-color: rgba(226, 232, 240, 0.2); border-left-color: #e2e8f0; --gradient-bg: linear-gradient(135deg, #e2e8f0, #94a3b8); }
@@ -1008,8 +1008,8 @@
             const filteredPlayers = allPlayers.filter(player => {
                 return (
                     player.playerName.toLowerCase().includes(searchTerm) ||
-                    player.currentServer.toString().includes(searchTerm) ||
-                    player.currentAlliance.toLowerCase().includes(searchTerm)
+                    (player.currentServer && player.currentServer.toString().includes(searchTerm)) ||
+                    (player.currentAlliance && player.currentAlliance.toLowerCase().includes(searchTerm))
                 );
             });
 
@@ -1021,8 +1021,8 @@
             });
 
             const sortedPlayers = [...filteredPlayers].sort((a, b) => {
-                const allianceA = a.currentAlliance.toUpperCase();
-                const allianceB = b.currentAlliance.toUpperCase();
+                const allianceA = a.currentAlliance ? a.currentAlliance.toUpperCase() : '';
+                const allianceB = b.currentAlliance ? b.currentAlliance.toUpperCase() : '';
                 if (allianceA < allianceB) return -1;
                 if (allianceA > allianceB) return 1;
                 if (a.currentServer < b.currentServer) return -1;
@@ -1042,36 +1042,46 @@
                 
                 const canViewSensitive = loginState === 'admin' || loginState === 'super_admin';
                 
+                const alliancePrefChecked = player.alliancePreference === 'yes' ? 'checked' : '';
+                const bringingOthersChecked = player.otherPlayers && player.otherPlayers.length > 0 ? 'checked' : '';
+
                 card.innerHTML = `
-                    <!-- Top Row: Main Info -->
-                    <div class="flex items-center justify-between">
-                        <h4 class="text-lg font-bold truncate" style="font-family: 'Orbitron', sans-serif;">${canViewSensitive ? player.playerName : 'Hidden'}</h4>
-                        <div class="flex items-center gap-4">
-                            <div class="text-2xl font-bold text-white text-right" style="font-family: 'Orbitron', sans-serif;">
-                                ${formatPower(player.totalPower)}
+                    <div class="flex flex-col">
+                        <!-- Top Row: Main Info -->
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-lg font-bold truncate" style="font-family: 'Orbitron', sans-serif;">
+                                ${canViewSensitive ? `[${player.currentServer}] (${player.currentAlliance}) - ${player.playerName}` : 'Hidden'}
+                            </h4>
+                            <div class="flex items-center gap-4">
+                                <div class="text-2xl font-bold text-white text-right" style="font-family: 'Orbitron', sans-serif;">
+                                    ${formatPower(player.totalPower)}
+                                </div>
+                                <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} items-center gap-2 pl-3 border-l border-white/10">
+                                    <button class="edit-btn text-blue-300 hover:text-white" data-id="${player.id}"><i class="fas fa-edit"></i></button>
+                                    <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
+                                </div>
                             </div>
-                            <div class="super-admin-only ${loginState === 'super_admin' ? 'flex' : 'hidden'} items-center gap-2 pl-3 border-l border-white/10">
-                                <button class="edit-btn text-blue-300 hover:text-white" data-id="${player.id}"><i class="fas fa-edit"></i></button>
-                                <button class="delete-btn text-red-400 hover:text-red-300" data-id="${player.id}"><i class="fas fa-trash"></i></button>
+                        </div>
+                        
+                        <!-- Bottom Row: Details (Admin only) -->
+                        <div class="admin-only ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-xs text-gray-300 mt-2 pt-2 border-t border-white/20">
+                            <!-- Power Stats -->
+                            <div class="col-span-2 sm:col-span-1 flex flex-col gap-1">
+                                <div class="flex items-center"><i class="fas fa-crosshairs w-4 mr-1.5 opacity-80" title="Total Power"></i> Total: ${formatPower(player.totalPower)}</div>
+                                <div class="flex items-center"><i class="fas fa-shield-halved w-4 mr-1.5 opacity-80" title="Tank Power"></i> Tank: ${formatPower(player.tankPower)}</div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Bottom Row: Details (Admin only) -->
-                    <div class="admin-only ${canViewSensitive ? 'grid' : 'hidden'} grid-cols-3 gap-x-4 gap-y-1 text-xs text-gray-300 mt-2 pt-2 border-t border-white/20">
-                        <!-- Player Meta -->
-                        <div class="col-span-1">
-                            <div class="flex items-center"><i class="fa-solid fa-shield-halved w-4 mr-1.5 opacity-80"></i> ${player.currentAlliance}</div>
-                            <div class="flex items-center"><i class="fa-solid fa-server w-4 mr-1.5 opacity-80"></i> ${player.currentServer}</div>
-                        </div>
-                        <!-- Power Stats -->
-                        <div class="col-span-1">
-                            <div class="flex items-center"><i class="fas fa-shield-halved w-4 mr-1.5 opacity-80" title="Tank Power"></i> ${formatPower(player.tankPower)}</div>
-                            <div class="flex items-center"><i class="fas fa-plane-up w-4 mr-1.5 opacity-80" title="Air Power"></i> ${formatPower(player.airPower)}</div>
-                        </div>
-                        <div class="col-span-1">
-                            <div class="flex items-center"><i class="fas fa-rocket w-4 mr-1.5 opacity-80" title="Missile Power"></i> ${formatPower(player.missilePower)}</div>
-                            <div class="flex items-center"><i class="fas fa-clock w-4 mr-1.5 opacity-80"></i> ${formatTimestamp(player.createdAt)}</div>
+                            <div class="col-span-2 sm:col-span-1 flex flex-col gap-1">
+                                <div class="flex items-center"><i class="fas fa-jet-fighter w-4 mr-1.5 opacity-80" title="Air Power"></i> Air: ${formatPower(player.airPower)}</div>
+                                <div class="flex items-center"><i class="fas fa-rocket w-4 mr-1.5 opacity-80" title="Missile Power"></i> Missile: ${formatPower(player.missilePower)}</div>
+                            </div>
+                            <!-- Meta Info -->
+                            <div class="col-span-2 sm:col-span-1 flex flex-col gap-1">
+                                <div class="flex items-center"><i class="fas fa-clock w-4 mr-1.5 opacity-80"></i> ${formatTimestamp(player.createdAt)}</div>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center"><input type="checkbox" ${alliancePrefChecked} disabled class="mr-1.5"> Alliance Pref.</label>
+                                    <label class="flex items-center"><input type="checkbox" ${bringingOthersChecked} disabled class="mr-1.5"> Has Group</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
