@@ -494,7 +494,7 @@
                 <!-- Main Content Panels -->
                 <div class="flex-grow flex flex-col min-h-0">
                     <!-- Content Panels Wrapper -->
-                    <div class="p-4 lg:p-6 flex-grow flex flex-col min-h-0">
+                    <div class="p-4 pt-2 flex-grow flex flex-col min-h-0">
                         <div id="content-members" class="hidden h-full flex flex-col">
                             <div class="flex items-center mb-2 flex-shrink-0">
                                 <input type="text" id="member-search-input" placeholder="Search members..." class="w-full bg-slate-800/60 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
@@ -1404,12 +1404,12 @@
                     }
 
                     const dateHeader = document.createElement('div');
-                    dateHeader.className = 'text-sm font-semibold text-slate-400 pt-3 pb-1 border-b-2 border-slate-700/50';
+                    dateHeader.className = 'text-sm font-semibold text-slate-400 border-b-2 border-slate-700/50';
                     historyListContainer.appendChild(dateHeader);
                     dateHeader.textContent = dateString;
                     
                     const dayContainer = document.createElement('div');
-                    dayContainer.className = 'space-y-1.5 pt-2';
+                    dayContainer.className = 'space-y-1 pt-0 mt-0';
 
                     groupedByDay[dateStr].forEach(item => {
                         const div = document.createElement('div');
@@ -1419,7 +1419,7 @@
                                 ? `<button class="font-bold text-white underline hover:text-cyan-300 player-info-trigger" data-id="${member.id}">${item.player}</button>`
                                 : `<span class="font-bold text-white">${item.player}</span>`;
                         
-                        div.className = 'item-enter flex items-center gap-3 py-1.5 px-2 rounded-lg bg-slate-800/40';
+                        div.className = 'item-enter flex items-center gap-3 py-1 px-2 rounded-lg bg-slate-800/40';
 
                         if (item.type === 'conductor') {
                             iconHtml = `<div class="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center"><i class="fa-solid fa-train-subway text-cyan-400"></i></div>`;
