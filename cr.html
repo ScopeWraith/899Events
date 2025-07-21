@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <title data-i18n-key="page_title">Cursed Lab Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +22,7 @@
             --success-color: #22c55e; /* green-500 */
         }
         html {
-            font-size: 80%; /* Reduce base font size by 20% */
+            font-size: 80%;
         }
         body {
             font-family: 'Poppins', sans-serif;
@@ -56,7 +56,7 @@
              border: 1px solid var(--border-color);
              transition: all 0.3s ease;
              color: var(--text-primary);
-             padding: 0.5rem; /* Reduced padding */
+             padding: 0.5rem;
              font-size: 1rem;
         }
         .glass-input:focus, .glass-select:focus {
@@ -128,6 +128,47 @@
             border-color: var(--accent-primary);
             background: linear-gradient(145deg, rgba(31, 41, 55, 0.6), rgba(17, 24, 39, 0.6));
         }
+
+        /* Toggle Switch Styles */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 22px;
+            height: 12px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-tertiary);
+            transition: .4s;
+            border-radius: 12px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 8px;
+            width: 8px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--accent-primary);
+        }
+        input:checked + .slider:before {
+            transform: translateX(10px);
+        }
     </style>
 </head>
 <body class="text-slate-200">
@@ -168,21 +209,16 @@
     <!-- Navigation Bar -->
     <nav class="main-card sticky top-0 md:top-2 z-40 w-full max-w-5xl mx-auto rounded-none md:rounded-xl shadow-lg">
         <div class="flex items-center justify-between p-3">
-            <!-- Left: Logo and Title -->
             <div class="flex items-center gap-3">
                 <i class="fas fa-virus text-violet-400 text-2xl"></i>
                 <h1 class="text-xl font-bold text-white">CR-Calc</h1>
             </div>
-
-            <!-- Center: Desktop Menu -->
             <div id="desktop-menu" class="hidden md:flex items-center gap-2">
                 <a href="#" class="nav-link active text-sm" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
-                <a href="#" class="nav-link text-sm" data-page="community" data-i18n-key="nav_community">Community</a>
+                <a href="#" class="nav-link text-sm" data-page="alliance" data-i18n-key="nav_alliance">Alliance</a>
                 <a href="#" class="nav-link text-sm" data-page="information" data-i18n-key="nav_information">Information</a>
             </div>
-
-            <!-- Right: Controls and Hamburger -->
-            <div class="flex items-center gap-2">
+            <div class="hidden md:flex items-center gap-2">
                 <select id="language-selector" class="glass-select rounded-md py-1 pl-2 pr-7 text-xs focus:ring-0 outline-none"></select>
                 <div id="auth-container">
                     <button id="login-btn" class="px-3 py-1.5 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
@@ -191,16 +227,26 @@
                         <button id="logout-btn" class="px-2 py-1 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
                     </div>
                 </div>
-                <button id="hamburger-btn" class="md:hidden p-2 rounded-md text-slate-300 hover:bg-slate-700">
-                    <i class="fas fa-bars fa-lg"></i>
-                </button>
             </div>
+            <button id="hamburger-btn" class="md:hidden p-2 rounded-md text-slate-300 hover:bg-slate-700 flex items-center gap-2">
+                <span class="font-semibold text-sm">Menu</span>
+                <i class="fas fa-bars fa-lg"></i>
+            </button>
         </div>
-        <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden border-t border-slate-700 p-2 flex flex-col gap-2">
             <a href="#" class="nav-link active text-sm" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
-            <a href="#" class="nav-link text-sm" data-page="community" data-i18n-key="nav_community">Community</a>
+            <a href="#" class="nav-link text-sm" data-page="alliance" data-i18n-key="nav_alliance">Alliance</a>
             <a href="#" class="nav-link text-sm" data-page="information" data-i18n-key="nav_information">Information</a>
+            <div class="border-t border-slate-700 pt-2 flex flex-col items-center gap-2">
+                <select id="language-selector-mobile" class="glass-select rounded-md py-1 pl-2 pr-7 text-xs focus:ring-0 outline-none w-full"></select>
+                <div id="auth-container-mobile" class="w-full">
+                    <button id="login-btn-mobile" class="w-full px-3 py-1.5 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
+                    <div id="user-info-mobile" class="hidden items-center justify-between gap-2">
+                        <span id="user-display-name-mobile" class="text-sm font-semibold text-slate-300"></span>
+                        <button id="logout-btn-mobile" class="px-2 py-1 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </nav>
     
@@ -234,12 +280,15 @@
                             </div>
                             <div id="fountain5-wrapper" class="space-y-2">
                                  <div class="flex items-center justify-between">
-                                    <label for="fountain5-toggle" class="text-xs text-slate-300" data-i18n-key="calc_fountain_5_toggle">Enable 5th Fountain</label>
-                                    <input type="checkbox" id="fountain5-toggle" class="form-checkbox h-4 w-4 rounded bg-slate-700 border-slate-500 text-violet-500 focus:ring-violet-500">
+                                    <label for="fountain5-toggle-label" class="text-xs text-slate-300" data-i18n-key="calc_fountain_5_toggle">Enable 5th Fountain</label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="fountain5-toggle">
+                                        <span class="slider"></span>
+                                    </label>
                                 </div>
                                 <select id="fountain5" class="fountain-level w-full glass-select rounded-md" disabled></select>
                             </div>
-                            <div class="pt-1">
+                            <div class="pt-1 text-center">
                                  <h3 class="text-xs font-medium text-slate-400" data-i18n-key="calc_total_water">Total Water / Hour</h3>
                                  <p id="total-output" class="text-2xl font-bold mt-1 text-sky-300">0</p>
                             </div>
@@ -261,25 +310,20 @@
                                      <p id="lab-completion-time" class="text-2xl font-bold mt-1 text-teal-300">--</p>
                                 </div>
                             </div>
-                            <div id="sync-data-wrapper" class="pt-2 hidden">
-                                <button id="sync-data-btn" class="w-full px-4 py-2 btn-primary rounded-md font-semibold text-white text-sm" data-i18n-key="calc_sync_btn">
-                                    <i class="fas fa-cloud-upload-alt mr-2"></i>Sync to Leaderboard
-                                </button>
-                            </div>
                         </section>
                     </div>
                 </div>
             </div>
             
-            <!-- Community Page -->
-            <div id="community-page" class="main-card rounded-xl p-4 md:p-6 space-y-4 hidden">
+            <!-- Alliance Page -->
+            <div id="alliance-page" class="main-card rounded-xl p-4 md:p-6 space-y-4 hidden">
                 <div class="flex justify-between items-center flex-wrap gap-3">
                     <div>
-                        <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i class="fas fa-users text-violet-400 fa-fw"></i><span data-i18n-key="community_title">Community Leaderboard</span></h2>
-                        <p class="text-slate-400 mt-1 text-sm" data-i18n-key="community_subtitle">See how you stack up against other players.</p>
+                        <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i class="fas fa-shield-alt text-violet-400 fa-fw"></i><span data-i18n-key="alliance_title">Alliance Resistance Leaderboard</span></h2>
+                        <p class="text-slate-400 mt-1 text-sm" data-i18n-key="alliance_subtitle">See how you stack up against other players.</p>
                     </div>
-                     <div id="community-login-prompt" class="sub-card p-3 rounded-xl text-center hidden">
-                        <p class="text-slate-300 text-xs"><span data-i18n-key="community_login_prompt_1">Please</span> <button id="community-login-btn" class="font-bold text-sky-400 hover:underline" data-i18n-key="community_login_prompt_2">log in</button> <span data-i18n-key="community_login_prompt_3">to join the leaderboard.</span></p>
+                     <div id="alliance-login-prompt" class="sub-card p-3 rounded-xl text-center hidden">
+                        <p class="text-slate-300 text-xs"><span data-i18n-key="alliance_login_prompt_1">Please</span> <button id="alliance-login-btn" class="font-bold text-sky-400 hover:underline" data-i18n-key="alliance_login_prompt_2">log in</button> <span data-i18n-key="alliance_login_prompt_3">to join the leaderboard.</span></p>
                     </div>
                 </div>
 
@@ -292,14 +336,22 @@
             <!-- Information Page -->
             <div id="information-page" class="main-card rounded-xl p-4 md:p-6 space-y-4 hidden">
                 <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i class="fas fa-info-circle text-amber-400 fa-fw"></i><span data-i18n-key="info_title">Information</span></h2>
-                <div class="prose prose-sm prose-invert max-w-none text-slate-300">
-                    <p data-i18n-key="info_p1">This tool is designed to help you plan your resource management and building upgrades effectively.</p>
+                <div class="prose prose-sm prose-invert max-w-none text-slate-300 space-y-3">
+                    <p data-i18n-key="info_p1">This tool is designed to help you plan your resource management for the Cursed Lab and Blessed Fountains. Optimize your upgrades, see how you compare to others, and save your progress.</p>
+                    
                     <h3 data-i18n-key="info_h_calc">Calculator Page</h3>
-                    <p data-i18n-key="info_p_calc">The main calculator page allows you to input your Blessed Fountain levels to determine your total Sacred Water production per hour. You can then use this production rate to calculate the exact time you will have enough resources to upgrade your Cursed Lab to a desired level.</p>
-                    <h3 data-i18n-key="info_h_comm">Community Page</h3>
-                    <p data-i18n-key="info_p_comm">On the Community page, you can submit your own calculator data to a public leaderboard to see how you stack up against other players. The list is updated in real-time.</p>
-                    <h3 data-i18n-key="info_h_save">Saving Data</h3>
-                    <p data-i18n-key="info_p_save">By logging in with an email and password, all your entered data (fountain levels, current resources) will be automatically saved. When you return, your data will be loaded, allowing you to pick up right where you left off.</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li data-i18n-key="info_li_calc1"><b>Blessed Fountains:</b> Select the current level for each of your four primary fountains. If you have unlocked the fifth, use the toggle to enable it and set its level.</li>
+                        <li data-i18n-key="info_li_calc2"><b>Total Production:</b> The calculator will instantly show your total Sacred Water production per hour based on your fountain levels.</li>
+                        <li data-i18n-key="info_li_calc3"><b>Lab Upgrade:</b> Enter your current amount of Sacred Water and select the Cursed Lab level you are aiming for.</li>
+                        <li data-i18n-key="info_li_calc4"><b>Completion Time:</b> The tool will calculate the exact date and time you will have enough resources for the selected lab upgrade.</li>
+                    </ul>
+
+                    <h3 data-i18n-key="info_h_alliance">Alliance Leaderboard</h3>
+                    <p data-i18n-key="info_p_alliance">Log in to join the Alliance leaderboard. Once logged in, your data will automatically sync to the leaderboard as you make changes in the calculator, allowing you to see how your progress and production rate compare to other players in real-time.</p>
+                    
+                    <h3 data-i18n-key="info_h_save">Saving Your Data</h3>
+                    <p data-i18n-key="info_p_save">Creating an account and logging in automatically saves your data (fountain levels, current resources) to our database. The next time you visit, all your information will be pre-filled, so you can continue your planning without missing a beat.</p>
                 </div>
             </div>
         </div>
@@ -347,9 +399,7 @@
                 totalOutput: document.getElementById('total-output'),
                 currentWater: document.getElementById('current-water'),
                 labLevel: document.getElementById('lab-level'),
-                completionTime: document.getElementById('lab-completion-time'),
-                syncDataWrapper: document.getElementById('sync-data-wrapper'),
-                syncDataBtn: document.getElementById('sync-data-btn')
+                completionTime: document.getElementById('lab-completion-time')
             },
             auth: {
                 modal: document.getElementById('auth-modal'),
@@ -358,6 +408,10 @@
                 logoutBtn: document.getElementById('logout-btn'),
                 userInfo: document.getElementById('user-info'),
                 userDisplayName: document.getElementById('user-display-name'),
+                loginBtnMobile: document.getElementById('login-btn-mobile'),
+                logoutBtnMobile: document.getElementById('logout-btn-mobile'),
+                userInfoMobile: document.getElementById('user-info-mobile'),
+                userDisplayNameMobile: document.getElementById('user-display-name-mobile'),
                 usernameField: document.getElementById('username-field'),
                 confirmPasswordField: document.getElementById('confirm-password-field'),
                 title: document.getElementById('auth-title'),
@@ -366,21 +420,22 @@
                 toggleBtn: document.getElementById('auth-toggle-btn'),
                 error: document.getElementById('auth-error')
             },
-            community: {
-                loginPrompt: document.getElementById('community-login-prompt'),
-                loginBtn: document.getElementById('community-login-btn'),
+            alliance: {
+                loginPrompt: document.getElementById('alliance-login-prompt'),
+                loginBtn: document.getElementById('alliance-login-btn'),
                 playerListContainer: document.getElementById('player-list-container')
             },
             nav: {
                 links: document.querySelectorAll('.nav-link'),
                 languageSelector: document.getElementById('language-selector'),
+                languageSelectorMobile: document.getElementById('language-selector-mobile'),
                 hamburgerBtn: document.getElementById('hamburger-btn'),
                 mobileMenu: document.getElementById('mobile-menu'),
                 desktopMenu: document.getElementById('desktop-menu'),
             },
             pages: {
                 calculator: document.getElementById('calculator-page'),
-                community: document.getElementById('community-page'),
+                alliance: document.getElementById('alliance-page'),
                 information: document.getElementById('information-page')
             }
         };
@@ -395,23 +450,43 @@
         
         const translations = {
             en: {
-                page_title: "Cursed Lab Calculator", nav_calculator: "Calculator", nav_community: "Community", nav_information: "Information",
+                page_title: "Cursed Lab Calculator", nav_calculator: "Calculator", nav_alliance: "Alliance", nav_information: "Information",
                 auth_login_title: "Login", auth_register_title: "Create Account", auth_username: "Username", auth_email: "Email Address", auth_password: "Password", auth_confirm_password: "Confirm Password", auth_login_btn: "Login", auth_register_btn: "Register", auth_no_account: "Don't have an account?", auth_have_account: "Already have an account?", auth_register_link: "Register", auth_login_link: "Login", auth_login_btn_short: "Login", auth_logout_btn: "Logout",
                 calc_fountains_title: "Blessed Fountains", calc_fountain_1: "Fountain 1", calc_fountain_2: "Fountain 2", calc_fountain_3: "Fountain 3", calc_fountain_4: "Fountain 4", calc_fountain_5_toggle: "Enable 5th Fountain", calc_total_water: "Total Water / Hour",
-                calc_lab_title: "Cursed Lab Upgrade", calc_current_water: "Current Sacred Water", calc_target_level: "Target Lab Level", calc_completion_time: "Upgrade Completion Time", calc_sync_btn: "Sync to Leaderboard",
-                community_title: "Community Leaderboard", community_subtitle: "See how you stack up against other players.", community_login_prompt_1: "Please", community_login_prompt_2: "log in", community_login_prompt_3: "to join the leaderboard.",
-                community_card_upgrade_time: "Upgrade At",
-                info_title: "Information", info_p1: "This tool is designed to help you plan your resource management and building upgrades effectively.", info_h_calc: "Calculator Page", info_p_calc: "The main calculator page allows you to input your Blessed Fountain levels to determine your total Sacred Water production per hour. You can then use this production rate to calculate the exact time you will have enough resources to upgrade your Cursed Lab to a desired level.", info_h_comm: "Community Page", info_p_comm: "On the Community page, you can submit your own calculator data to a public leaderboard to see how you stack up against other players. The list is updated in real-time.", info_h_save: "Saving Data", info_p_save: "By logging in with an email and password, all your entered data (fountain levels, current resources) will be automatically saved. When you return, your data will be loaded, allowing you to pick up right where you left off.",
+                calc_lab_title: "Cursed Lab Upgrade", calc_current_water: "Current Sacred Water", calc_target_level: "Target Lab Level", calc_completion_time: "Upgrade Completion Time",
+                alliance_title: "Alliance Resistance Leaderboard", alliance_subtitle: "See how you stack up against other players.", alliance_login_prompt_1: "Please", alliance_login_prompt_2: "log in", alliance_login_prompt_3: "to join the leaderboard.",
+                alliance_card_upgrade_time: "Upgrade At",
+                info_title: "Information", 
+                info_p1: "This tool is designed to help you plan your resource management for the Cursed Lab and Blessed Fountains. Optimize your upgrades, see how you compare to others, and save your progress.",
+                info_h_calc: "Calculator Page",
+                info_li_calc1: "Blessed Fountains: Select the current level for each of your four primary fountains. If you have unlocked the fifth, use the toggle to enable it and set its level.",
+                info_li_calc2: "Total Production: The calculator will instantly show your total Sacred Water production per hour based on your fountain levels.",
+                info_li_calc3: "Lab Upgrade: Enter your current amount of Sacred Water and select the Cursed Lab level you are aiming for.",
+                info_li_calc4: "Completion Time: The tool will calculate the exact date and time you will have enough resources for the selected lab upgrade.",
+                info_h_alliance: "Alliance Leaderboard",
+                info_p_alliance: "Log in to join the Alliance leaderboard. Once logged in, your data will automatically sync to the leaderboard as you make changes in the calculator, allowing you to see how your progress and production rate compare to other players in real-time.",
+                info_h_save: "Saving Your Data",
+                info_p_save: "Creating an account and logging in automatically saves your data (fountain levels, current resources) to our database. The next time you visit, all your information will be pre-filled, so you can continue your planning without missing a beat.",
                 time_ready: "Ready!", time_no_prod: "No Production", toast_data_synced: "Leaderboard synced!",
             },
             es: {
-                page_title: "Calculadora de Laboratorio Maldito", nav_calculator: "Calculadora", nav_community: "Comunidad", nav_information: "Información",
+                page_title: "Calculadora de Laboratorio Maldito", nav_calculator: "Calculadora", nav_alliance: "Alianza", nav_information: "Información",
                 auth_login_title: "Iniciar Sesión", auth_register_title: "Crear Cuenta", auth_username: "Usuario", auth_email: "Correo Electrónico", auth_password: "Contraseña", auth_confirm_password: "Confirmar Contraseña", auth_login_btn: "Iniciar Sesión", auth_register_btn: "Registrarse", auth_no_account: "¿No tienes una cuenta?", auth_have_account: "¿Ya tienes una cuenta?", auth_register_link: "Regístrate", auth_login_link: "Inicia Sesión", auth_login_btn_short: "Login", auth_logout_btn: "Salir",
                 calc_fountains_title: "Fuentes Benditas", calc_fountain_1: "Fuente 1", calc_fountain_2: "Fuente 2", calc_fountain_3: "Fuente 3", calc_fountain_4: "Fuente 4", calc_fountain_5_toggle: "Habilitar 5ª Fuente", calc_total_water: "Agua Total / Hora",
-                calc_lab_title: "Mejora de Laboratorio Maldito", calc_current_water: "Agua Sagrada Actual", calc_target_level: "Nivel de Laboratorio Deseado", calc_completion_time: "Tiempo de Finalización", calc_sync_btn: "Sincronizar con la Tabla",
-                community_title: "Tabla de Clasificación", community_subtitle: "Compara tu progreso con otros jugadores.", community_login_prompt_1: "Por favor", community_login_prompt_2: "inicia sesión", community_login_prompt_3: "para unirte.",
-                community_card_upgrade_time: "Mejora en",
-                info_title: "Información", info_p1: "Esta herramienta está diseñada para ayudarte a planificar la gestión de tus recursos y mejoras de edificios de manera efectiva.", info_h_calc: "Página de la Calculadora", info_p_calc: "La página principal de la calculadora te permite introducir los niveles de tus Fuentes Benditas para determinar tu producción total de Agua Sagrada por hora. Luego puedes usar esta tasa de producción para calcular el tiempo exacto que tardarás en tener suficientes recursos para mejorar tu Laboratorio Maldito al nivel deseado.", info_h_comm: "Página de la Comunidad", info_p_comm: "En la página de la Comunidad, puedes enviar tus propios datos de la calculadora a una tabla de clasificación pública para ver cómo te comparas con otros jugadores. La lista se actualiza en tiempo real.", info_h_save: "Guardar Datos", info_p_save: "Al iniciar sesión con un correo electrónico y una contraseña, todos los datos que introduzcas (niveles de fuente, recursos actuales) se guardarán automáticamente. Cuando regreses, tus datos se cargarán, permitiéndote continuar justo donde lo dejaste.",
+                calc_lab_title: "Mejora de Laboratorio Maldito", calc_current_water: "Agua Sagrada Actual", calc_target_level: "Nivel de Laboratorio Deseado", calc_completion_time: "Tiempo de Finalización",
+                alliance_title: "Tabla de Clasificación de la Alianza", alliance_subtitle: "Compara tu progreso con otros jugadores.", alliance_login_prompt_1: "Por favor", alliance_login_prompt_2: "inicia sesión", alliance_login_prompt_3: "para unirte.",
+                alliance_card_upgrade_time: "Mejora en",
+                info_title: "Información",
+                info_p1: "Esta herramienta está diseñada para ayudarte a planificar la gestión de tus recursos y mejoras de edificios de manera efectiva.",
+                info_h_calc: "Página de la Calculadora",
+                info_li_calc1: "Fuentes Benditas: Selecciona el nivel actual para cada una de tus cuatro fuentes principales. Si has desbloqueado la quinta, usa el interruptor para habilitarla y establecer su nivel.",
+                info_li_calc2: "Producción Total: La calculadora mostrará instantáneamente tu producción total de Agua Sagrada por hora según los niveles de tus fuentes.",
+                info_li_calc3: "Mejora de Laboratorio: Ingresa tu cantidad actual de Agua Sagrada y selecciona el nivel de Laboratorio Maldito que deseas alcanzar.",
+                info_li_calc4: "Tiempo de Finalización: La herramienta calculará la fecha y hora exactas en que tendrás suficientes recursos para la mejora de laboratorio seleccionada.",
+                info_h_alliance: "Tabla de Clasificación de la Alianza",
+                info_p_alliance: "Inicia sesión para unirte a la tabla de clasificación de la alianza. Una vez que hayas iniciado sesión, tus datos se sincronizarán automáticamente con la tabla de clasificación a medida que realices cambios en la calculadora, lo que te permitirá ver cómo se compara tu progreso y tu tasa de producción con otros jugadores en tiempo real.",
+                info_h_save: "Guardando Tus Datos",
+                info_p_save: "Al crear una cuenta e iniciar sesión, tus datos (niveles de fuente, recursos actuales) se guardan automáticamente en nuestra base de datos. La próxima vez que visites, toda tu información estará pre-cargada, para que puedas continuar tu planificación sin perder el ritmo.",
                 time_ready: "¡Listo!", time_no_prod: "Sin Producción", toast_data_synced: "¡Tabla de clasificación sincronizada!",
             }
         };
@@ -439,17 +514,48 @@
             });
             localStorage.setItem('language', langCode);
             dom.nav.languageSelector.value = langCode;
+            dom.nav.languageSelectorMobile.value = langCode;
             runCalculations();
         }
 
         function initializeLanguage() {
             Object.entries(supportedLangs).forEach(([code, name]) => {
-                dom.nav.languageSelector.add(new Option(name, code));
+                const option = new Option(name, code);
+                dom.nav.languageSelector.add(option.cloneNode(true));
+                dom.nav.languageSelectorMobile.add(option);
             });
             const savedLang = localStorage.getItem('language');
             const browserLang = navigator.language.split('-')[0];
             setLanguage(savedLang || (supportedLangs[browserLang] ? browserLang : 'en'));
         }
+        
+        // Debounce function to limit how often a function is called
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        async function updatePublicLeaderboard() {
+            if (!currentUserId || !auth.currentUser) return;
+            const publicData = { 
+                username: auth.currentUser.displayName, 
+                calculatorData: state, 
+                updatedAt: new Date() 
+            };
+            try {
+                const publicUserDocRef = doc(db, `artifacts/${appId}/public/data/playerData/${currentUserId}`);
+                await setDoc(publicUserDocRef, publicData);
+                console.log("Leaderboard updated automatically.");
+            } catch (error) { 
+                console.error("Error writing public data automatically: ", error); 
+            }
+        }
+
+        const debouncedUpdatePublicLeaderboard = debounce(updatePublicLeaderboard, 1500);
 
         function runCalculations() {
             state.hourlyProduction = 0;
@@ -491,6 +597,7 @@
             
             if (currentUserId) {
                 savePrivateDataSilently();
+                debouncedUpdatePublicLeaderboard();
             }
         }
         
@@ -500,17 +607,6 @@
                 const userDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}`);
                 await setDoc(userDocRef, state, { merge: true });
             } catch (error) { console.error("Error saving data silently: ", error); }
-        }
-
-        async function syncPublicData() {
-            if (!currentUserId || !auth.currentUser) return;
-            runCalculations();
-            const publicData = { username: auth.currentUser.displayName, calculatorData: state, updatedAt: new Date() };
-            try {
-                const publicUserDocRef = doc(db, `artifacts/${appId}/public/data/playerData/${currentUserId}`);
-                await setDoc(publicUserDocRef, publicData);
-                showToast('toast_data_synced');
-            } catch (error) { console.error("Error writing public data: ", error); }
         }
 
         async function loadDataFromFirestore() {
@@ -543,9 +639,9 @@
                 const players = [];
                 querySnapshot.forEach((doc) => players.push(doc.data()));
                 players.sort((a, b) => (b.calculatorData?.targetLabLevel || 0) - (a.calculatorData?.targetLabLevel || 0));
-                dom.community.playerListContainer.innerHTML = '';
+                dom.alliance.playerListContainer.innerHTML = '';
                 if (players.length === 0) {
-                    dom.community.playerListContainer.innerHTML = `<p class="text-center text-slate-400 col-span-full py-8" data-i18n-key="community_no_players">No players yet. Be the first!</p>`;
+                    dom.alliance.playerListContainer.innerHTML = `<p class="text-center text-slate-400 col-span-full py-8" data-i18n-key="alliance_no_players">No players yet. Be the first!</p>`;
                     setLanguage(localStorage.getItem('language') || 'en');
                     return;
                 }
@@ -576,39 +672,49 @@
                     }
 
                     const fountains = data.fountainLevels || [0,0,0,0,0];
+                    const f5OpacityClass = data.fountain5Enabled ? '' : 'opacity-50';
                     const card = `
                         <div class="player-list-item rounded-lg p-3">
-                            <div class="sm:flex sm:items-center sm:justify-between sm:gap-4">
-                                <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 sm:flex-nowrap sm:items-center sm:gap-4 flex-grow">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-xl font-bold text-slate-500 w-8 text-center shrink-0">#${index + 1}</span>
-                                        <div>
-                                            <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
-                                            <p class="text-xs text-slate-400">Lab Lvl: <span class="font-semibold text-violet-400">${data.targetLabLevel || 'N/A'}</span></p>
-                                        </div>
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                <!-- Left Side: Rank, Name, Lab Level -->
+                                <div class="flex items-center gap-3 flex-grow">
+                                    <span class="text-2xl font-bold text-slate-500 w-10 text-center shrink-0">#${index + 1}</span>
+                                    <div class="flex-grow">
+                                        <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
+                                        <p class="text-xs text-slate-400 -mt-1">Lab Level</p>
                                     </div>
-                                    <div class="flex items-center gap-4 text-sm shrink-0">
+                                    <div class="text-right">
+                                        <p class="font-bold text-4xl text-violet-400">${data.targetLabLevel || 'N/A'}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Right Side: Stats & Fountains -->
+                                <div class="flex flex-col md:flex-row md:items-center gap-3 shrink-0">
+                                     <!-- Stats -->
+                                    <div class="flex items-center justify-around gap-4 text-sm border-t md:border-t-0 md:border-l border-slate-700/50 pt-3 md:pt-0 md:pl-3">
                                         <div class="text-center">
-                                            <p class="text-xs text-slate-400" data-i18n-key="community_card_upgrade_time">Upgrade At</p>
+                                            <p class="text-xs text-slate-400" data-i18n-key="alliance_card_upgrade_time">Upgrade At</p>
                                             <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
                                         </div>
-                                        <div class="text-center">
+                                        <div class="text-center hidden sm:block">
                                             <p class="text-xs text-slate-400">Water/hr</p>
                                             <p class="font-semibold text-base text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="mt-3 sm:mt-0 w-full sm:w-auto grid grid-cols-5 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md shrink-0">
-                                    <div><p class="text-slate-400">F1</p><p class="font-bold text-white text-base">${fountains[0]}</p></div>
-                                    <div><p class="text-slate-400">F2</p><p class="font-bold text-white text-base">${fountains[1]}</p></div>
-                                    <div><p class="text-slate-400">F3</p><p class="font-bold text-white text-base">${fountains[2]}</p></div>
-                                    <div><p class="text-slate-400">F4</p><p class="font-bold text-white text-base">${fountains[3]}</p></div>
-                                    <div><p class="text-slate-400">F5</p><p class="font-bold text-white text-base">${data.fountain5Enabled ? fountains[4] : '—'}</p></div>
+
+                                    <!-- Fountains -->
+                                    <div class="grid grid-cols-5 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md md:border-l border-slate-700/50 md:pl-3">
+                                        <div><p class="text-slate-400">F1</p><p class="font-bold text-white text-base">${fountains[0]}</p></div>
+                                        <div><p class="text-slate-400">F2</p><p class="font-bold text-white text-base">${fountains[1]}</p></div>
+                                        <div><p class="text-slate-400">F3</p><p class="font-bold text-white text-base">${fountains[2]}</p></div>
+                                        <div><p class="text-slate-400">F4</p><p class="font-bold text-white text-base">${fountains[3]}</p></div>
+                                        <div class="${f5OpacityClass}"><p class="text-slate-400">F5</p><p class="font-bold text-white text-base">${data.fountain5Enabled ? fountains[4] : '—'}</p></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     `;
-                    dom.community.playerListContainer.innerHTML += card;
+                    dom.alliance.playerListContainer.innerHTML += card;
                 });
                 setLanguage(lang); // Re-translate any dynamic keys in the cards
             });
@@ -616,17 +722,27 @@
 
         function updateUIForAuthState(user) {
             if (user) {
+                // Desktop
                 dom.auth.loginBtn.classList.add('hidden');
                 dom.auth.userInfo.classList.remove('hidden');
                 dom.auth.userInfo.classList.add('flex');
                 dom.auth.userDisplayName.textContent = user.displayName || user.email;
-                dom.community.loginPrompt.classList.add('hidden');
-                dom.calculator.syncDataWrapper.classList.remove('hidden');
+                // Mobile
+                dom.auth.loginBtnMobile.classList.add('hidden');
+                dom.auth.userInfoMobile.classList.remove('hidden');
+                dom.auth.userInfoMobile.classList.add('flex');
+                dom.auth.userDisplayNameMobile.textContent = user.displayName || user.email;
+
+                dom.alliance.loginPrompt.classList.add('hidden');
             } else {
+                // Desktop
                 dom.auth.loginBtn.classList.remove('hidden');
                 dom.auth.userInfo.classList.add('hidden');
-                dom.community.loginPrompt.classList.remove('hidden');
-                dom.calculator.syncDataWrapper.classList.add('hidden');
+                // Mobile
+                dom.auth.loginBtnMobile.classList.remove('hidden');
+                dom.auth.userInfoMobile.classList.add('hidden');
+
+                dom.alliance.loginPrompt.classList.remove('hidden');
             }
         }
 
@@ -687,9 +803,15 @@
                 dom.auth.toggleBtn.textContent = translations[lang][isRegisterMode ? 'auth_login_link' : 'auth_register_link'];
             }
             
-            dom.auth.loginBtn.addEventListener('click', () => dom.auth.modal.classList.remove('hidden'));
-            dom.community.loginBtn.addEventListener('click', () => dom.auth.modal.classList.remove('hidden'));
-            dom.auth.logoutBtn.addEventListener('click', () => signOut(auth));
+            const openAuthModal = () => dom.auth.modal.classList.remove('hidden');
+            dom.auth.loginBtn.addEventListener('click', openAuthModal);
+            dom.auth.loginBtnMobile.addEventListener('click', openAuthModal);
+            dom.alliance.loginBtn.addEventListener('click', openAuthModal);
+
+            const handleLogout = () => signOut(auth);
+            dom.auth.logoutBtn.addEventListener('click', handleLogout);
+            dom.auth.logoutBtnMobile.addEventListener('click', handleLogout);
+            
             dom.auth.modal.addEventListener('click', (e) => { if(e.target === dom.auth.modal) dom.auth.modal.classList.add('hidden'); });
             dom.auth.toggleBtn.addEventListener('click', toggleAuthMode);
 
@@ -716,9 +838,10 @@
                     } catch (error) { dom.auth.error.textContent = error.message.replace('Firebase: ', ''); }
                 }
             });
-
-            dom.calculator.syncDataBtn.addEventListener('click', syncPublicData);
-            dom.nav.languageSelector.addEventListener('change', (e) => setLanguage(e.target.value));
+            
+            const handleLangChange = (e) => setLanguage(e.target.value);
+            dom.nav.languageSelector.addEventListener('change', handleLangChange);
+            dom.nav.languageSelectorMobile.addEventListener('change', handleLangChange);
 
             initializeLanguage();
             runCalculations();
