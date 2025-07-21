@@ -780,8 +780,21 @@
                 querySnapshot.forEach((doc) => players.push(doc.data()));
                 
                 players.sort((a, b) => {
+                    const dataA = a.calculatorData || {};
+                    const dataB = b.calculatorData || {};
+
+                    const labLevelA = dataA.targetLabLevel || 0;
+                    const labLevelB = dataB.targetLabLevel || 0;
+
+                    // Primary sort: by target lab level, descending
+                    if (labLevelB !== labLevelA) {
+                        return labLevelB - labLevelA;
+                    }
+
+                    // Secondary sort: by remaining hours, ascending
                     const hoursA = calculateRemainingHours(a);
                     const hoursB = calculateRemainingHours(b);
+                    
                     return hoursA - hoursB;
                 });
 
