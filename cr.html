@@ -753,13 +753,49 @@
             }
         }
         
+        function calculateRemainingHours(data) {
+            if (!data) return Infinity;
+            const targetLabLevel = data.targetLabLevel || 0;
+            const labCost = labUpgradeData[targetLabLevel]?.cost || 0;
+            const currentWater = data.currentWater || 0;
+            const hourlyProduction = data.hourlyProduction || 0;
+            const waterNeeded = labCost - currentWater;
+
+            if (waterNeeded <= 0) {
+                return -1; // Represents "Ready"
+            }
+            if (hourlyProduction <= 0) {
+                return Infinity; // Represents "No Production"
+            }
+            return waterNeeded / hourlyProduction;
+        }
+
         function listenForPublicPlayerData() {
             if (!db) return;
             const q = query(collection(db, `artifacts/${appId}/public/data/playerData`));
             onSnapshot(q, (querySnapshot) => {
                 const players = [];
                 querySnapshot.forEach((doc) => players.push(doc.data()));
-                players.sort((a, b) => (b.calculatorData?.targetLabLevel || 0) - (a.calculatorData?.targetLabLevel || 0));
+                
+                players.sort((a, b) => {
+                    const hoursA = calculateRemainingHours(a.calculatorData);
+                    const hoursB = calculateRemainingHours(b.calculatorData);
+                    const labLevelA = a.calculatorData?.targetLabLevel || 0;
+                    const labLevelB = b.calculatorData?.targetLabLevel || 0;
+
+                    if (hoursA < 0 && hoursB >= 0) return -1;
+                    if (hoursB < 0 && hoursA >= 0) return 1;
+                    if (hoursA < 0 && hoursB < 0) return labLevelB - labLevelA;
+
+                    if (hoursA === Infinity && hoursB !== Infinity) return 1;
+                    if (hoursB === Infinity && hoursA !== Infinity) return -1;
+                    if (hoursA === Infinity && hoursB === Infinity) return labLevelB - labLevelA;
+
+                    if (hoursA !== hoursB) return hoursA - hoursB;
+                    
+                    return labLevelB - labLevelA;
+                });
+
                 dom.alliance.playerListContainer.innerHTML = '';
                 if (players.length === 0) {
                     dom.alliance.playerListContainer.innerHTML = `<p class="text-center text-slate-400 col-span-full py-8" data-i18n-key="alliance_no_players">No players yet. Be the first!</p>`;
