@@ -820,12 +820,12 @@
                                 <p class="text-3xl font-bold text-white">#${index + 1}</p>
                             </div>
                             <div class="p-3 flex-grow">
-                                <div class="sm:flex sm:items-start sm:justify-between">
+                                <div class="flex items-start justify-between">
                                     <div>
                                         <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
                                         <p class="text-xs text-slate-400 -mt-1">Lab Level <span class="font-semibold text-violet-400">${data.targetLabLevel || 'N/A'}</span></p>
                                     </div>
-                                    <div class="text-left sm:text-right mt-2 sm:mt-0">
+                                    <div class="text-right shrink-0 ml-4">
                                         <p class="text-xs text-slate-400" data-i18n-key="alliance_card_upgrade_time">Upgrade At</p>
                                         <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
                                     </div>
