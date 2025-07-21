@@ -119,61 +119,38 @@
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
         
-        .player-list-item {
+        .player-card {
             background: linear-gradient(145deg, rgba(31, 41, 55, 0.4), rgba(17, 24, 39, 0.4));
             border: 1px solid var(--border-color);
             transition: all 0.3s ease;
+            overflow: hidden;
         }
-        .player-list-item:hover {
+        .player-card:hover {
             border-color: var(--accent-primary);
-            background: linear-gradient(145deg, rgba(31, 41, 55, 0.6), rgba(17, 24, 39, 0.6));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        .player-card .rank {
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
-        /* Toggle Switch Styles */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 22px;
-            height: 12px;
+        #mobile-menu {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(100%);
         }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        #mobile-menu.open {
+            transform: translateX(0);
         }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--bg-tertiary);
-            transition: .4s;
-            border-radius: 12px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 8px;
-            width: 8px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: var(--accent-primary);
-        }
-        input:checked + .slider:before {
-            transform: translateX(10px);
+        #menu-overlay {
+            transition: opacity 0.3s ease-in-out;
         }
     </style>
 </head>
 <body class="text-slate-200">
 
     <div id="toast-container"></div>
+    <div id="menu-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden"></div>
 
     <!-- Auth Modal -->
     <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4">
@@ -207,7 +184,7 @@
     </div>
 
     <!-- Navigation Bar -->
-    <nav class="main-card sticky top-0 md:top-2 z-40 w-full max-w-5xl mx-auto rounded-none md:rounded-xl shadow-lg">
+    <nav class="main-card sticky top-0 md:top-2 z-30 w-full max-w-5xl mx-auto rounded-none md:rounded-xl shadow-lg">
         <div class="flex items-center justify-between p-3">
             <div class="flex items-center gap-3">
                 <i class="fas fa-virus text-violet-400 text-2xl"></i>
@@ -233,22 +210,30 @@
                 <i class="fas fa-bars fa-lg"></i>
             </button>
         </div>
-        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-700 p-2 flex flex-col gap-2">
-            <a href="#" class="nav-link active text-sm" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
-            <a href="#" class="nav-link text-sm" data-page="alliance" data-i18n-key="nav_alliance">Alliance</a>
-            <a href="#" class="nav-link text-sm" data-page="information" data-i18n-key="nav_information">Information</a>
-            <div class="border-t border-slate-700 pt-2 flex flex-col items-center gap-2">
-                <select id="language-selector-mobile" class="glass-select rounded-md py-1 pl-2 pr-7 text-xs focus:ring-0 outline-none w-full"></select>
-                <div id="auth-container-mobile" class="w-full">
-                    <button id="login-btn-mobile" class="w-full px-3 py-1.5 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
-                    <div id="user-info-mobile" class="hidden items-center justify-between gap-2">
-                        <span id="user-display-name-mobile" class="text-sm font-semibold text-slate-300"></span>
-                        <button id="logout-btn-mobile" class="px-2 py-1 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
-                    </div>
+    </nav>
+
+    <!-- Mobile Menu Panel -->
+    <div id="mobile-menu" class="fixed top-0 right-0 bottom-0 w-4/5 max-w-xs bg-gray-900/95 backdrop-blur-lg z-50 p-4 flex flex-col">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-bold text-white">Menu</h2>
+            <button id="close-menu-btn" class="p-2 text-slate-300 hover:text-white"><i class="fas fa-times fa-lg"></i></button>
+        </div>
+        <div class="flex flex-col gap-2">
+            <a href="#" class="nav-link active text-base" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
+            <a href="#" class="nav-link text-base" data-page="alliance" data-i18n-key="nav_alliance">Alliance</a>
+            <a href="#" class="nav-link text-base" data-page="information" data-i18n-key="nav_information">Information</a>
+        </div>
+        <div class="mt-auto border-t border-slate-700 pt-4 flex flex-col items-center gap-3">
+            <select id="language-selector-mobile" class="glass-select rounded-md py-2 pl-3 pr-8 text-sm focus:ring-0 outline-none w-full"></select>
+            <div id="auth-container-mobile" class="w-full">
+                <button id="login-btn-mobile" class="w-full px-3 py-2 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
+                <div id="user-info-mobile" class="hidden items-center justify-between gap-2">
+                    <span id="user-display-name-mobile" class="text-sm font-semibold text-slate-300 truncate"></span>
+                    <button id="logout-btn-mobile" class="px-3 py-1.5 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
     
     <!-- Main Content Area -->
     <main class="w-full max-w-5xl mx-auto my-4 px-4">
@@ -431,6 +416,8 @@
                 languageSelectorMobile: document.getElementById('language-selector-mobile'),
                 hamburgerBtn: document.getElementById('hamburger-btn'),
                 mobileMenu: document.getElementById('mobile-menu'),
+                closeMenuBtn: document.getElementById('close-menu-btn'),
+                menuOverlay: document.getElementById('menu-overlay'),
                 desktopMenu: document.getElementById('desktop-menu'),
             },
             pages: {
@@ -488,6 +475,126 @@
                 info_h_save: "Guardando Tus Datos",
                 info_p_save: "Al crear una cuenta e iniciar sesión, tus datos (niveles de fuente, recursos actuales) se guardan automáticamente en nuestra base de datos. La próxima vez que visites, toda tu información estará pre-cargada, para que puedas continuar tu planificación sin perder el ritmo.",
                 time_ready: "¡Listo!", time_no_prod: "Sin Producción", toast_data_synced: "¡Tabla de clasificación sincronizada!",
+            },
+            de: {
+                page_title: "Verfluchter Labor Rechner", nav_calculator: "Rechner", nav_alliance: "Allianz", nav_information: "Informationen",
+                auth_login_title: "Anmelden", auth_register_title: "Konto erstellen", auth_username: "Benutzername", auth_email: "E-Mail-Adresse", auth_password: "Passwort", auth_confirm_password: "Passwort bestätigen", auth_login_btn: "Anmelden", auth_register_btn: "Registrieren", auth_no_account: "Kein Konto?", auth_have_account: "Bereits ein Konto?", auth_register_link: "Registrieren", auth_login_link: "Anmelden", auth_login_btn_short: "Login", auth_logout_btn: "Abmelden",
+                calc_fountains_title: "Gesegnete Brunnen", calc_fountain_1: "Brunnen 1", calc_fountain_2: "Brunnen 2", calc_fountain_3: "Brunnen 3", calc_fountain_4: "Brunnen 4", calc_fountain_5_toggle: "5. Brunnen aktivieren", calc_total_water: "Gesamtwasser / Stunde",
+                calc_lab_title: "Verfluchtes Labor Upgrade", calc_current_water: "Aktuelles Heiliges Wasser", calc_target_level: "Ziellaborlevel", calc_completion_time: "Upgrade-Fertigstellungszeit",
+                alliance_title: "Allianz-Widerstands-Rangliste", alliance_subtitle: "Vergleiche dich mit anderen Spielern.", alliance_login_prompt_1: "Bitte", alliance_login_prompt_2: "anmelden", alliance_login_prompt_3: "um der Rangliste beizutreten.",
+                alliance_card_upgrade_time: "Upgrade um",
+                info_title: "Informationen",
+                info_p1: "Dieses Tool hilft dir bei der Planung deines Ressourcenmanagements für das Verfluchte Labor und die Gesegneten Brunnen. Optimiere deine Upgrades, vergleiche dich mit anderen und speichere deinen Fortschritt.",
+                info_h_calc: "Rechner-Seite",
+                info_li_calc1: "Gesegnete Brunnen: Wähle das aktuelle Level für jeden deiner vier Hauptbrunnen. Wenn du den fünften freigeschaltet hast, aktiviere ihn mit dem Schalter und stelle sein Level ein.",
+                info_li_calc2: "Gesamtproduktion: Der Rechner zeigt sofort deine gesamte Heiliges-Wasser-Produktion pro Stunde basierend auf deinen Brunnenleveln an.",
+                info_li_calc3: "Labor-Upgrade: Gib deine aktuelle Menge an Heiligem Wasser ein und wähle das Laborlevel, das du anstrebst.",
+                info_li_calc4: "Fertigstellungszeit: Das Tool berechnet das genaue Datum und die Uhrzeit, zu der du genügend Ressourcen für das ausgewählte Labor-Upgrade haben wirst.",
+                info_h_alliance: "Allianz-Rangliste",
+                info_p_alliance: "Melde dich an, um der Allianz-Rangliste beizutreten. Sobald du angemeldet bist, werden deine Daten automatisch mit der Rangliste synchronisiert, wenn du Änderungen im Rechner vornimmst, sodass du deinen Fortschritt und deine Produktionsrate in Echtzeit mit anderen Spielern vergleichen kannst.",
+                info_h_save: "Deine Daten speichern",
+                info_p_save: "Durch das Erstellen eines Kontos und das Anmelden werden deine Daten (Brunnenlevel, aktuelle Ressourcen) automatisch in unserer Datenbank gespeichert. Bei deinem nächsten Besuch sind alle deine Informationen vorausgefüllt, sodass du deine Planung nahtlos fortsetzen kannst.",
+                time_ready: "Bereit!", time_no_prod: "Keine Produktion", toast_data_synced: "Rangliste synchronisiert!",
+            },
+            fr: {
+                page_title: "Calculateur de Laboratoire Maudit", nav_calculator: "Calculateur", nav_alliance: "Alliance", nav_information: "Informations",
+                auth_login_title: "Connexion", auth_register_title: "Créer un compte", auth_username: "Nom d'utilisateur", auth_email: "Adresse e-mail", auth_password: "Mot de passe", auth_confirm_password: "Confirmer le mot de passe", auth_login_btn: "Connexion", auth_register_btn: "S'inscrire", auth_no_account: "Pas de compte ?", auth_have_account: "Déjà un compte ?", auth_register_link: "S'inscrire", auth_login_link: "Se connecter", auth_login_btn_short: "Login", auth_logout_btn: "Déconnexion",
+                calc_fountains_title: "Fontaines Bénies", calc_fountain_1: "Fontaine 1", calc_fountain_2: "Fontaine 2", calc_fountain_3: "Fontaine 3", calc_fountain_4: "Fontaine 4", calc_fountain_5_toggle: "Activer la 5ème fontaine", calc_total_water: "Eau totale / Heure",
+                calc_lab_title: "Amélioration du Laboratoire Maudit", calc_current_water: "Eau Sacrée Actuelle", calc_target_level: "Niveau de Laboratoire Cible", calc_completion_time: "Temps d'achèvement de l'amélioration",
+                alliance_title: "Classement de la Résistance de l'Alliance", alliance_subtitle: "Voyez comment vous vous situez par rapport aux autres joueurs.", alliance_login_prompt_1: "Veuillez", alliance_login_prompt_2: "vous connecter", alliance_login_prompt_3: "pour rejoindre le classement.",
+                alliance_card_upgrade_time: "Amélioration à",
+                info_title: "Informations",
+                info_p1: "Cet outil est conçu pour vous aider à planifier la gestion de vos ressources pour le Laboratoire Maudit et les Fontaines Bénies. Optimisez vos améliorations, comparez-vous aux autres et sauvegardez votre progression.",
+                info_h_calc: "Page Calculateur",
+                info_li_calc1: "Fontaines Bénies : Sélectionnez le niveau actuel de chacune de vos quatre fontaines principales. Si vous avez débloqué la cinquième, utilisez le bouton pour l'activer et définir son niveau.",
+                info_li_calc2: "Production Totale : Le calculateur affichera instantanément votre production totale d'Eau Sacrée par heure en fonction des niveaux de vos fontaines.",
+                info_li_calc3: "Amélioration du Laboratoire : Entrez votre quantité actuelle d'Eau Sacrée et sélectionnez le niveau de Laboratoire Maudit que vous visez.",
+                info_li_calc4: "Temps d'achèvement : L'outil calculera la date et l'heure exactes auxquelles vous aurez suffisamment de ressources pour l'amélioration de laboratoire sélectionnée.",
+                info_h_alliance: "Classement de l'Alliance",
+                info_p_alliance: "Connectez-vous pour rejoindre le classement de l'Alliance. Une fois connecté, vos données se synchroniseront automatiquement avec le classement lorsque vous apporterez des modifications dans le calculateur, vous permettant de comparer votre progression et votre taux de production avec d'autres joueurs en temps réel.",
+                info_h_save: "Sauvegarde de vos données",
+                info_p_save: "La création d'un compte et la connexion sauvegardent automatiquement vos données (niveaux de fontaine, ressources actuelles) dans notre base de données. Lors de votre prochaine visite, toutes vos informations seront pré-remplies, vous pourrez ainsi poursuivre votre planification sans interruption.",
+                time_ready: "Prêt !", time_no_prod: "Aucune production", toast_data_synced: "Classement synchronisé !",
+            },
+            pt: {
+                page_title: "Calculadora do Laboratório Amaldiçoado", nav_calculator: "Calculadora", nav_alliance: "Aliança", nav_information: "Informações",
+                auth_login_title: "Entrar", auth_register_title: "Criar Conta", auth_username: "Nome de usuário", auth_email: "Endereço de e-mail", auth_password: "Senha", auth_confirm_password: "Confirmar Senha", auth_login_btn: "Entrar", auth_register_btn: "Registrar", auth_no_account: "Não tem uma conta?", auth_have_account: "Já tem uma conta?", auth_register_link: "Registre-se", auth_login_link: "Entrar", auth_login_btn_short: "Login", auth_logout_btn: "Sair",
+                calc_fountains_title: "Fontes Abençoadas", calc_fountain_1: "Fonte 1", calc_fountain_2: "Fonte 2", calc_fountain_3: "Fonte 3", calc_fountain_4: "Fonte 4", calc_fountain_5_toggle: "Ativar 5ª Fonte", calc_total_water: "Água Total / Hora",
+                calc_lab_title: "Melhoria do Laboratório Amaldiçoado", calc_current_water: "Água Sagrada Atual", calc_target_level: "Nível Alvo do Laboratório", calc_completion_time: "Tempo de Conclusão da Melhoria",
+                alliance_title: "Placar de Líderes da Resistência da Aliança", alliance_subtitle: "Veja como você se compara a outros jogadores.", alliance_login_prompt_1: "Por favor", alliance_login_prompt_2: "faça login", alliance_login_prompt_3: "para se juntar ao placar de líderes.",
+                alliance_card_upgrade_time: "Melhoria em",
+                info_title: "Informações",
+                info_p1: "Esta ferramenta foi projetada para ajudá-lo a planejar o gerenciamento de seus recursos para o Laboratório Amaldiçoado e as Fontes Abençoadas. Otimize suas melhorias, veja como você se compara aos outros e salve seu progresso.",
+                info_h_calc: "Página da Calculadora",
+                info_li_calc1: "Fontes Abençoadas: Selecione o nível atual de cada uma das suas quatro fontes principais. Se você desbloqueou a quinta, use o botão para ativá-la e definir seu nível.",
+                info_li_calc2: "Produção Total: A calculadora mostrará instantaneamente sua produção total de Água Sagrada por hora com base nos níveis de suas fontes.",
+                info_li_calc3: "Melhoria do Laboratório: Insira sua quantidade atual de Água Sagrada e selecione o nível do Laboratório Amaldiçoado que você almeja.",
+                info_li_calc4: "Tempo de Conclusão: A ferramenta calculará a data e a hora exatas em que você terá recursos suficientes para a melhoria de laboratório selecionada.",
+                info_h_alliance: "Placar de Líderes da Aliança",
+                info_p_alliance: "Faça login para se juntar ao placar de líderes da Aliança. Uma vez logado, seus dados serão sincronizados automaticamente com o placar de líderes conforme você faz alterações na calculadora, permitindo que você veja como seu progresso e taxa de produção se comparam a outros jogadores em tempo real.",
+                info_h_save: "Salvando Seus Dados",
+                info_p_save: "Criar uma conta e fazer login salva automaticamente seus dados (níveis de fonte, recursos atuais) em nosso banco de dados. Na próxima vez que você visitar, todas as suas informações estarão pré-preenchidas, para que você possa continuar seu planejamento sem interrupções.",
+                time_ready: "Pronto!", time_no_prod: "Sem produção", toast_data_synced: "Placar de líderes sincronizado!",
+            },
+            ru: {
+                page_title: "Калькулятор Проклятой Лаборатории", nav_calculator: "Калькулятор", nav_alliance: "Альянс", nav_information: "Информация",
+                auth_login_title: "Вход", auth_register_title: "Создать аккаунт", auth_username: "Имя пользователя", auth_email: "Адрес электронной почты", auth_password: "Пароль", auth_confirm_password: "Подтвердите пароль", auth_login_btn: "Войти", auth_register_btn: "Зарегистрироваться", auth_no_account: "Нет аккаунта?", auth_have_account: "Уже есть аккаунт?", auth_register_link: "Регистрация", auth_login_link: "Войти", auth_login_btn_short: "Вход", auth_logout_btn: "Выйти",
+                calc_fountains_title: "Благословенные Фонтаны", calc_fountain_1: "Фонтан 1", calc_fountain_2: "Фонтан 2", calc_fountain_3: "Фонтан 3", calc_fountain_4: "Фонтан 4", calc_fountain_5_toggle: "Включить 5-й фонтан", calc_total_water: "Всего воды / час",
+                calc_lab_title: "Улучшение Проклятой Лаборатории", calc_current_water: "Текущая Святая Вода", calc_target_level: "Целевой уровень лаборатории", calc_completion_time: "Время завершения улучшения",
+                alliance_title: "Таблица лидеров Сопротивления Альянса", alliance_subtitle: "Посмотрите, как вы выглядите на фоне других игроков.", alliance_login_prompt_1: "Пожалуйста,", alliance_login_prompt_2: "войдите", alliance_login_prompt_3: "чтобы присоединиться к таблице лидеров.",
+                alliance_card_upgrade_time: "Улучшение в",
+                info_title: "Информация",
+                info_p1: "Этот инструмент предназначен для планирования управления ресурсами для Проклятой Лаборатории и Благословенных Фонтанов. Оптимизируйте свои улучшения, сравнивайте себя с другими и сохраняйте свой прогресс.",
+                info_h_calc: "Страница калькулятора",
+                info_li_calc1: "Благословенные Фонтаны: выберите текущий уровень для каждого из четырех основных фонтанов. Если вы разблокировали пятый, используйте переключатель, чтобы включить его и установить его уровень.",
+                info_li_calc2: "Общее производство: калькулятор мгновенно покажет ваше общее производство Святой Воды в час в зависимости от уровней ваших фонтанов.",
+                info_li_calc3: "Улучшение лаборатории: введите текущее количество Святой Воды и выберите уровень Проклятой Лаборатории, к которому вы стремитесь.",
+                info_li_calc4: "Время завершения: инструмент рассчитает точную дату и время, когда у вас будет достаточно ресурсов для выбранного улучшения лаборатории.",
+                info_h_alliance: "Таблица лидеров Альянса",
+                info_p_alliance: "Войдите, чтобы присоединиться к таблице лидеров Альянса. После входа ваши данные будут автоматически синхронизироваться с таблицей лидеров по мере внесения изменений в калькулятор, что позволит вам в реальном времени сравнивать свой прогресс и скорость производства с другими игроками.",
+                info_h_save: "Сохранение ваших данных",
+                info_p_save: "Создание учетной записи и вход в систему автоматически сохраняют ваши данные (уровни фонтанов, текущие ресурсы) в нашей базе данных. При следующем посещении вся ваша информация будет предварительно заполнена, так что вы сможете продолжить планирование без перерыва.",
+                time_ready: "Готово!", time_no_prod: "Нет производства", toast_data_synced: "Таблица лидеров синхронизирована!",
+            },
+            ja: {
+                page_title: "呪われた研究室計算機", nav_calculator: "計算機", nav_alliance: "同盟", nav_information: "情報",
+                auth_login_title: "ログイン", auth_register_title: "アカウント作成", auth_username: "ユーザー名", auth_email: "メールアドレス", auth_password: "パスワード", auth_confirm_password: "パスワードを確認", auth_login_btn: "ログイン", auth_register_btn: "登録", auth_no_account: "アカウントがありませんか？", auth_have_account: "すでにアカウントをお持ちですか？", auth_register_link: "登録", auth_login_link: "ログイン", auth_login_btn_short: "ログイン", auth_logout_btn: "ログアウト",
+                calc_fountains_title: "祝福された泉", calc_fountain_1: "泉 1", calc_fountain_2: "泉 2", calc_fountain_3: "泉 3", calc_fountain_4: "泉 4", calc_fountain_5_toggle: "5番目の泉を有効にする", calc_total_water: "総水量/時間",
+                calc_lab_title: "呪われた研究室のアップグレード", calc_current_water: "現在の聖水", calc_target_level: "目標の研究室レベル", calc_completion_time: "アップグレード完了時間",
+                alliance_title: "同盟レジスタンスリーダーボード", alliance_subtitle: "他のプレイヤーと比較して自分の順位を確認しましょう。", alliance_login_prompt_1: "リーダーボードに参加するには", alliance_login_prompt_2: "ログイン", alliance_login_prompt_3: "してください。",
+                alliance_card_upgrade_time: "アップグレード日時",
+                info_title: "情報",
+                info_p1: "このツールは、呪われた研究室と祝福された泉のリソース管理を計画するのに役立ちます。アップグレードを最適化し、他のプレイヤーと比較し、進捗を保存します。",
+                info_h_calc: "計算機ページ",
+                info_li_calc1: "祝福された泉：4つの主要な泉の現在のレベルを選択します。5番目をアンロックした場合は、トグルを使用して有効にし、レベルを設定します。",
+                info_li_calc2: "総生産量：計算機は、泉のレベルに基づいて1時間あたりの聖水の総生産量を即座に表示します。",
+                info_li_calc3: "研究室のアップグレード：現在の聖水の量を入力し、目指す呪われた研究室のレベルを選択します。",
+                info_li_calc4: "完了時間：選択した研究室のアップグレードに十分なリソースが揃う正確な日時をツールが計算します。",
+                info_h_alliance: "同盟リーダーボード",
+                info_p_alliance: "同盟リーダーボードに参加するにはログインしてください。ログインすると、計算機で変更を加えるたびにデータがリーダーボードに自動的に同期され、自分の進捗と生産率を他のプレイヤーとリアルタイムで比較できます。",
+                info_h_save: "データの保存",
+                info_p_save: "アカウントを作成してログインすると、データ（泉のレベル、現在のリソース）が自動的にデータベースに保存されます。次回訪問時には、すべての情報が事前に入力されているため、中断することなく計画を続けることができます。",
+                time_ready: "準備完了！", time_no_prod: "生産なし", toast_data_synced: "リーダーボードが同期されました！",
+            },
+            'zh-CN': {
+                page_title: "诅咒实验室计算器", nav_calculator: "计算器", nav_alliance: "联盟", nav_information: "信息",
+                auth_login_title: "登录", auth_register_title: "创建账户", auth_username: "用户名", auth_email: "电子邮件地址", auth_password: "密码", auth_confirm_password: "确认密码", auth_login_btn: "登录", auth_register_btn: "注册", auth_no_account: "没有账户？", auth_have_account: "已有账户？", auth_register_link: "注册", auth_login_link: "登录", auth_login_btn_short: "登录", auth_logout_btn: "登出",
+                calc_fountains_title: "祝福之泉", calc_fountain_1: "喷泉 1", calc_fountain_2: "喷泉 2", calc_fountain_3: "喷泉 3", calc_fountain_4: "喷泉 4", calc_fountain_5_toggle: "启用第五个喷泉", calc_total_water: "总水量/小时",
+                calc_lab_title: "诅咒实验室升级", calc_current_water: "当前圣水量", calc_target_level: "目标实验室等级", calc_completion_time: "升级完成时间",
+                alliance_title: "联盟抵抗排行榜", alliance_subtitle: "看看你与其他玩家的差距。", alliance_login_prompt_1: "请", alliance_login_prompt_2: "登录", alliance_login_prompt_3: "以加入排行榜。",
+                alliance_card_upgrade_time: "升级于",
+                info_title: "信息",
+                info_p1: "此工具旨在帮助您规划诅咒实验室和祝福之泉的资源管理。优化您的升级，与他人比较，并保存您的进度。",
+                info_h_calc: "计算器页面",
+                info_li_calc1: "祝福之泉：为您四个主要喷泉选择当前等级。如果您已解锁第五个，请使用切换开关启用并设置其等级。",
+                info_li_calc2: "总产量：计算器将根据您的喷泉等级立即显示您每小时的圣水总产量。",
+                info_li_calc3: "实验室升级：输入您当前的圣水量，并选择您要达到的诅咒实验室等级。",
+                info_li_calc4: "完成时间：该工具将计算您有足够资源进行所选实验室升级的确切日期和时间。",
+                info_h_alliance: "联盟排行榜",
+                info_p_alliance: "登录以加入联盟排行榜。登录后，当您在计算器中进行更改时，您的数据将自动同步到排行榜，让您可以实时查看您的进度和生产率与其他玩家的比较情况。",
+                info_h_save: "保存您的数据",
+                info_p_save: "创建帐户并登录会自动将您的数据（喷泉等级，当前资源）保存到我们的数据库中。下次访问时，您的所有信息都将预先填写，因此您可以无缝地继续您的规划。",
+                time_ready: "准备好了！", time_no_prod: "无产量", toast_data_synced: "排行榜已同步！",
             }
         };
 
@@ -674,36 +781,27 @@
                     const fountains = data.fountainLevels || [0,0,0,0,0];
                     const f5OpacityClass = data.fountain5Enabled ? '' : 'opacity-50';
                     const card = `
-                        <div class="player-list-item rounded-lg p-3">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                                <!-- Left Side: Rank, Name, Lab Level -->
-                                <div class="flex items-center gap-3 flex-grow">
-                                    <span class="text-2xl font-bold text-slate-500 w-10 text-center shrink-0">#${index + 1}</span>
-                                    <div class="flex-grow">
+                        <div class="player-card rounded-lg flex">
+                            <div class="rank flex items-center justify-center w-16 shrink-0 rounded-l-lg">
+                                <p class="text-3xl font-bold text-white">#${index + 1}</p>
+                            </div>
+                            <div class="p-3 flex-grow">
+                                <div class="sm:flex sm:items-start sm:justify-between">
+                                    <div>
                                         <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
-                                        <p class="text-xs text-slate-400 -mt-1">Lab Level</p>
+                                        <p class="text-xs text-slate-400 -mt-1">Lab Level <span class="font-semibold text-violet-400">${data.targetLabLevel || 'N/A'}</span></p>
                                     </div>
-                                    <div class="text-right">
-                                        <p class="font-bold text-4xl text-violet-400">${data.targetLabLevel || 'N/A'}</p>
+                                    <div class="text-left sm:text-right mt-2 sm:mt-0">
+                                        <p class="text-xs text-slate-400" data-i18n-key="alliance_card_upgrade_time">Upgrade At</p>
+                                        <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
                                     </div>
                                 </div>
-
-                                <!-- Right Side: Stats & Fountains -->
-                                <div class="flex flex-col md:flex-row md:items-center gap-3 shrink-0">
-                                     <!-- Stats -->
-                                    <div class="flex items-center justify-around gap-4 text-sm border-t md:border-t-0 md:border-l border-slate-700/50 pt-3 md:pt-0 md:pl-3">
-                                        <div class="text-center">
-                                            <p class="text-xs text-slate-400" data-i18n-key="alliance_card_upgrade_time">Upgrade At</p>
-                                            <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
-                                        </div>
-                                        <div class="text-center hidden sm:block">
-                                            <p class="text-xs text-slate-400">Water/hr</p>
-                                            <p class="font-semibold text-base text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
-                                        </div>
+                                <div class="border-t border-slate-700/50 mt-3 pt-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <div class="hidden sm:block text-center pr-3 border-r border-slate-700/50">
+                                        <p class="text-xs text-slate-400">Water/hr</p>
+                                        <p class="font-semibold text-lg text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
                                     </div>
-
-                                    <!-- Fountains -->
-                                    <div class="grid grid-cols-5 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md md:border-l border-slate-700/50 md:pl-3">
+                                    <div class="grid grid-cols-5 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md flex-grow">
                                         <div><p class="text-slate-400">F1</p><p class="font-bold text-white text-base">${fountains[0]}</p></div>
                                         <div><p class="text-slate-400">F2</p><p class="font-bold text-white text-base">${fountains[1]}</p></div>
                                         <div><p class="text-slate-400">F3</p><p class="font-bold text-white text-base">${fountains[2]}</p></div>
@@ -766,6 +864,12 @@
                 runCalculations();
             });
             
+            const closeMobileMenu = () => {
+                dom.nav.mobileMenu.classList.remove('open');
+                dom.nav.menuOverlay.classList.add('hidden');
+                dom.nav.menuOverlay.style.opacity = 0;
+            };
+
             const navLinks = [...document.querySelectorAll('.nav-link')];
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
@@ -779,13 +883,18 @@
                     Object.values(dom.pages).forEach(page => page.classList.add('hidden'));
                     dom.pages[pageId].classList.remove('hidden');
                     
-                    dom.nav.mobileMenu.classList.add('hidden');
+                    closeMobileMenu();
                 });
             });
 
             dom.nav.hamburgerBtn.addEventListener('click', () => {
-                dom.nav.mobileMenu.classList.toggle('hidden');
+                dom.nav.mobileMenu.classList.add('open');
+                dom.nav.menuOverlay.classList.remove('hidden');
+                setTimeout(() => dom.nav.menuOverlay.style.opacity = 1, 10);
             });
+
+            dom.nav.closeMenuBtn.addEventListener('click', closeMobileMenu);
+            dom.nav.menuOverlay.addEventListener('click', closeMobileMenu);
 
             let isRegisterMode = false;
             function toggleAuthMode() {
@@ -803,7 +912,10 @@
                 dom.auth.toggleBtn.textContent = translations[lang][isRegisterMode ? 'auth_login_link' : 'auth_register_link'];
             }
             
-            const openAuthModal = () => dom.auth.modal.classList.remove('hidden');
+            const openAuthModal = () => {
+                closeMobileMenu();
+                dom.auth.modal.classList.remove('hidden');
+            };
             dom.auth.loginBtn.addEventListener('click', openAuthModal);
             dom.auth.loginBtnMobile.addEventListener('click', openAuthModal);
             dom.alliance.loginBtn.addEventListener('click', openAuthModal);
