@@ -166,22 +166,22 @@
     </div>
 
     <!-- Navigation Bar -->
-    <nav class="main-card sticky top-0 md:top-2 z-40 w-full max-w-5xl mx-auto rounded-none md:rounded-xl">
-        <div class="flex items-center justify-between p-2">
-            <!-- Desktop Menu -->
+    <nav class="main-card sticky top-0 md:top-2 z-40 w-full max-w-5xl mx-auto rounded-none md:rounded-xl shadow-lg">
+        <div class="flex items-center justify-between p-3">
+            <!-- Left: Logo and Title -->
+            <div class="flex items-center gap-3">
+                <i class="fas fa-virus text-violet-400 text-2xl"></i>
+                <h1 class="text-xl font-bold text-white">CR-Calc</h1>
+            </div>
+
+            <!-- Center: Desktop Menu -->
             <div id="desktop-menu" class="hidden md:flex items-center gap-2">
                 <a href="#" class="nav-link active text-sm" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
                 <a href="#" class="nav-link text-sm" data-page="community" data-i18n-key="nav_community">Community</a>
                 <a href="#" class="nav-link text-sm" data-page="information" data-i18n-key="nav_information">Information</a>
             </div>
-            
-            <!-- Hamburger Button -->
-            <div class="md:hidden">
-                <button id="hamburger-btn" class="p-2 rounded-md text-slate-300 hover:bg-slate-700">
-                    <i class="fas fa-bars fa-lg"></i>
-                </button>
-            </div>
 
+            <!-- Right: Controls and Hamburger -->
             <div class="flex items-center gap-2">
                 <select id="language-selector" class="glass-select rounded-md py-1 pl-2 pr-7 text-xs focus:ring-0 outline-none"></select>
                 <div id="auth-container">
@@ -191,6 +191,9 @@
                         <button id="logout-btn" class="px-2 py-1 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
                     </div>
                 </div>
+                <button id="hamburger-btn" class="md:hidden p-2 rounded-md text-slate-300 hover:bg-slate-700">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
             </div>
         </div>
         <!-- Mobile Menu -->
@@ -202,7 +205,7 @@
     </nav>
     
     <!-- Main Content Area -->
-    <main class="w-full max-w-5xl mx-auto my-4 px-2">
+    <main class="w-full max-w-5xl mx-auto my-4 px-4">
         <div id="page-content" class="fade-in-up">
             <!-- Calculator Page -->
             <div id="calculator-page" class="main-card rounded-xl p-4 md:p-6 space-y-4">
@@ -210,7 +213,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full max-w-4xl">
                         <!-- Fountains Section -->
                         <section class="sub-card p-4 rounded-xl space-y-3">
-                            <h2 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-water text-sky-400 fa-fw"></i><span data-i18n-key="calc_fountains_title">Blessed Fountains</span></h2>
+                            <h2 class="text-lg font-semibold text-white flex items-center justify-center gap-2"><i class="fas fa-water text-sky-400 fa-fw"></i><span data-i18n-key="calc_fountains_title">Blessed Fountains</span></h2>
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label for="fountain1" class="text-xs text-slate-300" data-i18n-key="calc_fountain_1">Fountain 1</label>
@@ -243,7 +246,7 @@
                         </section>
                         <!-- Lab Upgrade Section -->
                         <section class="sub-card p-4 rounded-xl space-y-3 flex flex-col">
-                            <h2 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-flask-vial text-teal-400 fa-fw"></i><span data-i18n-key="calc_lab_title">Cursed Lab Upgrade</span></h2>
+                            <h2 class="text-lg font-semibold text-white flex items-center justify-center gap-2"><i class="fas fa-flask-vial text-teal-400 fa-fw"></i><span data-i18n-key="calc_lab_title">Cursed Lab Upgrade</span></h2>
                             <div class="flex-grow space-y-3">
                                 <div>
                                     <label for="current-water" class="text-xs text-slate-300" data-i18n-key="calc_current_water">Current Sacred Water</label>
@@ -253,7 +256,7 @@
                                     <label for="lab-level" class="text-xs text-slate-300" data-i18n-key="calc_target_level">Target Lab Level</label>
                                     <select id="lab-level" class="w-full glass-select rounded-md mt-1"></select>
                                 </div>
-                                 <div class="pt-1">
+                                 <div class="pt-1 text-center">
                                      <h3 class="text-xs font-medium text-slate-400" data-i18n-key="calc_completion_time">Upgrade Completion Time</h3>
                                      <p id="lab-completion-time" class="text-2xl font-bold mt-1 text-teal-300">--</p>
                                 </div>
@@ -397,7 +400,7 @@
                 calc_fountains_title: "Blessed Fountains", calc_fountain_1: "Fountain 1", calc_fountain_2: "Fountain 2", calc_fountain_3: "Fountain 3", calc_fountain_4: "Fountain 4", calc_fountain_5_toggle: "Enable 5th Fountain", calc_total_water: "Total Water / Hour",
                 calc_lab_title: "Cursed Lab Upgrade", calc_current_water: "Current Sacred Water", calc_target_level: "Target Lab Level", calc_completion_time: "Upgrade Completion Time", calc_sync_btn: "Sync to Leaderboard",
                 community_title: "Community Leaderboard", community_subtitle: "See how you stack up against other players.", community_login_prompt_1: "Please", community_login_prompt_2: "log in", community_login_prompt_3: "to join the leaderboard.",
-                community_card_upgrade_time: "Upgrade In",
+                community_card_upgrade_time: "Upgrade At",
                 info_title: "Information", info_p1: "This tool is designed to help you plan your resource management and building upgrades effectively.", info_h_calc: "Calculator Page", info_p_calc: "The main calculator page allows you to input your Blessed Fountain levels to determine your total Sacred Water production per hour. You can then use this production rate to calculate the exact time you will have enough resources to upgrade your Cursed Lab to a desired level.", info_h_comm: "Community Page", info_p_comm: "On the Community page, you can submit your own calculator data to a public leaderboard to see how you stack up against other players. The list is updated in real-time.", info_h_save: "Saving Data", info_p_save: "By logging in with an email and password, all your entered data (fountain levels, current resources) will be automatically saved. When you return, your data will be loaded, allowing you to pick up right where you left off.",
                 time_ready: "Ready!", time_no_prod: "No Production", toast_data_synced: "Leaderboard synced!",
             },
@@ -564,9 +567,9 @@
                         completionTimeClass = 'text-green-400';
                     } else if (hourlyProduction > 0) {
                         const hoursNeeded = waterNeeded / hourlyProduction;
-                        const days = Math.floor(hoursNeeded / 24);
-                        const remHours = Math.floor(hoursNeeded % 24);
-                        completionTimeText = `${days}d ${remHours}h`;
+                        const completionDate = new Date(Date.now() + hoursNeeded * 3600000);
+                        completionTimeText = completionDate.toLocaleString(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        completionTimeClass = 'text-teal-300';
                     } else {
                         completionTimeText = translations[lang].time_no_prod;
                         completionTimeClass = 'text-red-400';
@@ -574,24 +577,28 @@
 
                     const fountains = data.fountainLevels || [0,0,0,0,0];
                     const card = `
-                        <div class="player-list-item rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-4">
-                            <div class="flex items-center gap-3 flex-grow">
-                                <span class="text-xl font-bold text-slate-500 w-8 text-center">#${index + 1}</span>
-                                <div class="flex-grow">
-                                    <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
-                                    <p class="text-xs text-slate-400">Lab Lvl: <span class="font-semibold text-violet-400">${data.targetLabLevel || 'N/A'}</span></p>
+                        <div class="player-list-item rounded-lg p-3">
+                            <div class="sm:flex sm:items-center sm:justify-between sm:gap-4">
+                                <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 sm:flex-nowrap sm:items-center sm:gap-4 flex-grow">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xl font-bold text-slate-500 w-8 text-center shrink-0">#${index + 1}</span>
+                                        <div>
+                                            <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
+                                            <p class="text-xs text-slate-400">Lab Lvl: <span class="font-semibold text-violet-400">${data.targetLabLevel || 'N/A'}</span></p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-4 text-sm shrink-0">
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-400" data-i18n-key="community_card_upgrade_time">Upgrade At</p>
+                                            <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-xs text-slate-400">Water/hr</p>
+                                            <p class="font-semibold text-base text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="grid grid-cols-2 sm:flex sm:items-center gap-x-4 gap-y-2 text-sm flex-shrink-0">
-                                <div class="text-center sm:border-l sm:border-r border-slate-700/50 sm:px-4">
-                                    <p class="text-xs text-slate-400" data-i18n-key="community_card_upgrade_time">Upgrade In</p>
-                                    <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
-                                </div>
-                                <div class="text-center sm:border-r border-slate-700/50 sm:pr-4">
-                                    <p class="text-xs text-slate-400">Water/hr</p>
-                                    <p class="font-semibold text-base text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
-                                </div>
-                                <div class="col-span-2 sm:col-span-1 grid grid-cols-5 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md">
+                                <div class="mt-3 sm:mt-0 w-full sm:w-auto grid grid-cols-5 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md shrink-0">
                                     <div><p class="text-slate-400">F1</p><p class="font-bold text-white text-base">${fountains[0]}</p></div>
                                     <div><p class="text-slate-400">F2</p><p class="font-bold text-white text-base">${fountains[1]}</p></div>
                                     <div><p class="text-slate-400">F3</p><p class="font-bold text-white text-base">${fountains[2]}</p></div>
@@ -643,7 +650,7 @@
                 runCalculations();
             });
             
-            const navLinks = [...dom.nav.desktopMenu.children, ...dom.nav.mobileMenu.children];
+            const navLinks = [...document.querySelectorAll('.nav-link')];
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
