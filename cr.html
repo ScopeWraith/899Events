@@ -705,15 +705,15 @@
             const lang = localStorage.getItem('language') || 'en';
             if (waterNeeded <= 0) {
                 dom.calculator.completionTime.textContent = translations[lang].time_ready;
-                dom.calculator.completionTime.className = "text-2xl font-bold mt-1 text-green-400";
+                dom.calculator.completionTime.className = "text-3xl font-bold mt-1 text-green-400";
             } else if (state.hourlyProduction <= 0) {
                 dom.calculator.completionTime.textContent = translations[lang].time_no_prod;
-                dom.calculator.completionTime.className = "text-2xl font-bold mt-1 text-red-400";
+                dom.calculator.completionTime.className = "text-3xl font-bold mt-1 text-red-400";
             } else {
                 const hoursNeeded = waterNeeded / state.hourlyProduction;
                 const completionDate = new Date(Date.now() + hoursNeeded * 3600000);
                 dom.calculator.completionTime.textContent = completionDate.toLocaleString(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                dom.calculator.completionTime.className = "text-2xl font-bold mt-1 text-teal-300";
+                dom.calculator.completionTime.className = "text-3xl font-bold mt-1 text-teal-300";
             }
             
             if (currentUserId) {
@@ -753,20 +753,25 @@
             }
         }
         
-        function calculateRemainingHours(data) {
+        function calculateRemainingHours(player) {
+            const data = player.calculatorData;
             if (!data) return Infinity;
+            
             const targetLabLevel = data.targetLabLevel || 0;
             const labCost = labUpgradeData[targetLabLevel]?.cost || 0;
-            const currentWater = data.currentWater || 0;
             const hourlyProduction = data.hourlyProduction || 0;
-            const waterNeeded = labCost - currentWater;
+            
+            // Use water level at the time of update
+            const lastUpdateWater = data.currentWater || 0;
+            const lastUpdateTime = player.updatedAt?.toDate()?.getTime() || Date.now();
+            const hoursPassed = (Date.now() - lastUpdateTime) / 3600000;
+            const currentEstimatedWater = lastUpdateWater + (hourlyProduction * hoursPassed);
+            
+            const waterNeeded = labCost - currentEstimatedWater;
 
-            if (waterNeeded <= 0) {
-                return -1; // Represents "Ready"
-            }
-            if (hourlyProduction <= 0) {
-                return Infinity; // Represents "No Production"
-            }
+            if (waterNeeded <= 0) return -1; // Ready
+            if (hourlyProduction <= 0) return Infinity; // No production
+            
             return waterNeeded / hourlyProduction;
         }
 
@@ -778,22 +783,9 @@
                 querySnapshot.forEach((doc) => players.push(doc.data()));
                 
                 players.sort((a, b) => {
-                    const hoursA = calculateRemainingHours(a.calculatorData);
-                    const hoursB = calculateRemainingHours(b.calculatorData);
-                    const labLevelA = a.calculatorData?.targetLabLevel || 0;
-                    const labLevelB = b.calculatorData?.targetLabLevel || 0;
-
-                    if (hoursA < 0 && hoursB >= 0) return -1;
-                    if (hoursB < 0 && hoursA >= 0) return 1;
-                    if (hoursA < 0 && hoursB < 0) return labLevelB - labLevelA;
-
-                    if (hoursA === Infinity && hoursB !== Infinity) return 1;
-                    if (hoursB === Infinity && hoursA !== Infinity) return -1;
-                    if (hoursA === Infinity && hoursB === Infinity) return labLevelB - labLevelA;
-
-                    if (hoursA !== hoursB) return hoursA - hoursB;
-                    
-                    return labLevelB - labLevelA;
+                    const hoursA = calculateRemainingHours(a);
+                    const hoursB = calculateRemainingHours(b);
+                    return hoursA - hoursB;
                 });
 
                 dom.alliance.playerListContainer.innerHTML = '';
@@ -809,23 +801,18 @@
                     let completionTimeText = '--';
                     let completionTimeClass = 'text-slate-300';
 
-                    const targetLabLevel = data.targetLabLevel || 0;
-                    const labCost = labUpgradeData[targetLabLevel]?.cost || 0;
-                    const currentWater = data.currentWater || 0;
-                    const hourlyProduction = data.hourlyProduction || 0;
-                    const waterNeeded = labCost - currentWater;
+                    const hoursNeeded = calculateRemainingHours(player);
 
-                    if (waterNeeded <= 0) {
+                    if (hoursNeeded < 0) {
                         completionTimeText = translations[lang].time_ready;
                         completionTimeClass = 'text-green-400';
-                    } else if (hourlyProduction > 0) {
-                        const hoursNeeded = waterNeeded / hourlyProduction;
+                    } else if (hoursNeeded === Infinity) {
+                        completionTimeText = translations[lang].time_no_prod;
+                        completionTimeClass = 'text-red-400';
+                    } else {
                         const completionDate = new Date(Date.now() + hoursNeeded * 3600000);
                         completionTimeText = completionDate.toLocaleString(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                         completionTimeClass = 'text-teal-300';
-                    } else {
-                        completionTimeText = translations[lang].time_no_prod;
-                        completionTimeClass = 'text-red-400';
                     }
 
                     const fountains = data.fountainLevels || [0,0,0,0,0];
