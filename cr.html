@@ -285,13 +285,19 @@
                         <section class="sub-card p-4 rounded-xl space-y-4 flex flex-col">
                             <h2 class="text-lg font-semibold text-white flex items-center justify-center gap-2"><i class="fas fa-flask-vial text-teal-400 fa-fw"></i><span data-i18n-key="calc_lab_title">Cursed Lab Upgrade</span></h2>
                             <div class="flex-grow space-y-4">
-                                <div class="relative">
-                                    <i class="fas fa-fill-drip absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
-                                    <input type="number" id="current-water" class="w-full glass-input rounded-md pl-10" placeholder="Current Sacred Water">
+                                <div>
+                                    <label for="current-water" class="text-sm font-medium text-slate-300 mb-1 block" data-i18n-key="calc_current_water">Current Sacred Water</label>
+                                    <div class="relative">
+                                        <i class="fas fa-fill-drip absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
+                                        <input type="number" id="current-water" class="w-full glass-input rounded-md pl-10" placeholder="e.g., 50000">
+                                    </div>
                                 </div>
-                                <div class="relative">
-                                    <i class="fas fa-arrow-up-right-dots absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
-                                    <select id="lab-level" class="w-full glass-select rounded-md pl-10"></select>
+                                <div>
+                                    <label for="lab-level" class="text-sm font-medium text-slate-300 mb-1 block" data-i18n-key="calc_target_level">Target Lab Level</label>
+                                    <div class="relative">
+                                        <i class="fas fa-arrow-up-right-dots absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
+                                        <select id="lab-level" class="w-full glass-select rounded-md pl-10"></select>
+                                    </div>
                                 </div>
                             </div>
                              <div class="pt-4 text-center border-t border-slate-700/50">
@@ -651,6 +657,11 @@
 
         async function updatePublicLeaderboard() {
             if (!currentUserId || !auth.currentUser) return;
+            // Ensure essential data is present before syncing
+            if (dom.calculator.currentWater.value === '' || !state.targetLabLevel) {
+                console.log("Sync skipped: missing required calculator data.");
+                return;
+            }
             const publicData = { 
                 username: auth.currentUser.displayName, 
                 calculatorData: state, 
