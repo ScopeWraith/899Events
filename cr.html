@@ -753,9 +753,9 @@
                     return;
                 }
                 
+                const lang = localStorage.getItem('language') || 'en';
                 players.forEach((player, index) => {
                     const data = player.calculatorData || {};
-                    const lang = localStorage.getItem('language') || 'en';
                     let completionTimeText = '--';
                     let completionTimeClass = 'text-slate-300';
 
