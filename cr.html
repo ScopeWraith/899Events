@@ -750,26 +750,32 @@
             }
         }
         
-        function calculateRemainingHours(player) {
+        function calculateCompletionDate(player) {
             const data = player.calculatorData;
-            if (!data) return Infinity;
-            
+            if (!data) return null;
+
             const targetLabLevel = data.targetLabLevel || 0;
             const labCost = labUpgradeData[targetLabLevel]?.cost || 0;
             const hourlyProduction = data.hourlyProduction || 0;
-            
-            // Use water level at the time of update
             const lastUpdateWater = data.currentWater || 0;
-            const lastUpdateTime = player.updatedAt?.toDate()?.getTime() || Date.now();
-            const hoursPassed = (Date.now() - lastUpdateTime) / 3600000;
-            const currentEstimatedWater = lastUpdateWater + (hourlyProduction * hoursPassed);
-            
-            const waterNeeded = labCost - currentEstimatedWater;
+            const lastUpdateTime = player.updatedAt?.toDate();
 
-            if (waterNeeded <= 0) return -1; // Ready
-            if (hourlyProduction <= 0) return Infinity; // No production
+            if (!lastUpdateTime) return null;
+
+            const waterNeeded = labCost - lastUpdateWater;
+
+            if (waterNeeded <= 0) {
+                return new Date(lastUpdateTime.getTime());
+            }
             
-            return waterNeeded / hourlyProduction;
+            if (hourlyProduction <= 0) {
+                return null; // Represents infinity
+            }
+
+            const hoursNeeded = waterNeeded / hourlyProduction;
+            const completionTimestamp = lastUpdateTime.getTime() + hoursNeeded * 3600000;
+            
+            return new Date(completionTimestamp);
         }
 
         function listenForPublicPlayerData() {
@@ -786,16 +792,18 @@
                     const labLevelA = dataA.targetLabLevel || 0;
                     const labLevelB = dataB.targetLabLevel || 0;
 
-                    // Primary sort: by target lab level, descending
                     if (labLevelB !== labLevelA) {
                         return labLevelB - labLevelA;
                     }
 
-                    // Secondary sort: by remaining hours, ascending
-                    const hoursA = calculateRemainingHours(a);
-                    const hoursB = calculateRemainingHours(b);
-                    
-                    return hoursA - hoursB;
+                    const completionDateA = calculateCompletionDate(a);
+                    const completionDateB = calculateCompletionDate(b);
+
+                    if (!completionDateA && completionDateB) return 1;
+                    if (completionDateA && !completionDateB) return -1;
+                    if (!completionDateA && !completionDateB) return 0;
+
+                    return completionDateA.getTime() - completionDateB.getTime();
                 });
 
                 dom.alliance.playerListContainer.innerHTML = '';
@@ -811,18 +819,19 @@
                     let completionTimeText = '--';
                     let completionTimeClass = 'text-slate-300';
 
-                    const hoursNeeded = calculateRemainingHours(player);
+                    const completionDate = calculateCompletionDate(player);
 
-                    if (hoursNeeded < 0) {
-                        completionTimeText = translations[lang].time_ready;
-                        completionTimeClass = 'text-green-400';
-                    } else if (hoursNeeded === Infinity) {
+                    if (completionDate) {
+                        if (completionDate.getTime() <= Date.now()) {
+                            completionTimeText = translations[lang].time_ready;
+                            completionTimeClass = 'text-green-400';
+                        } else {
+                            completionTimeText = completionDate.toLocaleString(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                            completionTimeClass = 'text-teal-300';
+                        }
+                    } else {
                         completionTimeText = translations[lang].time_no_prod;
                         completionTimeClass = 'text-red-400';
-                    } else {
-                        const completionDate = new Date(Date.now() + hoursNeeded * 3600000);
-                        completionTimeText = completionDate.toLocaleString(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                        completionTimeClass = 'text-teal-300';
                     }
 
                     const fountains = data.fountainLevels || [0,0,0,0,0];
