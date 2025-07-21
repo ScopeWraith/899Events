@@ -349,6 +349,24 @@
     </main>
 
     <script type="module">
+        /*
+        Firebase v2 Security Rules:
+        rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            // Private user data: Only the user can read/write their own data
+            match /artifacts/{appId}/users/{userId} {
+              allow read, write: if request.auth != null && request.auth.uid == userId;
+            }
+            // Public leaderboard data: Authenticated users can read all, but only write their own
+            match /artifacts/{appId}/public/data/playerData/{userId} {
+              allow read: if request.auth != null;
+              allow write: if request.auth != null && request.auth.uid == userId;
+            }
+          }
+        }
+        */
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -438,7 +456,8 @@
             fountainLevels: [0,0,0,0,0],
             fountain5Enabled: false,
             currentWater: 0,
-            targetLabLevel: 1
+            targetLabLevel: 1,
+            updatedAt: null
         };
         
         const translations = {
@@ -510,7 +529,7 @@
                 alliance_title: "Classement de la Résistance de l'Alliance", alliance_subtitle: "Voyez comment vous vous situez par rapport aux autres joueurs.", alliance_login_prompt_1: "Veuillez", alliance_login_prompt_2: "vous connecter", alliance_login_prompt_3: "pour rejoindre le classement.",
                 alliance_card_upgrade_time: "Amélioration à",
                 info_title: "Informations",
-                info_p1: "Cet outil est conçu pour vous aider à planifier la gestion de vos ressources pour le Laboratoire Maudit et les Fontaines Bénies. Optimisez vos améliorations, comparez-vous aux autres et sauvegardez votre progression.",
+                info_p1: "Cet outil est conçu pour vous aider à planificar la gestion de vos ressources pour le Laboratoire Maudit et les Fontaines Bénies. Optimisez vos améliorations, comparez-vous aux autres et sauvegardez votre progression.",
                 info_h_calc: "Page Calculateur",
                 info_li_calc1: "Fontaines Bénies : Sélectionnez le niveau actuel de chacune de vos quatre fontaines principales. Si vous avez débloqué la cinquième, utilisez le bouton pour l'activer et définir son niveau.",
                 info_li_calc2: "Production Totale : Le calculateur affichera instantanément votre production totale d'Eau Sacrée par heure en fonction des niveaux de vos fontaines.",
@@ -675,7 +694,7 @@
 
         const debouncedUpdatePublicLeaderboard = debounce(updatePublicLeaderboard, 1500);
 
-        function runCalculations() {
+        function runCalculations(baseTime = Date.now()) {
             state.hourlyProduction = 0;
             for (let i = 0; i < 4; i++) {
                 const level = parseInt(dom.fountainSelectors[i].value, 10);
@@ -708,19 +727,15 @@
                 dom.calculator.completionTime.className = "text-3xl font-bold mt-1 text-red-400";
             } else {
                 const hoursNeeded = waterNeeded / state.hourlyProduction;
-                const completionDate = new Date(Date.now() + hoursNeeded * 3600000);
+                const completionDate = new Date(baseTime + hoursNeeded * 3600000);
                 dom.calculator.completionTime.textContent = completionDate.toLocaleString(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                 dom.calculator.completionTime.className = "text-3xl font-bold mt-1 text-teal-300";
-            }
-            
-            if (currentUserId) {
-                savePrivateDataSilently();
-                debouncedUpdatePublicLeaderboard();
             }
         }
         
         async function savePrivateDataSilently() {
             if (!currentUserId || !db) return;
+            state.updatedAt = new Date();
             try {
                 const userDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}`);
                 await setDoc(userDocRef, state, { merge: true });
@@ -746,7 +761,9 @@
                 }
                 if(data.currentWater !== undefined) dom.calculator.currentWater.value = data.currentWater;
                 if(data.targetLabLevel !== undefined) dom.calculator.labLevel.value = data.targetLabLevel;
-                runCalculations();
+                
+                const lastUpdateTime = data.updatedAt?.toDate()?.getTime() || Date.now();
+                runCalculations(lastUpdateTime);
             }
         }
         
@@ -899,6 +916,14 @@
                 dom.alliance.loginPrompt.classList.remove('hidden');
             }
         }
+        
+        function handleInputChange() {
+            runCalculations(); // This will use Date.now()
+            if (currentUserId) {
+                savePrivateDataSilently();
+                debouncedUpdatePublicLeaderboard();
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             let fountainOptions = ''; for (let i = 0; i <= 30; i++) fountainOptions += `<option value="${i}">Level ${i}</option>`;
@@ -906,18 +931,10 @@
             let labOptions = ''; for (let i = 1; i <= 30; i++) labOptions += `<option value="${i}">Level ${i}</option>`;
             dom.calculator.labLevel.innerHTML = labOptions;
 
-            const allInputs = [...dom.fountainSelectors, dom.calculator.currentWater, dom.calculator.labLevel];
+            const allInputs = [...dom.fountainSelectors, dom.calculator.currentWater, dom.calculator.labLevel, dom.fifthFountain.toggle];
             allInputs.forEach(input => {
-                input.addEventListener('change', runCalculations);
-                if (input.type === 'number') input.addEventListener('keyup', runCalculations);
-            });
-            
-            dom.fifthFountain.toggle.addEventListener('change', () => {
-                const isEnabled = dom.fifthFountain.toggle.checked;
-                dom.fifthFountain.selector.disabled = !isEnabled;
-                dom.fifthFountain.selector.style.opacity = isEnabled ? 1 : 0.5;
-                if (!isEnabled) { dom.fifthFountain.selector.value = 0; }
-                runCalculations();
+                input.addEventListener('change', handleInputChange);
+                if (input.type === 'number') input.addEventListener('keyup', handleInputChange);
             });
             
             const closeMobileMenu = () => {
