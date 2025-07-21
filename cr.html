@@ -246,35 +246,32 @@
                         <section class="sub-card p-4 rounded-xl space-y-4">
                             <h2 class="text-lg font-semibold text-white flex items-center justify-center gap-2"><i class="fas fa-water text-sky-400 fa-fw"></i><span data-i18n-key="calc_fountains_title">Blessed Fountains</span></h2>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="relative">
-                                    <i class="fas fa-tint absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
-                                    <select id="fountain1" class="fountain-level w-full glass-select rounded-md pl-10"></select>
+                                <div>
+                                    <label class="text-sm font-medium text-slate-300 mb-1 block" data-i18n-key="calc_fountain_1">Fountain 1</label>
+                                    <select id="fountain1" class="fountain-level w-full glass-select rounded-md"></select>
                                 </div>
-                                <div class="relative">
-                                    <i class="fas fa-tint absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
-                                    <select id="fountain2" class="fountain-level w-full glass-select rounded-md pl-10"></select>
+                                <div>
+                                    <label class="text-sm font-medium text-slate-300 mb-1 block" data-i18n-key="calc_fountain_2">Fountain 2</label>
+                                    <select id="fountain2" class="fountain-level w-full glass-select rounded-md"></select>
                                 </div>
-                                <div class="relative">
-                                    <i class="fas fa-tint absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
-                                    <select id="fountain3" class="fountain-level w-full glass-select rounded-md pl-10"></select>
+                                <div>
+                                    <label class="text-sm font-medium text-slate-300 mb-1 block" data-i18n-key="calc_fountain_3">Fountain 3</label>
+                                    <select id="fountain3" class="fountain-level w-full glass-select rounded-md"></select>
                                 </div>
-                                <div class="relative">
-                                    <i class="fas fa-tint absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
-                                    <select id="fountain4" class="fountain-level w-full glass-select rounded-md pl-10"></select>
+                                <div>
+                                    <label class="text-sm font-medium text-slate-300 mb-1 block" data-i18n-key="calc_fountain_4">Fountain 4</label>
+                                    <select id="fountain4" class="fountain-level w-full glass-select rounded-md"></select>
                                 </div>
                             </div>
                             <div id="fountain5-wrapper" class="space-y-2 pt-2">
                                  <div class="flex items-center justify-between">
-                                    <label for="fountain5-toggle-label" class="text-sm text-slate-300" data-i18n-key="calc_fountain_5_toggle">Enable 5th Fountain</label>
+                                    <label class="text-sm text-slate-300" data-i18n-key="calc_fountain_5_toggle">Enable 5th Fountain</label>
                                     <label class="toggle-switch">
                                         <input type="checkbox" id="fountain5-toggle">
                                         <span class="slider"></span>
                                     </label>
                                 </div>
-                                <div class="relative">
-                                    <i class="fas fa-tint absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
-                                    <select id="fountain5" class="fountain-level w-full glass-select rounded-md pl-10" disabled></select>
-                                </div>
+                                <select id="fountain5" class="fountain-level w-full glass-select rounded-md" disabled></select>
                             </div>
                             <div class="pt-2 text-center border-t border-slate-700/50">
                                  <h3 class="text-sm font-medium text-slate-400" data-i18n-key="calc_total_water">Total Water / Hour</h3>
@@ -286,18 +283,18 @@
                             <h2 class="text-lg font-semibold text-white flex items-center justify-center gap-2"><i class="fas fa-flask-vial text-teal-400 fa-fw"></i><span data-i18n-key="calc_lab_title">Cursed Lab Upgrade</span></h2>
                             <div class="flex-grow space-y-4">
                                 <div>
-                                    <label for="current-water" class="text-sm font-medium text-slate-300 mb-1 block" data-i18n-key="calc_current_water">Current Sacred Water</label>
-                                    <div class="relative">
-                                        <i class="fas fa-fill-drip absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
-                                        <input type="number" id="current-water" class="w-full glass-input rounded-md pl-10" placeholder="e.g., 50000">
-                                    </div>
+                                    <label for="current-water" class="text-sm font-medium text-slate-300 mb-1 block flex items-center gap-2">
+                                        <i class="fas fa-fill-drip fa-fw text-slate-400"></i>
+                                        <span data-i18n-key="calc_current_water">Current Sacred Water</span>
+                                    </label>
+                                    <input type="number" id="current-water" class="w-full glass-input rounded-md" placeholder="e.g., 50000">
                                 </div>
                                 <div>
-                                    <label for="lab-level" class="text-sm font-medium text-slate-300 mb-1 block" data-i18n-key="calc_target_level">Target Lab Level</label>
-                                    <div class="relative">
-                                        <i class="fas fa-arrow-up-right-dots absolute top-1/2 -translate-y-1/2 left-3 text-slate-400"></i>
-                                        <select id="lab-level" class="w-full glass-select rounded-md pl-10"></select>
-                                    </div>
+                                    <label for="lab-level" class="text-sm font-medium text-slate-300 mb-1 block flex items-center gap-2">
+                                        <i class="fas fa-arrow-up-right-dots fa-fw text-slate-400"></i>
+                                        <span data-i18n-key="calc_target_level">Target Lab Level</span>
+                                    </label>
+                                    <select id="lab-level" class="w-full glass-select rounded-md"></select>
                                 </div>
                             </div>
                              <div class="pt-4 text-center border-t border-slate-700/50">
