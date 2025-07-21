@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n-key="page_title">Cursed Lab Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #111827; /* gray-900 */
+            --bg-secondary: #1f2937; /* gray-800 */
+            --bg-tertiary: #374151; /* gray-700 */
+            --border-color: #4b5563; /* gray-600 */
+            --text-primary: #f3f4f6; /* gray-100 */
+            --text-secondary: #9ca3af; /* gray-400 */
+            --accent-primary: #8b5cf6; /* violet-500 */
+            --accent-secondary: #ec4899; /* pink-500 */
+            --success-color: #22c55e; /* green-500 */
+        }
+        html {
+            font-size: 80%; /* Reduce base font size by 20% */
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            background-image: radial-gradient(circle at 5% 5%, rgba(139, 92, 246, 0.08) 0%, transparent 30%),
+                              radial-gradient(circle at 95% 95%, rgba(236, 72, 153, 0.08) 0%, transparent 30%);
+            background-attachment: fixed;
+        }
+        .fade-in-up { animation: fadeInUp 0.5s ease-in-out forwards; opacity: 0; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .main-card {
+            background: linear-gradient(145deg, rgba(31, 41, 55, 0.5), rgba(17, 24, 39, 0.5));
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+        }
+        .sub-card {
+            background-color: rgba(55, 65, 81, 0.25);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        .sub-card:hover {
+            border-color: var(--accent-primary);
+        }
+        .glass-input, .glass-select {
+             background-color: rgba(17, 24, 39, 0.6);
+             border: 1px solid var(--border-color);
+             transition: all 0.3s ease;
+             color: var(--text-primary);
+             padding: 0.5rem; /* Reduced padding */
+             font-size: 1rem;
+        }
+        .glass-input:focus, .glass-select:focus {
+             border-color: var(--accent-primary);
+             box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+             outline: none;
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+        }
+        .nav-link.active { 
+            color: white; 
+            background: rgba(255,255,255,0.1);
+        }
+        .nav-link:hover {
+             background: rgba(255,255,255,0.05);
+        }
+        .hidden { display: none; }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        
+        #toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .toast {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: slideInRight 0.5s forwards, fadeOut 0.5s 3.5s forwards;
+        }
+        .toast.success {
+            background: linear-gradient(90deg, var(--success-color), #16a34a);
+        }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
+        
+        .player-list-item {
+            background: linear-gradient(145deg, rgba(31, 41, 55, 0.4), rgba(17, 24, 39, 0.4));
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        .player-list-item:hover {
+            border-color: var(--accent-primary);
+            background: linear-gradient(145deg, rgba(31, 41, 55, 0.6), rgba(17, 24, 39, 0.6));
+        }
+    </style>
+</head>
+<body class="text-slate-200">
+
+    <div id="toast-container"></div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4">
+        <div class="main-card rounded-xl w-full max-w-sm p-6 space-y-4">
+            <h2 id="auth-title" class="text-2xl font-bold text-center text-white" data-i18n-key="auth_login_title">Login</h2>
+            <form id="auth-form" class="space-y-3">
+                <div id="username-field" class="hidden">
+                    <label for="username" class="text-xs font-medium text-slate-300" data-i18n-key="auth_username">Username</label>
+                    <input type="text" id="username" class="w-full glass-input rounded-md mt-1 focus:ring-0">
+                </div>
+                <div>
+                    <label for="email" class="text-xs font-medium text-slate-300" data-i18n-key="auth_email">Email Address</label>
+                    <input type="email" id="email" required class="w-full glass-input rounded-md mt-1 focus:ring-0">
+                </div>
+                <div>
+                    <label for="password" class="text-xs font-medium text-slate-300" data-i18n-key="auth_password">Password</label>
+                    <input type="password" id="password" required minlength="6" class="w-full glass-input rounded-md mt-1 focus:ring-0">
+                </div>
+                <div id="confirm-password-field" class="hidden">
+                    <label for="confirm-password" class="text-xs font-medium text-slate-300" data-i18n-key="auth_confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm-password" class="w-full glass-input rounded-md mt-1 focus:ring-0">
+                </div>
+                <p id="auth-error" class="text-red-400 text-sm h-3"></p>
+                <button type="submit" id="auth-submit-btn" class="w-full px-4 py-2 btn-primary rounded-md font-semibold text-white" data-i18n-key="auth_login_btn">Login</button>
+            </form>
+            <p class="text-center text-sm text-slate-400">
+                <span id="auth-toggle-text" data-i18n-key="auth_no_account">Don't have an account?</span>
+                <button id="auth-toggle-btn" class="font-semibold text-violet-400 hover:text-violet-300" data-i18n-key="auth_register_link">Register</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="main-card sticky top-0 md:top-2 z-40 w-full max-w-5xl mx-auto rounded-none md:rounded-xl">
+        <div class="flex items-center justify-between p-2">
+            <!-- Desktop Menu -->
+            <div id="desktop-menu" class="hidden md:flex items-center gap-2">
+                <a href="#" class="nav-link active text-sm" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
+                <a href="#" class="nav-link text-sm" data-page="community" data-i18n-key="nav_community">Community</a>
+                <a href="#" class="nav-link text-sm" data-page="information" data-i18n-key="nav_information">Information</a>
+            </div>
+            
+            <!-- Hamburger Button -->
+            <div class="md:hidden">
+                <button id="hamburger-btn" class="p-2 rounded-md text-slate-300 hover:bg-slate-700">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <select id="language-selector" class="glass-select rounded-md py-1 pl-2 pr-7 text-xs focus:ring-0 outline-none"></select>
+                <div id="auth-container">
+                    <button id="login-btn" class="px-3 py-1.5 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
+                    <div id="user-info" class="hidden items-center gap-2">
+                        <span id="user-display-name" class="hidden sm:block text-sm font-semibold text-slate-300"></span>
+                        <button id="logout-btn" class="px-2 py-1 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-700 p-2 flex flex-col gap-2">
+            <a href="#" class="nav-link active text-sm" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
+            <a href="#" class="nav-link text-sm" data-page="community" data-i18n-key="nav_community">Community</a>
+            <a href="#" class="nav-link text-sm" data-page="information" data-i18n-key="nav_information">Information</a>
+        </div>
+    </nav>
+    
+    <!-- Main Content Area -->
+    <main class="w-full max-w-5xl mx-auto my-4 px-2">
+        <div id="page-content" class="fade-in-up">
+            <!-- Calculator Page -->
+            <div id="calculator-page" class="main-card rounded-xl p-4 md:p-6 space-y-4">
+                 <div class="flex justify-center">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full max-w-4xl">
+                        <!-- Fountains Section -->
+                        <section class="sub-card p-4 rounded-xl space-y-3">
+                            <h2 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-water text-sky-400 fa-fw"></i><span data-i18n-key="calc_fountains_title">Blessed Fountains</span></h2>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="fountain1" class="text-xs text-slate-300" data-i18n-key="calc_fountain_1">Fountain 1</label>
+                                    <select id="fountain1" class="fountain-level w-full glass-select rounded-md mt-1"></select>
+                                </div>
+                                <div>
+                                    <label for="fountain2" class="text-xs text-slate-300" data-i18n-key="calc_fountain_2">Fountain 2</label>
+                                    <select id="fountain2" class="fountain-level w-full glass-select rounded-md mt-1"></select>
+                                </div>
+                                <div>
+                                    <label for="fountain3" class="text-xs text-slate-300" data-i18n-key="calc_fountain_3">Fountain 3</label>
+                                    <select id="fountain3" class="fountain-level w-full glass-select rounded-md mt-1"></select>
+                                </div>
+                                <div>
+                                    <label for="fountain4" class="text-xs text-slate-300" data-i18n-key="calc_fountain_4">Fountain 4</label>
+                                    <select id="fountain4" class="fountain-level w-full glass-select rounded-md mt-1"></select>
+                                </div>
+                            </div>
+                            <div id="fountain5-wrapper" class="space-y-2">
+                                 <div class="flex items-center justify-between">
+                                    <label for="fountain5-toggle" class="text-xs text-slate-300" data-i18n-key="calc_fountain_5_toggle">Enable 5th Fountain</label>
+                                    <input type="checkbox" id="fountain5-toggle" class="form-checkbox h-4 w-4 rounded bg-slate-700 border-slate-500 text-violet-500 focus:ring-violet-500">
+                                </div>
+                                <select id="fountain5" class="fountain-level w-full glass-select rounded-md" disabled></select>
+                            </div>
+                            <div class="pt-1">
+                                 <h3 class="text-xs font-medium text-slate-400" data-i18n-key="calc_total_water">Total Water / Hour</h3>
+                                 <p id="total-output" class="text-2xl font-bold mt-1 text-sky-300">0</p>
+                            </div>
+                        </section>
+                        <!-- Lab Upgrade Section -->
+                        <section class="sub-card p-4 rounded-xl space-y-3 flex flex-col">
+                            <h2 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-flask-vial text-teal-400 fa-fw"></i><span data-i18n-key="calc_lab_title">Cursed Lab Upgrade</span></h2>
+                            <div class="flex-grow space-y-3">
+                                <div>
+                                    <label for="current-water" class="text-xs text-slate-300" data-i18n-key="calc_current_water">Current Sacred Water</label>
+                                    <input type="number" id="current-water" class="w-full glass-input rounded-md mt-1" placeholder="e.g., 50000">
+                                </div>
+                                <div>
+                                    <label for="lab-level" class="text-xs text-slate-300" data-i18n-key="calc_target_level">Target Lab Level</label>
+                                    <select id="lab-level" class="w-full glass-select rounded-md mt-1"></select>
+                                </div>
+                                 <div class="pt-1">
+                                     <h3 class="text-xs font-medium text-slate-400" data-i18n-key="calc_completion_time">Upgrade Completion Time</h3>
+                                     <p id="lab-completion-time" class="text-2xl font-bold mt-1 text-teal-300">--</p>
+                                </div>
+                            </div>
+                            <div id="sync-data-wrapper" class="pt-2 hidden">
+                                <button id="sync-data-btn" class="w-full px-4 py-2 btn-primary rounded-md font-semibold text-white text-sm" data-i18n-key="calc_sync_btn">
+                                    <i class="fas fa-cloud-upload-alt mr-2"></i>Sync to Leaderboard
+                                </button>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Community Page -->
+            <div id="community-page" class="main-card rounded-xl p-4 md:p-6 space-y-4 hidden">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i class="fas fa-users text-violet-400 fa-fw"></i><span data-i18n-key="community_title">Community Leaderboard</span></h2>
+                        <p class="text-slate-400 mt-1 text-sm" data-i18n-key="community_subtitle">See how you stack up against other players.</p>
+                    </div>
+                     <div id="community-login-prompt" class="sub-card p-3 rounded-xl text-center hidden">
+                        <p class="text-slate-300 text-xs"><span data-i18n-key="community_login_prompt_1">Please</span> <button id="community-login-btn" class="font-bold text-sky-400 hover:underline" data-i18n-key="community_login_prompt_2">log in</button> <span data-i18n-key="community_login_prompt_3">to join the leaderboard.</span></p>
+                    </div>
+                </div>
+
+                <!-- Player List -->
+                <div id="player-list-container" class="flex flex-col gap-3">
+                    <!-- Player list items will be injected here -->
+                </div>
+            </div>
+
+            <!-- Information Page -->
+            <div id="information-page" class="main-card rounded-xl p-4 md:p-6 space-y-4 hidden">
+                <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i class="fas fa-info-circle text-amber-400 fa-fw"></i><span data-i18n-key="info_title">Information</span></h2>
+                <div class="prose prose-sm prose-invert max-w-none text-slate-300">
+                    <p data-i18n-key="info_p1">This tool is designed to help you plan your resource management and building upgrades effectively.</p>
+                    <h3 data-i18n-key="info_h_calc">Calculator Page</h3>
+                    <p data-i18n-key="info_p_calc">The main calculator page allows you to input your Blessed Fountain levels to determine your total Sacred Water production per hour. You can then use this production rate to calculate the exact time you will have enough resources to upgrade your Cursed Lab to a desired level.</p>
+                    <h3 data-i18n-key="info_h_comm">Community Page</h3>
+                    <p data-i18n-key="info_p_comm">On the Community page, you can submit your own calculator data to a public leaderboard to see how you stack up against other players. The list is updated in real-time.</p>
+                    <h3 data-i18n-key="info_h_save">Saving Data</h3>
+                    <p data-i18n-key="info_p_save">By logging in with an email and password, all your entered data (fountain levels, current resources) will be automatically saved. When you return, your data will be loaded, allowing you to pick up right where you left off.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-XKrs7nCZgq1XOg_ouOs6x6ZCkjrJsf4",
+            authDomain: "thecursedlab-709f3.firebaseapp.com",
+            projectId: "thecursedlab-709f3",
+            storageBucket: "thecursedlab-709f3.firebasestorage.app",
+            messagingSenderId: "751252568769",
+            appId: "1:751252568769:web:22a928747cbf1b6aec3240",
+            measurementId: "G-M0Y9LSM58J"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'thecursedlab-709f3';
+        const fountainProductionRates = { 0: 0, 1: 720, 2: 1440, 3: 2160, 4: 2880, 5: 3600, 6: 4320, 7: 5040, 8: 5760, 9: 6480, 10: 7200, 11: 7920, 12: 8640, 13: 9360, 14: 10080, 15: 10800, 16: 11520, 17: 12240, 18: 12960, 19: 13600, 20: 14400, 21: 15120, 22: 15840, 23: 16560, 24: 17280, 25: 18000, 26: 18720, 27: 19440, 28: 20160, 29: 20880, 30: 21600 };
+        const labUpgradeData = { 1:{cost:0,res:400}, 2:{cost:11200,res:200}, 3:{cost:22400,res:300}, 4:{cost:44800,res:400}, 5:{cost:89600,res:500}, 6:{cost:125400,res:750}, 7:{cost:163100,res:1000}, 8:{cost:195700,res:1250}, 9:{cost:234800,res:1500}, 10:{cost:281800,res:1750}, 11:{cost:338100,res:2000}, 12:{cost:405800,res:2250}, 13:{cost:486900,res:2500}, 14:{cost:584300,res:2750}, 15:{cost:701200,res:3000}, 16:{cost:771300,res:3400}, 17:{cost:848400,res:3800}, 18:{cost:933301,res:4200}, 19:{cost:1026600,res:4600}, 20:{cost:1129301,res:5000}, 21:{cost:1242200,res:5500}, 22:{cost:1366400,res:6000}, 23:{cost:1503000,res:6500}, 24:{cost:1653301,res:7000}, 25:{cost:1818701,res:7500}, 26:{cost:2159600,res:8000}, 27:{cost:2505101,res:8500}, 28:{cost:2855301,res:9000}, 29:{cost:3460600,res:9500}, 30:{cost:4321100,res:10000} };
+        
+        let app, auth, db, currentUserId = null;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) { console.error("Firebase initialization failed:", e); }
+        
+        onAuthStateChanged(auth, user => {
+            currentUserId = user ? user.uid : null;
+            updateUIForAuthState(user);
+            if (user) { loadDataFromFirestore(); }
+        });
+
+        const dom = {
+            toastContainer: document.getElementById('toast-container'),
+            fountainSelectors: document.querySelectorAll('.fountain-level'),
+            fifthFountain: {
+                toggle: document.getElementById('fountain5-toggle'),
+                selector: document.getElementById('fountain5')
+            },
+            calculator: {
+                totalOutput: document.getElementById('total-output'),
+                currentWater: document.getElementById('current-water'),
+                labLevel: document.getElementById('lab-level'),
+                completionTime: document.getElementById('lab-completion-time'),
+                syncDataWrapper: document.getElementById('sync-data-wrapper'),
+                syncDataBtn: document.getElementById('sync-data-btn')
+            },
+            auth: {
+                modal: document.getElementById('auth-modal'),
+                form: document.getElementById('auth-form'),
+                loginBtn: document.getElementById('login-btn'),
+                logoutBtn: document.getElementById('logout-btn'),
+                userInfo: document.getElementById('user-info'),
+                userDisplayName: document.getElementById('user-display-name'),
+                usernameField: document.getElementById('username-field'),
+                confirmPasswordField: document.getElementById('confirm-password-field'),
+                title: document.getElementById('auth-title'),
+                submitBtn: document.getElementById('auth-submit-btn'),
+                toggleText: document.getElementById('auth-toggle-text'),
+                toggleBtn: document.getElementById('auth-toggle-btn'),
+                error: document.getElementById('auth-error')
+            },
+            community: {
+                loginPrompt: document.getElementById('community-login-prompt'),
+                loginBtn: document.getElementById('community-login-btn'),
+                playerListContainer: document.getElementById('player-list-container')
+            },
+            nav: {
+                links: document.querySelectorAll('.nav-link'),
+                languageSelector: document.getElementById('language-selector'),
+                hamburgerBtn: document.getElementById('hamburger-btn'),
+                mobileMenu: document.getElementById('mobile-menu'),
+                desktopMenu: document.getElementById('desktop-menu'),
+            },
+            pages: {
+                calculator: document.getElementById('calculator-page'),
+                community: document.getElementById('community-page'),
+                information: document.getElementById('information-page')
+            }
+        };
+
+        const state = {
+            hourlyProduction: 0,
+            fountainLevels: [0,0,0,0,0],
+            fountain5Enabled: false,
+            currentWater: 0,
+            targetLabLevel: 1
+        };
+        
+        const translations = {
+            en: {
+                page_title: "Cursed Lab Calculator", nav_calculator: "Calculator", nav_community: "Community", nav_information: "Information",
+                auth_login_title: "Login", auth_register_title: "Create Account", auth_username: "Username", auth_email: "Email Address", auth_password: "Password", auth_confirm_password: "Confirm Password", auth_login_btn: "Login", auth_register_btn: "Register", auth_no_account: "Don't have an account?", auth_have_account: "Already have an account?", auth_register_link: "Register", auth_login_link: "Login", auth_login_btn_short: "Login", auth_logout_btn: "Logout",
+                calc_fountains_title: "Blessed Fountains", calc_fountain_1: "Fountain 1", calc_fountain_2: "Fountain 2", calc_fountain_3: "Fountain 3", calc_fountain_4: "Fountain 4", calc_fountain_5_toggle: "Enable 5th Fountain", calc_total_water: "Total Water / Hour",
+                calc_lab_title: "Cursed Lab Upgrade", calc_current_water: "Current Sacred Water", calc_target_level: "Target Lab Level", calc_completion_time: "Upgrade Completion Time", calc_sync_btn: "Sync to Leaderboard",
+                community_title: "Community Leaderboard", community_subtitle: "See how you stack up against other players.", community_login_prompt_1: "Please", community_login_prompt_2: "log in", community_login_prompt_3: "to join the leaderboard.",
+                community_card_upgrade_time: "Upgrade In",
+                info_title: "Information", info_p1: "This tool is designed to help you plan your resource management and building upgrades effectively.", info_h_calc: "Calculator Page", info_p_calc: "The main calculator page allows you to input your Blessed Fountain levels to determine your total Sacred Water production per hour. You can then use this production rate to calculate the exact time you will have enough resources to upgrade your Cursed Lab to a desired level.", info_h_comm: "Community Page", info_p_comm: "On the Community page, you can submit your own calculator data to a public leaderboard to see how you stack up against other players. The list is updated in real-time.", info_h_save: "Saving Data", info_p_save: "By logging in with an email and password, all your entered data (fountain levels, current resources) will be automatically saved. When you return, your data will be loaded, allowing you to pick up right where you left off.",
+                time_ready: "Ready!", time_no_prod: "No Production", toast_data_synced: "Leaderboard synced!",
+            },
+            es: {
+                page_title: "Calculadora de Laboratorio Maldito", nav_calculator: "Calculadora", nav_community: "Comunidad", nav_information: "Información",
+                auth_login_title: "Iniciar Sesión", auth_register_title: "Crear Cuenta", auth_username: "Usuario", auth_email: "Correo Electrónico", auth_password: "Contraseña", auth_confirm_password: "Confirmar Contraseña", auth_login_btn: "Iniciar Sesión", auth_register_btn: "Registrarse", auth_no_account: "¿No tienes una cuenta?", auth_have_account: "¿Ya tienes una cuenta?", auth_register_link: "Regístrate", auth_login_link: "Inicia Sesión", auth_login_btn_short: "Login", auth_logout_btn: "Salir",
+                calc_fountains_title: "Fuentes Benditas", calc_fountain_1: "Fuente 1", calc_fountain_2: "Fuente 2", calc_fountain_3: "Fuente 3", calc_fountain_4: "Fuente 4", calc_fountain_5_toggle: "Habilitar 5ª Fuente", calc_total_water: "Agua Total / Hora",
+                calc_lab_title: "Mejora de Laboratorio Maldito", calc_current_water: "Agua Sagrada Actual", calc_target_level: "Nivel de Laboratorio Deseado", calc_completion_time: "Tiempo de Finalización", calc_sync_btn: "Sincronizar con la Tabla",
+                community_title: "Tabla de Clasificación", community_subtitle: "Compara tu progreso con otros jugadores.", community_login_prompt_1: "Por favor", community_login_prompt_2: "inicia sesión", community_login_prompt_3: "para unirte.",
+                community_card_upgrade_time: "Mejora en",
+                info_title: "Información", info_p1: "Esta herramienta está diseñada para ayudarte a planificar la gestión de tus recursos y mejoras de edificios de manera efectiva.", info_h_calc: "Página de la Calculadora", info_p_calc: "La página principal de la calculadora te permite introducir los niveles de tus Fuentes Benditas para determinar tu producción total de Agua Sagrada por hora. Luego puedes usar esta tasa de producción para calcular el tiempo exacto que tardarás en tener suficientes recursos para mejorar tu Laboratorio Maldito al nivel deseado.", info_h_comm: "Página de la Comunidad", info_p_comm: "En la página de la Comunidad, puedes enviar tus propios datos de la calculadora a una tabla de clasificación pública para ver cómo te comparas con otros jugadores. La lista se actualiza en tiempo real.", info_h_save: "Guardar Datos", info_p_save: "Al iniciar sesión con un correo electrónico y una contraseña, todos los datos que introduzcas (niveles de fuente, recursos actuales) se guardarán automáticamente. Cuando regreses, tus datos se cargarán, permitiéndote continuar justo donde lo dejaste.",
+                time_ready: "¡Listo!", time_no_prod: "Sin Producción", toast_data_synced: "¡Tabla de clasificación sincronizada!",
+            }
+        };
+
+        const supportedLangs = { en: "English", es: "Español", de: "Deutsch", fr: "Français", pt: "Português", ru: "Русский", ja: "日本語", 'zh-CN': "简体中文" };
+
+        function showToast(messageKey) {
+            const lang = localStorage.getItem('language') || 'en';
+            const message = translations[lang][messageKey] || 'Success!';
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast success';
+            toast.innerHTML = `<i class="fas fa-check-circle mr-3"></i> ${message}`;
+            dom.toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function setLanguage(lang) {
+            const langCode = translations[lang] ? lang : 'en';
+            document.querySelectorAll('[data-i18n-key]').forEach(el => {
+                const key = el.getAttribute('data-i18n-key');
+                if (translations[langCode] && translations[langCode][key]) {
+                    el.textContent = translations[langCode][key];
+                }
+            });
+            localStorage.setItem('language', langCode);
+            dom.nav.languageSelector.value = langCode;
+            runCalculations();
+        }
+
+        function initializeLanguage() {
+            Object.entries(supportedLangs).forEach(([code, name]) => {
+                dom.nav.languageSelector.add(new Option(name, code));
+            });
+            const savedLang = localStorage.getItem('language');
+            const browserLang = navigator.language.split('-')[0];
+            setLanguage(savedLang || (supportedLangs[browserLang] ? browserLang : 'en'));
+        }
+
+        function runCalculations() {
+            state.hourlyProduction = 0;
+            for (let i = 0; i < 4; i++) {
+                const level = parseInt(dom.fountainSelectors[i].value, 10);
+                state.hourlyProduction += fountainProductionRates[level] || 0;
+                state.fountainLevels[i] = level;
+            }
+
+            state.fountain5Enabled = dom.fifthFountain.toggle.checked;
+            if (state.fountain5Enabled) {
+                const level = parseInt(dom.fifthFountain.selector.value, 10);
+                state.hourlyProduction += fountainProductionRates[level] || 0;
+                state.fountainLevels[4] = level;
+            } else {
+                state.fountainLevels[4] = 0;
+            }
+
+            dom.calculator.totalOutput.textContent = state.hourlyProduction.toLocaleString();
+            state.targetLabLevel = parseInt(dom.calculator.labLevel.value, 10);
+            state.currentWater = parseInt(dom.calculator.currentWater.value, 10) || 0;
+            
+            const labCost = labUpgradeData[state.targetLabLevel]?.cost || 0;
+            const waterNeeded = labCost - state.currentWater;
+
+            const lang = localStorage.getItem('language') || 'en';
+            if (waterNeeded <= 0) {
+                dom.calculator.completionTime.textContent = translations[lang].time_ready;
+                dom.calculator.completionTime.className = "text-2xl font-bold mt-1 text-green-400";
+            } else if (state.hourlyProduction <= 0) {
+                dom.calculator.completionTime.textContent = translations[lang].time_no_prod;
+                dom.calculator.completionTime.className = "text-2xl font-bold mt-1 text-red-400";
+            } else {
+                const hoursNeeded = waterNeeded / state.hourlyProduction;
+                const completionDate = new Date(Date.now() + hoursNeeded * 3600000);
+                dom.calculator.completionTime.textContent = completionDate.toLocaleString(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                dom.calculator.completionTime.className = "text-2xl font-bold mt-1 text-teal-300";
+            }
+            
+            if (currentUserId) {
+                savePrivateDataSilently();
+            }
+        }
+        
+        async function savePrivateDataSilently() {
+            if (!currentUserId || !db) return;
+            try {
+                const userDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}`);
+                await setDoc(userDocRef, state, { merge: true });
+            } catch (error) { console.error("Error saving data silently: ", error); }
+        }
+
+        async function syncPublicData() {
+            if (!currentUserId || !auth.currentUser) return;
+            runCalculations();
+            const publicData = { username: auth.currentUser.displayName, calculatorData: state, updatedAt: new Date() };
+            try {
+                const publicUserDocRef = doc(db, `artifacts/${appId}/public/data/playerData/${currentUserId}`);
+                await setDoc(publicUserDocRef, publicData);
+                showToast('toast_data_synced');
+            } catch (error) { console.error("Error writing public data: ", error); }
+        }
+
+        async function loadDataFromFirestore() {
+            if (!currentUserId || !db) return;
+            const userDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}`);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if(data.fountainLevels) {
+                    dom.fountainSelectors.forEach((sel, i) => { if(data.fountainLevels[i] !== undefined) sel.value = data.fountainLevels[i]; });
+                }
+                if(data.fountain5Enabled !== undefined) {
+                    dom.fifthFountain.toggle.checked = data.fountain5Enabled;
+                    dom.fifthFountain.selector.disabled = !data.fountain5Enabled;
+                    dom.fifthFountain.selector.style.opacity = data.fountain5Enabled ? 1 : 0.5;
+                    if (data.fountainLevels && data.fountainLevels[4] !== undefined) {
+                         dom.fifthFountain.selector.value = data.fountainLevels[4];
+                    }
+                }
+                if(data.currentWater !== undefined) dom.calculator.currentWater.value = data.currentWater;
+                if(data.targetLabLevel !== undefined) dom.calculator.labLevel.value = data.targetLabLevel;
+                runCalculations();
+            }
+        }
+        
+        function listenForPublicPlayerData() {
+            if (!db) return;
+            const q = query(collection(db, `artifacts/${appId}/public/data/playerData`));
+            onSnapshot(q, (querySnapshot) => {
+                const players = [];
+                querySnapshot.forEach((doc) => players.push(doc.data()));
+                players.sort((a, b) => (b.calculatorData?.targetLabLevel || 0) - (a.calculatorData?.targetLabLevel || 0));
+                dom.community.playerListContainer.innerHTML = '';
+                if (players.length === 0) {
+                    dom.community.playerListContainer.innerHTML = `<p class="text-center text-slate-400 col-span-full py-8" data-i18n-key="community_no_players">No players yet. Be the first!</p>`;
+                    setLanguage(localStorage.getItem('language') || 'en');
+                    return;
+                }
+                
+                players.forEach((player, index) => {
+                    const data = player.calculatorData || {};
+                    const lang = localStorage.getItem('language') || 'en';
+                    let completionTimeText = '--';
+                    let completionTimeClass = 'text-slate-300';
+
+                    const targetLabLevel = data.targetLabLevel || 0;
+                    const labCost = labUpgradeData[targetLabLevel]?.cost || 0;
+                    const currentWater = data.currentWater || 0;
+                    const hourlyProduction = data.hourlyProduction || 0;
+                    const waterNeeded = labCost - currentWater;
+
+                    if (waterNeeded <= 0) {
+                        completionTimeText = translations[lang].time_ready;
+                        completionTimeClass = 'text-green-400';
+                    } else if (hourlyProduction > 0) {
+                        const hoursNeeded = waterNeeded / hourlyProduction;
+                        const days = Math.floor(hoursNeeded / 24);
+                        const remHours = Math.floor(hoursNeeded % 24);
+                        completionTimeText = `${days}d ${remHours}h`;
+                    } else {
+                        completionTimeText = translations[lang].time_no_prod;
+                        completionTimeClass = 'text-red-400';
+                    }
+
+                    const fountains = data.fountainLevels || [0,0,0,0,0];
+                    const card = `
+                        <div class="player-list-item rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-4">
+                            <div class="flex items-center gap-3 flex-grow">
+                                <span class="text-xl font-bold text-slate-500 w-8 text-center">#${index + 1}</span>
+                                <div class="flex-grow">
+                                    <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
+                                    <p class="text-xs text-slate-400">Lab Lvl: <span class="font-semibold text-violet-400">${data.targetLabLevel || 'N/A'}</span></p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 sm:flex sm:items-center gap-x-4 gap-y-2 text-sm flex-shrink-0">
+                                <div class="text-center sm:border-l sm:border-r border-slate-700/50 sm:px-4">
+                                    <p class="text-xs text-slate-400" data-i18n-key="community_card_upgrade_time">Upgrade In</p>
+                                    <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
+                                </div>
+                                <div class="text-center sm:border-r border-slate-700/50 sm:pr-4">
+                                    <p class="text-xs text-slate-400">Water/hr</p>
+                                    <p class="font-semibold text-base text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
+                                </div>
+                                <div class="col-span-2 sm:col-span-1 grid grid-cols-5 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md">
+                                    <div><p class="text-slate-400">F1</p><p class="font-bold text-white text-base">${fountains[0]}</p></div>
+                                    <div><p class="text-slate-400">F2</p><p class="font-bold text-white text-base">${fountains[1]}</p></div>
+                                    <div><p class="text-slate-400">F3</p><p class="font-bold text-white text-base">${fountains[2]}</p></div>
+                                    <div><p class="text-slate-400">F4</p><p class="font-bold text-white text-base">${fountains[3]}</p></div>
+                                    <div><p class="text-slate-400">F5</p><p class="font-bold text-white text-base">${data.fountain5Enabled ? fountains[4] : '—'}</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    dom.community.playerListContainer.innerHTML += card;
+                });
+                setLanguage(lang); // Re-translate any dynamic keys in the cards
+            });
+        }
+
+        function updateUIForAuthState(user) {
+            if (user) {
+                dom.auth.loginBtn.classList.add('hidden');
+                dom.auth.userInfo.classList.remove('hidden');
+                dom.auth.userInfo.classList.add('flex');
+                dom.auth.userDisplayName.textContent = user.displayName || user.email;
+                dom.community.loginPrompt.classList.add('hidden');
+                dom.calculator.syncDataWrapper.classList.remove('hidden');
+            } else {
+                dom.auth.loginBtn.classList.remove('hidden');
+                dom.auth.userInfo.classList.add('hidden');
+                dom.community.loginPrompt.classList.remove('hidden');
+                dom.calculator.syncDataWrapper.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let fountainOptions = ''; for (let i = 0; i <= 30; i++) fountainOptions += `<option value="${i}">Level ${i}</option>`;
+            dom.fountainSelectors.forEach(sel => sel.innerHTML = fountainOptions);
+            let labOptions = ''; for (let i = 1; i <= 30; i++) labOptions += `<option value="${i}">Level ${i}</option>`;
+            dom.calculator.labLevel.innerHTML = labOptions;
+
+            const allInputs = [...dom.fountainSelectors, dom.calculator.currentWater, dom.calculator.labLevel];
+            allInputs.forEach(input => {
+                input.addEventListener('change', runCalculations);
+                if (input.type === 'number') input.addEventListener('keyup', runCalculations);
+            });
+            
+            dom.fifthFountain.toggle.addEventListener('change', () => {
+                const isEnabled = dom.fifthFountain.toggle.checked;
+                dom.fifthFountain.selector.disabled = !isEnabled;
+                dom.fifthFountain.selector.style.opacity = isEnabled ? 1 : 0.5;
+                if (!isEnabled) { dom.fifthFountain.selector.value = 0; }
+                runCalculations();
+            });
+            
+            const navLinks = [...dom.nav.desktopMenu.children, ...dom.nav.mobileMenu.children];
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = e.currentTarget.getAttribute('data-page');
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    
+                    document.querySelectorAll(`.nav-link[data-page='${pageId}']`).forEach(l => l.classList.add('active'));
+
+                    Object.values(dom.pages).forEach(page => page.classList.add('hidden'));
+                    dom.pages[pageId].classList.remove('hidden');
+                    
+                    dom.nav.mobileMenu.classList.add('hidden');
+                });
+            });
+
+            dom.nav.hamburgerBtn.addEventListener('click', () => {
+                dom.nav.mobileMenu.classList.toggle('hidden');
+            });
+
+            let isRegisterMode = false;
+            function toggleAuthMode() {
+                isRegisterMode = !isRegisterMode;
+                dom.auth.form.reset();
+                dom.auth.error.textContent = '';
+                dom.auth.usernameField.classList.toggle('hidden', !isRegisterMode);
+                document.getElementById('username').required = isRegisterMode;
+                dom.auth.confirmPasswordField.classList.toggle('hidden', !isRegisterMode);
+                document.getElementById('confirm-password').required = isRegisterMode;
+                const lang = localStorage.getItem('language') || 'en';
+                dom.auth.title.textContent = translations[lang][isRegisterMode ? 'auth_register_title' : 'auth_login_title'];
+                dom.auth.submitBtn.textContent = translations[lang][isRegisterMode ? 'auth_register_btn' : 'auth_login_btn'];
+                dom.auth.toggleText.textContent = translations[lang][isRegisterMode ? 'auth_have_account' : 'auth_no_account'];
+                dom.auth.toggleBtn.textContent = translations[lang][isRegisterMode ? 'auth_login_link' : 'auth_register_link'];
+            }
+            
+            dom.auth.loginBtn.addEventListener('click', () => dom.auth.modal.classList.remove('hidden'));
+            dom.community.loginBtn.addEventListener('click', () => dom.auth.modal.classList.remove('hidden'));
+            dom.auth.logoutBtn.addEventListener('click', () => signOut(auth));
+            dom.auth.modal.addEventListener('click', (e) => { if(e.target === dom.auth.modal) dom.auth.modal.classList.add('hidden'); });
+            dom.auth.toggleBtn.addEventListener('click', toggleAuthMode);
+
+            dom.auth.form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const pass = document.getElementById('password').value;
+                dom.auth.error.textContent = '';
+                if (isRegisterMode) {
+                    const username = document.getElementById('username').value;
+                    const confirmPass = document.getElementById('confirm-password').value;
+                    if (pass !== confirmPass) { dom.auth.error.textContent = 'Passwords do not match.'; return; }
+                    if (username.length < 3) { dom.auth.error.textContent = 'Username must be at least 3 characters.'; return; }
+                    try {
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                        await updateProfile(userCredential.user, { displayName: username });
+                        await setDoc(doc(db, `artifacts/${appId}/users/${userCredential.user.uid}`), { username: username, email: email, createdAt: new Date() });
+                        dom.auth.modal.classList.add('hidden');
+                    } catch (error) { dom.auth.error.textContent = error.message.replace('Firebase: ', ''); }
+                } else {
+                    try {
+                        await signInWithEmailAndPassword(auth, email, pass);
+                        dom.auth.modal.classList.add('hidden');
+                    } catch (error) { dom.auth.error.textContent = error.message.replace('Firebase: ', ''); }
+                }
+            });
+
+            dom.calculator.syncDataBtn.addEventListener('click', syncPublicData);
+            dom.nav.languageSelector.addEventListener('change', (e) => setLanguage(e.target.value));
+
+            initializeLanguage();
+            runCalculations();
+            listenForPublicPlayerData();
+        });
+    </script>
+</body>
+</html>
