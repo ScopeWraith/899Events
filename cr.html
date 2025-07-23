@@ -152,15 +152,6 @@
             border: 2px solid var(--accent-primary);
             object-fit: cover;
         }
-        .filter-btn {
-            background-color: rgba(55, 65, 81, 0.3);
-            border: 1px solid var(--border-color);
-        }
-        .filter-btn.active {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
-            color: white;
-        }
     </style>
 </head>
 <body class="text-slate-200">
@@ -408,14 +399,9 @@
                         <p class="text-slate-300 text-xs"><span data-i18n-key="leaderboard_login_prompt_1">Please</span> <button id="leaderboard-login-btn" class="font-bold text-sky-400 hover:underline" data-i18n-key="leaderboard_login_prompt_2">log in</button> <span data-i18n-key="leaderboard_login_prompt_3">to join the leaderboard.</span></p>
                     </div>
                 </div>
-                
-                <!-- Alliance Filters -->
-                <div id="leaderboard-filter-container" class="flex flex-wrap gap-2 pb-2 border-b border-slate-700/50">
-                    <!-- Filter buttons will be injected here -->
-                </div>
 
                 <!-- Player List -->
-                <div id="player-list-container" class="flex flex-col gap-3 pt-2">
+                <div id="player-list-container" class="flex flex-col gap-3">
                     <!-- Player list items will be injected here -->
                 </div>
             </div>
@@ -494,9 +480,6 @@
         const labUpgradeData = { 1:{cost:0,res:400}, 2:{cost:11200,res:200}, 3:{cost:22400,res:300}, 4:{cost:44800,res:400}, 5:{cost:89600,res:500}, 6:{cost:125400,res:750}, 7:{cost:163100,res:1000}, 8:{cost:195700,res:1250}, 9:{cost:234800,res:1500}, 10:{cost:281800,res:1750}, 11:{cost:338100,res:2000}, 12:{cost:405800,res:2250}, 13:{cost:486900,res:2500}, 14:{cost:584300,res:2750}, 15:{cost:701200,res:3000}, 16:{cost:771300,res:3400}, 17:{cost:848400,res:3800}, 18:{cost:933301,res:4200}, 19:{cost:1026600,res:4600}, 20:{cost:1129301,res:5000}, 21:{cost:1242200,res:5500}, 22:{cost:1366400,res:6000}, 23:{cost:1503000,res:6500}, 24:{cost:1653301,res:7000}, 25:{cost:1818701,res:7500}, 26:{cost:2159600,res:8000}, 27:{cost:2505101,res:8500}, 28:{cost:2855301,res:9000}, 29:{cost:3460600,res:9500}, 30:{cost:4321100,res:10000} };
         
         let app, auth, db, storage, currentUserId = null;
-        let allPlayers = [];
-        let activeAllianceFilter = 'ALL';
-
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
@@ -563,7 +546,6 @@
             leaderboard: {
                 loginPrompt: document.getElementById('leaderboard-login-prompt'),
                 loginBtn: document.getElementById('leaderboard-login-btn'),
-                filterContainer: document.getElementById('leaderboard-filter-container'),
                 playerListContainer: document.getElementById('player-list-container')
             },
             nav: {
@@ -607,7 +589,7 @@
                 calc_fountains_title: "Blessed Fountains", calc_fountain_1: "Fountain 1", calc_fountain_2: "Fountain 2", calc_fountain_3: "Fountain 3", calc_fountain_4: "Fountain 4", calc_fountain_5_toggle: "Enable 5th Fountain", calc_total_water: "Total Water / Hour",
                 calc_lab_title: "Cursed Lab Upgrade", calc_current_water: "Current Sacred Water", calc_target_level: "Target Lab Level", calc_completion_time: "Upgrade Completion Time",
                 leaderboard_title: "Resistance Development Leaderboard", leaderboard_subtitle: "See how you stack up against other players.", leaderboard_login_prompt_1: "Please", leaderboard_login_prompt_2: "log in", leaderboard_login_prompt_3: "to join the leaderboard.",
-                leaderboard_card_next_level: "Next Level", leaderboard_card_lab_level: "Lab Level", leaderboard_card_resistance: "Resistance", leaderboard_card_water_hr: "Water/hr", leaderboard_filter_all: "All",
+                leaderboard_card_next_level: "Next Level", leaderboard_card_lab_level: "Lab Level", leaderboard_card_resistance: "Resistance", leaderboard_card_water_hr: "Water/hr",
                 info_title: "Information", 
                 info_p1: "This tool is designed to help you plan your resource management for the Cursed Lab and Blessed Fountains. Optimize your upgrades, see how you compare to others, and save your progress.",
                 info_h_calc: "Calculator Page",
@@ -629,7 +611,7 @@
                 calc_fountains_title: "Fuentes Benditas", calc_fountain_1: "Fuente 1", calc_fountain_2: "Fuente 2", calc_fountain_3: "Fuente 3", calc_fountain_4: "Fuente 4", calc_fountain_5_toggle: "Habilitar 5ª Fuente", calc_total_water: "Agua Total / Hora",
                 calc_lab_title: "Mejora de Laboratorio Maldito", calc_current_water: "Agua Sagrada Actual", calc_target_level: "Nivel de Laboratorio Deseado", calc_completion_time: "Tiempo de Finalización",
                 leaderboard_title: "Clasificación de Desarrollo de Resistencia", leaderboard_subtitle: "Compara tu progreso con otros jugadores.", leaderboard_login_prompt_1: "Por favor", leaderboard_login_prompt_2: "inicia sesión", leaderboard_login_prompt_3: "para unirte.",
-                leaderboard_card_next_level: "Siguiente Nivel", leaderboard_card_lab_level: "Nivel Lab", leaderboard_card_resistance: "Resistencia", leaderboard_card_water_hr: "Agua/h", leaderboard_filter_all: "Todos",
+                leaderboard_card_next_level: "Siguiente Nivel", leaderboard_card_lab_level: "Nivel Lab", leaderboard_card_resistance: "Resistencia", leaderboard_card_water_hr: "Agua/h",
                 info_title: "Información",
                 info_p1: "Esta herramienta está diseñada para ayudarte a planificar la gestión de tus recursos y mejoras de edificios de manera efectiva.",
                 info_h_calc: "Página de la Calculadora",
@@ -668,7 +650,6 @@
             });
             localStorage.setItem('language', langCode);
             runCalculations();
-            renderLeaderboard(); // Re-render leaderboard for language changes in time/text
         }
 
         function initializeCurrentLanguage() {
@@ -813,144 +794,105 @@
             return new Date(completionTimestamp);
         }
 
-        function updateLeaderboardFilters() {
-            const lang = localStorage.getItem('language') || 'en';
-            const alliances = [...new Set(allPlayers.map(p => p.alliance).filter(a => a && a !== 'none'))];
-            alliances.sort();
-
-            dom.leaderboard.filterContainer.innerHTML = ''; // Clear existing
-            
-            const createButton = (text, filterValue) => {
-                const button = document.createElement('button');
-                button.textContent = text;
-                button.dataset.filter = filterValue;
-                button.className = `filter-btn px-3 py-1 rounded-md text-sm font-semibold transition-colors ${activeAllianceFilter === filterValue ? 'active' : ''}`;
-                button.addEventListener('click', () => {
-                    activeAllianceFilter = filterValue;
-                    localStorage.setItem('leaderboardFilter', activeAllianceFilter);
-                    renderLeaderboard();
-                    updateLeaderboardFilters(); // To update active styles
-                });
-                return button;
-            };
-
-            dom.leaderboard.filterContainer.appendChild(createButton(translations[lang].leaderboard_filter_all || 'All', 'ALL'));
-            alliances.forEach(alliance => {
-                dom.leaderboard.filterContainer.appendChild(createButton(alliance, alliance));
-            });
-        }
-
-        function renderLeaderboard() {
-            const filteredPlayers = activeAllianceFilter === 'ALL' 
-                ? allPlayers 
-                : allPlayers.filter(p => p.alliance === activeAllianceFilter);
-            
-            filteredPlayers.sort((a, b) => {
-                const dataA = a.calculatorData || {};
-                const dataB = b.calculatorData || {};
-                const labLevelA = dataA.targetLabLevel || 0;
-                const labLevelB = dataB.targetLabLevel || 0;
-                if (labLevelB !== labLevelA) return labLevelB - labLevelA;
-                const completionDateA = calculateCompletionDate(a);
-                const completionDateB = calculateCompletionDate(b);
-                if (!completionDateA && completionDateB) return 1;
-                if (completionDateA && !completionDateB) return -1;
-                if (!completionDateA && !completionDateB) return 0;
-                return completionDateA.getTime() - completionDateB.getTime();
-            });
-
-            dom.leaderboard.playerListContainer.innerHTML = '';
-            if (filteredPlayers.length === 0) {
-                dom.leaderboard.playerListContainer.innerHTML = `<p class="text-center text-slate-400 col-span-full py-8" data-i18n-key="leaderboard_no_players">No players on this leaderboard yet.</p>`;
-                setLanguage(localStorage.getItem('language') || 'en');
-                return;
-            }
-            
-            const lang = localStorage.getItem('language') || 'en';
-            filteredPlayers.forEach((player, index) => {
-                const data = player.calculatorData || {};
-                let completionTimeText = '--';
-                let completionTimeClass = 'text-slate-300';
-                const completionDate = calculateCompletionDate(player);
-
-                if (completionDate) {
-                    if (completionDate.getTime() <= Date.now()) {
-                        completionTimeText = translations[lang].time_ready;
-                        completionTimeClass = 'text-green-400';
-                    } else {
-                        completionTimeText = completionDate.toLocaleString(lang, { hour: '2-digit', minute: '2-digit' });
-                        completionTimeClass = 'text-teal-300';
-                    }
-                } else {
-                    completionTimeText = translations[lang].time_no_prod;
-                    completionTimeClass = 'text-red-400';
-                }
-
-                const fLevelsRaw = data.fountainLevels || [0,0,0,0,0];
-                let fLevelsDisplay = [...fLevelsRaw];
-                if (!data.fountain5Enabled) {
-                    fLevelsDisplay[4] = 'X';
-                }
-                fLevelsDisplay.sort((a, b) => {
-                    if (a === 'X') return 1;
-                    if (b === 'X') return -1;
-                    return b - a;
-                });
-                const fountainString = fLevelsDisplay.join(' | ');
-                const labLevel = data.targetLabLevel || 0;
-                const levelDisplayString = `${fountainString} | <span class="text-teal-300 font-semibold">L${labLevel}</span>`;
-
-                const avatarUrl = player.avatarUrl || 'https://placehold.co/150x150/1f2937/9ca3af?text=N/A';
-                const allianceName = player.alliance && player.alliance !== 'none' ? player.alliance : 'No Alliance';
-
-                const card = `
-                    <div class="player-card rounded-lg flex">
-                        <div class="rank flex items-center justify-center w-12 shrink-0 rounded-l-lg">
-                            <p class="text-2xl font-bold text-white">#${index + 1}</p>
-                        </div>
-                        <div class="p-3 py-2 flex-grow">
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="flex items-center gap-3 flex-grow min-w-0">
-                                    <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover border-2 border-slate-600 shrink-0">
-                                    <div class="min-w-0">
-                                        <p class="font-bold text-base text-white truncate">${player.username || 'Anonymous'}</p>
-                                        <p class="text-xs text-violet-300 -mt-1">${allianceName}</p>
-                                    </div>
-                                </div>
-                                <div class="text-right shrink-0">
-                                    <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_next_level">Next Level</p>
-                                    <p class="font-semibold text-sm ${completionTimeClass}">${completionTimeText}</p>
-                                </div>
-                            </div>
-                            <div class="border-t mt-2 border-slate-700/50 pt-2 grid grid-cols-3 gap-2 text-center">
-                                 <div>
-                                    <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_resistance">Resistance</p>
-                                    <p class="font-bold text-xl text-violet-300">${(labUpgradeData[labLevel]?.res || 0).toLocaleString()}</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_water_hr">Water/hr</p>
-                                    <p class="font-bold text-xl text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
-                                </div>
-                                <div class="text-xs text-slate-400 font-mono text-right col-span-3 sm:col-span-1 sm:text-center self-center">
-                                    <p class="font-semibold">${levelDisplayString}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                dom.leaderboard.playerListContainer.innerHTML += card;
-            });
-            setLanguage(lang);
-        }
-        
         function listenForPublicPlayerData() {
             if (!db) return;
             const q = query(collection(db, `artifacts/${appId}/public/data/playerData`));
             onSnapshot(q, (querySnapshot) => {
-                allPlayers = [];
-                querySnapshot.forEach((doc) => allPlayers.push(doc.data()));
-                updateLeaderboardFilters();
-                renderLeaderboard();
+                const players = [];
+                querySnapshot.forEach((doc) => players.push(doc.data()));
+                
+                players.sort((a, b) => {
+                    const dataA = a.calculatorData || {};
+                    const dataB = b.calculatorData || {};
+                    const labLevelA = dataA.targetLabLevel || 0;
+                    const labLevelB = dataB.targetLabLevel || 0;
+                    if (labLevelB !== labLevelA) return labLevelB - labLevelA;
+                    const completionDateA = calculateCompletionDate(a);
+                    const completionDateB = calculateCompletionDate(b);
+                    if (!completionDateA && completionDateB) return 1;
+                    if (completionDateA && !completionDateB) return -1;
+                    if (!completionDateA && !completionDateB) return 0;
+                    return completionDateA.getTime() - completionDateB.getTime();
+                });
+
+                dom.leaderboard.playerListContainer.innerHTML = '';
+                if (players.length === 0) {
+                    dom.leaderboard.playerListContainer.innerHTML = `<p class="text-center text-slate-400 col-span-full py-8" data-i18n-key="leaderboard_no_players">No players yet. Be the first!</p>`;
+                    setLanguage(localStorage.getItem('language') || 'en');
+                    return;
+                }
+                
+                const lang = localStorage.getItem('language') || 'en';
+                players.forEach((player, index) => {
+                    const data = player.calculatorData || {};
+                    let completionTimeText = '--';
+                    let completionTimeClass = 'text-slate-300';
+                    const completionDate = calculateCompletionDate(player);
+
+                    if (completionDate) {
+                        if (completionDate.getTime() <= Date.now()) {
+                            completionTimeText = translations[lang].time_ready;
+                            completionTimeClass = 'text-green-400';
+                        } else {
+                            completionTimeText = completionDate.toLocaleString(lang, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                            completionTimeClass = 'text-teal-300';
+                        }
+                    } else {
+                        completionTimeText = translations[lang].time_no_prod;
+                        completionTimeClass = 'text-red-400';
+                    }
+
+                    const fountains = data.fountainLevels || [0,0,0,0,0];
+                    const f5OpacityClass = data.fountain5Enabled ? '' : 'opacity-50';
+                    const avatarUrl = player.avatarUrl || 'https://placehold.co/150x150/1f2937/9ca3af?text=N/A';
+                    const allianceName = player.alliance && player.alliance !== 'none' ? player.alliance : 'No Alliance';
+
+                    const card = `
+                        <div class="player-card rounded-lg flex">
+                            <div class="rank flex items-center justify-center w-16 shrink-0 rounded-l-lg">
+                                <p class="text-3xl font-bold text-white">#${index + 1}</p>
+                            </div>
+                            <div class="p-3 py-2 flex-grow">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover border-2 border-slate-600">
+                                        <div>
+                                            <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
+                                            <p class="text-xs text-violet-300 -mt-1">${allianceName}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_next_level">Next Level</p>
+                                        <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
+                                    </div>
+                                </div>
+                                <div class="border-t mt-2 border-slate-700/50 pt-2 grid grid-cols-3 gap-2 text-center">
+                                    <div>
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_lab_level">Lab Level</p>
+                                        <p class="font-bold text-2xl text-white">${data.targetLabLevel || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_resistance">Resistance</p>
+                                        <p class="font-bold text-2xl text-violet-300">${(labUpgradeData[data.targetLabLevel]?.res || 0).toLocaleString()}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_water_hr">Water/hr</p>
+                                        <p class="font-bold text-2xl text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2 grid grid-cols-5 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md flex-grow">
+                                    <div><p class="text-slate-400">F1</p><p class="font-bold text-white text-base">${fountains[0]}</p></div>
+                                    <div><p class="text-slate-400">F2</p><p class="font-bold text-white text-base">${fountains[1]}</p></div>
+                                    <div><p class="text-slate-400">F3</p><p class="font-bold text-white text-base">${fountains[2]}</p></div>
+                                    <div><p class="text-slate-400">F4</p><p class="font-bold text-white text-base">${fountains[3]}</p></div>
+                                    <div class="${f5OpacityClass}"><p class="text-slate-400">F5</p><p class="font-bold text-white text-base">${data.fountain5Enabled ? fountains[4] : '—'}</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    dom.leaderboard.playerListContainer.innerHTML += card;
+                });
+                setLanguage(lang);
             });
         }
 
@@ -1045,8 +987,6 @@
 
 
         document.addEventListener('DOMContentLoaded', () => {
-            activeAllianceFilter = localStorage.getItem('leaderboardFilter') || 'ALL';
-
             let fountainOptions = ''; for (let i = 0; i <= 30; i++) fountainOptions += `<option value="${i}">Level ${i}</option>`;
             dom.fountainSelectors.forEach(sel => sel.innerHTML = fountainOptions);
             let labOptions = ''; for (let i = 1; i <= 30; i++) labOptions += `<option value="${i}">Level ${i}</option>`;
