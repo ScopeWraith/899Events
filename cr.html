@@ -102,6 +102,10 @@
             flex-direction: column;
             gap: 0.5rem;
         }
+        html[dir="rtl"] #toast-container {
+            right: auto;
+            left: 1rem;
+        }
         .toast {
             display: flex;
             align-items: center;
@@ -113,10 +117,14 @@
             border: 1px solid rgba(255,255,255,0.1);
             animation: slideInRight 0.5s forwards, fadeOut 0.5s 3.5s forwards;
         }
+        html[dir="rtl"] .toast {
+            animation-name: slideInLeft;
+        }
         .toast.success {
             background: linear-gradient(90deg, var(--success-color), #16a34a);
         }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
         
         .player-card {
@@ -138,6 +146,9 @@
         #mobile-menu {
             transition: transform 0.3s ease-in-out;
             transform: translateX(100%);
+        }
+        html[dir="rtl"] #mobile-menu {
+            transform: translateX(-100%);
         }
         #mobile-menu.open {
             transform: translateX(0);
@@ -251,12 +262,12 @@
 
     <!-- Language Selection Modal -->
     <div id="language-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4">
-        <div class="main-card rounded-xl w-full max-w-sm p-6 space-y-4">
+        <div class="main-card rounded-xl w-full max-w-md p-6 space-y-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-2xl font-bold text-white" data-i18n-key="language_modal_title">Select Language</h2>
                 <button id="close-language-modal-btn" class="p-2 text-slate-300 hover:text-white"><i class="fas fa-times fa-lg"></i></button>
             </div>
-            <div id="language-options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div id="language-options-container" class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                 <!-- Language buttons will be injected here by JS -->
             </div>
         </div>
@@ -590,82 +601,127 @@
             updatedAt: null
         };
         
-        const translations = {
-            en: {
-                page_title: "Cursed Lab Calculator", nav_calculator: "Calculator", nav_leaderboard: "Leaderboard", nav_information: "Information", nav_language: "Language",
-                auth_login_title: "Login", auth_register_title: "Create Account", auth_username: "Username", auth_email: "Email Address", auth_password: "Password", auth_confirm_password: "Confirm Password", auth_login_btn: "Login", auth_register_btn: "Register", auth_no_account: "Don't have an account?", auth_have_account: "Already have an account?", auth_register_link: "Register", auth_login_link: "Login", auth_login_btn_short: "Login", auth_logout_btn: "Logout", auth_alliance: "Alliance", auth_alliance_none: "None",
-                profile_title: "Edit Profile", profile_change_avatar: "Change Avatar", profile_save_btn: "Save Changes", profile_success: "Profile updated successfully!",
-                language_modal_title: "Select Language",
-                calc_fountains_title: "Blessed Fountains", calc_fountain_1: "Fountain 1", calc_fountain_2: "Fountain 2", calc_fountain_3: "Fountain 3", calc_fountain_4: "Fountain 4", calc_fountain_5_toggle: "Enable 5th Fountain", calc_total_water: "Total Water / Hour",
-                calc_lab_title: "Cursed Lab Upgrade", calc_current_water: "Current Sacred Water", calc_target_level: "Target Lab Level", calc_completion_time: "Upgrade Completion Time",
-                leaderboard_title: "Resistance Development Leaderboard", leaderboard_subtitle: "See how you stack up against other players.", leaderboard_login_prompt_1: "Please", leaderboard_login_prompt_2: "log in", leaderboard_login_prompt_3: "to join the leaderboard.",
-                leaderboard_card_next_level: "Next Level", leaderboard_card_lab_level: "Lab Level", leaderboard_card_resistance: "Resistance", leaderboard_card_water_hr: "Water/hr",
-                info_title: "Information", 
-                info_p1: "This tool is designed to help you plan your resource management for the Cursed Lab and Blessed Fountains. Optimize your upgrades, see how you compare to others, and save your progress.",
-                info_h_calc: "Calculator Page",
-                info_li_calc1: "Blessed Fountains: Select the current level for each of your four primary fountains. If you have unlocked the fifth, use the toggle to enable it and set its level.",
-                info_li_calc2: "Total Production: The calculator will instantly show your total Sacred Water production per hour based on your fountain levels.",
-                info_li_calc3: "Lab Upgrade: Enter your current amount of Sacred Water and select the Cursed Lab level you are aiming for.",
-                info_li_calc4: "Completion Time: The tool will calculate the exact date and time you will have enough resources for the selected lab upgrade.",
-                info_h_leaderboard: "Leaderboard",
-                info_p_leaderboard: "Log in to join the Leaderboard. Once logged in, your data will automatically sync to the leaderboard as you make changes in the calculator, allowing you to see how your progress and production rate compare to other players in real-time.",
-                info_h_save: "Saving Your Data",
-                info_p_save: "Creating an account and logging in automatically saves your data (fountain levels, current resources) to our database. The next time you visit, all your information will be pre-filled, so you can continue your planning without missing a beat.",
-                time_ready: "Ready!", time_no_prod: "No Production", toast_data_synced: "Leaderboard synced!",
-            },
-             es: {
-                page_title: "Calculadora de Laboratorio Maldito", nav_calculator: "Calculadora", nav_leaderboard: "Clasificación", nav_information: "Información", nav_language: "Idioma",
-                auth_login_title: "Iniciar Sesión", auth_register_title: "Crear Cuenta", auth_username: "Usuario", auth_email: "Correo Electrónico", auth_password: "Contraseña", auth_confirm_password: "Confirmar Contraseña", auth_login_btn: "Iniciar Sesión", auth_register_btn: "Registrarse", auth_no_account: "¿No tienes una cuenta?", auth_have_account: "¿Ya tienes una cuenta?", auth_register_link: "Regístrate", auth_login_link: "Inicia Sesión", auth_login_btn_short: "Login", auth_logout_btn: "Salir", auth_alliance: "Alianza", auth_alliance_none: "Ninguna",
-                profile_title: "Editar Perfil", profile_change_avatar: "Cambiar Avatar", profile_save_btn: "Guardar Cambios", profile_success: "¡Perfil actualizado con éxito!",
-                language_modal_title: "Seleccionar Idioma",
-                calc_fountains_title: "Fuentes Benditas", calc_fountain_1: "Fuente 1", calc_fountain_2: "Fuente 2", calc_fountain_3: "Fuente 3", calc_fountain_4: "Fuente 4", calc_fountain_5_toggle: "Habilitar 5ª Fuente", calc_total_water: "Agua Total / Hora",
-                calc_lab_title: "Mejora de Laboratorio Maldito", calc_current_water: "Agua Sagrada Actual", calc_target_level: "Nivel de Laboratorio Deseado", calc_completion_time: "Tiempo de Finalización",
-                leaderboard_title: "Clasificación de Desarrollo de Resistencia", leaderboard_subtitle: "Compara tu progreso con otros jugadores.", leaderboard_login_prompt_1: "Por favor", leaderboard_login_prompt_2: "inicia sesión", leaderboard_login_prompt_3: "para unirte.",
-                leaderboard_card_next_level: "Siguiente Nivel", leaderboard_card_lab_level: "Nivel Lab", leaderboard_card_resistance: "Resistencia", leaderboard_card_water_hr: "Agua/h",
-                info_title: "Información",
-                info_p1: "Esta herramienta está diseñada para ayudarte a planificar la gestión de tus recursos y mejoras de edificios de manera efectiva.",
-                info_h_calc: "Página de la Calculadora",
-                info_li_calc1: "Fuentes Benditas: Selecciona el nivel actual para cada una de tus cuatro fuentes principales. Si has desbloqueado la quinta, usa el interruptor para habilitarla y establecer su nivel.",
-                info_li_calc2: "Producción Total: La calculadora mostrará instantáneamente tu producción total de Agua Sagrada por hora según los niveles de tus fuentes.",
-                info_li_calc3: "Mejora de Laboratorio: Ingresa tu cantidad actual de Agua Sagrada y selecciona el nivel de Laboratorio Maldito que deseas alcanzar.",
-                info_li_calc4: "Tiempo de Finalización: La herramienta calculará la fecha y hora exactas en que tendrás suficientes recursos para la mejora de laboratorio seleccionada.",
-                info_h_leaderboard: "Clasificación",
-                info_p_leaderboard: "Inicia sesión para unirte a la tabla de clasificación. Una vez que hayas iniciado sesión, tus datos se sincronizarán automáticamente con la tabla de clasificación a medida que realices cambios en la calculadora, lo que te permitirá ver cómo se compara tu progreso y tu tasa de producción con otros jugadores en tiempo real.",
-                info_h_save: "Guardando Tus Datos",
-                info_p_save: "Al crear una cuenta e iniciar sesión, tus datos (niveles de fuente, recursos actuales) se guardan automáticamente en nuestra base de datos. La próxima vez que visites, toda tu información estará pre-cargada, para que puedas continuar tu planificación sin perder el ritmo.",
-                time_ready: "¡Listo!", time_no_prod: "Sin Producción", toast_data_synced: "¡Clasificación sincronizada!",
-            },
+        const i18nData = {
+            page_title: { en: "Cursed Lab Calculator", es: "Calculadora de Laboratorio Maldito", de: "Verfluchtes Labor Rechner", fr: "Calculateur de Laboratoire Maudit", pt: "Calculadora do Laboratório Amaldiçoado", ru: "Калькулятор Проклятой Лаборатории", ja: "呪われた研究室計算機", zh: "诅咒实验室计算器", hi: "शापित लैब कैलकुलेटर", ar: "حاسبة المختبر الملعون" },
+            nav_calculator: { en: "Calculator", es: "Calculadora", de: "Rechner", fr: "Calculateur", pt: "Calculadora", ru: "Калькулятор", ja: "計算機", zh: "计算器", hi: "कैलकुलेटर", ar: "حاسبة" },
+            nav_leaderboard: { en: "Leaderboard", es: "Clasificación", de: "Bestenliste", fr: "Classement", pt: "Quadro de Líderes", ru: "Таблица лидеров", ja: "リーダーボード", zh: "排行榜", hi: "लीडरबोर्ड", ar: "لوحة الصدارة" },
+            nav_information: { en: "Information", es: "Información", de: "Informationen", fr: "Informations", pt: "Informações", ru: "Информация", ja: "情報", zh: "信息", hi: "जानकारी", ar: "معلومات" },
+            nav_language: { en: "Language", es: "Idioma", de: "Sprache", fr: "Langue", pt: "Idioma", ru: "Язык", ja: "言語", zh: "语言", hi: "भाषा", ar: "لغة" },
+            auth_login_title: { en: "Login", es: "Iniciar Sesión", de: "Anmelden", fr: "Connexion", pt: "Entrar", ru: "Вход", ja: "ログイン", zh: "登录", hi: "लॉग इन करें", ar: "تسجيل الدخول" },
+            auth_register_title: { en: "Create Account", es: "Crear Cuenta", de: "Konto erstellen", fr: "Créer un compte", pt: "Criar Conta", ru: "Создать аккаунт", ja: "アカウントを作成", zh: "创建账户", hi: "खाता बनाएं", ar: "إنشاء حساب" },
+            auth_username: { en: "Username", es: "Usuario", de: "Benutzername", fr: "Nom d'utilisateur", pt: "Nome de Usuário", ru: "Имя пользователя", ja: "ユーザー名", zh: "用户名", hi: "उपयोगकर्ता नाम", ar: "اسم المستخدم" },
+            auth_email: { en: "Email Address", es: "Correo Electrónico", de: "E-Mail-Adresse", fr: "Adresse e-mail", pt: "Endereço de Email", ru: "Адрес электронной почты", ja: "メールアドレス", zh: "电子邮件地址", hi: "ईमेल पता", ar: "عنوان البريد الإلكتروني" },
+            auth_password: { en: "Password", es: "Contraseña", de: "Passwort", fr: "Mot de passe", pt: "Senha", ru: "Пароль", ja: "パスワード", zh: "密码", hi: "पासवर्ड", ar: "كلمة المرور" },
+            auth_confirm_password: { en: "Confirm Password", es: "Confirmar Contraseña", de: "Passwort bestätigen", fr: "Confirmez le mot de passe", pt: "Confirmar Senha", ru: "Подтвердите пароль", ja: "パスワードを確認", zh: "确认密码", hi: "पासवर्ड की पुष्टि कीजिये", ar: "تأكيد كلمة المرور" },
+            auth_login_btn: { en: "Login", es: "Iniciar Sesión", de: "Anmelden", fr: "Connexion", pt: "Entrar", ru: "Войти", ja: "ログイン", zh: "登录", hi: "लॉग इन करें", ar: "تسجيل الدخول" },
+            auth_register_btn: { en: "Register", es: "Registrarse", de: "Registrieren", fr: "S'inscrire", pt: "Registrar", ru: "Зарегистрироваться", ja: "登録", zh: "注册", hi: "पंजीकरण करवाना", ar: "تسجيل" },
+            auth_no_account: { en: "Don't have an account?", es: "¿No tienes una cuenta?", de: "Kein Konto?", fr: "Pas de compte ?", pt: "Não tem uma conta?", ru: "Нет аккаунта?", ja: "アカウントがありませんか？", zh: "没有账户？", hi: "खाता नहीं है?", ar: "ليس لديك حساب؟" },
+            auth_have_account: { en: "Already have an account?", es: "¿Ya tienes una cuenta?", de: "Bereits ein Konto?", fr: "Déjà un compte ?", pt: "Já tem uma conta?", ru: "Уже есть аккаунт?", ja: "すでにアカウントをお持ちですか？", zh: "已经有账户了？", hi: "पहले से ही एक खाता श्रेष्ठ है?", ar: "لديك حساب بالفعل؟" },
+            auth_register_link: { en: "Register", es: "Regístrate", de: "Registrieren", fr: "S'inscrire", pt: "Registrar", ru: "Регистрация", ja: "登録", zh: "注册", hi: "पंजीकरण करवाना", ar: "تسجيل" },
+            auth_login_link: { en: "Login", es: "Inicia Sesión", de: "Anmelden", fr: "Connexion", pt: "Entrar", ru: "Вход", ja: "ログイン", zh: "登录", hi: "लॉग इन करें", ar: "تسجيل الدخول" },
+            auth_login_btn_short: { en: "Login", es: "Login", de: "Login", fr: "Login", pt: "Login", ru: "Вход", ja: "ログイン", zh: "登录", hi: "लॉग इन", ar: "دخول" },
+            auth_logout_btn: { en: "Logout", es: "Salir", de: "Abmelden", fr: "Déconnexion", pt: "Sair", ru: "Выйти", ja: "ログアウト", zh: "登出", hi: "लॉग आउट", ar: "خروج" },
+            auth_alliance: { en: "Alliance", es: "Alianza", de: "Allianz", fr: "Alliance", pt: "Aliança", ru: "Альянс", ja: "同盟", zh: "联盟", hi: "संधि", ar: "تحالف" },
+            auth_alliance_none: { en: "None", es: "Ninguna", de: "Keine", fr: "Aucune", pt: "Nenhuma", ru: "Нет", ja: "なし", zh: "无", hi: "कोई नहीं", ar: "لا شيء" },
+            profile_title: { en: "Edit Profile", es: "Editar Perfil", de: "Profil bearbeiten", fr: "Modifier le profil", pt: "Editar Perfil", ru: "Редактировать профиль", ja: "プロフィールを編集", zh: "编辑个人资料", hi: "प्रोफ़ाइल संपादित करें", ar: "تعديل الملف الشخصي" },
+            profile_change_avatar: { en: "Change Avatar", es: "Cambiar Avatar", de: "Avatar ändern", fr: "Changer d'avatar", pt: "Mudar Avatar", ru: "Сменить аватар", ja: "アバターを変更", zh: "更换头像", hi: "अवतार बदलें", ar: "تغيير الصورة الرمزية" },
+            profile_save_btn: { en: "Save Changes", es: "Guardar Cambios", de: "Änderungen speichern", fr: "Sauvegarder les modifications", pt: "Salvar Alterações", ru: "Сохранить изменения", ja: "変更を保存", zh: "保存更改", hi: "बदलाव सहेजें", ar: "حفظ التغييرات" },
+            profile_success: { en: "Profile updated successfully!", es: "¡Perfil actualizado con éxito!", de: "Profil erfolgreich aktualisiert!", fr: "Profil mis à jour avec succès !", pt: "Perfil atualizado com sucesso!", ru: "Профиль успешно обновлен!", ja: "プロフィールが正常に更新されました！", zh: "个人资料更新成功！", hi: "प्रोफ़ाइल सफलतापूर्वक अपडेट किया गया!", ar: "تم تحديث الملف الشخصي بنجاح!" },
+            language_modal_title: { en: "Select Language", es: "Seleccionar Idioma", de: "Sprache auswählen", fr: "Sélectionner la langue", pt: "Selecionar Idioma", ru: "Выберите язык", ja: "言語を選択", zh: "选择语言", hi: "भाषा चुनें", ar: "اختار اللغة" },
+            calc_fountains_title: { en: "Blessed Fountains", es: "Fuentes Benditas", de: "Gesegnete Brunnen", fr: "Fontaines bénies", pt: "Fontes Abençoadas", ru: "Благословенные фонтаны", ja: "祝福された泉", zh: "祝福之泉", hi: "धन्य फव्वारे", ar: "النوافير المباركة" },
+            calc_fountain_1: { en: "Fountain 1", es: "Fuente 1", de: "Brunnen 1", fr: "Fontaine 1", pt: "Fonte 1", ru: "Фонтан 1", ja: "泉1", zh: "1号泉", hi: "फव्वारा 1", ar: "نافورة 1" },
+            calc_fountain_2: { en: "Fountain 2", es: "Fuente 2", de: "Brunnen 2", fr: "Fontaine 2", pt: "Fonte 2", ru: "Фонтан 2", ja: "泉2", zh: "2号泉", hi: "फव्वारा 2", ar: "نافورة 2" },
+            calc_fountain_3: { en: "Fountain 3", es: "Fuente 3", de: "Brunnen 3", fr: "Fontaine 3", pt: "Fonte 3", ru: "Фонтан 3", ja: "泉3", zh: "3号泉", hi: "फव्वारा 3", ar: "نافورة 3" },
+            calc_fountain_4: { en: "Fountain 4", es: "Fuente 4", de: "Brunnen 4", fr: "Fontaine 4", pt: "Fonte 4", ru: "Фонтан 4", ja: "泉4", zh: "4号泉", hi: "फव्वारा 4", ar: "نافورة 4" },
+            calc_fountain_5_toggle: { en: "Enable 5th Fountain", es: "Habilitar 5ª Fuente", de: "5. Brunnen aktivieren", fr: "Activer la 5ème fontaine", pt: "Ativar 5ª Fonte", ru: "Включить 5-й фонтан", ja: "5番目の泉を有効にする", zh: "启用第五泉", hi: "5वां फव्वारा सक्षम करें", ar: "تمكين النافورة الخامسة" },
+            calc_total_water: { en: "Total Water / Hour", es: "Agua Total / Hora", de: "Gesamtwasser / Stunde", fr: "Eau totale / Heure", pt: "Água Total / Hora", ru: "Всего воды / час", ja: "総水量/時", zh: "总水量/小时", hi: "कुल पानी / घंटा", ar: "إجمالي المياه / الساعة" },
+            calc_lab_title: { en: "Cursed Lab Upgrade", es: "Mejora de Laboratorio Maldito", de: "Verfluchtes Labor-Upgrade", fr: "Amélioration du laboratoire maudit", pt: "Upgrade do Laboratório Amaldiçoado", ru: "Улучшение Проклятой Лаборатории", ja: "呪われた研究室のアップグレード", zh: "诅咒实验室升级", hi: "शापित लैब अपग्रेड", ar: "ترقية المختبر الملعون" },
+            calc_current_water: { en: "Current Sacred Water", es: "Agua Sagrada Actual", de: "Aktuelles Heiliges Wasser", fr: "Eau sacrée actuelle", pt: "Água Sagrada Atual", ru: "Текущая Священная вода", ja: "現在の聖水", zh: "当前圣水量", hi: "वर्तमान पवित्र जल", ar: "المياه المقدسة الحالية" },
+            calc_target_level: { en: "Target Lab Level", es: "Nivel de Laboratorio Deseado", de: "Ziellaborlevel", fr: "Niveau de laboratoire cible", pt: "Nível Alvo do Laboratório", ru: "Целевой уровень лаборатории", ja: "目標の研究室レベル", zh: "目标实验室等级", hi: "लक्ष्य लैब स्तर", ar: "مستوى المختبر المستهدف" },
+            calc_completion_time: { en: "Upgrade Completion Time", es: "Tiempo de Finalización", de: "Abschlusszeit des Upgrades", fr: "Temps de réalisation de l'amélioration", pt: "Tempo de Conclusão do Upgrade", ru: "Время завершения улучшения", ja: "アップグレード完了時間", zh: "升级完成时间", hi: "अपग्रेड সমাপ্তિ સમય", ar: "وقت اكتمال الترقية" },
+            leaderboard_title: { en: "Resistance Development Leaderboard", es: "Clasificación de Desarrollo de Resistencia", de: "Bestenliste der Widerstandsentwicklung", fr: "Classement du développement de la résistance", pt: "Quadro de Líderes de Desenvolvimento de Resistência", ru: "Таблица лидеров по развитию сопротивления", ja: "耐性開発リーダーボード", zh: "抵抗发展排行榜", hi: "प्रतिरोध विकास लीडरबोर्ड", ar: "لوحة صدارة تطوير المقاومة" },
+            leaderboard_subtitle: { en: "See how you stack up against other players.", es: "Compara tu progreso con otros jugadores.", de: "Sieh, wie du dich gegen andere Spieler schlägst.", fr: "Voyez comment vous vous situez par rapport aux autres joueurs.", pt: "Veja como você se compara a outros jogadores.", ru: "Посмотрите, как вы смотритесь на фоне других игроков.", ja: "他のプレイヤーとの比較をご覧ください。", zh: "看看你与其他玩家的比较。", hi: "देखें कि आप अन्य खिलाड़ियों के खिलाफ कैसे टिकते हैं।", ar: "انظر كيف تقارن باللاعبين الآخرين." },
+            leaderboard_login_prompt_1: { en: "Please", es: "Por favor", de: "Bitte", fr: "S'il vous plaît", pt: "Por favor", ru: "Пожалуйста", ja: "お願いします", zh: "请", hi: "कृपया", ar: "من فضلك" },
+            leaderboard_login_prompt_2: { en: "log in", es: "inicia sesión", de: "anmelden", fr: "connectez-vous", pt: "faça login", ru: "войдите", ja: "ログイン", zh: "登录", hi: "लॉग इन करें", ar: "تسجيل الدخول" },
+            leaderboard_login_prompt_3: { en: "to join the leaderboard.", es: "para unirte.", de: "um der Bestenliste beizutreten.", fr: "pour rejoindre le classement.", pt: "para se juntar ao quadro de líderes.", ru: "чтобы присоединиться к таблице лидеров.", ja: "リーダーボードに参加する。", zh: "加入排行榜。", hi: "लीडरबोर्ड में शामिल होने के लिए।", ar: "للانضمام إلى لوحة الصدارة." },
+            leaderboard_card_next_level: { en: "Next Level", es: "Siguiente Nivel", de: "Nächstes Level", fr: "Niveau suivant", pt: "Próximo Nível", ru: "Следующий уровень", ja: "次のレベル", zh: "下一级", hi: "अगला स्तर", ar: "المستوى التالي" },
+            leaderboard_card_lab_level: { en: "Lab Level", es: "Nivel Lab", de: "Laborlevel", fr: "Niv Lab", pt: "Nível Lab", ru: "Уровень лаб.", ja: "研究室レベル", zh: "实验室等级", hi: "लैब स्तर", ar: "مستوى المختبر" },
+            leaderboard_card_resistance: { en: "Resistance", es: "Resistencia", de: "Widerstand", fr: "Résistance", pt: "Resistência", ru: "Сопротивление", ja: "耐性", zh: "抵抗力", hi: "प्रतिरोध", ar: "مقاومة" },
+            leaderboard_card_water_hr: { en: "Water/hr", es: "Agua/h", de: "Wasser/h", fr: "Eau/h", pt: "Água/h", ru: "Вода/час", ja: "水/時", zh: "水/小时", hi: "पानी/घंटा", ar: "ماء/ساعة" },
+            info_title: { en: "Information", es: "Información", de: "Informationen", fr: "Informations", pt: "Informações", ru: "Информация", ja: "情報", zh: "信息", hi: "जानकारी", ar: "معلومات" },
+            info_p1: { en: "This tool is designed to help you plan your resource management for the Cursed Lab and Blessed Fountains. Optimize your upgrades, see how you compare to others, and save your progress.", es: "Esta herramienta está diseñada para ayudarte a planificar la gestión de tus recursos y mejoras de edificios de manera efectiva.", de: "Dieses Tool soll Ihnen bei der Planung Ihres Ressourcenmanagements für das Verfluchte Labor und die Gesegneten Brunnen helfen. Optimieren Sie Ihre Upgrades, vergleichen Sie sich mit anderen und speichern Sie Ihren Fortschritt.", fr: "Cet outil est conçu pour vous aider à planifier votre gestion des ressources pour le Laboratoire Maudit et les Fontaines Bénies. Optimisez vos améliorations, comparez-vous aux autres et sauvegardez votre progression.", pt: "Esta ferramenta foi projetada para ajudá-lo a planejar sua gestão de recursos para o Laboratório Amaldiçoado e as Fontes Abençoadas. Otimize seus upgrades, veja como você se compara aos outros e salve seu progresso.", ru: "Этот инструмент предназначен для планирования управления ресурсами для Проклятой Лаборатории и Благословенных Фонтанов. Оптимизируйте улучшения, сравнивайте себя с другими и сохраняйте свой прогресс.", ja: "このツールは、呪われた研究室と祝福された泉のリソース管理を計画するのに役立ちます。アップグレードを最適化し、他のプレイヤーと比較し、進行状況を保存します。", zh: "此工具旨在帮助您规划诅咒实验室和祝福之泉的资源管理。优化您的升级，与他人比较，并保存您的进度。", hi: "यह उपकरण आपको शापित लैब और धन्य फव्वारों के लिए अपने संसाधन प्रबंधन की योजना बनाने में मदद करने के लिए डिज़ाइन किया गया है। अपने अपग्रेड को अनुकूलित करें, देखें कि आप दूसरों की तुलना में कैसे हैं, और अपनी प्रगति को सहेजें।", ar: "تم تصميم هذه الأداة لمساعدتك في تخطيط إدارة الموارد الخاصة بك للمختبر الملعون والنوافير المباركة. قم بتحسين ترقياتك ، وقارن نفسك بالآخرين ، واحفظ تقدمك." },
+            info_h_calc: { en: "Calculator Page", es: "Página de la Calculadora", de: "Rechnerseite", fr: "Page Calculateur", pt: "Página da Calculadora", ru: "Страница калькулятора", ja: "計算機ページ", zh: "计算器页面", hi: "कैलकुलेटर पृष्ठ", ar: "صفحة الحاسبة" },
+            info_li_calc1: { en: "Blessed Fountains: Select the current level for each of your four primary fountains. If you have unlocked the fifth, use the toggle to enable it and set its level.", es: "Fuentes Benditas: Selecciona el nivel actual para cada una de tus cuatro fuentes principales. Si has desbloqueado la quinta, usa el interruptor para habilitarla y establecer su nivel.", de: "Gesegnete Brunnen: Wählen Sie das aktuelle Level für jeden Ihrer vier Hauptbrunnen. Wenn Sie den fünften freigeschaltet haben, verwenden Sie den Schalter, um ihn zu aktivieren und sein Level einzustellen.", fr: "Fontaines bénies : Sélectionnez le niveau actuel pour chacune de vos quatre fontaines principales. Si vous avez déverrouillé la cinquième, utilisez le bouton pour l'activer et définir son niveau.", pt: "Fontes Abençoadas: Selecione o nível atual para cada uma de suas quatro fontes primárias. Se você desbloqueou a quinta, use o botão para ativá-la и definir seu nível.", ru: "Благословенные фонтаны: выберите текущий уровень для каждого из ваших четырех основных фонтанов. Если вы разблокировали пятый, используйте переключатель, чтобы включить его и установить его уровень.", ja: "祝福された泉：4つの主要な泉それぞれの現在のレベルを選択します。 5番目のロックを解除した場合は、トグルを使用して有効にし、そのレベルを設定します。", zh: "祝福之泉：为您四个主要泉水选择当前等级。如果您已解锁第五个，请使用切换开关启用并设置其等级。", hi: "धन्य फव्वारे: अपने चार प्राथमिक फव्वारों में से प्रत्येक के लिए वर्तमान स्तर का चयन करें। यदि आपने पांचवां अनलॉक कर लिया है, तो इसे सक्षम करने और इसका स्तर सेट करने के लिए टॉगल का उपयोग करें।", ar: "النوافير المباركة: حدد المستوى الحالي لكل من النوافير الأربعة الأساسية. إذا قمت بإلغاء قفل الخامس ، فاستخدم التبديل لتمكينه وتعيين مستواه." },
+            info_li_calc2: { en: "Total Production: The calculator will instantly show your total Sacred Water production per hour based on your fountain levels.", es: "Producción Total: La calculadora mostrará instantáneamente tu producción total de Agua Sagrada por hora según los niveles de tus fuentes.", de: "Gesamtproduktion: Der Rechner zeigt sofort Ihre gesamte Heilige-Wasser-Produktion pro Stunde basierend auf Ihren Brunnenleveln an.", fr: "Production totale : Le calculateur affichera instantanément votre production totale d'Eau sacrée par heure en fonction des niveaux de vos fontaines.", pt: "Produção Total: A calculadora mostrará instantaneamente sua produção total de Água Sagrada por hora com base nos níveis de suas fontes.", ru: "Общее производство: калькулятор мгновенно покажет ваше общее производство Священной воды в час в зависимости от уровней ваших фонтанов.", ja: "総生産量：計算機は、泉のレベルに基づいて1時間あたりの総聖水生産量を即座に表示します。", zh: "总产量：计算器将根据您的泉水等级立即显示您每小时的总圣水产量。", hi: "कुल उत्पादन: कैलकुलेटर आपके फव्वारे के स्तर के आधार पर प्रति घंटे आपके कुल पवित्र जल उत्पादन को तुरंत दिखाएगा।", ar: "الإنتاج الإجمالي: ستعرض الحاسبة على الفور إجمالي إنتاجك من المياه المقدسة في الساعة بناءً على مستويات نوافيرك." },
+            info_li_calc3: { en: "Lab Upgrade: Enter your current amount of Sacred Water and select the Cursed Lab level you are aiming for.", es: "Mejora de Laboratorio: Ingresa tu cantidad actual de Agua Sagrada y selecciona el nivel de Laboratorio Maldito que deseas alcanzar.", de: "Labor-Upgrade: Geben Sie Ihre aktuelle Menge an Heiligem Wasser ein und wählen Sie das angestrebte Laborlevel aus.", fr: "Amélioration du laboratoire : Entrez votre quantité actuelle d'Eau sacrée et sélectionnez le niveau de laboratoire maudit que vous visez.", pt: "Upgrade do Laboratório: Insira sua quantidade atual de Água Sagrada e selecione o nível do Laboratório Amaldiçoado que você almeja.", ru: "Улучшение лаборатории: введите ваше текущее количество Священной воды и выберите целевой уровень Проклятой лаборатории.", ja: "研究室のアップグレード：現在の聖水の量を入力し、目指している呪われた研究室のレベルを選択します。", zh: "实验室升级：输入您当前的圣水量，然后选择您要达到的诅咒实验室等级。", hi: "लैब अपग्रेड: अपनी वर्तमान पवित्र जल की मात्रा दर्ज करें और उस शापित लैब स्तर का चयन करें जिसका आप लक्ष्य बना रहे हैं।", ar: "ترقية المختبر: أدخل الكمية الحالية من المياه المقدسة وحدد مستوى المختبر الملعون الذي تستهدفه." },
+            info_li_calc4: { en: "Completion Time: The tool will calculate the exact date and time you will have enough resources for the selected lab upgrade.", es: "Tiempo de Finalización: La herramienta calculará la fecha y hora exactas en que tendrás suficientes recursos para la mejora de laboratorio seleccionada.", de: "Abschlusszeit: Das Tool berechnet das genaue Datum und die Uhrzeit, zu der Sie genügend Ressourcen für das ausgewählte Labor-Upgrade haben werden.", fr: "Temps de réalisation : L'outil calculera la date et l'heure exactes auxquelles vous aurez suffisamment de ressources pour l'amélioration de laboratoire sélectionnée.", pt: "Tempo de Conclusão: A ferramenta calculará a data e a hora exatas em que você terá recursos suficientes para o upgrade de laboratório selecionado.", ru: "Время завершения: инструмент рассчитает точную дату и время, когда у вас будет достаточно ресурсов для выбранного улучшения лаборатории.", ja: "完了時間：このツールは、選択した研究室のアップグレードに十分なリソースがある正確な日時を計算します。", zh: "完成时间：该工具将计算您有足够资源进行所选实验室升级的确切日期和时间。", hi: "समापन समय: उपकरण उस सटीक तारीख और समय की गणना करेगा जब आपके पास चयनित लैब अपग्रेड के लिए पर्याप्त संसाधन होंगे।", ar: "وقت الإكمال: ستحسب الأداة التاريخ والوقت المحددين اللذين سيكون لديك فيهما موارد كافية لترقية المختبر المحددة." },
+            info_h_leaderboard: { en: "Leaderboard", es: "Clasificación", de: "Bestenliste", fr: "Classement", pt: "Quadro de Líderes", ru: "Таблица лидеров", ja: "リーダーボード", zh: "排行榜", hi: "लीडरबोर्ड", ar: "لوحة الصدارة" },
+            info_p_leaderboard: { en: "Log in to join the Leaderboard. Once logged in, your data will automatically sync to the leaderboard as you make changes in the calculator, allowing you to see how your progress and production rate compare to other players in real-time.", es: "Inicia sesión para unirte a la tabla de clasificación. Una vez que hayas iniciado sesión, tus datos se sincronizarán automáticamente con la tabla de clasificación a medida que realices cambios en la calculadora, lo que te permitirá ver cómo se compara tu progreso y tu tasa de producción con otros jugadores en tiempo real.", de: "Melden Sie sich an, um der Bestenliste beizutreten. Nach der Anmeldung werden Ihre Daten automatisch mit der Bestenliste synchronisiert, wenn Sie Änderungen im Rechner vornehmen, sodass Sie sehen können, wie Ihr Fortschritt und Ihre Produktionsrate im Vergleich zu anderen Spielern in Echtzeit abschneiden.", fr: "Connectez-vous pour rejoindre le classement. Une fois connecté, vos données se synchroniseront automatiquement avec le classement au fur et à mesure que vous apporterez des modifications dans le calculateur, vous permettant de voir comment votre progression et votre taux de production se comparent aux autres joueurs en temps réel.", pt: "Faça login para entrar no Quadro de Líderes. Uma vez logado, seus dados serão sincronizados automaticamente com o quadro de líderes à medida que você fizer alterações na calculadora, permitindo que você veja como seu progresso e taxa de produção se comparam a outros jogadores em tempo real.", ru: "Войдите, чтобы присоединиться к таблице лидеров. После входа ваши данные будут автоматически синхронизироваться с таблицей лидеров по мере внесения изменений в калькулятор, что позволит вам в реальном времени видеть, как ваш прогресс и скорость производства соотносятся с другими игроками.", ja: "リーダーボードに参加するにはログインしてください。ログインすると、計算機で変更を加えるたびにデータがリーダーボードに自動的に同期され、リアルタイムで他のプレイヤーと自分の進捗状況や生産率を比較できます。", zh: "登录以加入排行榜。登录后，当您在计算器中进行更改时，您的数据将自动同步到排行榜，从而使您可以实时查看自己的进度和生产率与其他玩家的比较情况。", hi: "लीडरबोर्ड में शामिल होने के लिए लॉग इन करें। एक बार लॉग इन करने के बाद, कैलकुलेटर में बदलाव करने पर आपका डेटा स्वचालित रूप से लीडरबोर्ड से समन्वयित हो जाएगा, जिससे आप देख सकेंगे कि आपकी प्रगति और उत्पादन दर वास्तविक समय में अन्य खिलाड़ियों की तुलना में कैसी है।", ar: "سجل الدخول للانضمام إلى لوحة الصدارة. بمجرد تسجيل الدخول ، ستتم مزامنة بياناتك تلقائيًا مع لوحة الصدارة عند إجراء تغييرات في الحاسبة ، مما يتيح لك معرفة كيفية مقارنة تقدمك ومعدل إنتاجك باللاعبين الآخرين في الوقت الفعلي." },
+            info_h_save: { en: "Saving Your Data", es: "Guardando Tus Datos", de: "Speichern Ihrer Daten", fr: "Sauvegarde de vos données", pt: "Salvando Seus Dados", ru: "Сохранение ваших данных", ja: "データの保存", zh: "保存您的数据", hi: "अपना डेटा सहेजना", ar: "حفظ بياناتك" },
+            info_p_save: { en: "Creating an account and logging in automatically saves your data (fountain levels, current resources) to our database. The next time you visit, all your information will be pre-filled, so you can continue your planning without missing a beat.", es: "Al crear una cuenta e iniciar sesión, tus datos (niveles de fuente, recursos actuales) se guardan automáticamente en nuestra base de datos. La próxima vez que visites, toda tu información estará pre-cargada, para que puedas continuar tu planificación sin perder el ritmo.", de: "Durch das Erstellen eines Kontos und das Anmelden werden Ihre Daten (Brunnenlevel, aktuelle Ressourcen) automatisch in unserer Datenbank gespeichert. Bei Ihrem nächsten Besuch sind alle Ihre Informationen vorausgefüllt, sodass Sie Ihre Planung ohne Unterbrechung fortsetzen können.", fr: "La création d'un compte et la connexion enregistrent automatiquement vos données (niveaux de fontaine, ressources actuelles) dans notre base de données. La prochaine fois que vous visiterez, toutes vos informations seront pré-remplies, afin que vous puissiez continuer votre planification sans perdre un instant.", pt: "Criar uma conta e fazer login salva automaticamente seus dados (níveis de fonte, recursos atuais) em nosso banco de dados. Na próxima vez que você visitar, todas as suas informações estarão pré-preenchidas, para que você possa continuar seu planejamento sem perder o ritmo.", ru: "Создание учетной записи и вход в систему автоматически сохраняют ваши данные (уровни фонтанов, текущие ресурсы) в нашей базе данных. При следующем посещении вся ваша информация будет предварительно заполнена, чтобы вы могли продолжить планирование без промедления.", ja: "アカウントを作成してログインすると、データ（泉のレベル、現在のリソース）が自動的にデータベースに保存されます。次回アクセスすると、すべての情報が事前に入力されているため、中断することなく計画を続行できます。", zh: "创建帐户并登录会自动将您的数据（泉水等级，当前资源）保存到我们的数据库中。下次访问时，您的所有信息都将预先填写，因此您可以继续进行计划而不会错过任何一个节拍。", hi: "एक खाता बनाने और लॉग इन करने से आपका डेटा (फव्वारे का स्तर, वर्तमान संसाधन) हमारे डेटाबेस में स्वचालित रूप से सहेजा जाता है। अगली बार जब आप आएंगे, तो आपकी सभी जानकारी पहले से भरी होगी, ताकि आप बिना किसी रुकावट के अपनी योजना जारी रख सकें।", ar: "يؤدي إنشاء حساب وتسجيل الدخول إلى حفظ بياناتك تلقائيًا (مستويات النافورة والموارد الحالية) في قاعدة بياناتنا. في المرة القادمة التي تزور فيها ، سيتم ملء جميع معلوماتك مسبقًا ، حتى تتمكن من متابعة التخطيط دون أي انقطاع." },
+            time_ready: { en: "Ready!", es: "¡Listo!", de: "Bereit!", fr: "Prêt !", pt: "Pronto!", ru: "Готово!", ja: "準備完了！", zh: "准备好了！", hi: "तैयार!", ar: "جاهز!" },
+            time_no_prod: { en: "No Production", es: "Sin Producción", de: "Keine Produktion", fr: "Pas de production", pt: "Sem Produção", ru: "Нет производства", ja: "生産なし", zh: "没有生产", hi: "कोई उत्पादन नहीं", ar: "لا يوجد إنتاج" },
+            toast_data_synced: { en: "Leaderboard synced!", es: "¡Clasificación sincronizada!", de: "Bestenliste synchronisiert!", fr: "Classement synchronisé !", pt: "Quadro de Líderes sincronizado!", ru: "Таблица лидеров синхронизирована!", ja: "リーダーボードが同期されました！", zh: "排行榜已同步！", hi: "लीडरबोर्ड समन्वयित!", ar: "تمت مزامنة لوحة الصدارة!" },
         };
 
-        const supportedLangs = { en: "English", es: "Español" };
+        const supportedLangs = { 
+            en: "English", 
+            es: "Español",
+            de: "Deutsch",
+            fr: "Français",
+            pt: "Português",
+            ru: "Русский",
+            ja: "日本語",
+            zh: "中文 (简体)",
+            hi: "हिन्दी",
+            ar: "العربية"
+        };
+        
+        function getTranslation(key, lang) {
+            if (i18nData[key] && i18nData[key][lang]) {
+                return i18nData[key][lang];
+            }
+            // Fallback to English if translation is missing
+            return i18nData[key] ? i18nData[key]['en'] : key;
+        }
+
 
         function showToast(messageKey, type = 'success') {
             const lang = localStorage.getItem('language') || 'en';
-            const message = translations[lang][messageKey] || 'Success!';
+            const message = getTranslation(messageKey, lang);
             
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fas fa-check-circle mr-3"></i> ${message}`;
+            toast.innerHTML = `<i class="fas fa-check-circle mx-3"></i> ${message}`;
             dom.toastContainer.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
         }
 
         function setLanguage(lang) {
-            const langCode = translations[lang] ? lang : 'en';
+            const langCode = supportedLangs[lang] ? lang : 'en';
             document.querySelectorAll('[data-i18n-key]').forEach(el => {
                 const key = el.getAttribute('data-i18n-key');
-                if (translations[langCode] && translations[langCode][key]) {
-                    el.textContent = translations[langCode][key];
-                }
+                el.textContent = getTranslation(key, langCode);
             });
+            
+            if (langCode === 'ar') {
+                document.documentElement.setAttribute('dir', 'rtl');
+            } else {
+                document.documentElement.setAttribute('dir', 'ltr');
+            }
+
             localStorage.setItem('language', langCode);
-            runCalculations();
+            runCalculations(); // Recalculate to update time formats etc.
+            if(document.getElementById('leaderboard-page').classList.contains('hidden') === false) {
+                 renderLeaderboard(); // Re-render leaderboard if visible
+            }
         }
 
         function initializeCurrentLanguage() {
             const savedLang = localStorage.getItem('language');
             const browserLang = navigator.language.split('-')[0];
-            setLanguage(savedLang || (supportedLangs[browserLang] ? browserLang : 'en'));
+            const defaultLang = savedLang || (supportedLangs[browserLang] ? browserLang : 'en');
+            setLanguage(defaultLang);
         }
         
         function debounce(func, delay) {
@@ -727,10 +783,10 @@
 
             const lang = localStorage.getItem('language') || 'en';
             if (waterNeeded <= 0) {
-                dom.calculator.completionTime.textContent = translations[lang].time_ready;
+                dom.calculator.completionTime.textContent = getTranslation('time_ready', lang);
                 dom.calculator.completionTime.className = "text-3xl font-bold mt-1 text-green-400";
             } else if (state.hourlyProduction <= 0) {
-                dom.calculator.completionTime.textContent = translations[lang].time_no_prod;
+                dom.calculator.completionTime.textContent = getTranslation('time_no_prod', lang);
                 dom.calculator.completionTime.className = "text-3xl font-bold mt-1 text-red-400";
             } else {
                 const hoursNeeded = waterNeeded / state.hourlyProduction;
@@ -826,14 +882,14 @@
 
                 if (completionDate) {
                     if (completionDate.getTime() <= Date.now()) {
-                        completionTimeText = translations[lang].time_ready;
+                        completionTimeText = getTranslation('time_ready', lang);
                         completionTimeClass = 'text-green-400';
                     } else {
                         completionTimeText = completionDate.toLocaleString(lang, { hour: '2-digit', minute: '2-digit' });
                         completionTimeClass = 'text-teal-300';
                     }
                 } else {
-                    completionTimeText = translations[lang].time_no_prod;
+                    completionTimeText = getTranslation('time_no_prod', lang);
                     completionTimeClass = 'text-red-400';
                 }
 
@@ -1066,6 +1122,7 @@
             let isRegisterMode = false;
             function toggleAuthMode() {
                 isRegisterMode = !isRegisterMode;
+                const lang = localStorage.getItem('language') || 'en';
                 dom.auth.form.reset();
                 dom.auth.error.textContent = '';
                 dom.auth.usernameField.classList.toggle('hidden', !isRegisterMode);
@@ -1073,11 +1130,11 @@
                 document.getElementById('username').required = isRegisterMode;
                 dom.auth.confirmPasswordField.classList.toggle('hidden', !isRegisterMode);
                 document.getElementById('confirm-password').required = isRegisterMode;
-                const lang = localStorage.getItem('language') || 'en';
-                dom.auth.title.textContent = translations[lang][isRegisterMode ? 'auth_register_title' : 'auth_login_title'];
-                dom.auth.submitBtn.textContent = translations[lang][isRegisterMode ? 'auth_register_btn' : 'auth_login_btn'];
-                dom.auth.toggleText.textContent = translations[lang][isRegisterMode ? 'auth_have_account' : 'auth_no_account'];
-                dom.auth.toggleBtn.textContent = translations[lang][isRegisterMode ? 'auth_login_link' : 'auth_register_link'];
+                
+                dom.auth.title.textContent = getTranslation(isRegisterMode ? 'auth_register_title' : 'auth_login_title', lang);
+                dom.auth.submitBtn.textContent = getTranslation(isRegisterMode ? 'auth_register_btn' : 'auth_login_btn', lang);
+                dom.auth.toggleText.textContent = getTranslation(isRegisterMode ? 'auth_have_account' : 'auth_no_account', lang);
+                dom.auth.toggleBtn.textContent = getTranslation(isRegisterMode ? 'auth_login_link' : 'auth_register_link', lang);
             }
             
             const openAuthModal = () => {
