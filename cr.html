@@ -64,20 +64,18 @@
              box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
              outline: none;
         }
-        .nav-link, .nav-btn {
+        .nav-link {
             position: relative;
-            transition: color 0.3s ease, background-color 0.3s ease;
+            transition: color 0.3s ease;
             padding: 0.5rem 0.75rem;
             border-radius: 0.375rem;
-            color: var(--text-secondary);
         }
-        .nav-link.active, .nav-btn.active { 
+        .nav-link.active { 
             color: white; 
             background: rgba(255,255,255,0.1);
         }
-        .nav-link:hover, .nav-btn:hover {
+        .nav-link:hover {
              background: rgba(255,255,255,0.05);
-             color: white;
         }
         .hidden { display: none; }
         .modal-backdrop {
@@ -99,7 +97,7 @@
             position: fixed;
             top: 1rem;
             right: 1rem;
-            z-index: 1050;
+            z-index: 1000;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
@@ -153,14 +151,6 @@
             border-radius: 50%;
             border: 2px solid var(--accent-primary);
             object-fit: cover;
-        }
-        .lang-btn {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-        }
-        .lang-btn:hover {
-            border-color: var(--accent-primary);
-            background-color: var(--bg-tertiary);
         }
     </style>
 </head>
@@ -256,16 +246,6 @@
         </div>
     </div>
 
-    <!-- Language Modal -->
-    <div id="language-modal" class="fixed inset-0 z-[100] flex items-center justify-center modal-backdrop hidden p-4">
-        <div class="main-card rounded-xl w-full max-w-xs p-6 space-y-4">
-            <h2 class="text-2xl font-bold text-center text-white" data-i18n-key="language_modal_title">Select Language</h2>
-            <div id="language-options-container" class="grid grid-cols-2 gap-3">
-                <!-- Language buttons are injected here by JS -->
-            </div>
-        </div>
-    </div>
-
 
     <!-- Navigation Bar -->
     <nav class="main-card sticky top-0 md:top-2 z-30 w-full max-w-5xl mx-auto rounded-none md:rounded-xl shadow-lg border-x-0 border-t-0 md:border">
@@ -280,14 +260,13 @@
                 <a href="#" class="nav-link text-sm" data-page="information" data-i18n-key="nav_information">Information</a>
             </div>
             <div class="hidden md:flex items-center gap-2">
-                <button id="language-btn" class="nav-btn text-sm" title="Change Language"><i class="fas fa-globe fa-fw"></i></button>
+                <select id="language-selector" class="glass-select rounded-md py-1 pl-2 pr-7 text-xs focus:ring-0 outline-none"></select>
                 <div id="auth-container">
                     <button id="login-btn" class="px-3 py-1.5 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
                     <div id="user-info" class="hidden items-center gap-2">
-                         <img id="user-avatar" src="https://placehold.co/150x150/1f2937/9ca3af?text=Avatar" class="avatar w-8 h-8">
+                         <img id="user-avatar" src="https://placehold.co/150x150/1f2937/9ca3af?text=Avatar" class="avatar w-8 h-8 cursor-pointer" title="Edit Profile">
                         <span id="user-display-name" class="hidden sm:block text-sm font-semibold text-slate-300"></span>
                         <button id="logout-btn" class="px-2 py-1 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
-                        <button id="profile-btn" class="nav-btn px-2 py-1 text-xs" title="Edit Profile"><i class="fas fa-cog fa-fw"></i></button>
                     </div>
                 </div>
             </div>
@@ -310,20 +289,15 @@
             <a href="#" class="nav-link text-base" data-page="information" data-i18n-key="nav_information">Information</a>
         </div>
         <div class="mt-auto border-t border-slate-700 pt-4 flex flex-col items-center gap-3">
-             <button id="language-btn-mobile" class="w-full text-base nav-btn flex items-center justify-center gap-2">
-                <i class="fas fa-globe fa-fw"></i> <span data-i18n-key="language_modal_title">Select Language</span>
-            </button>
+            <select id="language-selector-mobile" class="glass-select rounded-md py-2 pl-3 pr-8 text-sm focus:ring-0 outline-none w-full"></select>
             <div id="auth-container-mobile" class="w-full">
                 <button id="login-btn-mobile" class="w-full px-3 py-2 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
                 <div id="user-info-mobile" class="hidden items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
-                        <img id="user-avatar-mobile" src="https://placehold.co/150x150/1f2937/9ca3af?text=Avatar" class="avatar w-8 h-8">
+                        <img id="user-avatar-mobile" src="https://placehold.co/150x150/1f2937/9ca3af?text=Avatar" class="avatar w-8 h-8 cursor-pointer" title="Edit Profile">
                         <span id="user-display-name-mobile" class="text-sm font-semibold text-slate-300 truncate"></span>
                     </div>
-                    <div class="flex items-center gap-1">
-                        <button id="logout-btn-mobile" class="px-3 py-1.5 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
-                        <button id="profile-btn-mobile" class="nav-btn px-2 py-1.5 text-xs" title="Edit Profile"><i class="fas fa-cog fa-fw"></i></button>
-                    </div>
+                    <button id="logout-btn-mobile" class="px-3 py-1.5 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
                 </div>
             </div>
         </div>
@@ -482,14 +456,14 @@
             apiKey: "AIzaSyB-XKrs7nCZgq1XOg_ouOs6x6ZCkjrJsf4",
             authDomain: "thecursedlab-709f3.firebaseapp.com",
             projectId: "thecursedlab-709f3",
-            storageBucket: "thecursedlab-709f3.firebasestorage.app",
+            storageBucket: "thecursedlab-709f3.firebasestorage.app", // Corrected storage bucket
             messagingSenderId: "751252568769",
             appId: "1:751252568769:web:22a928747cbf1b6aec3240",
             measurementId: "G-M0Y9LSM58J"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'thecursedlab-709f3';
         const fountainProductionRates = { 0: 0, 1: 720, 2: 1440, 3: 2160, 4: 2880, 5: 3600, 6: 4320, 7: 5040, 8: 5760, 9: 6480, 10: 7200, 11: 7920, 12: 8640, 13: 9360, 14: 10080, 15: 10800, 16: 11520, 17: 12240, 18: 12960, 19: 13600, 20: 14400, 21: 15120, 22: 15840, 23: 16560, 24: 17280, 25: 18000, 26: 18720, 27: 19440, 28: 20160, 29: 20880, 30: 21600 };
-        const labUpgradeData = { 0:{cost:0,res:0}, 1:{cost:0,res:400}, 2:{cost:11200,res:200}, 3:{cost:22400,res:300}, 4:{cost:44800,res:400}, 5:{cost:89600,res:500}, 6:{cost:125400,res:750}, 7:{cost:163100,res:1000}, 8:{cost:195700,res:1250}, 9:{cost:234800,res:1500}, 10:{cost:281800,res:1750}, 11:{cost:338100,res:2000}, 12:{cost:405800,res:2250}, 13:{cost:486900,res:2500}, 14:{cost:584300,res:2750}, 15:{cost:701200,res:3000}, 16:{cost:771300,res:3400}, 17:{cost:848400,res:3800}, 18:{cost:933301,res:4200}, 19:{cost:1026600,res:4600}, 20:{cost:1129301,res:5000}, 21:{cost:1242200,res:5500}, 22:{cost:1366400,res:6000}, 23:{cost:1503000,res:6500}, 24:{cost:1653301,res:7000}, 25:{cost:1818701,res:7500}, 26:{cost:2159600,res:8000}, 27:{cost:2505101,res:8500}, 28:{cost:2855301,res:9000}, 29:{cost:3460600,res:9500}, 30:{cost:4321100,res:10000} };
+        const labUpgradeData = { 1:{cost:0,res:400}, 2:{cost:11200,res:200}, 3:{cost:22400,res:300}, 4:{cost:44800,res:400}, 5:{cost:89600,res:500}, 6:{cost:125400,res:750}, 7:{cost:163100,res:1000}, 8:{cost:195700,res:1250}, 9:{cost:234800,res:1500}, 10:{cost:281800,res:1750}, 11:{cost:338100,res:2000}, 12:{cost:405800,res:2250}, 13:{cost:486900,res:2500}, 14:{cost:584300,res:2750}, 15:{cost:701200,res:3000}, 16:{cost:771300,res:3400}, 17:{cost:848400,res:3800}, 18:{cost:933301,res:4200}, 19:{cost:1026600,res:4600}, 20:{cost:1129301,res:5000}, 21:{cost:1242200,res:5500}, 22:{cost:1366400,res:6000}, 23:{cost:1503000,res:6500}, 24:{cost:1653301,res:7000}, 25:{cost:1818701,res:7500}, 26:{cost:2159600,res:8000}, 27:{cost:2505101,res:8500}, 28:{cost:2855301,res:9000}, 29:{cost:3460600,res:9500}, 30:{cost:4321100,res:10000} };
         
         let app, auth, db, storage, currentUserId = null;
         try {
@@ -554,15 +528,7 @@
                 usernameInput: document.getElementById('profile-username'),
                 allianceSelect: document.getElementById('profile-alliance-select'),
                 error: document.getElementById('profile-error'),
-                saveBtn: document.getElementById('profile-save-btn'),
-                btn: document.getElementById('profile-btn'),
-                mobileBtn: document.getElementById('profile-btn-mobile')
-            },
-            language: {
-                modal: document.getElementById('language-modal'),
-                btn: document.getElementById('language-btn'),
-                mobileBtn: document.getElementById('language-btn-mobile'),
-                optionsContainer: document.getElementById('language-options-container')
+                saveBtn: document.getElementById('profile-save-btn')
             },
             leaderboard: {
                 loginPrompt: document.getElementById('leaderboard-login-prompt'),
@@ -571,6 +537,8 @@
             },
             nav: {
                 links: document.querySelectorAll('.nav-link'),
+                languageSelector: document.getElementById('language-selector'),
+                languageSelectorMobile: document.getElementById('language-selector-mobile'),
                 hamburgerBtn: document.getElementById('hamburger-btn'),
                 mobileMenu: document.getElementById('mobile-menu'),
                 closeMenuBtn: document.getElementById('close-menu-btn'),
@@ -599,11 +567,10 @@
                 page_title: "Cursed Lab Calculator", nav_calculator: "Calculator", nav_leaderboard: "Leaderboard", nav_information: "Information",
                 auth_login_title: "Login", auth_register_title: "Create Account", auth_username: "Username", auth_email: "Email Address", auth_password: "Password", auth_confirm_password: "Confirm Password", auth_login_btn: "Login", auth_register_btn: "Register", auth_no_account: "Don't have an account?", auth_have_account: "Already have an account?", auth_register_link: "Register", auth_login_link: "Login", auth_login_btn_short: "Login", auth_logout_btn: "Logout", auth_alliance: "Alliance", auth_alliance_none: "None",
                 profile_title: "Edit Profile", profile_change_avatar: "Change Avatar", profile_save_btn: "Save Changes", profile_success: "Profile updated successfully!",
-                language_modal_title: "Select Language",
                 calc_fountains_title: "Blessed Fountains", calc_fountain_1: "Fountain 1", calc_fountain_2: "Fountain 2", calc_fountain_3: "Fountain 3", calc_fountain_4: "Fountain 4", calc_fountain_5_toggle: "Enable 5th Fountain", calc_total_water: "Total Water / Hour",
                 calc_lab_title: "Cursed Lab Upgrade", calc_current_water: "Current Sacred Water", calc_target_level: "Target Lab Level", calc_completion_time: "Upgrade Completion Time",
                 leaderboard_title: "Resistance Development Leaderboard", leaderboard_subtitle: "See how you stack up against other players.", leaderboard_login_prompt_1: "Please", leaderboard_login_prompt_2: "log in", leaderboard_login_prompt_3: "to join the leaderboard.",
-                leaderboard_card_next_level: "Next Level", leaderboard_card_resistance: "Resistance",
+                leaderboard_card_upgrade_time: "Upgrade At",
                 info_title: "Information", 
                 info_p1: "This tool is designed to help you plan your resource management for the Cursed Lab and Blessed Fountains. Optimize your upgrades, see how you compare to others, and save your progress.",
                 info_h_calc: "Calculator Page",
@@ -621,11 +588,10 @@
                 page_title: "Calculadora de Laboratorio Maldito", nav_calculator: "Calculadora", nav_leaderboard: "Clasificación", nav_information: "Información",
                 auth_login_title: "Iniciar Sesión", auth_register_title: "Crear Cuenta", auth_username: "Usuario", auth_email: "Correo Electrónico", auth_password: "Contraseña", auth_confirm_password: "Confirmar Contraseña", auth_login_btn: "Iniciar Sesión", auth_register_btn: "Registrarse", auth_no_account: "¿No tienes una cuenta?", auth_have_account: "¿Ya tienes una cuenta?", auth_register_link: "Regístrate", auth_login_link: "Inicia Sesión", auth_login_btn_short: "Login", auth_logout_btn: "Salir", auth_alliance: "Alianza", auth_alliance_none: "Ninguna",
                 profile_title: "Editar Perfil", profile_change_avatar: "Cambiar Avatar", profile_save_btn: "Guardar Cambios", profile_success: "¡Perfil actualizado con éxito!",
-                language_modal_title: "Seleccionar Idioma",
                 calc_fountains_title: "Fuentes Benditas", calc_fountain_1: "Fuente 1", calc_fountain_2: "Fuente 2", calc_fountain_3: "Fuente 3", calc_fountain_4: "Fuente 4", calc_fountain_5_toggle: "Habilitar 5ª Fuente", calc_total_water: "Agua Total / Hora",
                 calc_lab_title: "Mejora de Laboratorio Maldito", calc_current_water: "Agua Sagrada Actual", calc_target_level: "Nivel de Laboratorio Deseado", calc_completion_time: "Tiempo de Finalización",
                 leaderboard_title: "Clasificación de Desarrollo de Resistencia", leaderboard_subtitle: "Compara tu progreso con otros jugadores.", leaderboard_login_prompt_1: "Por favor", leaderboard_login_prompt_2: "inicia sesión", leaderboard_login_prompt_3: "para unirte.",
-                leaderboard_card_next_level: "Próximo Nivel", leaderboard_card_resistance: "Resistencia",
+                leaderboard_card_upgrade_time: "Mejora en",
                 info_title: "Información",
                 info_p1: "Esta herramienta está diseñada para ayudarte a planificar la gestión de tus recursos y mejoras de edificios de manera efectiva.",
                 info_h_calc: "Página de la Calculadora",
@@ -641,7 +607,7 @@
             },
         };
 
-        const supportedLangs = { en: "English", es: "Español" };
+        const supportedLangs = { en: "English", es: "Español" }; // Simplified for brevity
 
         function showToast(messageKey, type = 'success') {
             const lang = localStorage.getItem('language') || 'en';
@@ -663,22 +629,17 @@
                 }
             });
             localStorage.setItem('language', langCode);
+            dom.nav.languageSelector.value = langCode;
+            dom.nav.languageSelectorMobile.value = langCode;
             runCalculations();
         }
 
         function initializeLanguage() {
-            dom.language.optionsContainer.innerHTML = '';
             Object.entries(supportedLangs).forEach(([code, name]) => {
-                const button = document.createElement('button');
-                button.textContent = name;
-                button.className = 'w-full p-2 rounded-md transition-colors lang-btn';
-                button.addEventListener('click', () => {
-                    setLanguage(code);
-                    dom.language.modal.classList.add('hidden');
-                });
-                dom.language.optionsContainer.appendChild(button);
+                const option = new Option(name, code);
+                dom.nav.languageSelector.add(option.cloneNode(true));
+                dom.nav.languageSelectorMobile.add(option);
             });
-
             const savedLang = localStorage.getItem('language');
             const browserLang = navigator.language.split('-')[0];
             setLanguage(savedLang || (supportedLangs[browserLang] ? browserLang : 'en'));
@@ -872,16 +833,13 @@
                     const f5OpacityClass = data.fountain5Enabled ? '' : 'opacity-50';
                     const avatarUrl = player.avatarUrl || 'https://placehold.co/150x150/1f2937/9ca3af?text=N/A';
                     const allianceName = player.alliance && player.alliance !== 'none' ? player.alliance : 'No Alliance';
-                    
-                    const currentLabLevel = (data.targetLabLevel || 1) - 1;
-                    const resistance = labUpgradeData[currentLabLevel]?.res || 0;
 
                     const card = `
                         <div class="player-card rounded-lg flex">
                             <div class="rank flex items-center justify-center w-16 shrink-0 rounded-l-lg">
                                 <p class="text-3xl font-bold text-white">#${index + 1}</p>
                             </div>
-                            <div class="p-3 py-2 flex-grow flex flex-col gap-2">
+                            <div class="p-3 py-2 flex-grow">
                                 <div class="flex items-start justify-between">
                                     <div class="flex items-center gap-3">
                                         <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover border-2 border-slate-600">
@@ -891,26 +849,21 @@
                                         </div>
                                     </div>
                                     <div class="text-right shrink-0 ml-4">
-                                        <p class="text-sm font-semibold text-white">${translations[lang].leaderboard_card_next_level} <span class="text-teal-300">${data.targetLabLevel || 'N/A'}</span></p>
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_upgrade_time">Upgrade At</p>
                                         <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
                                     </div>
                                 </div>
-                                <div class="border-t border-slate-700/50 pt-2 grid grid-cols-3 gap-2 text-center">
-                                    <div>
-                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_resistance">Resistance</p>
-                                        <p class="font-semibold text-base text-pink-400">${resistance.toLocaleString()}</p>
-                                    </div>
-                                    <div>
+                                <div class="border-t mt-2 border-slate-700/50 pt-2 flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <div class="hidden sm:block text-center pr-3 border-r border-slate-700/50">
                                         <p class="text-xs text-slate-400">Water/hr</p>
-                                        <p class="font-semibold text-base text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
+                                        <p class="font-semibold text-lg text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
                                     </div>
-                                    <div class="flex items-center justify-center gap-1 text-xs">
-                                        <i class="fas fa-water text-slate-500"></i>
-                                        <span class="font-bold">${fountains[0]}</span>
-                                        <span class="font-bold">${fountains[1]}</span>
-                                        <span class="font-bold">${fountains[2]}</span>
-                                        <span class="font-bold">${fountains[3]}</span>
-                                        <span class="font-bold ${f5OpacityClass}">${data.fountain5Enabled ? fountains[4] : ''}</span>
+                                    <div class="grid grid-cols-5 p-0 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md flex-grow">
+                                        <div><p class="text-slate-400">F1</p><p class="font-bold text-white text-base">${fountains[0]}</p></div>
+                                        <div><p class="text-slate-400">F2</p><p class="font-bold text-white text-base">${fountains[1]}</p></div>
+                                        <div><p class="text-slate-400">F3</p><p class="font-bold text-white text-base">${fountains[2]}</p></div>
+                                        <div><p class="text-slate-400">F4</p><p class="font-bold text-white text-base">${fountains[3]}</p></div>
+                                        <div class="${f5OpacityClass}"><p class="text-slate-400">F5</p><p class="font-bold text-white text-base">${data.fountain5Enabled ? fountains[4] : '—'}</p></div>
                                     </div>
                                 </div>
                             </div>
@@ -962,6 +915,7 @@
             }
         }
         
+        // --- Profile Edit Functions ---
         function openProfileModal() {
             if (!auth.currentUser) return;
             const user = auth.currentUser;
@@ -972,6 +926,7 @@
             dom.profile.modal.classList.remove('hidden');
         }
 
+        // Image resize function
         function resizeImage(file, width, height, callback) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -982,12 +937,13 @@
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    callback(canvas.toDataURL('image/jpeg'));
+                    callback(canvas.toDataURL('image/jpeg')); // Get base64 string
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             let fountainOptions = ''; for (let i = 0; i <= 30; i++) fountainOptions += `<option value="${i}">Level ${i}</option>`;
@@ -1007,6 +963,7 @@
                 dom.nav.menuOverlay.style.opacity = 0;
             };
 
+            const navLinks = [...document.querySelectorAll('.nav-link')];
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1049,10 +1006,13 @@
                 closeMobileMenu();
                 dom.auth.modal.classList.remove('hidden');
             };
-            [dom.auth.loginBtn, dom.auth.loginBtnMobile, dom.leaderboard.loginBtn].forEach(btn => btn.addEventListener('click', openAuthModal));
+            dom.auth.loginBtn.addEventListener('click', openAuthModal);
+            dom.auth.loginBtnMobile.addEventListener('click', openAuthModal);
+            dom.leaderboard.loginBtn.addEventListener('click', openAuthModal);
 
             const handleLogout = () => signOut(auth);
-            [dom.auth.logoutBtn, dom.auth.logoutBtnMobile].forEach(btn => btn.addEventListener('click', handleLogout));
+            dom.auth.logoutBtn.addEventListener('click', handleLogout);
+            dom.auth.logoutBtnMobile.addEventListener('click', handleLogout);
             
             dom.auth.modal.addEventListener('click', (e) => { if(e.target === dom.auth.modal) dom.auth.modal.classList.add('hidden'); });
             dom.auth.toggleBtn.addEventListener('click', toggleAuthMode);
@@ -1084,13 +1044,16 @@
             });
             
             // Profile Modal Listeners
-            [dom.profile.btn, dom.profile.mobileBtn].forEach(btn => btn.addEventListener('click', openProfileModal));
+            dom.auth.userAvatar.addEventListener('click', openProfileModal);
+            dom.auth.userAvatarMobile.addEventListener('click', openProfileModal);
             dom.profile.modal.addEventListener('click', (e) => { if(e.target === dom.profile.modal) dom.profile.modal.classList.add('hidden'); });
             dom.profile.avatarUploadBtn.addEventListener('click', () => dom.profile.avatarUpload.click());
             dom.profile.avatarUpload.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    resizeImage(file, 150, 150, (dataUrl) => dom.profile.avatarPreview.src = dataUrl);
+                    resizeImage(file, 150, 150, (dataUrl) => {
+                        dom.profile.avatarPreview.src = dataUrl;
+                    });
                 }
             });
 
@@ -1106,19 +1069,36 @@
                 let newAvatarUrl = user.photoURL;
 
                 try {
+                    // 1. Upload avatar if it has changed
                     const avatarPreviewSrc = dom.profile.avatarPreview.src;
-                    if (avatarPreviewSrc && avatarPreviewSrc.startsWith('data:image')) {
+                    if (avatarPreviewSrc && !avatarPreviewSrc.startsWith('https')) { // It's a base64 string
                         const storageRef = ref(storage, `avatars/${user.uid}/avatar.jpg`);
                         const uploadResult = await uploadString(storageRef, avatarPreviewSrc, 'data_url');
                         newAvatarUrl = await getDownloadURL(uploadResult.ref);
                     }
                     
-                    await updateProfile(user, { displayName: newUsername, photoURL: newAvatarUrl });
-                    const updateData = { username: newUsername, alliance: newAlliance, avatarUrl: newAvatarUrl };
-                    await updateDoc(doc(db, `artifacts/${appId}/users/${user.uid}`), updateData);
-                    await updateDoc(doc(db, `artifacts/${appId}/public/data/playerData/${user.uid}`), updateData);
+                    // 2. Update Auth Profile
+                    await updateProfile(user, {
+                        displayName: newUsername,
+                        photoURL: newAvatarUrl
+                    });
 
-                    state.alliance = newAlliance;
+                    // 3. Update Firestore Documents
+                    const privateDocRef = doc(db, `artifacts/${appId}/users/${user.uid}`);
+                    await updateDoc(privateDocRef, {
+                        username: newUsername,
+                        alliance: newAlliance,
+                        avatarUrl: newAvatarUrl
+                    });
+                    
+                    const publicDocRef = doc(db, `artifacts/${appId}/public/data/playerData/${user.uid}`);
+                    await updateDoc(publicDocRef, {
+                        username: newUsername,
+                        alliance: newAlliance,
+                        avatarUrl: newAvatarUrl
+                    });
+
+                    state.alliance = newAlliance; // Update local state
                     showToast('profile_success');
                     dom.profile.modal.classList.add('hidden');
 
@@ -1130,14 +1110,14 @@
                 }
             });
 
-            // Language Modal Listeners
-            const openLangModal = () => dom.language.modal.classList.remove('hidden');
-            [dom.language.btn, dom.language.mobileBtn].forEach(btn => btn.addEventListener('click', openLangModal));
-            dom.language.modal.addEventListener('click', (e) => { if(e.target === dom.language.modal) dom.language.modal.classList.add('hidden'); });
+
+            const handleLangChange = (e) => setLanguage(e.target.value);
+            dom.nav.languageSelector.addEventListener('change', handleLangChange);
+            dom.nav.languageSelectorMobile.addEventListener('change', handleLangChange);
 
             initializeLanguage();
             runCalculations();
-            if(!currentUserId) listenForPublicPlayerData();
+            if(!currentUserId) listenForPublicPlayerData(); // Initial load for non-logged in users
         });
     </script>
 </body>
