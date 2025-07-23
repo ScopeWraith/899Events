@@ -243,6 +243,22 @@
                 <p id="profile-error" class="text-red-400 text-sm h-3"></p>
                 <button type="submit" id="profile-save-btn" class="w-full px-4 py-2 btn-primary rounded-md font-semibold text-white" data-i18n-key="profile_save_btn">Save Changes</button>
             </form>
+            <div class="border-t border-slate-700/50 pt-4">
+                 <button id="logout-btn-profile" class="w-full px-4 py-2 bg-pink-600 hover:bg-pink-500 rounded-md font-semibold text-white transition-colors" data-i18n-key="auth_logout_btn">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Selection Modal -->
+    <div id="language-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4">
+        <div class="main-card rounded-xl w-full max-w-sm p-6 space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-white" data-i18n-key="language_modal_title">Select Language</h2>
+                <button id="close-language-modal-btn" class="p-2 text-slate-300 hover:text-white"><i class="fas fa-times fa-lg"></i></button>
+            </div>
+            <div id="language-options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <!-- Language buttons will be injected here by JS -->
+            </div>
         </div>
     </div>
 
@@ -258,15 +274,14 @@
                 <a href="#" class="nav-link active text-sm" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
                 <a href="#" class="nav-link text-sm" data-page="leaderboard" data-i18n-key="nav_leaderboard">Leaderboard</a>
                 <a href="#" class="nav-link text-sm" data-page="information" data-i18n-key="nav_information">Information</a>
+                <a href="#" id="language-modal-btn" class="nav-link text-sm" data-i18n-key="nav_language">Language</a>
             </div>
             <div class="hidden md:flex items-center gap-2">
-                <select id="language-selector" class="glass-select rounded-md py-1 pl-2 pr-7 text-xs focus:ring-0 outline-none"></select>
                 <div id="auth-container">
                     <button id="login-btn" class="px-3 py-1.5 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
                     <div id="user-info" class="hidden items-center gap-2">
                          <img id="user-avatar" src="https://placehold.co/150x150/1f2937/9ca3af?text=Avatar" class="avatar w-8 h-8 cursor-pointer" title="Edit Profile">
                         <span id="user-display-name" class="hidden sm:block text-sm font-semibold text-slate-300"></span>
-                        <button id="logout-btn" class="px-2 py-1 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
                     </div>
                 </div>
             </div>
@@ -287,9 +302,9 @@
             <a href="#" class="nav-link active text-base" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
             <a href="#" class="nav-link text-base" data-page="leaderboard" data-i18n-key="nav_leaderboard">Leaderboard</a>
             <a href="#" class="nav-link text-base" data-page="information" data-i18n-key="nav_information">Information</a>
+            <a href="#" id="language-modal-btn-mobile" class="nav-link text-base" data-i18n-key="nav_language">Language</a>
         </div>
         <div class="mt-auto border-t border-slate-700 pt-4 flex flex-col items-center gap-3">
-            <select id="language-selector-mobile" class="glass-select rounded-md py-2 pl-3 pr-8 text-sm focus:ring-0 outline-none w-full"></select>
             <div id="auth-container-mobile" class="w-full">
                 <button id="login-btn-mobile" class="w-full px-3 py-2 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
                 <div id="user-info-mobile" class="hidden items-center justify-between gap-2">
@@ -297,7 +312,6 @@
                         <img id="user-avatar-mobile" src="https://placehold.co/150x150/1f2937/9ca3af?text=Avatar" class="avatar w-8 h-8 cursor-pointer" title="Edit Profile">
                         <span id="user-display-name-mobile" class="text-sm font-semibold text-slate-300 truncate"></span>
                     </div>
-                    <button id="logout-btn-mobile" class="px-3 py-1.5 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
                 </div>
             </div>
         </div>
@@ -456,7 +470,7 @@
             apiKey: "AIzaSyB-XKrs7nCZgq1XOg_ouOs6x6ZCkjrJsf4",
             authDomain: "thecursedlab-709f3.firebaseapp.com",
             projectId: "thecursedlab-709f3",
-            storageBucket: "thecursedlab-709f3.firebasestorage.app", // Corrected storage bucket
+            storageBucket: "thecursedlab-709f3.firebasestorage.app",
             messagingSenderId: "751252568769",
             appId: "1:751252568769:web:22a928747cbf1b6aec3240",
             measurementId: "G-M0Y9LSM58J"
@@ -501,12 +515,10 @@
                 modal: document.getElementById('auth-modal'),
                 form: document.getElementById('auth-form'),
                 loginBtn: document.getElementById('login-btn'),
-                logoutBtn: document.getElementById('logout-btn'),
                 userInfo: document.getElementById('user-info'),
                 userAvatar: document.getElementById('user-avatar'),
                 userDisplayName: document.getElementById('user-display-name'),
                 loginBtnMobile: document.getElementById('login-btn-mobile'),
-                logoutBtnMobile: document.getElementById('logout-btn-mobile'),
                 userInfoMobile: document.getElementById('user-info-mobile'),
                 userAvatarMobile: document.getElementById('user-avatar-mobile'),
                 userDisplayNameMobile: document.getElementById('user-display-name-mobile'),
@@ -528,7 +540,8 @@
                 usernameInput: document.getElementById('profile-username'),
                 allianceSelect: document.getElementById('profile-alliance-select'),
                 error: document.getElementById('profile-error'),
-                saveBtn: document.getElementById('profile-save-btn')
+                saveBtn: document.getElementById('profile-save-btn'),
+                logoutBtn: document.getElementById('logout-btn-profile')
             },
             leaderboard: {
                 loginPrompt: document.getElementById('leaderboard-login-prompt'),
@@ -537,13 +550,18 @@
             },
             nav: {
                 links: document.querySelectorAll('.nav-link'),
-                languageSelector: document.getElementById('language-selector'),
-                languageSelectorMobile: document.getElementById('language-selector-mobile'),
                 hamburgerBtn: document.getElementById('hamburger-btn'),
                 mobileMenu: document.getElementById('mobile-menu'),
                 closeMenuBtn: document.getElementById('close-menu-btn'),
                 menuOverlay: document.getElementById('menu-overlay'),
                 desktopMenu: document.getElementById('desktop-menu'),
+            },
+            language: {
+                modal: document.getElementById('language-modal'),
+                openBtn: document.getElementById('language-modal-btn'),
+                openBtnMobile: document.getElementById('language-modal-btn-mobile'),
+                closeBtn: document.getElementById('close-language-modal-btn'),
+                optionsContainer: document.getElementById('language-options-container')
             },
             pages: {
                 calculator: document.getElementById('calculator-page'),
@@ -564,13 +582,14 @@
         
         const translations = {
             en: {
-                page_title: "Cursed Lab Calculator", nav_calculator: "Calculator", nav_leaderboard: "Leaderboard", nav_information: "Information",
+                page_title: "Cursed Lab Calculator", nav_calculator: "Calculator", nav_leaderboard: "Leaderboard", nav_information: "Information", nav_language: "Language",
                 auth_login_title: "Login", auth_register_title: "Create Account", auth_username: "Username", auth_email: "Email Address", auth_password: "Password", auth_confirm_password: "Confirm Password", auth_login_btn: "Login", auth_register_btn: "Register", auth_no_account: "Don't have an account?", auth_have_account: "Already have an account?", auth_register_link: "Register", auth_login_link: "Login", auth_login_btn_short: "Login", auth_logout_btn: "Logout", auth_alliance: "Alliance", auth_alliance_none: "None",
                 profile_title: "Edit Profile", profile_change_avatar: "Change Avatar", profile_save_btn: "Save Changes", profile_success: "Profile updated successfully!",
+                language_modal_title: "Select Language",
                 calc_fountains_title: "Blessed Fountains", calc_fountain_1: "Fountain 1", calc_fountain_2: "Fountain 2", calc_fountain_3: "Fountain 3", calc_fountain_4: "Fountain 4", calc_fountain_5_toggle: "Enable 5th Fountain", calc_total_water: "Total Water / Hour",
                 calc_lab_title: "Cursed Lab Upgrade", calc_current_water: "Current Sacred Water", calc_target_level: "Target Lab Level", calc_completion_time: "Upgrade Completion Time",
                 leaderboard_title: "Resistance Development Leaderboard", leaderboard_subtitle: "See how you stack up against other players.", leaderboard_login_prompt_1: "Please", leaderboard_login_prompt_2: "log in", leaderboard_login_prompt_3: "to join the leaderboard.",
-                leaderboard_card_upgrade_time: "Upgrade At",
+                leaderboard_card_next_level: "Next Level", leaderboard_card_lab_level: "Lab Level", leaderboard_card_resistance: "Resistance", leaderboard_card_water_hr: "Water/hr",
                 info_title: "Information", 
                 info_p1: "This tool is designed to help you plan your resource management for the Cursed Lab and Blessed Fountains. Optimize your upgrades, see how you compare to others, and save your progress.",
                 info_h_calc: "Calculator Page",
@@ -585,13 +604,14 @@
                 time_ready: "Ready!", time_no_prod: "No Production", toast_data_synced: "Leaderboard synced!",
             },
              es: {
-                page_title: "Calculadora de Laboratorio Maldito", nav_calculator: "Calculadora", nav_leaderboard: "Clasificación", nav_information: "Información",
+                page_title: "Calculadora de Laboratorio Maldito", nav_calculator: "Calculadora", nav_leaderboard: "Clasificación", nav_information: "Información", nav_language: "Idioma",
                 auth_login_title: "Iniciar Sesión", auth_register_title: "Crear Cuenta", auth_username: "Usuario", auth_email: "Correo Electrónico", auth_password: "Contraseña", auth_confirm_password: "Confirmar Contraseña", auth_login_btn: "Iniciar Sesión", auth_register_btn: "Registrarse", auth_no_account: "¿No tienes una cuenta?", auth_have_account: "¿Ya tienes una cuenta?", auth_register_link: "Regístrate", auth_login_link: "Inicia Sesión", auth_login_btn_short: "Login", auth_logout_btn: "Salir", auth_alliance: "Alianza", auth_alliance_none: "Ninguna",
                 profile_title: "Editar Perfil", profile_change_avatar: "Cambiar Avatar", profile_save_btn: "Guardar Cambios", profile_success: "¡Perfil actualizado con éxito!",
+                language_modal_title: "Seleccionar Idioma",
                 calc_fountains_title: "Fuentes Benditas", calc_fountain_1: "Fuente 1", calc_fountain_2: "Fuente 2", calc_fountain_3: "Fuente 3", calc_fountain_4: "Fuente 4", calc_fountain_5_toggle: "Habilitar 5ª Fuente", calc_total_water: "Agua Total / Hora",
                 calc_lab_title: "Mejora de Laboratorio Maldito", calc_current_water: "Agua Sagrada Actual", calc_target_level: "Nivel de Laboratorio Deseado", calc_completion_time: "Tiempo de Finalización",
                 leaderboard_title: "Clasificación de Desarrollo de Resistencia", leaderboard_subtitle: "Compara tu progreso con otros jugadores.", leaderboard_login_prompt_1: "Por favor", leaderboard_login_prompt_2: "inicia sesión", leaderboard_login_prompt_3: "para unirte.",
-                leaderboard_card_upgrade_time: "Mejora en",
+                leaderboard_card_next_level: "Siguiente Nivel", leaderboard_card_lab_level: "Nivel Lab", leaderboard_card_resistance: "Resistencia", leaderboard_card_water_hr: "Agua/h",
                 info_title: "Información",
                 info_p1: "Esta herramienta está diseñada para ayudarte a planificar la gestión de tus recursos y mejoras de edificios de manera efectiva.",
                 info_h_calc: "Página de la Calculadora",
@@ -607,7 +627,7 @@
             },
         };
 
-        const supportedLangs = { en: "English", es: "Español" }; // Simplified for brevity
+        const supportedLangs = { en: "English", es: "Español" };
 
         function showToast(messageKey, type = 'success') {
             const lang = localStorage.getItem('language') || 'en';
@@ -629,17 +649,10 @@
                 }
             });
             localStorage.setItem('language', langCode);
-            dom.nav.languageSelector.value = langCode;
-            dom.nav.languageSelectorMobile.value = langCode;
             runCalculations();
         }
 
-        function initializeLanguage() {
-            Object.entries(supportedLangs).forEach(([code, name]) => {
-                const option = new Option(name, code);
-                dom.nav.languageSelector.add(option.cloneNode(true));
-                dom.nav.languageSelectorMobile.add(option);
-            });
+        function initializeCurrentLanguage() {
             const savedLang = localStorage.getItem('language');
             const browserLang = navigator.language.split('-')[0];
             setLanguage(savedLang || (supportedLangs[browserLang] ? browserLang : 'en'));
@@ -840,7 +853,7 @@
                                 <p class="text-3xl font-bold text-white">#${index + 1}</p>
                             </div>
                             <div class="p-3 py-2 flex-grow">
-                                <div class="flex items-start justify-between">
+                                <div class="flex items-start justify-between gap-3">
                                     <div class="flex items-center gap-3">
                                         <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover border-2 border-slate-600">
                                         <div>
@@ -848,23 +861,31 @@
                                             <p class="text-xs text-violet-300 -mt-1">${allianceName}</p>
                                         </div>
                                     </div>
-                                    <div class="text-right shrink-0 ml-4">
-                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_upgrade_time">Upgrade At</p>
+                                    <div class="text-right shrink-0">
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_next_level">Next Level</p>
                                         <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
                                     </div>
                                 </div>
-                                <div class="border-t mt-2 border-slate-700/50 pt-2 flex flex-col sm:flex-row sm:items-center gap-3">
-                                    <div class="hidden sm:block text-center pr-3 border-r border-slate-700/50">
-                                        <p class="text-xs text-slate-400">Water/hr</p>
-                                        <p class="font-semibold text-lg text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
+                                <div class="border-t mt-2 border-slate-700/50 pt-2 grid grid-cols-3 gap-2 text-center">
+                                    <div>
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_lab_level">Lab Level</p>
+                                        <p class="font-bold text-2xl text-white">${data.targetLabLevel || 'N/A'}</p>
                                     </div>
-                                    <div class="grid grid-cols-5 p-0 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md flex-grow">
-                                        <div><p class="text-slate-400">F1</p><p class="font-bold text-white text-base">${fountains[0]}</p></div>
-                                        <div><p class="text-slate-400">F2</p><p class="font-bold text-white text-base">${fountains[1]}</p></div>
-                                        <div><p class="text-slate-400">F3</p><p class="font-bold text-white text-base">${fountains[2]}</p></div>
-                                        <div><p class="text-slate-400">F4</p><p class="font-bold text-white text-base">${fountains[3]}</p></div>
-                                        <div class="${f5OpacityClass}"><p class="text-slate-400">F5</p><p class="font-bold text-white text-base">${data.fountain5Enabled ? fountains[4] : '—'}</p></div>
+                                    <div>
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_resistance">Resistance</p>
+                                        <p class="font-bold text-2xl text-violet-300">${(labUpgradeData[data.targetLabLevel]?.res || 0).toLocaleString()}</p>
                                     </div>
+                                    <div>
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_water_hr">Water/hr</p>
+                                        <p class="font-bold text-2xl text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2 grid grid-cols-5 gap-2 text-center text-xs bg-slate-900/50 p-1.5 rounded-md flex-grow">
+                                    <div><p class="text-slate-400">F1</p><p class="font-bold text-white text-base">${fountains[0]}</p></div>
+                                    <div><p class="text-slate-400">F2</p><p class="font-bold text-white text-base">${fountains[1]}</p></div>
+                                    <div><p class="text-slate-400">F3</p><p class="font-bold text-white text-base">${fountains[2]}</p></div>
+                                    <div><p class="text-slate-400">F4</p><p class="font-bold text-white text-base">${fountains[3]}</p></div>
+                                    <div class="${f5OpacityClass}"><p class="text-slate-400">F5</p><p class="font-bold text-white text-base">${data.fountain5Enabled ? fountains[4] : '—'}</p></div>
                                 </div>
                             </div>
                         </div>
@@ -944,6 +965,26 @@
             reader.readAsDataURL(file);
         }
 
+        // --- Language Modal Functions ---
+        function openLanguageModal() {
+            dom.language.optionsContainer.innerHTML = ''; // Clear previous options
+            Object.entries(supportedLangs).forEach(([code, name]) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.className = 'w-full px-4 py-3 bg-slate-700 hover:bg-slate-600 rounded-md font-semibold text-white transition-colors';
+                button.onclick = () => {
+                    setLanguage(code);
+                    closeLanguageModal();
+                };
+                dom.language.optionsContainer.appendChild(button);
+            });
+            dom.language.modal.classList.remove('hidden');
+        }
+
+        function closeLanguageModal() {
+            dom.language.modal.classList.add('hidden');
+        }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             let fountainOptions = ''; for (let i = 0; i <= 30; i++) fountainOptions += `<option value="${i}">Level ${i}</option>`;
@@ -966,9 +1007,12 @@
             const navLinks = [...document.querySelectorAll('.nav-link')];
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
-                    e.preventDefault();
                     const pageId = e.currentTarget.getAttribute('data-page');
-                    navLinks.forEach(l => l.classList.remove('active'));
+                    if (!pageId) return; // Don't do anything for non-page links like Language
+                    e.preventDefault();
+                    navLinks.forEach(l => {
+                        if (l.getAttribute('data-page')) l.classList.remove('active');
+                    });
                     document.querySelectorAll(`.nav-link[data-page='${pageId}']`).forEach(l => l.classList.add('active'));
                     Object.values(dom.pages).forEach(page => page.classList.add('hidden'));
                     dom.pages[pageId].classList.remove('hidden');
@@ -1010,9 +1054,11 @@
             dom.auth.loginBtnMobile.addEventListener('click', openAuthModal);
             dom.leaderboard.loginBtn.addEventListener('click', openAuthModal);
 
-            const handleLogout = () => signOut(auth);
-            dom.auth.logoutBtn.addEventListener('click', handleLogout);
-            dom.auth.logoutBtnMobile.addEventListener('click', handleLogout);
+            const handleLogout = () => {
+                signOut(auth);
+                dom.profile.modal.classList.add('hidden'); // Close profile modal on logout
+            };
+            dom.profile.logoutBtn.addEventListener('click', handleLogout);
             
             dom.auth.modal.addEventListener('click', (e) => { if(e.target === dom.auth.modal) dom.auth.modal.classList.add('hidden'); });
             dom.auth.toggleBtn.addEventListener('click', toggleAuthMode);
@@ -1110,12 +1156,17 @@
                 }
             });
 
+            // Language Modal Listeners
+            dom.language.openBtn.addEventListener('click', openLanguageModal);
+            dom.language.openBtnMobile.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeMobileMenu();
+                openLanguageModal();
+            });
+            dom.language.closeBtn.addEventListener('click', closeLanguageModal);
+            dom.language.modal.addEventListener('click', (e) => { if (e.target === dom.language.modal) closeLanguageModal(); });
 
-            const handleLangChange = (e) => setLanguage(e.target.value);
-            dom.nav.languageSelector.addEventListener('change', handleLangChange);
-            dom.nav.languageSelectorMobile.addEventListener('change', handleLangChange);
-
-            initializeLanguage();
+            initializeCurrentLanguage();
             runCalculations();
             if(!currentUserId) listenForPublicPlayerData(); // Initial load for non-logged in users
         });
