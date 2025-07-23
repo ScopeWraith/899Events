@@ -96,15 +96,11 @@
         #toast-container {
             position: fixed;
             top: 1rem;
-            right: 1rem;
+            inset-inline-end: 1rem;
             z-index: 1000;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-        }
-        html[dir="rtl"] #toast-container {
-            right: auto;
-            left: 1rem;
         }
         .toast {
             display: flex;
@@ -115,16 +111,17 @@
             font-weight: 500;
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             border: 1px solid rgba(255,255,255,0.1);
-            animation: slideInRight 0.5s forwards, fadeOut 0.5s 3.5s forwards;
-        }
-        html[dir="rtl"] .toast {
-            animation-name: slideInLeft;
+            animation: slideIn 0.5s forwards, fadeOut 0.5s 3.5s forwards;
         }
         .toast.success {
             background: linear-gradient(90deg, var(--success-color), #16a34a);
         }
-        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideIn { 
+            from { transform: translateX(var(--slide-from, 100%)); opacity: 0; } 
+            to { transform: translateX(0); opacity: 1; } 
+        }
+        html[dir="ltr"] .toast { --slide-from: 100%; }
+        html[dir="rtl"] .toast { --slide-from: -100%; }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
         
         .player-card {
@@ -145,11 +142,10 @@
 
         #mobile-menu {
             transition: transform 0.3s ease-in-out;
-            transform: translateX(100%);
+            transform: translateX(var(--menu-translate-x, 100%));
         }
-        html[dir="rtl"] #mobile-menu {
-            transform: translateX(-100%);
-        }
+        html[dir="ltr"] #mobile-menu { --menu-translate-x: 100%; inset-inline-end: 0; }
+        html[dir="rtl"] #mobile-menu { --menu-translate-x: -100%; inset-inline-start: 0; }
         #mobile-menu.open {
             transform: translateX(0);
         }
@@ -304,7 +300,7 @@
     </nav>
 
     <!-- Mobile Menu Panel -->
-    <div id="mobile-menu" class="fixed top-0 right-0 bottom-0 w-4/5 max-w-xs bg-gray-900/95 backdrop-blur-lg z-50 p-4 flex flex-col">
+    <div id="mobile-menu" class="fixed top-0 bottom-0 w-4/5 max-w-xs bg-gray-900/95 backdrop-blur-lg z-50 p-4 flex flex-col">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-lg font-bold text-white">Menu</h2>
             <button id="close-menu-btn" class="p-2 text-slate-300 hover:text-white"><i class="fas fa-times fa-lg"></i></button>
