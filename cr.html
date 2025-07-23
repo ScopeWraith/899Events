@@ -145,6 +145,13 @@
         #menu-overlay {
             transition: opacity 0.3s ease-in-out;
         }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-primary);
+            object-fit: cover;
+        }
     </style>
 </head>
 <body class="text-slate-200">
@@ -160,6 +167,24 @@
                 <div id="username-field" class="hidden">
                     <label for="username" class="text-xs font-medium text-slate-300" data-i18n-key="auth_username">Username</label>
                     <input type="text" id="username" class="w-full glass-input rounded-md mt-1 focus:ring-0">
+                </div>
+                 <div id="alliance-field" class="hidden">
+                    <label for="alliance-select" class="text-xs font-medium text-slate-300" data-i18n-key="auth_alliance">Alliance</label>
+                    <select id="alliance-select" class="w-full glass-select rounded-md mt-1 focus:ring-0">
+                        <option value="none" data-i18n-key="auth_alliance_none">None</option>
+                        <option value="THOR">THOR</option>
+                        <option value="fAfO">fAfO</option>
+                        <option value="HeRa">HeRa</option>
+                        <option value="pHNx">pHNx</option>
+                        <option value="TroW">TroW</option>
+                        <option value="VaLT">VaLT</option>
+                        <option value="Tone">Tone</option>
+                        <option value="COLD">COLD</option>
+                        <option value="DoM">DoM</option>
+                        <option value="MINI">MINI</option>
+                        <option value="MEGA">MEGA</option>
+                        <option value="Lat1">Lat1</option>
+                    </select>
                 </div>
                 <div>
                     <label for="email" class="text-xs font-medium text-slate-300" data-i18n-key="auth_email">Email Address</label>
@@ -182,6 +207,45 @@
             </p>
         </div>
     </div>
+    
+    <!-- Profile Edit Modal -->
+    <div id="profile-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4">
+        <div class="main-card rounded-xl w-full max-w-sm p-6 space-y-4">
+            <h2 class="text-2xl font-bold text-center text-white" data-i18n-key="profile_title">Edit Profile</h2>
+            <form id="profile-form" class="space-y-4">
+                <div class="flex flex-col items-center space-y-2">
+                    <img id="profile-avatar-preview" src="https://placehold.co/150x150/1f2937/9ca3af?text=Avatar" class="w-24 h-24 rounded-full object-cover border-2 border-violet-400">
+                    <input type="file" id="avatar-upload" class="hidden" accept="image/*">
+                    <button type="button" id="avatar-upload-btn" class="px-3 py-1 text-sm bg-slate-600 hover:bg-slate-500 rounded-md" data-i18n-key="profile_change_avatar">Change Avatar</button>
+                </div>
+                <div>
+                    <label for="profile-username" class="text-xs font-medium text-slate-300" data-i18n-key="auth_username">Username</label>
+                    <input type="text" id="profile-username" class="w-full glass-input rounded-md mt-1 focus:ring-0">
+                </div>
+                 <div>
+                    <label for="profile-alliance-select" class="text-xs font-medium text-slate-300" data-i18n-key="auth_alliance">Alliance</label>
+                    <select id="profile-alliance-select" class="w-full glass-select rounded-md mt-1 focus:ring-0">
+                        <option value="none" data-i18n-key="auth_alliance_none">None</option>
+                        <option value="THOR">THOR</option>
+                        <option value="fAfO">fAfO</option>
+                        <option value="HeRa">HeRa</option>
+                        <option value="pHNx">pHNx</option>
+                        <option value="TroW">TroW</option>
+                        <option value="VaLT">VaLT</option>
+                        <option value="Tone">Tone</option>
+                        <option value="COLD">COLD</option>
+                        <option value="DoM">DoM</option>
+                        <option value="MINI">MINI</option>
+                        <option value="MEGA">MEGA</option>
+                        <option value="Lat1">Lat1</option>
+                    </select>
+                </div>
+                <p id="profile-error" class="text-red-400 text-sm h-3"></p>
+                <button type="submit" id="profile-save-btn" class="w-full px-4 py-2 btn-primary rounded-md font-semibold text-white" data-i18n-key="profile_save_btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Navigation Bar -->
     <nav class="main-card sticky top-0 md:top-2 z-30 w-full max-w-5xl mx-auto rounded-none md:rounded-xl shadow-lg border-x-0 border-t-0 md:border">
@@ -192,7 +256,7 @@
             </div>
             <div id="desktop-menu" class="hidden md:flex items-center gap-2">
                 <a href="#" class="nav-link active text-sm" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
-                <a href="#" class="nav-link text-sm" data-page="alliance" data-i18n-key="nav_alliance">Alliance</a>
+                <a href="#" class="nav-link text-sm" data-page="leaderboard" data-i18n-key="nav_leaderboard">Leaderboard</a>
                 <a href="#" class="nav-link text-sm" data-page="information" data-i18n-key="nav_information">Information</a>
             </div>
             <div class="hidden md:flex items-center gap-2">
@@ -200,6 +264,7 @@
                 <div id="auth-container">
                     <button id="login-btn" class="px-3 py-1.5 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
                     <div id="user-info" class="hidden items-center gap-2">
+                         <img id="user-avatar" src="https://placehold.co/150x150/1f2937/9ca3af?text=Avatar" class="avatar w-8 h-8 cursor-pointer" title="Edit Profile">
                         <span id="user-display-name" class="hidden sm:block text-sm font-semibold text-slate-300"></span>
                         <button id="logout-btn" class="px-2 py-1 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
                     </div>
@@ -220,7 +285,7 @@
         </div>
         <div class="flex flex-col gap-2">
             <a href="#" class="nav-link active text-base" data-page="calculator" data-i18n-key="nav_calculator">Calculator</a>
-            <a href="#" class="nav-link text-base" data-page="alliance" data-i18n-key="nav_alliance">Alliance</a>
+            <a href="#" class="nav-link text-base" data-page="leaderboard" data-i18n-key="nav_leaderboard">Leaderboard</a>
             <a href="#" class="nav-link text-base" data-page="information" data-i18n-key="nav_information">Information</a>
         </div>
         <div class="mt-auto border-t border-slate-700 pt-4 flex flex-col items-center gap-3">
@@ -228,7 +293,10 @@
             <div id="auth-container-mobile" class="w-full">
                 <button id="login-btn-mobile" class="w-full px-3 py-2 btn-primary rounded-md transition-colors text-sm font-semibold" data-i18n-key="auth_login_btn_short">Login</button>
                 <div id="user-info-mobile" class="hidden items-center justify-between gap-2">
-                    <span id="user-display-name-mobile" class="text-sm font-semibold text-slate-300 truncate"></span>
+                    <div class="flex items-center gap-2">
+                        <img id="user-avatar-mobile" src="https://placehold.co/150x150/1f2937/9ca3af?text=Avatar" class="avatar w-8 h-8 cursor-pointer" title="Edit Profile">
+                        <span id="user-display-name-mobile" class="text-sm font-semibold text-slate-300 truncate"></span>
+                    </div>
                     <button id="logout-btn-mobile" class="px-3 py-1.5 bg-pink-600 hover:bg-pink-500 rounded-md transition-colors text-xs font-semibold" data-i18n-key="auth_logout_btn">Logout</button>
                 </div>
             </div>
@@ -306,15 +374,15 @@
                 </div>
             </div>
             
-            <!-- Alliance Page -->
-            <div id="alliance-page" class="main-card rounded-xl p-4 md:p-6 space-y-4 hidden">
+            <!-- Leaderboard Page -->
+            <div id="leaderboard-page" class="main-card rounded-xl p-4 md:p-6 space-y-4 hidden">
                 <div class="flex justify-between items-center flex-wrap gap-3">
                     <div>
-                        <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i class="fas fa-shield-alt text-violet-400 fa-fw"></i><span data-i18n-key="alliance_title">Alliance Resistance Leaderboard</span></h2>
-                        <p class="text-slate-400 mt-1 text-sm" data-i18n-key="alliance_subtitle">See how you stack up against other players.</p>
+                        <h2 class="text-xl font-semibold text-white flex items-center gap-2"><i class="fas fa-shield-alt text-violet-400 fa-fw"></i><span data-i18n-key="leaderboard_title">Resistance Development Leaderboard</span></h2>
+                        <p class="text-slate-400 mt-1 text-sm" data-i18n-key="leaderboard_subtitle">See how you stack up against other players.</p>
                     </div>
-                     <div id="alliance-login-prompt" class="sub-card p-3 rounded-xl text-center hidden">
-                        <p class="text-slate-300 text-xs"><span data-i18n-key="alliance_login_prompt_1">Please</span> <button id="alliance-login-btn" class="font-bold text-sky-400 hover:underline" data-i18n-key="alliance_login_prompt_2">log in</button> <span data-i18n-key="alliance_login_prompt_3">to join the leaderboard.</span></p>
+                     <div id="leaderboard-login-prompt" class="sub-card p-3 rounded-xl text-center hidden">
+                        <p class="text-slate-300 text-xs"><span data-i18n-key="leaderboard_login_prompt_1">Please</span> <button id="leaderboard-login-btn" class="font-bold text-sky-400 hover:underline" data-i18n-key="leaderboard_login_prompt_2">log in</button> <span data-i18n-key="leaderboard_login_prompt_3">to join the leaderboard.</span></p>
                     </div>
                 </div>
 
@@ -338,8 +406,8 @@
                         <li data-i18n-key="info_li_calc4"><b>Completion Time:</b> The tool will calculate the exact date and time you will have enough resources for the selected lab upgrade.</li>
                     </ul>
 
-                    <h3 data-i18n-key="info_h_alliance">Alliance Leaderboard</h3>
-                    <p data-i18n-key="info_p_alliance">Log in to join the Alliance leaderboard. Once logged in, your data will automatically sync to the leaderboard as you make changes in the calculator, allowing you to see how your progress and production rate compare to other players in real-time.</p>
+                    <h3 data-i18n-key="info_h_leaderboard">Leaderboard</h3>
+                    <p data-i18n-key="info_p_leaderboard">Log in to join the Leaderboard. Once logged in, your data will automatically sync to the leaderboard as you make changes in the calculator, allowing you to see how your progress and production rate compare to other players in real-time.</p>
                     
                     <h3 data-i18n-key="info_h_save">Saving Your Data</h3>
                     <p data-i18n-key="info_p_save">Creating an account and logging in automatically saves your data (fountain levels, current resources) to our database. The next time you visit, all your information will be pre-filled, so you can continue your planning without missing a beat.</p>
@@ -365,17 +433,30 @@
             }
           }
         }
+        
+        // ADDED: Firebase Storage Security Rules
+        // service firebase.storage {
+        //   match /b/{bucket}/o {
+        //     // Avatars: Allow authenticated users to write to their own avatar path
+        //     // Anyone can read avatars.
+        //     match /avatars/{userId}/{fileName} {
+        //       allow read;
+        //       allow write: if request.auth != null && request.auth.uid == userId;
+        //     }
+        //   }
+        // }
         */
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB-XKrs7nCZgq1XOg_ouOs6x6ZCkjrJsf4",
             authDomain: "thecursedlab-709f3.firebaseapp.com",
             projectId: "thecursedlab-709f3",
-            storageBucket: "thecursedlab-709f3.firebasestorage.app",
+            storageBucket: "thecursedlab-709f3.appspot.com", // Corrected storage bucket
             messagingSenderId: "751252568769",
             appId: "1:751252568769:web:22a928747cbf1b6aec3240",
             measurementId: "G-M0Y9LSM58J"
@@ -384,17 +465,23 @@
         const fountainProductionRates = { 0: 0, 1: 720, 2: 1440, 3: 2160, 4: 2880, 5: 3600, 6: 4320, 7: 5040, 8: 5760, 9: 6480, 10: 7200, 11: 7920, 12: 8640, 13: 9360, 14: 10080, 15: 10800, 16: 11520, 17: 12240, 18: 12960, 19: 13600, 20: 14400, 21: 15120, 22: 15840, 23: 16560, 24: 17280, 25: 18000, 26: 18720, 27: 19440, 28: 20160, 29: 20880, 30: 21600 };
         const labUpgradeData = { 1:{cost:0,res:400}, 2:{cost:11200,res:200}, 3:{cost:22400,res:300}, 4:{cost:44800,res:400}, 5:{cost:89600,res:500}, 6:{cost:125400,res:750}, 7:{cost:163100,res:1000}, 8:{cost:195700,res:1250}, 9:{cost:234800,res:1500}, 10:{cost:281800,res:1750}, 11:{cost:338100,res:2000}, 12:{cost:405800,res:2250}, 13:{cost:486900,res:2500}, 14:{cost:584300,res:2750}, 15:{cost:701200,res:3000}, 16:{cost:771300,res:3400}, 17:{cost:848400,res:3800}, 18:{cost:933301,res:4200}, 19:{cost:1026600,res:4600}, 20:{cost:1129301,res:5000}, 21:{cost:1242200,res:5500}, 22:{cost:1366400,res:6000}, 23:{cost:1503000,res:6500}, 24:{cost:1653301,res:7000}, 25:{cost:1818701,res:7500}, 26:{cost:2159600,res:8000}, 27:{cost:2505101,res:8500}, 28:{cost:2855301,res:9000}, 29:{cost:3460600,res:9500}, 30:{cost:4321100,res:10000} };
         
-        let app, auth, db, currentUserId = null;
+        let app, auth, db, storage, currentUserId = null;
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
+            storage = getStorage(app);
         } catch (e) { console.error("Firebase initialization failed:", e); }
         
         onAuthStateChanged(auth, user => {
             currentUserId = user ? user.uid : null;
             updateUIForAuthState(user);
-            if (user) { loadDataFromFirestore(); }
+            if (user) { 
+                loadDataFromFirestore();
+                listenForPublicPlayerData();
+            } else {
+                dom.leaderboard.playerListContainer.innerHTML = ''; // Clear leaderboard on logout
+            }
         });
 
         const dom = {
@@ -416,12 +503,15 @@
                 loginBtn: document.getElementById('login-btn'),
                 logoutBtn: document.getElementById('logout-btn'),
                 userInfo: document.getElementById('user-info'),
+                userAvatar: document.getElementById('user-avatar'),
                 userDisplayName: document.getElementById('user-display-name'),
                 loginBtnMobile: document.getElementById('login-btn-mobile'),
                 logoutBtnMobile: document.getElementById('logout-btn-mobile'),
                 userInfoMobile: document.getElementById('user-info-mobile'),
+                userAvatarMobile: document.getElementById('user-avatar-mobile'),
                 userDisplayNameMobile: document.getElementById('user-display-name-mobile'),
                 usernameField: document.getElementById('username-field'),
+                allianceField: document.getElementById('alliance-field'),
                 confirmPasswordField: document.getElementById('confirm-password-field'),
                 title: document.getElementById('auth-title'),
                 submitBtn: document.getElementById('auth-submit-btn'),
@@ -429,9 +519,20 @@
                 toggleBtn: document.getElementById('auth-toggle-btn'),
                 error: document.getElementById('auth-error')
             },
-            alliance: {
-                loginPrompt: document.getElementById('alliance-login-prompt'),
-                loginBtn: document.getElementById('alliance-login-btn'),
+            profile: {
+                modal: document.getElementById('profile-modal'),
+                form: document.getElementById('profile-form'),
+                avatarPreview: document.getElementById('profile-avatar-preview'),
+                avatarUpload: document.getElementById('avatar-upload'),
+                avatarUploadBtn: document.getElementById('avatar-upload-btn'),
+                usernameInput: document.getElementById('profile-username'),
+                allianceSelect: document.getElementById('profile-alliance-select'),
+                error: document.getElementById('profile-error'),
+                saveBtn: document.getElementById('profile-save-btn')
+            },
+            leaderboard: {
+                loginPrompt: document.getElementById('leaderboard-login-prompt'),
+                loginBtn: document.getElementById('leaderboard-login-btn'),
                 playerListContainer: document.getElementById('player-list-container')
             },
             nav: {
@@ -446,7 +547,7 @@
             },
             pages: {
                 calculator: document.getElementById('calculator-page'),
-                alliance: document.getElementById('alliance-page'),
+                leaderboard: document.getElementById('leaderboard-page'),
                 information: document.getElementById('information-page')
             }
         };
@@ -457,17 +558,19 @@
             fountain5Enabled: false,
             currentWater: 0,
             targetLabLevel: 1,
+            alliance: 'none',
             updatedAt: null
         };
         
         const translations = {
             en: {
-                page_title: "Cursed Lab Calculator", nav_calculator: "Calculator", nav_alliance: "Alliance", nav_information: "Information",
-                auth_login_title: "Login", auth_register_title: "Create Account", auth_username: "Username", auth_email: "Email Address", auth_password: "Password", auth_confirm_password: "Confirm Password", auth_login_btn: "Login", auth_register_btn: "Register", auth_no_account: "Don't have an account?", auth_have_account: "Already have an account?", auth_register_link: "Register", auth_login_link: "Login", auth_login_btn_short: "Login", auth_logout_btn: "Logout",
+                page_title: "Cursed Lab Calculator", nav_calculator: "Calculator", nav_leaderboard: "Leaderboard", nav_information: "Information",
+                auth_login_title: "Login", auth_register_title: "Create Account", auth_username: "Username", auth_email: "Email Address", auth_password: "Password", auth_confirm_password: "Confirm Password", auth_login_btn: "Login", auth_register_btn: "Register", auth_no_account: "Don't have an account?", auth_have_account: "Already have an account?", auth_register_link: "Register", auth_login_link: "Login", auth_login_btn_short: "Login", auth_logout_btn: "Logout", auth_alliance: "Alliance", auth_alliance_none: "None",
+                profile_title: "Edit Profile", profile_change_avatar: "Change Avatar", profile_save_btn: "Save Changes", profile_success: "Profile updated successfully!",
                 calc_fountains_title: "Blessed Fountains", calc_fountain_1: "Fountain 1", calc_fountain_2: "Fountain 2", calc_fountain_3: "Fountain 3", calc_fountain_4: "Fountain 4", calc_fountain_5_toggle: "Enable 5th Fountain", calc_total_water: "Total Water / Hour",
                 calc_lab_title: "Cursed Lab Upgrade", calc_current_water: "Current Sacred Water", calc_target_level: "Target Lab Level", calc_completion_time: "Upgrade Completion Time",
-                alliance_title: "Alliance Resistance Leaderboard", alliance_subtitle: "See how you stack up against other players.", alliance_login_prompt_1: "Please", alliance_login_prompt_2: "log in", alliance_login_prompt_3: "to join the leaderboard.",
-                alliance_card_upgrade_time: "Upgrade At",
+                leaderboard_title: "Resistance Development Leaderboard", leaderboard_subtitle: "See how you stack up against other players.", leaderboard_login_prompt_1: "Please", leaderboard_login_prompt_2: "log in", leaderboard_login_prompt_3: "to join the leaderboard.",
+                leaderboard_card_upgrade_time: "Upgrade At",
                 info_title: "Information", 
                 info_p1: "This tool is designed to help you plan your resource management for the Cursed Lab and Blessed Fountains. Optimize your upgrades, see how you compare to others, and save your progress.",
                 info_h_calc: "Calculator Page",
@@ -475,19 +578,20 @@
                 info_li_calc2: "Total Production: The calculator will instantly show your total Sacred Water production per hour based on your fountain levels.",
                 info_li_calc3: "Lab Upgrade: Enter your current amount of Sacred Water and select the Cursed Lab level you are aiming for.",
                 info_li_calc4: "Completion Time: The tool will calculate the exact date and time you will have enough resources for the selected lab upgrade.",
-                info_h_alliance: "Alliance Leaderboard",
-                info_p_alliance: "Log in to join the Alliance leaderboard. Once logged in, your data will automatically sync to the leaderboard as you make changes in the calculator, allowing you to see how your progress and production rate compare to other players in real-time.",
+                info_h_leaderboard: "Leaderboard",
+                info_p_leaderboard: "Log in to join the Leaderboard. Once logged in, your data will automatically sync to the leaderboard as you make changes in the calculator, allowing you to see how your progress and production rate compare to other players in real-time.",
                 info_h_save: "Saving Your Data",
                 info_p_save: "Creating an account and logging in automatically saves your data (fountain levels, current resources) to our database. The next time you visit, all your information will be pre-filled, so you can continue your planning without missing a beat.",
                 time_ready: "Ready!", time_no_prod: "No Production", toast_data_synced: "Leaderboard synced!",
             },
-            es: {
-                page_title: "Calculadora de Laboratorio Maldito", nav_calculator: "Calculadora", nav_alliance: "Alianza", nav_information: "Información",
-                auth_login_title: "Iniciar Sesión", auth_register_title: "Crear Cuenta", auth_username: "Usuario", auth_email: "Correo Electrónico", auth_password: "Contraseña", auth_confirm_password: "Confirmar Contraseña", auth_login_btn: "Iniciar Sesión", auth_register_btn: "Registrarse", auth_no_account: "¿No tienes una cuenta?", auth_have_account: "¿Ya tienes una cuenta?", auth_register_link: "Regístrate", auth_login_link: "Inicia Sesión", auth_login_btn_short: "Login", auth_logout_btn: "Salir",
+             es: {
+                page_title: "Calculadora de Laboratorio Maldito", nav_calculator: "Calculadora", nav_leaderboard: "Clasificación", nav_information: "Información",
+                auth_login_title: "Iniciar Sesión", auth_register_title: "Crear Cuenta", auth_username: "Usuario", auth_email: "Correo Electrónico", auth_password: "Contraseña", auth_confirm_password: "Confirmar Contraseña", auth_login_btn: "Iniciar Sesión", auth_register_btn: "Registrarse", auth_no_account: "¿No tienes una cuenta?", auth_have_account: "¿Ya tienes una cuenta?", auth_register_link: "Regístrate", auth_login_link: "Inicia Sesión", auth_login_btn_short: "Login", auth_logout_btn: "Salir", auth_alliance: "Alianza", auth_alliance_none: "Ninguna",
+                profile_title: "Editar Perfil", profile_change_avatar: "Cambiar Avatar", profile_save_btn: "Guardar Cambios", profile_success: "¡Perfil actualizado con éxito!",
                 calc_fountains_title: "Fuentes Benditas", calc_fountain_1: "Fuente 1", calc_fountain_2: "Fuente 2", calc_fountain_3: "Fuente 3", calc_fountain_4: "Fuente 4", calc_fountain_5_toggle: "Habilitar 5ª Fuente", calc_total_water: "Agua Total / Hora",
                 calc_lab_title: "Mejora de Laboratorio Maldito", calc_current_water: "Agua Sagrada Actual", calc_target_level: "Nivel de Laboratorio Deseado", calc_completion_time: "Tiempo de Finalización",
-                alliance_title: "Tabla de Clasificación de la Alianza", alliance_subtitle: "Compara tu progreso con otros jugadores.", alliance_login_prompt_1: "Por favor", alliance_login_prompt_2: "inicia sesión", alliance_login_prompt_3: "para unirte.",
-                alliance_card_upgrade_time: "Mejora en",
+                leaderboard_title: "Clasificación de Desarrollo de Resistencia", leaderboard_subtitle: "Compara tu progreso con otros jugadores.", leaderboard_login_prompt_1: "Por favor", leaderboard_login_prompt_2: "inicia sesión", leaderboard_login_prompt_3: "para unirte.",
+                leaderboard_card_upgrade_time: "Mejora en",
                 info_title: "Información",
                 info_p1: "Esta herramienta está diseñada para ayudarte a planificar la gestión de tus recursos y mejoras de edificios de manera efectiva.",
                 info_h_calc: "Página de la Calculadora",
@@ -495,142 +599,22 @@
                 info_li_calc2: "Producción Total: La calculadora mostrará instantáneamente tu producción total de Agua Sagrada por hora según los niveles de tus fuentes.",
                 info_li_calc3: "Mejora de Laboratorio: Ingresa tu cantidad actual de Agua Sagrada y selecciona el nivel de Laboratorio Maldito que deseas alcanzar.",
                 info_li_calc4: "Tiempo de Finalización: La herramienta calculará la fecha y hora exactas en que tendrás suficientes recursos para la mejora de laboratorio seleccionada.",
-                info_h_alliance: "Tabla de Clasificación de la Alianza",
-                info_p_alliance: "Inicia sesión para unirte a la tabla de clasificación de la alianza. Una vez que hayas iniciado sesión, tus datos se sincronizarán automáticamente con la tabla de clasificación a medida que realices cambios en la calculadora, lo que te permitirá ver cómo se compara tu progreso y tu tasa de producción con otros jugadores en tiempo real.",
+                info_h_leaderboard: "Clasificación",
+                info_p_leaderboard: "Inicia sesión para unirte a la tabla de clasificación. Una vez que hayas iniciado sesión, tus datos se sincronizarán automáticamente con la tabla de clasificación a medida que realices cambios en la calculadora, lo que te permitirá ver cómo se compara tu progreso y tu tasa de producción con otros jugadores en tiempo real.",
                 info_h_save: "Guardando Tus Datos",
                 info_p_save: "Al crear una cuenta e iniciar sesión, tus datos (niveles de fuente, recursos actuales) se guardan automáticamente en nuestra base de datos. La próxima vez que visites, toda tu información estará pre-cargada, para que puedas continuar tu planificación sin perder el ritmo.",
-                time_ready: "¡Listo!", time_no_prod: "Sin Producción", toast_data_synced: "¡Tabla de clasificación sincronizada!",
+                time_ready: "¡Listo!", time_no_prod: "Sin Producción", toast_data_synced: "¡Clasificación sincronizada!",
             },
-            de: {
-                page_title: "Verfluchter Labor Rechner", nav_calculator: "Rechner", nav_alliance: "Allianz", nav_information: "Informationen",
-                auth_login_title: "Anmelden", auth_register_title: "Konto erstellen", auth_username: "Benutzername", auth_email: "E-Mail-Adresse", auth_password: "Passwort", auth_confirm_password: "Passwort bestätigen", auth_login_btn: "Anmelden", auth_register_btn: "Registrieren", auth_no_account: "Kein Konto?", auth_have_account: "Bereits ein Konto?", auth_register_link: "Registrieren", auth_login_link: "Anmelden", auth_login_btn_short: "Login", auth_logout_btn: "Abmelden",
-                calc_fountains_title: "Gesegnete Brunnen", calc_fountain_1: "Brunnen 1", calc_fountain_2: "Brunnen 2", calc_fountain_3: "Brunnen 3", calc_fountain_4: "Brunnen 4", calc_fountain_5_toggle: "5. Brunnen aktivieren", calc_total_water: "Gesamtwasser / Stunde",
-                calc_lab_title: "Verfluchtes Labor Upgrade", calc_current_water: "Aktuelles Heiliges Wasser", calc_target_level: "Ziellaborlevel", calc_completion_time: "Upgrade-Fertigstellungszeit",
-                alliance_title: "Allianz-Widerstands-Rangliste", alliance_subtitle: "Vergleiche dich mit anderen Spielern.", alliance_login_prompt_1: "Bitte", alliance_login_prompt_2: "anmelden", alliance_login_prompt_3: "um der Rangliste beizutreten.",
-                alliance_card_upgrade_time: "Upgrade um",
-                info_title: "Informationen",
-                info_p1: "Dieses Tool hilft dir bei der Planung deines Ressourcenmanagements für das Verfluchte Labor und die Gesegneten Brunnen. Optimiere deine Upgrades, vergleiche dich mit anderen und speichere deinen Fortschritt.",
-                info_h_calc: "Rechner-Seite",
-                info_li_calc1: "Gesegnete Brunnen: Wähle das aktuelle Level für jeden deiner vier Hauptbrunnen. Wenn du den fünften freigeschaltet hast, aktiviere ihn mit dem Schalter und stelle sein Level ein.",
-                info_li_calc2: "Gesamtproduktion: Der Rechner zeigt sofort deine gesamte Heiliges-Wasser-Produktion pro Stunde basierend auf deinen Brunnenleveln an.",
-                info_li_calc3: "Labor-Upgrade: Gib deine aktuelle Menge an Heiligem Wasser ein und wähle das Laborlevel, das du anstrebst.",
-                info_li_calc4: "Fertigstellungszeit: Das Tool berechnet das genaue Datum und die Uhrzeit, zu der du genügend Ressourcen für das ausgewählte Labor-Upgrade haben wirst.",
-                info_h_alliance: "Allianz-Rangliste",
-                info_p_alliance: "Melde dich an, um der Allianz-Rangliste beizutreten. Sobald du angemeldet bist, werden deine Daten automatisch mit der Rangliste synchronisiert, wenn du Änderungen im Rechner vornimmst, sodass du deinen Fortschritt und deine Produktionsrate in Echtzeit mit anderen Spielern vergleichen kannst.",
-                info_h_save: "Deine Daten speichern",
-                info_p_save: "Durch das Erstellen eines Kontos und das Anmelden werden deine Daten (Brunnenlevel, aktuelle Ressourcen) automatisch in unserer Datenbank gespeichert. Bei deinem nächsten Besuch sind alle deine Informationen vorausgefüllt, sodass du deine Planung nahtlos fortsetzen kannst.",
-                time_ready: "Bereit!", time_no_prod: "Keine Produktion", toast_data_synced: "Rangliste synchronisiert!",
-            },
-            fr: {
-                page_title: "Calculateur de Laboratoire Maudit", nav_calculator: "Calculateur", nav_alliance: "Alliance", nav_information: "Informations",
-                auth_login_title: "Connexion", auth_register_title: "Créer un compte", auth_username: "Nom d'utilisateur", auth_email: "Adresse e-mail", auth_password: "Mot de passe", auth_confirm_password: "Confirmer le mot de passe", auth_login_btn: "Connexion", auth_register_btn: "S'inscrire", auth_no_account: "Pas de compte ?", auth_have_account: "Déjà un compte ?", auth_register_link: "S'inscrire", auth_login_link: "Se connecter", auth_login_btn_short: "Login", auth_logout_btn: "Déconnexion",
-                calc_fountains_title: "Fontaines Bénies", calc_fountain_1: "Fontaine 1", calc_fountain_2: "Fontaine 2", calc_fountain_3: "Fontaine 3", calc_fountain_4: "Fontaine 4", calc_fountain_5_toggle: "Activer la 5ème fontaine", calc_total_water: "Eau totale / Heure",
-                calc_lab_title: "Amélioration du Laboratoire Maudit", calc_current_water: "Eau Sacrée Actuelle", calc_target_level: "Niveau de Laboratoire Cible", calc_completion_time: "Temps d'achèvement de l'amélioration",
-                alliance_title: "Classement de la Résistance de l'Alliance", alliance_subtitle: "Voyez comment vous vous situez par rapport aux autres joueurs.", alliance_login_prompt_1: "Veuillez", alliance_login_prompt_2: "vous connecter", alliance_login_prompt_3: "pour rejoindre le classement.",
-                alliance_card_upgrade_time: "Amélioration à",
-                info_title: "Informations",
-                info_p1: "Cet outil est conçu pour vous aider à planificar la gestion de vos ressources pour le Laboratoire Maudit et les Fontaines Bénies. Optimisez vos améliorations, comparez-vous aux autres et sauvegardez votre progression.",
-                info_h_calc: "Page Calculateur",
-                info_li_calc1: "Fontaines Bénies : Sélectionnez le niveau actuel de chacune de vos quatre fontaines principales. Si vous avez débloqué la cinquième, utilisez le bouton pour l'activer et définir son niveau.",
-                info_li_calc2: "Production Totale : Le calculateur affichera instantanément votre production totale d'Eau Sacrée par heure en fonction des niveaux de vos fontaines.",
-                info_li_calc3: "Amélioration du Laboratoire : Entrez votre quantité actuelle d'Eau Sacrée et sélectionnez le niveau de Laboratoire Maudit que vous visez.",
-                info_li_calc4: "Temps d'achèvement : L'outil calculera la date et l'heure exactes auxquelles vous aurez suffisamment de ressources pour l'amélioration de laboratoire sélectionnée.",
-                info_h_alliance: "Classement de l'Alliance",
-                info_p_alliance: "Connectez-vous pour rejoindre le classement de l'Alliance. Une fois connecté, vos données se synchroniseront automatiquement avec le classement lorsque vous apporterez des modifications dans le calculateur, vous permettant de comparer votre progression et votre taux de production avec d'autres joueurs en temps réel.",
-                info_h_save: "Sauvegarde de vos données",
-                info_p_save: "La création d'un compte et la connexion sauvegardent automatiquement vos données (niveaux de fontaine, ressources actuelles) dans notre base de données. Lors de votre prochaine visite, toutes vos informations seront pré-remplies, vous pourrez ainsi poursuivre votre planification sans interruption.",
-                time_ready: "Prêt !", time_no_prod: "Aucune production", toast_data_synced: "Classement synchronisé !",
-            },
-            pt: {
-                page_title: "Calculadora do Laboratório Amaldiçoado", nav_calculator: "Calculadora", nav_alliance: "Aliança", nav_information: "Informações",
-                auth_login_title: "Entrar", auth_register_title: "Criar Conta", auth_username: "Nome de usuário", auth_email: "Endereço de e-mail", auth_password: "Senha", auth_confirm_password: "Confirmar Senha", auth_login_btn: "Entrar", auth_register_btn: "Registrar", auth_no_account: "Não tem uma conta?", auth_have_account: "Já tem uma conta?", auth_register_link: "Registre-se", auth_login_link: "Entrar", auth_login_btn_short: "Login", auth_logout_btn: "Sair",
-                calc_fountains_title: "Fontes Abençoadas", calc_fountain_1: "Fonte 1", calc_fountain_2: "Fonte 2", calc_fountain_3: "Fonte 3", calc_fountain_4: "Fonte 4", calc_fountain_5_toggle: "Ativar 5ª Fonte", calc_total_water: "Água Total / Hora",
-                calc_lab_title: "Melhoria do Laboratório Amaldiçoado", calc_current_water: "Água Sagrada Atual", calc_target_level: "Nível Alvo do Laboratório", calc_completion_time: "Tempo de Conclusão da Melhoria",
-                alliance_title: "Placar de Líderes da Resistência da Aliança", alliance_subtitle: "Veja como você se compara a outros jogadores.", alliance_login_prompt_1: "Por favor", alliance_login_prompt_2: "faça login", alliance_login_prompt_3: "para se juntar ao placar de líderes.",
-                alliance_card_upgrade_time: "Melhoria em",
-                info_title: "Informações",
-                info_p1: "Esta ferramenta foi projetada para ajudá-lo a planejar o gerenciamento de seus recursos para o Laboratório Amaldiçoado e as Fontes Abençoadas. Otimize suas melhorias, veja como você se compara aos outros e salve seu progresso.",
-                info_h_calc: "Página da Calculadora",
-                info_li_calc1: "Fontes Abençoadas: Selecione o nível atual de cada uma das suas quatro fontes principais. Se você desbloqueou a quinta, use o botão para ativá-la e definir seu nível.",
-                info_li_calc2: "Produção Total: A calculadora mostrará instantaneamente sua produção total de Água Sagrada por hora com base nos níveis de suas fontes.",
-                info_li_calc3: "Melhoria do Laboratório: Insira sua quantidade atual de Água Sagrada e selecione o nível do Laboratório Amaldiçoado que você almeja.",
-                info_li_calc4: "Tempo de Conclusão: A ferramenta calculará a data e a hora exatas em que você terá recursos suficientes para a melhoria de laboratório selecionada.",
-                info_h_alliance: "Placar de Líderes da Aliança",
-                info_p_alliance: "Faça login para se juntar ao placar de líderes da Aliança. Uma vez logado, seus dados serão sincronizados automaticamente com o placar de líderes conforme você faz alterações na calculadora, permitindo que você veja como seu progresso e taxa de produção se comparam a outros jogadores em tempo real.",
-                info_h_save: "Salvando Seus Dados",
-                info_p_save: "Criar uma conta e fazer login salva automaticamente seus dados (níveis de fonte, recursos atuais) em nosso banco de dados. Na próxima vez que você visitar, todas as suas informações estarão pré-preenchidas, para que você possa continuar seu planejamento sem interrupções.",
-                time_ready: "Pronto!", time_no_prod: "Sem produção", toast_data_synced: "Placar de líderes sincronizado!",
-            },
-            ru: {
-                page_title: "Калькулятор Проклятой Лаборатории", nav_calculator: "Калькулятор", nav_alliance: "Альянс", nav_information: "Информация",
-                auth_login_title: "Вход", auth_register_title: "Создать аккаунт", auth_username: "Имя пользователя", auth_email: "Адрес электронной почты", auth_password: "Пароль", auth_confirm_password: "Подтвердите пароль", auth_login_btn: "Войти", auth_register_btn: "Зарегистрироваться", auth_no_account: "Нет аккаунта?", auth_have_account: "Уже есть аккаунт?", auth_register_link: "Регистрация", auth_login_link: "Войти", auth_login_btn_short: "Вход", auth_logout_btn: "Выйти",
-                calc_fountains_title: "Благословенные Фонтаны", calc_fountain_1: "Фонтан 1", calc_fountain_2: "Фонтан 2", calc_fountain_3: "Фонтан 3", calc_fountain_4: "Фонтан 4", calc_fountain_5_toggle: "Включить 5-й фонтан", calc_total_water: "Всего воды / час",
-                calc_lab_title: "Улучшение Проклятой Лаборатории", calc_current_water: "Текущая Святая Вода", calc_target_level: "Целевой уровень лаборатории", calc_completion_time: "Время завершения улучшения",
-                alliance_title: "Таблица лидеров Сопротивления Альянса", alliance_subtitle: "Посмотрите, как вы выглядите на фоне других игроков.", alliance_login_prompt_1: "Пожалуйста,", alliance_login_prompt_2: "войдите", alliance_login_prompt_3: "чтобы присоединиться к таблице лидеров.",
-                alliance_card_upgrade_time: "Улучшение в",
-                info_title: "Информация",
-                info_p1: "Этот инструмент предназначен для планирования управления ресурсами для Проклятой Лаборатории и Благословенных Фонтанов. Оптимизируйте свои улучшения, сравнивайте себя с другими и сохраняйте свой прогресс.",
-                info_h_calc: "Страница калькулятора",
-                info_li_calc1: "Благословенные Фонтаны: выберите текущий уровень для каждого из четырех основных фонтанов. Если вы разблокировали пятый, используйте переключатель, чтобы включить его и установить его уровень.",
-                info_li_calc2: "Общее производство: калькулятор мгновенно покажет ваше общее производство Святой Воды в час в зависимости от уровней ваших фонтанов.",
-                info_li_calc3: "Улучшение лаборатории: введите текущее количество Святой Воды и выберите уровень Проклятой Лаборатории, к которому вы стремитесь.",
-                info_li_calc4: "Время завершения: инструмент рассчитает точную дату и время, когда у вас будет достаточно ресурсов для выбранного улучшения лаборатории.",
-                info_h_alliance: "Таблица лидеров Альянса",
-                info_p_alliance: "Войдите, чтобы присоединиться к таблице лидеров Альянса. После входа ваши данные будут автоматически синхронизироваться с таблицей лидеров по мере внесения изменений в калькулятор, что позволит вам в реальном времени сравнивать свой прогресс и скорость производства с другими игроками.",
-                info_h_save: "Сохранение ваших данных",
-                info_p_save: "Создание учетной записи и вход в систему автоматически сохраняют ваши данные (уровни фонтанов, текущие ресурсы) в нашей базе данных. При следующем посещении вся ваша информация будет предварительно заполнена, так что вы сможете продолжить планирование без перерыва.",
-                time_ready: "Готово!", time_no_prod: "Нет производства", toast_data_synced: "Таблица лидеров синхронизирована!",
-            },
-            ja: {
-                page_title: "呪われた研究室計算機", nav_calculator: "計算機", nav_alliance: "同盟", nav_information: "情報",
-                auth_login_title: "ログイン", auth_register_title: "アカウント作成", auth_username: "ユーザー名", auth_email: "メールアドレス", auth_password: "パスワード", auth_confirm_password: "パスワードを確認", auth_login_btn: "ログイン", auth_register_btn: "登録", auth_no_account: "アカウントがありませんか？", auth_have_account: "すでにアカウントをお持ちですか？", auth_register_link: "登録", auth_login_link: "ログイン", auth_login_btn_short: "ログイン", auth_logout_btn: "ログアウト",
-                calc_fountains_title: "祝福された泉", calc_fountain_1: "泉 1", calc_fountain_2: "泉 2", calc_fountain_3: "泉 3", calc_fountain_4: "泉 4", calc_fountain_5_toggle: "5番目の泉を有効にする", calc_total_water: "総水量/時間",
-                calc_lab_title: "呪われた研究室のアップグレード", calc_current_water: "現在の聖水", calc_target_level: "目標の研究室レベル", calc_completion_time: "アップグレード完了時間",
-                alliance_title: "同盟レジスタンスリーダーボード", alliance_subtitle: "他のプレイヤーと比較して自分の順位を確認しましょう。", alliance_login_prompt_1: "リーダーボードに参加するには", alliance_login_prompt_2: "ログイン", alliance_login_prompt_3: "してください。",
-                alliance_card_upgrade_time: "アップグレード日時",
-                info_title: "情報",
-                info_p1: "このツールは、呪われた研究室と祝福された泉のリソース管理を計画するのに役立ちます。アップグレードを最適化し、他のプレイヤーと比較し、進捗を保存します。",
-                info_h_calc: "計算機ページ",
-                info_li_calc1: "祝福された泉：4つの主要な泉の現在のレベルを選択します。5番目をアンロックした場合は、トグルを使用して有効にし、レベルを設定します。",
-                info_li_calc2: "総生産量：計算機は、泉のレベルに基づいて1時間あたりの聖水の総生産量を即座に表示します。",
-                info_li_calc3: "研究室のアップグレード：現在の聖水の量を入力し、目指す呪われた研究室のレベルを選択します。",
-                info_li_calc4: "完了時間：選択した研究室のアップグレードに十分なリソースが揃う正確な日時をツールが計算します。",
-                info_h_alliance: "同盟リーダーボード",
-                info_p_alliance: "同盟リーダーボードに参加するにはログインしてください。ログインすると、計算機で変更を加えるたびにデータがリーダーボードに自動的に同期され、自分の進捗と生産率を他のプレイヤーとリアルタイムで比較できます。",
-                info_h_save: "データの保存",
-                info_p_save: "アカウントを作成してログインすると、データ（泉のレベル、現在のリソース）が自動的にデータベースに保存されます。次回訪問時には、すべての情報が事前に入力されているため、中断することなく計画を続けることができます。",
-                time_ready: "準備完了！", time_no_prod: "生産なし", toast_data_synced: "リーダーボードが同期されました！",
-            },
-            'zh-CN': {
-                page_title: "诅咒实验室计算器", nav_calculator: "计算器", nav_alliance: "联盟", nav_information: "信息",
-                auth_login_title: "登录", auth_register_title: "创建账户", auth_username: "用户名", auth_email: "电子邮件地址", auth_password: "密码", auth_confirm_password: "确认密码", auth_login_btn: "登录", auth_register_btn: "注册", auth_no_account: "没有账户？", auth_have_account: "已有账户？", auth_register_link: "注册", auth_login_link: "登录", auth_login_btn_short: "登录", auth_logout_btn: "登出",
-                calc_fountains_title: "祝福之泉", calc_fountain_1: "喷泉 1", calc_fountain_2: "喷泉 2", calc_fountain_3: "喷泉 3", calc_fountain_4: "喷泉 4", calc_fountain_5_toggle: "启用第五个喷泉", calc_total_water: "总水量/小时",
-                calc_lab_title: "诅咒实验室升级", calc_current_water: "当前圣水量", calc_target_level: "目标实验室等级", calc_completion_time: "升级完成时间",
-                alliance_title: "联盟抵抗排行榜", alliance_subtitle: "看看你与其他玩家的差距。", alliance_login_prompt_1: "请", alliance_login_prompt_2: "登录", alliance_login_prompt_3: "以加入排行榜。",
-                alliance_card_upgrade_time: "升级于",
-                info_title: "信息",
-                info_p1: "此工具旨在帮助您规划诅咒实验室和祝福之泉的资源管理。优化您的升级，与他人比较，并保存您的进度。",
-                info_h_calc: "计算器页面",
-                info_li_calc1: "祝福之泉：为您四个主要喷泉选择当前等级。如果您已解锁第五个，请使用切换开关启用并设置其等级。",
-                info_li_calc2: "总产量：计算器将根据您的喷泉等级立即显示您每小时的圣水总产量。",
-                info_li_calc3: "实验室升级：输入您当前的圣水量，并选择您要达到的诅咒实验室等级。",
-                info_li_calc4: "完成时间：该工具将计算您有足够资源进行所选实验室升级的确切日期和时间。",
-                info_h_alliance: "联盟排行榜",
-                info_p_alliance: "登录以加入联盟排行榜。登录后，当您在计算器中进行更改时，您的数据将自动同步到排行榜，让您可以实时查看您的进度和生产率与其他玩家的比较情况。",
-                info_h_save: "保存您的数据",
-                info_p_save: "创建帐户并登录会自动将您的数据（喷泉等级，当前资源）保存到我们的数据库中。下次访问时，您的所有信息都将预先填写，因此您可以无缝地继续您的规划。",
-                time_ready: "准备好了！", time_no_prod: "无产量", toast_data_synced: "排行榜已同步！",
-            }
         };
 
-        const supportedLangs = { en: "English", es: "Español", de: "Deutsch", fr: "Français", pt: "Português", ru: "Русский", ja: "日本語", 'zh-CN': "简体中文" };
+        const supportedLangs = { en: "English", es: "Español" }; // Simplified for brevity
 
-        function showToast(messageKey) {
+        function showToast(messageKey, type = 'success') {
             const lang = localStorage.getItem('language') || 'en';
             const message = translations[lang][messageKey] || 'Success!';
             
             const toast = document.createElement('div');
-            toast.className = 'toast success';
+            toast.className = `toast ${type}`;
             toast.innerHTML = `<i class="fas fa-check-circle mr-3"></i> ${message}`;
             dom.toastContainer.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
@@ -661,7 +645,6 @@
             setLanguage(savedLang || (supportedLangs[browserLang] ? browserLang : 'en'));
         }
         
-        // Debounce function to limit how often a function is called
         function debounce(func, delay) {
             let timeout;
             return function(...args) {
@@ -673,19 +656,20 @@
 
         async function updatePublicLeaderboard() {
             if (!currentUserId || !auth.currentUser) return;
-            // Ensure essential data is present before syncing
             if (dom.calculator.currentWater.value === '' || !state.targetLabLevel) {
                 console.log("Sync skipped: missing required calculator data.");
                 return;
             }
             const publicData = { 
                 username: auth.currentUser.displayName, 
+                avatarUrl: auth.currentUser.photoURL,
+                alliance: state.alliance,
                 calculatorData: state, 
                 updatedAt: new Date() 
             };
             try {
                 const publicUserDocRef = doc(db, `artifacts/${appId}/public/data/playerData/${currentUserId}`);
-                await setDoc(publicUserDocRef, publicData);
+                await setDoc(publicUserDocRef, publicData, { merge: true });
                 console.log("Leaderboard updated automatically.");
             } catch (error) { 
                 console.error("Error writing public data automatically: ", error); 
@@ -748,6 +732,8 @@
             const docSnap = await getDoc(userDocRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
+                Object.assign(state, data); // Load all data into state
+                
                 if(data.fountainLevels) {
                     dom.fountainSelectors.forEach((sel, i) => { if(data.fountainLevels[i] !== undefined) sel.value = data.fountainLevels[i]; });
                 }
@@ -805,27 +791,20 @@
                 players.sort((a, b) => {
                     const dataA = a.calculatorData || {};
                     const dataB = b.calculatorData || {};
-
                     const labLevelA = dataA.targetLabLevel || 0;
                     const labLevelB = dataB.targetLabLevel || 0;
-
-                    if (labLevelB !== labLevelA) {
-                        return labLevelB - labLevelA;
-                    }
-
+                    if (labLevelB !== labLevelA) return labLevelB - labLevelA;
                     const completionDateA = calculateCompletionDate(a);
                     const completionDateB = calculateCompletionDate(b);
-
                     if (!completionDateA && completionDateB) return 1;
                     if (completionDateA && !completionDateB) return -1;
                     if (!completionDateA && !completionDateB) return 0;
-
                     return completionDateA.getTime() - completionDateB.getTime();
                 });
 
-                dom.alliance.playerListContainer.innerHTML = '';
+                dom.leaderboard.playerListContainer.innerHTML = '';
                 if (players.length === 0) {
-                    dom.alliance.playerListContainer.innerHTML = `<p class="text-center text-slate-400 col-span-full py-8" data-i18n-key="alliance_no_players">No players yet. Be the first!</p>`;
+                    dom.leaderboard.playerListContainer.innerHTML = `<p class="text-center text-slate-400 col-span-full py-8" data-i18n-key="leaderboard_no_players">No players yet. Be the first!</p>`;
                     setLanguage(localStorage.getItem('language') || 'en');
                     return;
                 }
@@ -835,7 +814,6 @@
                     const data = player.calculatorData || {};
                     let completionTimeText = '--';
                     let completionTimeClass = 'text-slate-300';
-
                     const completionDate = calculateCompletionDate(player);
 
                     if (completionDate) {
@@ -853,23 +831,29 @@
 
                     const fountains = data.fountainLevels || [0,0,0,0,0];
                     const f5OpacityClass = data.fountain5Enabled ? '' : 'opacity-50';
+                    const avatarUrl = player.avatarUrl || 'https://placehold.co/150x150/1f2937/9ca3af?text=N/A';
+                    const allianceName = player.alliance && player.alliance !== 'none' ? player.alliance : 'No Alliance';
+
                     const card = `
                         <div class="player-card rounded-lg flex">
                             <div class="rank flex items-center justify-center w-16 shrink-0 rounded-l-lg">
                                 <p class="text-3xl font-bold text-white">#${index + 1}</p>
                             </div>
-                            <div class="p-3 py-1 flex-grow">
+                            <div class="p-3 py-2 flex-grow">
                                 <div class="flex items-start justify-between">
-                                    <div>
-                                        <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
-                                        <p class="text-xs text-slate-400 -mt-1">Lab Level <span class="font-semibold text-violet-400">${data.targetLabLevel || 'N/A'}</span></p>
+                                    <div class="flex items-center gap-3">
+                                        <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover border-2 border-slate-600">
+                                        <div>
+                                            <p class="font-bold text-lg text-white truncate">${player.username || 'Anonymous'}</p>
+                                            <p class="text-xs text-violet-300 -mt-1">${allianceName}</p>
+                                        </div>
                                     </div>
                                     <div class="text-right shrink-0 ml-4">
-                                        <p class="text-xs text-slate-400" data-i18n-key="alliance_card_upgrade_time">Upgrade At</p>
+                                        <p class="text-xs text-slate-400" data-i18n-key="leaderboard_card_upgrade_time">Upgrade At</p>
                                         <p class="font-semibold text-base ${completionTimeClass}">${completionTimeText}</p>
                                     </div>
                                 </div>
-                                <div class="border-t mt-1 border-slate-700/50 pt-1 flex flex-col sm:flex-row sm:items-center gap-3">
+                                <div class="border-t mt-2 border-slate-700/50 pt-2 flex flex-col sm:flex-row sm:items-center gap-3">
                                     <div class="hidden sm:block text-center pr-3 border-r border-slate-700/50">
                                         <p class="text-xs text-slate-400">Water/hr</p>
                                         <p class="font-semibold text-lg text-sky-400">${(data.hourlyProduction || 0).toLocaleString()}</p>
@@ -885,45 +869,81 @@
                             </div>
                         </div>
                     `;
-                    dom.alliance.playerListContainer.innerHTML += card;
+                    dom.leaderboard.playerListContainer.innerHTML += card;
                 });
-                setLanguage(lang); // Re-translate any dynamic keys in the cards
+                setLanguage(lang);
             });
         }
 
         function updateUIForAuthState(user) {
+            const defaultAvatar = 'https://placehold.co/150x150/1f2937/9ca3af?text=Avatar';
             if (user) {
+                const avatarUrl = user.photoURL || defaultAvatar;
                 // Desktop
                 dom.auth.loginBtn.classList.add('hidden');
                 dom.auth.userInfo.classList.remove('hidden');
                 dom.auth.userInfo.classList.add('flex');
+                dom.auth.userAvatar.src = avatarUrl;
                 dom.auth.userDisplayName.textContent = user.displayName || user.email;
                 // Mobile
                 dom.auth.loginBtnMobile.classList.add('hidden');
                 dom.auth.userInfoMobile.classList.remove('hidden');
                 dom.auth.userInfoMobile.classList.add('flex');
+                dom.auth.userAvatarMobile.src = avatarUrl;
                 dom.auth.userDisplayNameMobile.textContent = user.displayName || user.email;
 
-                dom.alliance.loginPrompt.classList.add('hidden');
+                dom.leaderboard.loginPrompt.classList.add('hidden');
             } else {
                 // Desktop
                 dom.auth.loginBtn.classList.remove('hidden');
                 dom.auth.userInfo.classList.add('hidden');
+                dom.auth.userAvatar.src = defaultAvatar;
                 // Mobile
                 dom.auth.loginBtnMobile.classList.remove('hidden');
                 dom.auth.userInfoMobile.classList.add('hidden');
+                dom.auth.userAvatarMobile.src = defaultAvatar;
 
-                dom.alliance.loginPrompt.classList.remove('hidden');
+                dom.leaderboard.loginPrompt.classList.remove('hidden');
             }
         }
         
         function handleInputChange() {
-            runCalculations(); // This will use Date.now()
+            runCalculations();
             if (currentUserId) {
                 savePrivateDataSilently();
                 debouncedUpdatePublicLeaderboard();
             }
         }
+        
+        // --- Profile Edit Functions ---
+        function openProfileModal() {
+            if (!auth.currentUser) return;
+            const user = auth.currentUser;
+            dom.profile.usernameInput.value = user.displayName || '';
+            dom.profile.avatarPreview.src = user.photoURL || 'https://placehold.co/150x150/1f2937/9ca3af?text=Avatar';
+            dom.profile.allianceSelect.value = state.alliance || 'none';
+            dom.profile.error.textContent = '';
+            dom.profile.modal.classList.remove('hidden');
+        }
+
+        // Image resize function
+        function resizeImage(file, width, height, callback) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg')); // Get base64 string
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             let fountainOptions = ''; for (let i = 0; i <= 30; i++) fountainOptions += `<option value="${i}">Level ${i}</option>`;
@@ -948,14 +968,10 @@
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     const pageId = e.currentTarget.getAttribute('data-page');
-                    
                     navLinks.forEach(l => l.classList.remove('active'));
-                    
                     document.querySelectorAll(`.nav-link[data-page='${pageId}']`).forEach(l => l.classList.add('active'));
-
                     Object.values(dom.pages).forEach(page => page.classList.add('hidden'));
                     dom.pages[pageId].classList.remove('hidden');
-                    
                     closeMobileMenu();
                 });
             });
@@ -975,6 +991,7 @@
                 dom.auth.form.reset();
                 dom.auth.error.textContent = '';
                 dom.auth.usernameField.classList.toggle('hidden', !isRegisterMode);
+                dom.auth.allianceField.classList.toggle('hidden', !isRegisterMode);
                 document.getElementById('username').required = isRegisterMode;
                 dom.auth.confirmPasswordField.classList.toggle('hidden', !isRegisterMode);
                 document.getElementById('confirm-password').required = isRegisterMode;
@@ -991,7 +1008,7 @@
             };
             dom.auth.loginBtn.addEventListener('click', openAuthModal);
             dom.auth.loginBtnMobile.addEventListener('click', openAuthModal);
-            dom.alliance.loginBtn.addEventListener('click', openAuthModal);
+            dom.leaderboard.loginBtn.addEventListener('click', openAuthModal);
 
             const handleLogout = () => signOut(auth);
             dom.auth.logoutBtn.addEventListener('click', handleLogout);
@@ -1007,13 +1024,15 @@
                 dom.auth.error.textContent = '';
                 if (isRegisterMode) {
                     const username = document.getElementById('username').value;
+                    const alliance = document.getElementById('alliance-select').value;
                     const confirmPass = document.getElementById('confirm-password').value;
                     if (pass !== confirmPass) { dom.auth.error.textContent = 'Passwords do not match.'; return; }
                     if (username.length < 3) { dom.auth.error.textContent = 'Username must be at least 3 characters.'; return; }
                     try {
                         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                         await updateProfile(userCredential.user, { displayName: username });
-                        await setDoc(doc(db, `artifacts/${appId}/users/${userCredential.user.uid}`), { username: username, email: email, createdAt: new Date() });
+                        const userData = { username: username, email: email, alliance: alliance, createdAt: new Date() };
+                        await setDoc(doc(db, `artifacts/${appId}/users/${userCredential.user.uid}`), userData);
                         dom.auth.modal.classList.add('hidden');
                     } catch (error) { dom.auth.error.textContent = error.message.replace('Firebase: ', ''); }
                 } else {
@@ -1024,13 +1043,81 @@
                 }
             });
             
+            // Profile Modal Listeners
+            dom.auth.userAvatar.addEventListener('click', openProfileModal);
+            dom.auth.userAvatarMobile.addEventListener('click', openProfileModal);
+            dom.profile.modal.addEventListener('click', (e) => { if(e.target === dom.profile.modal) dom.profile.modal.classList.add('hidden'); });
+            dom.profile.avatarUploadBtn.addEventListener('click', () => dom.profile.avatarUpload.click());
+            dom.profile.avatarUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    resizeImage(file, 150, 150, (dataUrl) => {
+                        dom.profile.avatarPreview.src = dataUrl;
+                    });
+                }
+            });
+
+            dom.profile.form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                dom.profile.saveBtn.disabled = true;
+                dom.profile.error.textContent = '';
+                const user = auth.currentUser;
+                if (!user) return;
+
+                const newUsername = dom.profile.usernameInput.value;
+                const newAlliance = dom.profile.allianceSelect.value;
+                let newAvatarUrl = user.photoURL;
+
+                try {
+                    // 1. Upload avatar if it has changed
+                    const avatarPreviewSrc = dom.profile.avatarPreview.src;
+                    if (avatarPreviewSrc && !avatarPreviewSrc.startsWith('https')) { // It's a base64 string
+                        const storageRef = ref(storage, `avatars/${user.uid}/avatar.jpg`);
+                        const uploadResult = await uploadString(storageRef, avatarPreviewSrc, 'data_url');
+                        newAvatarUrl = await getDownloadURL(uploadResult.ref);
+                    }
+                    
+                    // 2. Update Auth Profile
+                    await updateProfile(user, {
+                        displayName: newUsername,
+                        photoURL: newAvatarUrl
+                    });
+
+                    // 3. Update Firestore Documents
+                    const privateDocRef = doc(db, `artifacts/${appId}/users/${user.uid}`);
+                    await updateDoc(privateDocRef, {
+                        username: newUsername,
+                        alliance: newAlliance,
+                        avatarUrl: newAvatarUrl
+                    });
+                    
+                    const publicDocRef = doc(db, `artifacts/${appId}/public/data/playerData/${user.uid}`);
+                    await updateDoc(publicDocRef, {
+                        username: newUsername,
+                        alliance: newAlliance,
+                        avatarUrl: newAvatarUrl
+                    });
+
+                    state.alliance = newAlliance; // Update local state
+                    showToast('profile_success');
+                    dom.profile.modal.classList.add('hidden');
+
+                } catch (error) {
+                    console.error("Profile update error:", error);
+                    dom.profile.error.textContent = error.message.replace('Firebase: ', '');
+                } finally {
+                    dom.profile.saveBtn.disabled = false;
+                }
+            });
+
+
             const handleLangChange = (e) => setLanguage(e.target.value);
             dom.nav.languageSelector.addEventListener('change', handleLangChange);
             dom.nav.languageSelectorMobile.addEventListener('change', handleLangChange);
 
             initializeLanguage();
             runCalculations();
-            listenForPublicPlayerData();
+            if(!currentUserId) listenForPublicPlayerData(); // Initial load for non-logged in users
         });
     </script>
 </body>
