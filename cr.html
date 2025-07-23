@@ -461,7 +461,8 @@
             }
             // Public leaderboard data: Authenticated users can read all, but only write their own
             match /artifacts/{appId}/public/data/playerData/{userId} {
-              allow read: if request.auth != null;
+              // IMPORTANT: The rule below MUST be `allow read;` to let non-logged-in users see the leaderboard.
+              allow read; 
               allow write: if request.auth != null && request.auth.uid == userId;
             }
           }
@@ -512,9 +513,6 @@
             updateUIForAuthState(user);
             if (user) { 
                 loadDataFromFirestore();
-                listenForPublicPlayerData();
-            } else {
-                dom.leaderboard.playerListContainer.innerHTML = ''; // Clear leaderboard on logout
             }
         });
 
@@ -938,6 +936,17 @@
             setLanguage(lang);
         }
 
+        /*
+        NOTE FOR DEPLOYMENT:
+        To allow non-logged-in users to view the leaderboard,
+        the Firestore security rules for the public data collection must be updated.
+        Change:
+          allow read: if request.auth != null;
+        To:
+          allow read;
+
+        In path: /artifacts/{appId}/public/data/playerData/{userId}
+        */
         function listenForPublicPlayerData() {
             if (!db) return;
             const q = query(collection(db, `artifacts/${appId}/public/data/playerData`));
@@ -961,6 +970,9 @@
 
                 allPlayersData = players;
                 renderLeaderboard();
+            }, (error) => {
+                console.error("Leaderboard read failed: ", error);
+                dom.leaderboard.playerListContainer.innerHTML = `<p class="text-center text-red-400 col-span-full py-8">Could not load leaderboard. Check security rules.</p>`;
             });
         }
 
@@ -1259,7 +1271,7 @@
 
             initializeCurrentLanguage();
             runCalculations();
-            if(!currentUserId) listenForPublicPlayerData(); // Initial load for non-logged in users
+            listenForPublicPlayerData(); // Always listen for leaderboard data regardless of auth state
         });
     </script>
 </body>
