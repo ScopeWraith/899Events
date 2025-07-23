@@ -764,6 +764,9 @@
             }
 
             state.fountain5Enabled = dom.fifthFountain.toggle.checked;
+            dom.fifthFountain.selector.disabled = !state.fountain5Enabled;
+            dom.fifthFountain.selector.style.opacity = state.fountain5Enabled ? 1 : 0.5;
+
             if (state.fountain5Enabled) {
                 const level = parseInt(dom.fifthFountain.selector.value, 10);
                 state.hourlyProduction += fountainProductionRates[level] || 0;
@@ -816,11 +819,6 @@
                 }
                 if(data.fountain5Enabled !== undefined) {
                     dom.fifthFountain.toggle.checked = data.fountain5Enabled;
-                    dom.fifthFountain.selector.disabled = !data.fountain5Enabled;
-                    dom.fifthFountain.selector.style.opacity = data.fountain5Enabled ? 1 : 0.5;
-                    if (data.fountainLevels && data.fountainLevels[4] !== undefined) {
-                         dom.fifthFountain.selector.value = data.fountainLevels[4];
-                    }
                 }
                 if(data.currentWater !== undefined) dom.calculator.currentWater.value = data.currentWater;
                 if(data.targetLabLevel !== undefined) dom.calculator.labLevel.value = data.targetLabLevel;
