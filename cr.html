@@ -385,6 +385,11 @@
                                     </label>
                                     <select id="lab-level" class="w-full glass-select rounded-md"></select>
                                 </div>
+                                <!-- START: Login Prompt -->
+                                <div id="calculator-login-prompt" class="text-center text-xs text-slate-400 pt-2 hidden">
+                                    <p data-i18n-key="calc_login_prompt">Register for an account to save data and add your statistics to the leaderboard.</p>
+                                </div>
+                                <!-- END: Login Prompt -->
                             </div>
                              <div class="pt-4 text-center border-t border-slate-700/50">
                                  <h3 class="text-sm font-medium text-slate-400" data-i18n-key="calc_completion_time">Upgrade Completion Time</h3>
@@ -523,7 +528,8 @@
                 totalOutput: document.getElementById('total-output'),
                 currentWater: document.getElementById('current-water'),
                 labLevel: document.getElementById('lab-level'),
-                completionTime: document.getElementById('lab-completion-time')
+                completionTime: document.getElementById('lab-completion-time'),
+                loginPrompt: document.getElementById('calculator-login-prompt')
             },
             auth: {
                 modal: document.getElementById('auth-modal'),
@@ -632,9 +638,10 @@
             calc_lab_title: { en: "Cursed Lab Upgrade", es: "Mejora de Laboratorio Maldito", de: "Verfluchtes Labor-Upgrade", fr: "Amélioration du laboratoire maudit", pt: "Upgrade do Laboratório Amaldiçoado", ru: "Улучшение Проклятой Лаборатории", ja: "呪われた研究室のアップグレード", zh: "诅咒实验室升级", hi: "शापित लैब अपग्रेड", ar: "ترقية المختبر الملعون" },
             calc_current_water: { en: "Current Sacred Water", es: "Agua Sagrada Actual", de: "Aktuelles Heiliges Wasser", fr: "Eau sacrée actuelle", pt: "Água Sagrada Atual", ru: "Текущая Священная вода", ja: "現在の聖水", zh: "当前圣水量", hi: "वर्तमान पवित्र जल", ar: "المياه المقدسة الحالية" },
             calc_target_level: { en: "Target Lab Level", es: "Nivel de Laboratorio Deseado", de: "Ziellaborlevel", fr: "Niveau de laboratoire cible", pt: "Nível Alvo do Laboratório", ru: "Целевой уровень лаборатории", ja: "目標の研究室レベル", zh: "目标实验室等级", hi: "लक्ष्य लैब स्तर", ar: "مستوى المختبر المستهدف" },
+            calc_login_prompt: { en: "Register for an account to save data and add your statistics to the leaderboard.", es: "Regístrate para guardar tus datos y añadir tus estadísticas a la clasificación.", de: "Registriere dich, um deine Daten zu speichern und deine Statistiken zur Bestenliste hinzuzufügen.", fr: "Inscrivez-vous pour sauvegarder vos données et ajouter vos statistiques au classement.", pt: "Registre-se para salvar seus dados e adicionar suas estatísticas ao quadro de líderes.", ru: "Зарегистрируйтесь, чтобы сохранять данные и добавлять свою статистику в таблицу лидеров.", ja: "アカウントを登録してデータを保存し、統計をリーダーボードに追加してください。", zh: "注册一个帐户以保存数据并将您的统计信息添加到排行榜。", hi: "डेटा बचाने और लीडरबोर्ड में अपने आँकड़े जोड़ने के लिए एक खाता पंजीकृत करें।", ar: "سجل حسابًا لحفظ البيانات وإضافة إحصائياتك إلى لوحة الصدارة." },
             calc_completion_time: { en: "Upgrade Completion Time", es: "Tiempo de Finalización", de: "Abschlusszeit des Upgrades", fr: "Temps de réalisation de l'amélioration", pt: "Tempo de Conclusão do Upgrade", ru: "Время завершения улучшения", ja: "アップグレード完了時間", zh: "升级完成时间", hi: "अपग्रेड সমাপ্তિ સમય", ar: "وقت اكتمال الترقية" },
             leaderboard_title: { en: "Resistance Development Leaderboard", es: "Clasificación de Desarrollo de Resistencia", de: "Bestenliste der Widerstandsentwicklung", fr: "Classement du développement de la résistance", pt: "Quadro de Líderes de Desenvolvimento de Resistência", ru: "Таблица лидеров по развитию сопротивления", ja: "耐性開発リーダーボード", zh: "抵抗发展排行榜", hi: "प्रतिरोध विकास लीडरबोर्ड", ar: "لوحة صدارة تطوير المقاومة" },
-            leaderboard_subtitle: { en: "See how you stack up against other players.", es: "Compara tu progreso con otros jugadores.", de: "Sieh, wie du dich gegen andere Spieler schlägst.", fr: "Voyez comment vous vous situez par rapport aux autres joueurs.", pt: "Veja como você se compara a outros jogadores.", ru: "Посмотрите, как вы смотритесь на фоне других игроков.", ja: "他のプレイヤーとの比較をご覧ください。", zh: "看看你与其他玩家的比较。", hi: "देखें कि आप अन्य खिलाड़ियों के खिलाफ कैसे टिकते हैं।", ar: "انظر كيف تقارن باللاعبين الآخرين." },
+            leaderboard_subtitle: { en: "See how you stack up against other players.", es: "Compara tu progreso com outros jogadores.", de: "Sieh, wie du dich gegen andere Spieler schlägst.", fr: "Voyez comment vous vous situez par rapport aux autres joueurs.", pt: "Veja como você se compara a outros jogadores.", ru: "Посмотрите, как вы смотритесь на фоне других игроков.", ja: "他のプレイヤーとの比較をご覧ください。", zh: "看看你与其他玩家的比较。", hi: "देखें कि आप अन्य खिलाड़ियों के खिलाफ कैसे टिकते हैं।", ar: "انظر كيف تقارن باللاعبين الآخرين." },
             leaderboard_login_prompt_1: { en: "Please", es: "Por favor", de: "Bitte", fr: "S'il vous plaît", pt: "Por favor", ru: "Пожалуйста", ja: "お願いします", zh: "请", hi: "कृपया", ar: "من فضلك" },
             leaderboard_login_prompt_2: { en: "log in", es: "inicia sesión", de: "anmelden", fr: "connectez-vous", pt: "faça login", ru: "войдите", ja: "ログイン", zh: "登录", hi: "लॉग इन करें", ar: "تسجيل الدخول" },
             leaderboard_login_prompt_3: { en: "to join the leaderboard.", es: "para unirte.", de: "um der Bestenliste beizutreten.", fr: "pour rejoindre le classement.", pt: "para se juntar ao quadro de líderes.", ru: "чтобы присоединиться к таблице лидеров.", ja: "リーダーボードに参加する。", zh: "加入排行榜。", hi: "लीडरबोर्ड में शामिल होने के लिए।", ar: "للانضمام إلى لوحة الصدارة." },
@@ -988,6 +995,7 @@
                 dom.auth.userDisplayNameMobile.textContent = user.displayName || user.email;
 
                 dom.leaderboard.loginPrompt.classList.add('hidden');
+                dom.calculator.loginPrompt.classList.add('hidden');
             } else {
                 // Desktop
                 dom.auth.loginBtn.classList.remove('hidden');
@@ -1001,6 +1009,7 @@
                 dom.auth.userAvatarMobile.src = defaultAvatar;
 
                 dom.leaderboard.loginPrompt.classList.remove('hidden');
+                dom.calculator.loginPrompt.classList.remove('hidden');
             }
         }
         
