@@ -194,6 +194,26 @@
         #mobile-menu.open .mobile-nav-link:nth-of-type(6) { animation-delay: 0.35s; }
         #mobile-menu.open .mobile-menu-divider { animation-delay: 0.4s; }
 
+        /* Custom Scrollbar for Event Toggles */
+        #event-toggles {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        #event-toggles::-webkit-scrollbar {
+            height: 4px;
+        }
+        #event-toggles::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+        }
+        #event-toggles::-webkit-scrollbar-thumb {
+            background: var(--color-primary);
+            border-radius: 2px;
+        }
+        #event-toggles::-webkit-scrollbar-thumb:hover {
+            background: #00a0d9;
+        }
+
     </style>
 </head>
 <body class="bg-custom-gradient">
@@ -246,7 +266,7 @@
 
                 <!-- Events Page (Visible by default) -->
                 <div id="page-events" class="page-content">
-                    <div class="flex items-center justify-center flex-wrap mb-6" id="event-toggles">
+                    <div class="flex items-start justify-start md:justify-center overflow-x-auto whitespace-nowrap mb-6 pb-2" id="event-toggles">
                         <button class="toggle-button active" data-filter="all">All Events</button>
                         <button class="toggle-button" data-filter="seasonal-events">Seasonal</button>
                         <button class="toggle-button" data-filter="server-events">Server-Wide</button>
