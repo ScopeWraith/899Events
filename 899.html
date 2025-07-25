@@ -81,7 +81,6 @@
             top: calc(100% + 12px); left: 50%;
             transform: translateX(-50%) translateY(-10px);
         }
-        .nav-item:hover .dropdown-menu,
         .nav-item.open .dropdown-menu {
             transform: translateX(-50%) translateY(0);
             opacity: 1; visibility: visible;
@@ -524,6 +523,7 @@
         measurementId: "G-0ZCMZ86PJD"
         };
 
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -604,7 +604,7 @@
                 currentUserData = null;
                 loginBtn.classList.remove('hidden');
                 userProfileContainer.classList.add('hidden');
-                playerCardDropdown.classList.remove('open');
+                userProfileContainer.classList.remove('open');
             }
             buildMobileNav();
         });
@@ -877,9 +877,7 @@
         function buildMobileNav() {
             mobileNavLinksContainer.innerHTML = '';
             const desktopNav = document.getElementById('main-nav');
-            const authContainer = document.getElementById('auth-container');
             
-            // Clone desktop nav links
             desktopNav.querySelectorAll('.nav-item').forEach(item => {
                 const link = item.querySelector('.nav-link');
                 const newLink = document.createElement('a');
@@ -887,7 +885,6 @@
                 newLink.className = 'mobile-nav-link';
                 newLink.innerHTML = `<i class="${link.querySelector('i').className} w-6 text-center mr-3"></i>${link.querySelector('span').textContent}`;
                 
-                // If it has a dropdown, handle that
                 const dropdown = item.querySelector('.dropdown-menu');
                 if (dropdown) {
                     newLink.addEventListener('click', (e) => {
@@ -926,7 +923,6 @@
                 }
             });
 
-            // Add Auth links
             const divider = document.createElement('hr');
             divider.className = 'border-t border-white/10 my-4';
             mobileNavLinksContainer.appendChild(divider);
@@ -1001,8 +997,28 @@
             const navItems = document.querySelectorAll('.nav-item');
             
             navItems.forEach(item => {
-                item.addEventListener('click', (e) => { e.stopPropagation(); const wasOpen = item.classList.contains('open'); navItems.forEach(i => i.classList.remove('open')); if (!wasOpen) { item.classList.add('open'); } });
-                 item.addEventListener('mouseenter', () => { if (document.querySelector('.nav-item.open')) { navItems.forEach(i => i.classList.remove('open')); item.classList.add('open'); } });
+                // Use mouseenter for hover effect to open dropdowns on desktop
+                item.addEventListener('mouseenter', (e) => {
+                    if(window.innerWidth > 768) { // Only on desktop
+                        item.classList.add('open');
+                    }
+                });
+                item.addEventListener('mouseleave', (e) => {
+                    if(window.innerWidth > 768) { // Only on desktop
+                        item.classList.remove('open');
+                    }
+                });
+                // Use click for touch devices, can also work on desktop
+                item.addEventListener('click', (e) => {
+                    if(window.innerWidth <= 768) { // Only on mobile/tablet
+                        e.stopPropagation();
+                        const wasOpen = item.classList.contains('open');
+                        navItems.forEach(i => i.classList.remove('open'));
+                        if (!wasOpen) {
+                            item.classList.add('open');
+                        }
+                    }
+                });
             });
             
             window.addEventListener('click', (e) => { 
@@ -1016,6 +1032,27 @@
                     document.querySelectorAll('.custom-select-options').forEach(o => o.style.display = 'none');
                 }
             });
+
+            // Handle clicking dropdown links to navigate
+            document.querySelectorAll('.dropdown-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const targetId = link.dataset.target;
+                    if (targetId) {
+                        showPage(targetId);
+                    }
+                    link.closest('.nav-item').classList.remove('open');
+                });
+            });
+
+            // Handle clicking main nav links without dropdowns
+             document.querySelectorAll('.nav-link:not(:has(+ .dropdown-menu))').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    showPage(link.dataset.mainTarget);
+                });
+            });
+
+
             showPage('page-events'); 
             document.querySelectorAll('.power-input').forEach(input => {
                 input.addEventListener('input', (e) => {
