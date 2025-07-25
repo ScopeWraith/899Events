@@ -24,6 +24,11 @@
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-10px); } }
+        @keyframes success-pop { 
+            0% { transform: scale(0.7); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--color-bg); color: #c9d1d9; }
         
@@ -149,7 +154,6 @@
             display: block;
         }
         
-        /* New Input Group Styling */
         .input-group {
             display: flex;
             align-items: center;
@@ -215,69 +219,27 @@
         }
         
         /* Registration Stepper */
-        .progress-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            position: relative;
-        }
-        .progress-bar::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            height: 2px;
-            width: 100%;
-            background-color: rgba(255,255,255,0.1);
-            z-index: -1;
-        }
-        .progress-bar .line {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            height: 2px;
-            background-color: var(--color-primary);
-            width: 0%;
-            transition: width 0.4s ease;
-            z-index: 0;
-        }
-        .progress-step {
-            width: 30px;
-            height: 30px;
-            background-color: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.4s ease;
-            position: relative;
-            z-index: 1;
-        }
-        .progress-step.active {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary);
-            color: var(--color-bg);
-        }
-        .form-slide {
-            display: none;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        .form-slide.active {
-            display: block;
-        }
+        .progress-bar { display: flex; justify-content: space-between; margin-bottom: 2rem; position: relative; }
+        .progress-bar::before { content: ''; position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 2px; width: 100%; background-color: rgba(255,255,255,0.1); z-index: -1; }
+        .progress-bar .line { position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 2px; background-color: var(--color-primary); width: 0%; transition: width 0.4s ease; z-index: 0; }
+        .progress-step { width: 30px; height: 30px; background-color: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.4s ease; position: relative; z-index: 1; }
+        .progress-step.active { background-color: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg); }
+        .form-slide { display: none; animation: fadeIn 0.5s ease-in-out; }
+        .form-slide.active { display: block; }
+        #registration-success { display: none; text-align: center; animation: success-pop 0.5s ease-out forwards; }
+        #registration-success .success-icon { font-size: 4rem; color: var(--color-primary); }
 
         /* Player Card Dropdown */
-        #player-card-dropdown {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            min-width: 250px;
-            z-index: 110;
-            display: none;
-        }
+        #player-card-dropdown { position: absolute; top: calc(100% + 10px); right: 0; min-width: 250px; z-index: 110; display: none; }
+
+        /* Custom Select Dropdown */
+        .custom-select-container { position: relative; }
+        .custom-select-value { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; }
+        .custom-select-options { display: none; position: absolute; top: 100%; left: 0; right: 0; background-color: var(--color-dropdown-bg); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; margin-top: 0.25rem; max-height: 200px; overflow-y: auto; z-index: 120; }
+        .custom-select-option { display: block; padding: 0.75rem 1rem; cursor: pointer; }
+        .custom-select-option:hover { background-color: rgba(0, 191, 255, 0.1); }
+        .custom-select-search { background-color: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.2); padding: 0.75rem; width: 100%; color: #c9d1d9; }
+        .custom-select-search:focus { outline: none; border-color: var(--color-primary); }
     </style>
 </head>
 <body>
@@ -311,43 +273,53 @@
             </div>
             <!-- Registration Form -->
             <div id="register-form-container" class="auth-form">
-                <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
-                <div class="progress-bar">
-                    <div class="line"></div>
-                    <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
-                    <div class="progress-step" data-step="2"><i class="fas fa-shield-alt"></i></div>
-                    <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
+                <div id="registration-flow">
+                    <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
+                    <div class="progress-bar">
+                        <div class="line"></div>
+                        <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
+                        <div class="progress-step" data-step="2"><i class="fas fa-shield-alt"></i></div>
+                        <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
+                    </div>
+                    <form id="register-form">
+                        <div class="form-slide active"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
+                            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
+                            <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
+                            <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password (min. 6 characters)" class="form-input" required></div>
+                            <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
+                        </div></div>
+                        <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
+                             <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
+                                <div class="custom-select-container w-full">
+                                    <input type="hidden" id="register-alliance" name="alliance" required>
+                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options">
+                                        <input type="text" class="custom-select-search" placeholder="Search alliances...">
+                                        <div class="options-list"></div>
+                                    </div>
+                                </div>
+                             </div>
+                            <div class="input-group"><i class="fas fa-star input-icon"></i><select id="register-alliance-rank" class="form-input" required>
+                                <option value="" disabled selected>Select Alliance Rank</option>
+                                <option value="R5">R5 (Leader)</option><option value="R4">R4</option><option value="R3">R3</option><option value="R2">R2</option><option value="R1">R1 (Member)</option>
+                            </select></div>
+                        </div></div>
+                        <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
+                            <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
+                            <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
+                            <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power" class="power-input form-input" required></div>
+                            <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
+                        </div></div>
+                        <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                        <div id="register-nav-container" class="flex items-center mt-6"><button type="button" id="register-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button><div class="flex-grow flex justify-center"><button type="button" id="register-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button><button type="submit" id="register-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Register</button></div></div>
+                        <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
+                    </form>
                 </div>
-                <form id="register-form">
-                    <!-- Slide 1: Account Info -->
-                    <div class="form-slide active"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
-                        <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
-                        <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
-                        <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password (min. 6 characters)" class="form-input" required></div>
-                        <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
-                    </div></div>
-                    <!-- Slide 2: Alliance Info -->
-                    <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
-                         <div class="input-group"><i class="fas fa-shield-alt input-icon"></i><select id="register-alliance" class="form-input" required>
-                            <option value="" disabled selected>Select Alliance</option>
-                            <option value="THOR">THOR</option><option value="fAfO">fAfO</option><option value="HeRA">HeRA</option><option value="pHNx">pHNx</option><option value="TroW">TroW</option><option value="VaLT">VaLT</option><option value="COLD">COLD</option><option value="Tone">Tone</option><option value="DoM">DoM</option><option value="MINI">MINI</option><option value="MEGA">MEGA</option><option value="Lat1">Lat1</option><option value="WSKT">WSKT</option><option value="ValT">ValT</option><option value="BRSL">BRSL</option><option value="TCM1">TCM1</option><option value="BLSD">BLSD</option><option value="REI">REI</option><option value="wpg1">wpg1</option><option value="SHRK">SHRK</option>
-                        </select></div>
-                        <div class="input-group"><i class="fas fa-star input-icon"></i><select id="register-alliance-rank" class="form-input" required>
-                            <option value="" disabled selected>Select Alliance Rank</option>
-                            <option value="R5">R5 (Leader)</option><option value="R4">R4</option><option value="R3">R3</option><option value="R2">R2</option><option value="R1">R1 (Member)</option>
-                        </select></div>
-                    </div></div>
-                    <!-- Slide 3: Power Stats -->
-                    <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
-                        <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
-                        <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
-                        <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power" class="power-input form-input" required></div>
-                        <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
-                    </div></div>
-                    <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                    <div id="register-nav-container" class="flex items-center mt-6"><button type="button" id="register-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button><div class="flex-grow flex justify-center"><button type="button" id="register-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button><button type="submit" id="register-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Register</button></div></div>
-                    <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
-                </form>
+                <div id="registration-success">
+                    <i class="fas fa-check-circle success-icon"></i>
+                    <h2 class="text-2xl font-bold text-white mt-4">Registration Complete!</h2>
+                    <p class="text-gray-400 mt-2">Welcome to the 899 Hub. You will be logged in shortly.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -361,9 +333,16 @@
             <form id="edit-profile-form">
                  <div class="space-y-4">
                     <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
-                    <div class="input-group"><i class="fas fa-shield-alt input-icon"></i><select id="edit-alliance" class="form-input" required>
-                        <option value="THOR">THOR</option><option value="fAfO">fAfO</option><option value="HeRA">HeRA</option><option value="pHNx">pHNx</option><option value="TroW">TroW</option><option value="VaLT">VaLT</option><option value="COLD">COLD</option><option value="Tone">Tone</option><option value="DoM">DoM</option><option value="MINI">MINI</option><option value="MEGA">MEGA</option><option value="Lat1">Lat1</option><option value="WSKT">WSKT</option><option value="ValT">ValT</option><option value="BRSL">BRSL</option><option value="TCM1">TCM1</option><option value="BLSD">BLSD</option><option value="REI">REI</option><option value="wpg1">wpg1</option><option value="SHRK">SHRK</option>
-                    </select></div>
+                    <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
+                        <div class="custom-select-container w-full">
+                            <input type="hidden" id="edit-alliance" name="alliance" required>
+                            <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                            <div class="custom-select-options">
+                                <input type="text" class="custom-select-search" placeholder="Search alliances...">
+                                <div class="options-list"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="input-group"><i class="fas fa-star input-icon"></i><select id="edit-alliance-rank" class="form-input" required>
                         <option value="R5">R5 (Leader)</option><option value="R4">R4</option><option value="R3">R3</option><option value="R2">R2</option><option value="R1">R1 (Member)</option>
                     </select></div>
@@ -486,10 +465,13 @@
         measurementId: "G-0ZCMZ86PJD"
         };
 
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         let currentUserData = null;
+        
+        const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
 
         // --- DOM ELEMENTS ---
         const authModalBackdrop = document.getElementById('auth-modal-backdrop');
@@ -607,7 +589,12 @@
         function populateEditForm() {
             if (!currentUserData) return;
             document.getElementById('edit-username').value = currentUserData.username;
+            // For custom select in edit form
+            const editSelectContainer = document.getElementById('edit-alliance').closest('.custom-select-container');
+            const editValueButton = editSelectContainer.querySelector('.custom-select-value span');
+            editValueButton.textContent = currentUserData.alliance;
             document.getElementById('edit-alliance').value = currentUserData.alliance;
+            
             document.getElementById('edit-alliance-rank').value = currentUserData.allianceRank;
             document.getElementById('edit-power').value = currentUserData.power.toLocaleString();
             document.getElementById('edit-tank-power').value = currentUserData.tankPower.toLocaleString();
@@ -650,6 +637,8 @@
 
         // --- REGISTRATION STEPPER LOGIC ---
         let currentStep = 0;
+        const registrationFlow = document.getElementById('registration-flow');
+        const registrationSuccess = document.getElementById('registration-success');
         const formSlides = document.querySelectorAll('.form-slide');
         const progressSteps = document.querySelectorAll('.progress-step');
         const progressBarLine = document.querySelector('.progress-bar .line');
@@ -658,7 +647,12 @@
         const submitBtn = document.getElementById('register-submit-btn');
         const registerError = document.getElementById('register-error');
 
-        function initializeRegistrationStepper() { currentStep = 0; showStep(currentStep); }
+        function initializeRegistrationStepper() { 
+            currentStep = 0; 
+            showStep(currentStep);
+            registrationFlow.style.display = 'block';
+            registrationSuccess.style.display = 'none';
+        }
         function showStep(stepIndex) {
             formSlides.forEach((slide, index) => slide.classList.toggle('active', index === stepIndex));
             updateProgressBar();
@@ -716,7 +710,10 @@
                     browserLanguage: navigator.language || navigator.userLanguage
                 };
                 await setDoc(doc(db, "users", user.uid), userProfile);
-                hideAllModals();
+                registrationFlow.style.display = 'none';
+                registrationSuccess.style.display = 'block';
+                setTimeout(hideAllModals, 3000);
+
             } catch (error) {
                 console.error("Registration Error:", error);
                 registerError.textContent = error.code === 'auth/email-already-in-use' ? 'This email is already registered.' : 'An error occurred.';
@@ -758,6 +755,57 @@
                 playerListBody.appendChild(playerRow);
             });
         }
+
+        // --- CUSTOM SELECT LOGIC ---
+        function setupCustomSelect(container) {
+            const hiddenInput = container.querySelector('input[type="hidden"]');
+            const valueButton = container.querySelector('.custom-select-value');
+            const valueSpan = valueButton.querySelector('span');
+            const optionsContainer = container.querySelector('.custom-select-options');
+            const searchInput = container.querySelector('.custom-select-search');
+            const optionsList = container.querySelector('.options-list');
+
+            function renderOptions(filter = '') {
+                optionsList.innerHTML = '';
+                ALLIANCES
+                    .filter(alliance => alliance.toLowerCase().includes(filter.toLowerCase()))
+                    .forEach(alliance => {
+                        const optionDiv = document.createElement('div');
+                        optionDiv.className = 'custom-select-option';
+                        optionDiv.textContent = alliance;
+                        optionDiv.dataset.value = alliance;
+                        optionsList.appendChild(optionDiv);
+                    });
+            }
+
+            valueButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isVisible = optionsContainer.style.display === 'block';
+                document.querySelectorAll('.custom-select-options').forEach(o => o.style.display = 'none');
+                optionsContainer.style.display = isVisible ? 'none' : 'block';
+                if (!isVisible) {
+                    searchInput.focus();
+                    renderOptions();
+                }
+            });
+
+            searchInput.addEventListener('input', () => renderOptions(searchInput.value));
+
+            optionsList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('custom-select-option')) {
+                    const value = e.target.dataset.value;
+                    hiddenInput.value = value;
+                    valueSpan.textContent = value;
+                    optionsContainer.style.display = 'none';
+                    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+            
+            renderOptions();
+        }
+        
+        document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
+
 
         // --- UI & PARTICLE SCRIPTS ---
         const canvas = document.getElementById('particle-canvas');
@@ -802,6 +850,7 @@
             window.addEventListener('click', () => { 
                 navItems.forEach(item => item.classList.remove('open'));
                 playerCardDropdown.style.display = 'none';
+                document.querySelectorAll('.custom-select-options').forEach(o => o.style.display = 'none');
             });
             showPage('page-events'); 
             document.querySelectorAll('.power-input').forEach(input => {
