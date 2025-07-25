@@ -83,14 +83,14 @@
         }
         .dropdown-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
 
-        .login-button {
+        .auth-button {
             padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem;
             color: #c9d1d9; background-color: rgba(255,255,255,0.05);
             border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
             display: flex; align-items: center; gap: 0.5rem;
         }
-        .login-button:hover {
+        .auth-button:hover {
             color: #fff; background-color: rgba(0, 191, 255, 0.1);
             border-color: var(--color-primary);
         }
@@ -147,10 +147,125 @@
             padding: 0.5rem; transition: all 0.2s ease;
         }
         .action-button:hover { background: var(--color-primary); color: #0D1117; }
+        
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: none; /* Hidden by default */
+        }
+        .modal-container {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            z-index: 1001;
+            width: 90%;
+            max-width: 500px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: none; /* Hidden by default */
+        }
+        .modal-backdrop.visible, .modal-container.visible {
+            opacity: 1;
+            display: block;
+        }
+        .modal-container.visible {
+             transform: translate(-50%, -50%) scale(1);
+        }
+        .form-input {
+            background-color: rgba(13, 17, 23, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #c9d1d9;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.3);
+        }
+        .primary-btn {
+            background-color: var(--color-primary);
+            color: var(--color-bg);
+            font-weight: 700;
+            transition: background-color 0.3s ease;
+        }
+        .primary-btn:hover {
+            background-color: #00a9e0;
+        }
     </style>
 </head>
-<body>
+<body class="bg-custom-gradient">
     <canvas id="particle-canvas"></canvas>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal-backdrop" class="modal-backdrop"></div>
+    <div id="auth-modal-container" class="modal-container">
+        <div class="glass-pane p-6 sm:p-8">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+            <!-- Login Form -->
+            <div id="login-form-container">
+                <h2 class="text-2xl font-bold text-white text-center mb-4">Login</h2>
+                <p class="text-center text-gray-400 mb-6">Welcome back to the 899 Hub.</p>
+                <form id="login-form">
+                    <div class="space-y-4">
+                        <input type="email" id="login-email" placeholder="Email" class="w-full p-3 rounded-lg form-input" required>
+                        <input type="password" id="login-password" placeholder="Password" class="w-full p-3 rounded-lg form-input" required>
+                    </div>
+                    <div class="flex justify-between items-center mt-4 mb-6 text-sm">
+                        <a href="#" id="forgot-password-link" class="text-gray-400 hover:text-white">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="w-full p-3 rounded-lg primary-btn">Login</button>
+                    <p class="text-center text-sm text-gray-400 mt-6">
+                        Don't have an account? <a href="#" id="show-register-form" class="font-semibold hover:text-white" style="color: var(--color-primary);">Register here</a>
+                    </p>
+                </form>
+            </div>
+            <!-- Registration Form -->
+            <div id="register-form-container" style="display: none;">
+                <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
+                <p class="text-center text-gray-400 mb-6">Join the 899 community.</p>
+                <form id="register-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="register-username" placeholder="Username" class="w-full p-3 rounded-lg form-input md:col-span-2" required>
+                        <input type="email" id="register-email" placeholder="Email" class="w-full p-3 rounded-lg form-input md:col-span-2" required>
+                        <input type="password" id="register-password" placeholder="Password" class="w-full p-3 rounded-lg form-input" required>
+                        <input type="password" id="register-password-verify" placeholder="Verify Password" class="w-full p-3 rounded-lg form-input" required>
+                        
+                        <select id="register-alliance" class="w-full p-3 rounded-lg form-input" required>
+                            <option value="" disabled selected>Select Alliance</option>
+                            <option value="THOR">THOR</option><option value="fAfO">fAfO</option><option value="HeRA">HeRA</option>
+                            <option value="pHNx">pHNx</option><option value="TroW">TroW</option><option value="VaLT">VaLT</option>
+                            <option value="COLD">COLD</option><option value="Tone">Tone</option><option value="DoM">DoM</option>
+                            <option value="MINI">MINI</option><option value="MEGA">MEGA</option><option value="Lat1">Lat1</option>
+                            <option value="WSKT">WSKT</option><option value="ValT">ValT</option><option value="BRSL">BRSL</option>
+                            <option value="TCM1">TCM1</option><option value="BLSD">BLSD</option><option value="REI">REI</option>
+                            <option value="wpg1">wpg1</option><option value="SHRK">SHRK</option>
+                        </select>
+                        <select id="register-alliance-rank" class="w-full p-3 rounded-lg form-input" required>
+                            <option value="" disabled selected>Select Alliance Rank</option>
+                            <option value="R5">R5</option><option value="R4">R4</option><option value="R3">R3</option>
+                            <option value="R2">R2</option><option value="R1">R1</option>
+                        </select>
+
+                        <input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input w-full p-3 rounded-lg form-input md:col-span-2" required>
+                        <input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input w-full p-3 rounded-lg form-input" required>
+                        <input type="text" id="register-air-power" placeholder="Air Power" class="power-input w-full p-3 rounded-lg form-input" required>
+                        <input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input w-full p-3 rounded-lg form-input md:col-span-2" required>
+                    </div>
+                    <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Register</button>
+                     <p id="register-error" class="text-red-400 text-center text-sm mt-4"></p>
+                    <p class="text-center text-sm text-gray-400 mt-6">
+                        Already have an account? <a href="#" id="show-login-form" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
         <div class="max-w-6xl mx-auto">
 
@@ -169,31 +284,12 @@
                     <div class="nav-item"><div class="nav-link"><i class="fas fa-globe"></i><span>Language</span></div><div class="dropdown-menu glass-pane"><a href="#" class="dropdown-link">English</a><a href="#" class="dropdown-link">Español</a><a href="#" class="dropdown-link">Deutsch</a></div></div>
                 </nav>
 
-                <div class="hidden md:flex flex-shrink-0"><a href="#" class="login-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</a></div>
-                
-                <!-- Mobile Menu Button -->
-                <button id="mobile-menu-button" class="md:hidden text-white p-2 rounded-md hover:bg-white/10 transition-colors">
-                    <svg id="menu-open-icon" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-                    <svg id="menu-close-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-            </header>
-            
-            <!-- Mobile Menu -->
-            <div id="mobile-menu" class="hidden md:hidden fixed inset-0 bg-black/50 backdrop-blur-lg z-40">
-                <div class="w-full bg-gray-900/90 pt-24 p-8 space-y-4">
-                    <h3 class="text-lg font-bold text-gray-400 px-4">Navigation</h3>
-                    <a href="#" class="mobile-nav-link text-xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-events"><i class="fas fa-calendar-alt w-6 text-center" style="color: var(--color-primary);"></i>Events</a>
-                    <a href="#" class="mobile-nav-link text-xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-players"><i class="fas fa-users w-6 text-center" style="color: var(--color-primary);"></i>Players</a>
-                    <a href="#" class="mobile-nav-link text-xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-top-alliances"><i class="fas fa-shield-alt w-6 text-center" style="color: var(--color-primary);"></i>Top Alliances</a>
-                    <a href="#" class="mobile-nav-link text-xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-alliance-list"><i class="fas fa-list-ul w-6 text-center" style="color: var(--color-primary);"></i>Alliance List</a>
-                    <a href="#" class="mobile-nav-link text-xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-season-overview"><i class="fas fa-trophy w-6 text-center" style="color: var(--color-primary);"></i>Season</a>
-                    <a href="#" class="mobile-nav-link text-xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-calculators"><i class="fas fa-tools w-6 text-center" style="color: var(--color-primary);"></i>Tools</a>
-                    <div class="border-t border-gray-700 pt-6 mt-6">
-                         <a href="#" class="login-button justify-center text-lg w-full"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</a>
-                    </div>
+                <div id="auth-container" class="hidden md:flex flex-shrink-0">
+                    <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
+                    <button id="logout-btn" class="auth-button hidden"><i class="fas fa-sign-out-alt fa-fw mr-2"></i>Logout</button>
                 </div>
-            </div>
-
+                <button class="md:hidden text-white"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg></button>
+            </header>
 
             <!-- Page Content Container -->
             <div id="page-container">
@@ -208,21 +304,14 @@
                         <button class="toggle-button" data-filter="alliance-events">Alliance</button>
                     </div>
                     <main class="space-y-8" id="events-main-container">
+                        <!-- Event sections will be populated dynamically from Firestore -->
                         <section id="seasonal-events" class="glass-pane section-container event-section">
-                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold border-l-4 pl-3" style="border-color: var(--color-primary);">Seasonal</h2><div class="flex space-x-2"><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="seasonal-events" data-direction="left"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="seasonal-events" data-direction="right"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div></div>
-                            <div class="carousel-viewport"><div class="carousel-track"><div class="carousel-slide p-1"><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Eden Dissidia</h3><p class="text-gray-400 text-sm my-2 flex-grow">A new season of conquest begins.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Ends in: 15d 8h</span><a href="#" class="font-bold" style="color: var(--color-primary);">View Map &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Doomsday</h3><p class="text-gray-400 text-sm my-2 flex-grow">Build the citadel and fend off invaders.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Status: Not Started</span><a href="#" class="font-bold" style="color: var(--color-primary);">Learn More &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Seasonal Event 3</h3><p class="text-gray-400 text-sm my-2 flex-grow">Placeholder description.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Coming Soon</span><a href="#" class="font-bold" style="color: var(--color-primary);">Details &rarr;</a></div></div></article></div></div></div>
+                             <h2 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">Seasonal Events</h2>
+                             <p class="text-gray-400">No active seasonal events. Check back later!</p>
                         </section>
-                        <section id="server-events" class="glass-pane section-container event-section">
-                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold border-l-4 pl-3" style="border-color: var(--color-primary);">Server-Wide</h2><div class="flex space-x-2"><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="server-events" data-direction="left"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="server-events" data-direction="right"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div></div>
-                            <div class="carousel-viewport"><div class="carousel-track"><div class="carousel-slide p-1"><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><div class="flex justify-between items-center"><h3 class="text-lg font-bold text-white">Server Invasion</h3><span class="live-indicator text-xs font-bold px-2 py-0.5 rounded-full" style="color: var(--color-bg); background-color: var(--color-primary);">LIVE</span></div><p class="text-gray-400 text-sm my-2 flex-grow">Defend the server from invaders.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Status: Active</span><a href="#" class="font-bold" style="color: var(--color-primary);">Engage &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Resource Gathering</h3><p class="text-gray-400 text-sm my-2 flex-grow">Gather for server-wide buffs.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Status: Completed</span><a href="#" class="font-bold" style="color: var(--color-primary);">Results &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Server Event 3</h3><p class="text-gray-400 text-sm my-2 flex-grow">Placeholder description.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Coming Soon</span><a href="#" class="font-bold" style="color: var(--color-primary);">Details &rarr;</a></div></div></article></div></div></div>
-                        </section>
-                        <section id="arms-race-events" class="glass-pane section-container event-section">
-                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold border-l-4 pl-3" style="border-color: var(--color-primary);">Arms Race</h2><div class="flex space-x-2"><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="arms-race-events" data-direction="left"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="arms-race-events" data-direction="right"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div></div>
-                            <div class="carousel-viewport"><div class="carousel-track"><div class="carousel-slide p-1"><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Infantry Day</h3><p class="text-gray-400 text-sm my-2 flex-grow">Train infantry to earn points.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Starts in: 1d 4h</span><a href="#" class="font-bold" style="color: var(--color-primary);">Rewards &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Tank Day</h3><p class="text-gray-400 text-sm my-2 flex-grow">Train tanks to earn points.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Starts in: 2d 4h</span><a href="#" class="font-bold" style="color: var(--color-primary);">Rewards &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Aircraft Day</h3><p class="text-gray-400 text-sm my-2 flex-grow">Train aircraft to earn points.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Starts in: 3d 4h</span><a href="#" class="font-bold" style="color: var(--color-primary);">Rewards &rarr;</a></div></div></article></div></div></div>
-                        </section>
-                        <section id="alliance-events" class="glass-pane section-container event-section">
-                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold border-l-4 pl-3" style="border-color: var(--color-primary);">Alliance</h2><div class="flex space-x-2"><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="alliance-events" data-direction="left"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="alliance-events" data-direction="right"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div></div>
-                            <div class="carousel-viewport"><div class="carousel-track"><div class="carousel-slide p-1"><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Alliance Mobilization</h3><p class="text-gray-400 text-sm my-2 flex-grow">Complete tasks for exclusive rewards.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Ends in: 1d 3h</span><a href="#" class="font-bold" style="color: var(--color-primary);">View Tasks &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" class="w-full h-28 object-cover"><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Alliance Drill</h3><p class="text-gray-400 text-sm my-2 flex-grow">Test your alliance's might.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Coming Soon</span><a href="#" class="font-bold" style="color: var(--color-primary);">Details &rarr;</a></div></div></article></div></div></div>
+                         <section id="server-events" class="glass-pane section-container event-section">
+                             <h2 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">Server-Wide Events</h2>
+                             <p class="text-gray-400">No active server-wide events. Check back later!</p>
                         </section>
                     </main>
                 </div>
@@ -231,71 +320,8 @@
                 <div id="page-top-alliances" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
                         <h2 class="text-3xl font-bold text-white text-center mb-8">Top Alliances</h2>
-                        <div class="flex flex-col md:flex-row items-end justify-center gap-4">
-                            <!-- 2nd Place -->
-                            <div class="w-full md:w-1/4 order-2 md:order-1">
-                                <div class="glass-pane podium-card podium-silver h-full">
-                                    <div class="mb-4"><span class="text-5xl font-black text-gray-300">2</span><sup class="text-2xl font-bold text-gray-400">nd</sup></div>
-                                    <h3 class="text-2xl font-extrabold text-white">[fAfO]</h3>
-                                    <div class="text-sm text-gray-300 mt-2 space-y-1">
-                                        <p><i class="fas fa-crown mr-2 text-gray-400"></i>Leader: Player 2</p>
-                                        <p><i class="fas fa-fist-raised mr-2 text-gray-400"></i>Power: 25.8B</p>
-                                        <p><i class="fas fa-users mr-2 text-gray-400"></i>Members: 98/100</p>
-                                    </div>
-                                    <div class="border-t border-gray-600 my-4"></div>
-                                    <div class="text-left text-sm space-y-2">
-                                        <p><strong class="text-gray-300">Warlord:</strong> Warlord Name</p>
-                                        <p><strong class="text-gray-300">Recruiter:</strong> Recruiter Name</p>
-                                        <p><strong class="text-gray-300">Muse:</strong> Muse Name</p>
-                                        <p><strong class="text-gray-300">Butler:</strong> Butler Name</p>
-                                    </div>
-                                    <div class="border-t border-gray-600 my-4"></div>
-                                    <p class="text-xs text-gray-400 text-left italic">"Find around, find out."</p>
-                                </div>
-                            </div>
-                            <!-- 1st Place -->
-                            <div class="w-full md:w-1/3 order-1 md:order-2">
-                                <div class="glass-pane podium-card podium-gold h-full">
-                                    <div class="mb-4"><span class="text-6xl font-black text-yellow-300">1</span><sup class="text-3xl font-bold text-yellow-400">st</sup></div>
-                                    <h3 class="text-3xl font-extrabold text-white">[THOR]</h3>
-                                    <div class="text-base text-yellow-200 mt-2 space-y-1">
-                                        <p><i class="fas fa-crown mr-2 text-yellow-400"></i>Leader: Player 1</p>
-                                        <p><i class="fas fa-fist-raised mr-2 text-yellow-400"></i>Power: 29.1B</p>
-                                        <p><i class="fas fa-users mr-2 text-yellow-400"></i>Members: 100/100</p>
-                                    </div>
-                                    <div class="border-t border-yellow-500/50 my-4"></div>
-                                    <div class="text-left text-sm space-y-2">
-                                        <p><strong class="text-yellow-200">Warlord:</strong> Warlord Name</p>
-                                        <p><strong class="text-yellow-200">Recruiter:</strong> Recruiter Name</p>
-                                        <p><strong class="text-yellow-200">Muse:</strong> Muse Name</p>
-                                        <p><strong class="text-yellow-200">Butler:</strong> Butler Name</p>
-                                    </div>
-                                    <div class="border-t border-yellow-500/50 my-4"></div>
-                                    <p class="text-sm text-yellow-100 text-left italic">"Forged in thunder, bound by honor."</p>
-                                </div>
-                            </div>
-                            <!-- 3rd Place -->
-                            <div class="w-full md:w-1/4 order-3 md:order-3">
-                                <div class="glass-pane podium-card podium-bronze h-full">
-                                    <div class="mb-4"><span class="text-5xl font-black text-yellow-700">3</span><sup class="text-2xl font-bold text-yellow-800">rd</sup></div>
-                                    <h3 class="text-2xl font-extrabold text-white">[HeRA]</h3>
-                                    <div class="text-sm text-yellow-200/70 mt-2 space-y-1">
-                                        <p><i class="fas fa-crown mr-2 text-yellow-800"></i>Leader: Player 3</p>
-                                        <p><i class="fas fa-fist-raised mr-2 text-yellow-800"></i>Power: 22.5B</p>
-                                        <p><i class="fas fa-users mr-2 text-yellow-800"></i>Members: 95/100</p>
-                                    </div>
-                                    <div class="border-t border-yellow-800/50 my-4"></div>
-                                    <div class="text-left text-sm space-y-2">
-                                        <p><strong class="text-yellow-200/70">Warlord:</strong> Warlord Name</p>
-                                        <p><strong class="text-yellow-200/70">Recruiter:</strong> Recruiter Name</p>
-                                        <p><strong class="text-yellow-200/70">Muse:</strong> Muse Name</p>
-                                        <p><strong class="text-yellow-200/70">Butler:</strong> Butler Name</p>
-                                    </div>
-                                    <div class="border-t border-yellow-800/50 my-4"></div>
-                                    <p class="text-xs text-yellow-300/60 text-left italic">"Strength and wisdom."</p>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Podium will be populated dynamically from Firestore -->
+                         <p class="text-center text-gray-400">Alliance ranking data is being calculated. Please check back soon.</p>
                     </div>
                 </div>
                 <!-- Alliance List Page -->
@@ -316,19 +342,9 @@
                                         <th>Vacancy</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr><td class="tag">[THOR]</td><td>Thunder's Wrath</td><td>29.1B</td><td>Player 1</td><td><span class="px-2 py-1 text-xs font-bold text-red-900 bg-red-400 rounded-full">Full</span></td></tr>
-                                    <tr><td class="tag">[fAfO]</td><td>Find Around</td><td>25.8B</td><td>Player 2</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
-                                    <tr><td class="tag">[HeRA]</td><td>Olympus Rising</td><td>22.5B</td><td>Player 3</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
-                                    <tr><td class="tag">[WOLF]</td><td>Wolfpack</td><td>20.1B</td><td>WolfLeader</td><td><span class="px-2 py-1 text-xs font-bold text-red-900 bg-red-400 rounded-full">Full</span></td></tr>
-                                    <tr><td class="tag">[DOOM]</td><td>Doombringers</td><td>18.9B</td><td>LordDoom</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
-                                    <tr><td class="tag">[RAVN]</td><td>Raven Guard</td><td>17.5B</td><td>Corvus</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
-                                    <tr><td class="tag">[VOID]</td><td>Into the Void</td><td>16.2B</td><td>Nova</td><td><span class="px-2 py-1 text-xs font-bold text-red-900 bg-red-400 rounded-full">Full</span></td></tr>
-                                    <tr><td class="tag">[FURY]</td><td>Furious Few</td><td>15.8B</td><td>MadMax</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
-                                    <tr><td class="tag">[KNGT]</td><td>The Knights</td><td>14.3B</td><td>Arthur</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
-                                    <tr><td class="tag">[ZERO]</td><td>Ground Zero</td><td>13.1B</td><td>Genesis</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
-                                    <tr><td class="tag">[APEX]</td><td>Apex Predators</td><td>12.5B</td><td>Raptor</td><td><span class="px-2 py-1 text-xs font-bold text-red-900 bg-red-400 rounded-full">Full</span></td></tr>
-                                    <tr><td class="tag">[PHNX]</td><td>Phoenix Ash</td><td>11.9B</td><td>Blaze</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
+                                <tbody id="alliance-list-body">
+                                    <!-- Alliance data will be populated dynamically from Firestore -->
+                                     <tr><td colspan="5" class="text-center py-8 text-gray-400">No alliance data available.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -356,41 +372,9 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><img src="https://placehold.co/40x40/0D1117/00BFFF?text=P1" class="rounded-full"></td>
-                                        <td class="tag">[THOR]</td>
-                                        <td>Player 1</td>
-                                        <td>Leader</td>
-                                        <td>150.5M</td>
-                                        <td>50.1M</td>
-                                        <td>50.2M</td>
-                                        <td>50.2M</td>
-                                        <td class="flex space-x-2"><button class="action-button"><i class="fas fa-comment-dots"></i></button><button class="action-button"><i class="fas fa-user-plus"></i></button><button class="action-button"><i class="fas fa-plus-circle"></i></button></td>
-                                    </tr>
-                                    <tr>
-                                        <td><img src="https://placehold.co/40x40/0D1117/00BFFF?text=P2" class="rounded-full"></td>
-                                        <td class="tag">[fAfO]</td>
-                                        <td>Player 2</td>
-                                        <td>Warlord</td>
-                                        <td>145.2M</td>
-                                        <td>48.1M</td>
-                                        <td>48.5M</td>
-                                        <td>48.6M</td>
-                                        <td class="flex space-x-2"><button class="action-button"><i class="fas fa-comment-dots"></i></button><button class="action-button"><i class="fas fa-user-plus"></i></button><button class="action-button"><i class="fas fa-plus-circle"></i></button></td>
-                                    </tr>
-                                    <tr>
-                                        <td><img src="https://placehold.co/40x40/0D1117/00BFFF?text=WL" class="rounded-full"></td>
-                                        <td class="tag">[WOLF]</td>
-                                        <td>WolfLeader</td>
-                                        <td>Leader</td>
-                                        <td>120.8M</td>
-                                        <td>40.1M</td>
-                                        <td>40.3M</td>
-                                        <td>40.4M</td>
-                                        <td class="flex space-x-2"><button class="action-button"><i class="fas fa-comment-dots"></i></button><button class="action-button"><i class="fas fa-user-plus"></i></button><button class="action-button"><i class="fas fa-plus-circle"></i></button></td>
-                                    </tr>
-                                    <!-- Add more placeholder players -->
+                                <tbody id="player-list-body">
+                                    <!-- Player data will be populated dynamically from Firestore -->
+                                     <tr><td colspan="9" class="text-center py-8 text-gray-400">No registered players found. Please register to be listed.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -398,8 +382,6 @@
                 </div>
                 <!-- Other Placeholder Pages -->
                 <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
-                <div id="page-event-calendar" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Event Calendar</h2></div></div>
-                <div id="page-past-events" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Past Events</h2></div></div>
                 <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
                 <div id="page-season-rewards" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Rewards</h2></div></div>
                 <div id="page-season-history" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season History</h2></div></div>
@@ -411,7 +393,185 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // TODO: Add your Firebase project's configuration here
+        const firebaseConfig = {
+        apiKey: "AIzaSyA8KKDjjw0Pb_wknZ3TRWuL7-7XMo4VeY0",
+        authDomain: "events-ea397.firebaseapp.com",
+        projectId: "events-ea397",
+        storageBucket: "events-ea397.firebasestorage.app",
+        messagingSenderId: "51859633788",
+        appId: "1:51859633788:web:3653d3e7edb6d3c1c4fbf9",
+        measurementId: "G-0ZCMZ86PJD"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- AUTHENTICATION & FIRESTORE LOGIC ---
+
+        const authModalBackdrop = document.getElementById('auth-modal-backdrop');
+        const authModalContainer = document.getElementById('auth-modal-container');
+        const loginFormContainer = document.getElementById('login-form-container');
+        const registerFormContainer = document.getElementById('register-form-container');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const closeBtn = document.getElementById('close-modal-btn');
+
+        function showModal() {
+            authModalBackdrop.classList.add('visible');
+            authModalContainer.classList.add('visible');
+        }
+
+        function hideModal() {
+            authModalBackdrop.classList.remove('visible');
+            authModalContainer.classList.remove('visible');
+        }
+
+        loginBtn.addEventListener('click', showModal);
+        closeBtn.addEventListener('click', hideModal);
+        authModalBackdrop.addEventListener('click', hideModal);
+
+        document.getElementById('show-register-form').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginFormContainer.style.display = 'none';
+            registerFormContainer.style.display = 'block';
+        });
+
+        document.getElementById('show-login-form').addEventListener('click', (e) => {
+            e.preventDefault();
+            registerFormContainer.style.display = 'none';
+            loginFormContainer.style.display = 'block';
+        });
+        
+        // Handle Auth State Changes
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                // User is signed in
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                hideModal();
+                // You can fetch user profile here if needed
+            } else {
+                // User is signed out
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+            }
+        });
+        
+        // Login Form Submission
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in 
+                    console.log('User logged in:', userCredential.user);
+                })
+                .catch((error) => {
+                    console.error("Login Error:", error);
+                    alert(error.message);
+                });
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).catch(error => console.error("Logout error:", error));
+        });
+
+        // Registration Form Submission
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorElement = document.getElementById('register-error');
+            errorElement.textContent = '';
+
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const passwordVerify = document.getElementById('register-password-verify').value;
+            const alliance = document.getElementById('register-alliance').value;
+            const allianceRank = document.getElementById('register-alliance-rank').value;
+            
+            // Helper to parse formatted number strings
+            const parsePower = (str) => parseInt(str.replace(/,/g, ''), 10) || 0;
+
+            const power = parsePower(document.getElementById('register-power').value);
+            const tankPower = parsePower(document.getElementById('register-tank-power').value);
+            const airPower = parsePower(document.getElementById('register-air-power').value);
+            const missilePower = parsePower(document.getElementById('register-missile-power').value);
+
+            if (password !== passwordVerify) {
+                errorElement.textContent = "Passwords do not match.";
+                return;
+            }
+            if (!username || !email || !alliance || !allianceRank) {
+                 errorElement.textContent = "Please fill out all fields.";
+                 return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // Now create the user document in Firestore
+                const registrationTimestamp = new Date();
+                const userProfile = {
+                    uid: user.uid,
+                    username: username,
+                    email: email, // Stored for backend use, not public display
+                    alliance: alliance,
+                    allianceRank: allianceRank,
+                    power: power,
+                    tankPower: tankPower,
+                    airPower: airPower,
+                    missilePower: missilePower,
+                    likes: 0,
+                    registrationTimestampKST: registrationTimestamp.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }),
+                    registrationTimestampUTC: registrationTimestamp.toISOString(),
+                    browserLanguage: navigator.language || navigator.userLanguage
+                };
+
+                // Use a 'users' collection. The document ID will be the user's UID.
+                await setDoc(doc(db, "users", user.uid), userProfile);
+                
+                console.log('User registered and profile created:', user.uid);
+                hideModal();
+
+            } catch (error) {
+                console.error("Registration Error:", error);
+                errorElement.textContent = error.message;
+            }
+        });
+
+        // Forgot Password
+        document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            if (!email) {
+                alert('Please enter your email address in the email field first.');
+                return;
+            }
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    alert('Password reset email sent! Please check your inbox.');
+                })
+                .catch((error) => {
+                    alert(error.message);
+                });
+        });
+
+        // --- UTILITY & UI SCRIPTS ---
+
         // Particle animation script
         const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
@@ -443,13 +603,6 @@
             const navLinks = document.querySelectorAll('.nav-link');
             const dropdownLinks = document.querySelectorAll('.dropdown-link');
             const pages = document.querySelectorAll('.page-content');
-            
-            // Mobile Menu Elements
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            const menuOpenIcon = document.getElementById('menu-open-icon');
-            const menuCloseIcon = document.getElementById('menu-close-icon');
-            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
 
             function showPage(targetId) {
                 pages.forEach(page => {
@@ -481,29 +634,7 @@
                     if (eventsLink) eventsLink.classList.add('active');
                 }
             }
-            
-            // --- Mobile Menu Logic ---
-            function toggleMobileMenu() {
-                mobileMenu.classList.toggle('hidden');
-                menuOpenIcon.classList.toggle('hidden');
-                menuCloseIcon.classList.toggle('hidden');
-            }
 
-            mobileMenuButton.addEventListener('click', toggleMobileMenu);
-
-            mobileNavLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const targetId = link.dataset.target;
-                    if (targetId) {
-                        showPage(targetId);
-                    }
-                    toggleMobileMenu(); // Close menu after clicking a link
-                });
-            });
-
-
-            // --- Desktop Menu Logic ---
             navItems.forEach(item => {
                 item.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -544,8 +675,19 @@
                 navItems.forEach(item => item.classList.remove('open'));
             });
 
-            // --- Initial Page Load ---
             showPage('page-events'); 
+
+            // Format power inputs with commas
+            document.querySelectorAll('.power-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    let value = e.target.value.replace(/,/g, '');
+                    if (isNaN(value)) {
+                        e.target.value = '';
+                        return;
+                    }
+                    e.target.value = Number(value).toLocaleString('en-US');
+                });
+            });
         });
     </script>
 </body>
