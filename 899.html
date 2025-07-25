@@ -21,6 +21,9 @@
             0%, 100% { box-shadow: 0 0 5px var(--color-primary); }
             50% { box-shadow: 0 0 10px var(--color-primary); }
         }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-10px); } }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--color-bg); color: #c9d1d9; }
         
@@ -96,44 +99,7 @@
         }
 
         .section-container { padding: 1.25rem; }
-        .event-card {
-            background-color: rgba(13, 17, 23, 0.7); border-radius: 0.75rem;
-            overflow: hidden; transition: all 0.3s ease;
-            display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.1);
-        }
-        .event-card:hover { box-shadow: 0 0 10px 0px var(--color-primary); }
-        .live-indicator { animation: pulse-live 2s infinite; }
-
-        .carousel-viewport { overflow: hidden; }
-        .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
-        .carousel-slide { display: grid; grid-template-columns: repeat(1, 1fr); gap: 1rem; flex: 0 0 100%; }
-        @media (min-width: 640px) { .carousel-slide { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1024px) { .carousel-slide { grid-template-columns: repeat(3, 1fr); } }
-        .carousel-button:disabled { opacity: 0.3; cursor: not-allowed; }
         
-        .toggle-button {
-            position: relative; padding: 0.75rem 1rem; font-size: 0.9rem;
-            font-weight: 600; color: #8b949e;
-            background-color: transparent; border: none;
-            transition: color 0.3s ease;
-        }
-        .toggle-button:hover { color: #c9d1d9; }
-        .toggle-button.active { color: #fff; }
-        .toggle-button::after {
-            content: ''; position: absolute; bottom: 0.5rem; left: 1rem; right: 1rem; height: 2px;
-            background-color: var(--color-primary); transform: scaleX(0);
-            transition: transform 0.3s ease-in-out;
-        }
-        .toggle-button.active::after { transform: scaleX(1); }
-
-        .podium-card {
-            display: flex; flex-direction: column; text-align: center;
-            padding: 1.5rem; transition: all 0.3s ease;
-        }
-        .podium-gold { border-image: linear-gradient(to bottom, #FFD700, #FBBF24) 1; }
-        .podium-silver { border-image: linear-gradient(to bottom, #C0C0C0, #D1D5DB) 1; }
-        .podium-bronze { border-image: linear-gradient(to bottom, #CD7F32, #D97706) 1; }
-
         .styled-table { width: 100%; border-collapse: collapse; }
         .styled-table th, .styled-table td { padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }
         .styled-table thead { border-bottom: 2px solid var(--color-primary); }
@@ -148,7 +114,7 @@
         }
         .action-button:hover { background: var(--color-primary); color: #0D1117; }
         
-        /* Modal Styles */
+        /* --- Modal Styles --- */
         .modal-backdrop {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0, 0, 0, 0.7);
@@ -156,7 +122,7 @@
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.3s ease;
-            display: none; /* Hidden by default */
+            pointer-events: none;
         }
         .modal-container {
             position: fixed; top: 50%; left: 50%;
@@ -166,105 +132,252 @@
             max-width: 500px;
             opacity: 0;
             transition: all 0.3s ease;
-            display: none; /* Hidden by default */
+            pointer-events: none;
         }
         .modal-backdrop.visible, .modal-container.visible {
             opacity: 1;
-            display: block;
+            pointer-events: auto;
         }
         .modal-container.visible {
              transform: translate(-50%, -50%) scale(1);
         }
-        .form-input {
+        .auth-form {
+            display: none;
+            animation: fadeIn 0.5s forwards;
+        }
+        .auth-form.active {
+            display: block;
+        }
+        
+        /* New Input Group Styling */
+        .input-group {
+            display: flex;
+            align-items: center;
             background-color: rgba(13, 17, 23, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #c9d1d9;
+            border-radius: 0.5rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
-        .form-input:focus {
-            outline: none;
+        .input-group:focus-within {
             border-color: var(--color-primary);
             box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.3);
         }
+        .input-icon {
+            padding: 0 0.75rem;
+            color: #667;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .input-group:focus-within .input-icon {
+            color: var(--color-primary);
+        }
+        .form-input {
+            background-color: transparent;
+            border: none;
+            color: #c9d1d9;
+            padding: 0.75rem;
+            width: 100%;
+        }
+        .form-input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
         .primary-btn {
             background-color: var(--color-primary);
             color: var(--color-bg);
             font-weight: 700;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
         .primary-btn:hover {
             background-color: #00a9e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2);
+        }
+        .primary-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .secondary-btn {
+            background-color: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #c9d1d9;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .secondary-btn:hover {
+            background-color: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .form-error {
+            min-height: 20px;
+        }
+        
+        /* Registration Stepper */
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            height: 2px;
+            width: 100%;
+            background-color: rgba(255,255,255,0.1);
+            z-index: -1;
+        }
+        .progress-bar .line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            height: 2px;
+            background-color: var(--color-primary);
+            width: 0%;
+            transition: width 0.4s ease;
+            z-index: 0;
+        }
+        .progress-step {
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .progress-step.active {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: var(--color-bg);
+        }
+        .form-slide {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .form-slide.active {
+            display: block;
+        }
+
+        /* Player Card Dropdown */
+        #player-card-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            min-width: 250px;
+            z-index: 110;
+            display: none;
         }
     </style>
 </head>
-<body class="bg-custom-gradient">
+<body>
     <canvas id="particle-canvas"></canvas>
 
-    <!-- Auth Modal -->
+    <!-- Auth & Edit Modals -->
     <div id="auth-modal-backdrop" class="modal-backdrop"></div>
     <div id="auth-modal-container" class="modal-container">
-        <div class="glass-pane p-6 sm:p-8">
-            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
+        <div class="glass-pane p-6 sm:p-8 relative overflow-hidden">
+            <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                 <i class="fas fa-times fa-lg"></i>
             </button>
             <!-- Login Form -->
-            <div id="login-form-container">
+            <div id="login-form-container" class="auth-form">
                 <h2 class="text-2xl font-bold text-white text-center mb-4">Login</h2>
                 <p class="text-center text-gray-400 mb-6">Welcome back to the 899 Hub.</p>
                 <form id="login-form">
                     <div class="space-y-4">
-                        <input type="email" id="login-email" placeholder="Email" class="w-full p-3 rounded-lg form-input" required>
-                        <input type="password" id="login-password" placeholder="Password" class="w-full p-3 rounded-lg form-input" required>
+                        <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="login-email" placeholder="Email" class="form-input" required></div>
+                        <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="login-password" placeholder="Password" class="form-input" required></div>
                     </div>
-                    <div class="flex justify-between items-center mt-4 mb-6 text-sm">
-                        <a href="#" id="forgot-password-link" class="text-gray-400 hover:text-white">Forgot Password?</a>
+                    <p id="login-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                    <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-2">Login</button>
+                    <div class="text-center text-sm text-gray-400 mt-6">
+                        <a href="#" id="forgot-password-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Forgot Password?</a>
                     </div>
-                    <button type="submit" class="w-full p-3 rounded-lg primary-btn">Login</button>
-                    <p class="text-center text-sm text-gray-400 mt-6">
-                        Don't have an account? <a href="#" id="show-register-form" class="font-semibold hover:text-white" style="color: var(--color-primary);">Register here</a>
+                    <p class="text-center text-sm text-gray-400 mt-4">
+                        Don't have an account? <a href="#" id="show-register-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Register here</a>
                     </p>
                 </form>
             </div>
             <!-- Registration Form -->
-            <div id="register-form-container" style="display: none;">
+            <div id="register-form-container" class="auth-form">
                 <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
-                <p class="text-center text-gray-400 mb-6">Join the 899 community.</p>
+                <div class="progress-bar">
+                    <div class="line"></div>
+                    <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
+                    <div class="progress-step" data-step="2"><i class="fas fa-shield-alt"></i></div>
+                    <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
+                </div>
                 <form id="register-form">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" id="register-username" placeholder="Username" class="w-full p-3 rounded-lg form-input md:col-span-2" required>
-                        <input type="email" id="register-email" placeholder="Email" class="w-full p-3 rounded-lg form-input md:col-span-2" required>
-                        <input type="password" id="register-password" placeholder="Password" class="w-full p-3 rounded-lg form-input" required>
-                        <input type="password" id="register-password-verify" placeholder="Verify Password" class="w-full p-3 rounded-lg form-input" required>
-                        
-                        <select id="register-alliance" class="w-full p-3 rounded-lg form-input" required>
+                    <!-- Slide 1: Account Info -->
+                    <div class="form-slide active"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
+                        <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
+                        <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
+                        <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password (min. 6 characters)" class="form-input" required></div>
+                        <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
+                    </div></div>
+                    <!-- Slide 2: Alliance Info -->
+                    <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
+                         <div class="input-group"><i class="fas fa-shield-alt input-icon"></i><select id="register-alliance" class="form-input" required>
                             <option value="" disabled selected>Select Alliance</option>
-                            <option value="THOR">THOR</option><option value="fAfO">fAfO</option><option value="HeRA">HeRA</option>
-                            <option value="pHNx">pHNx</option><option value="TroW">TroW</option><option value="VaLT">VaLT</option>
-                            <option value="COLD">COLD</option><option value="Tone">Tone</option><option value="DoM">DoM</option>
-                            <option value="MINI">MINI</option><option value="MEGA">MEGA</option><option value="Lat1">Lat1</option>
-                            <option value="WSKT">WSKT</option><option value="ValT">ValT</option><option value="BRSL">BRSL</option>
-                            <option value="TCM1">TCM1</option><option value="BLSD">BLSD</option><option value="REI">REI</option>
-                            <option value="wpg1">wpg1</option><option value="SHRK">SHRK</option>
-                        </select>
-                        <select id="register-alliance-rank" class="w-full p-3 rounded-lg form-input" required>
+                            <option value="THOR">THOR</option><option value="fAfO">fAfO</option><option value="HeRA">HeRA</option><option value="pHNx">pHNx</option><option value="TroW">TroW</option><option value="VaLT">VaLT</option><option value="COLD">COLD</option><option value="Tone">Tone</option><option value="DoM">DoM</option><option value="MINI">MINI</option><option value="MEGA">MEGA</option><option value="Lat1">Lat1</option><option value="WSKT">WSKT</option><option value="ValT">ValT</option><option value="BRSL">BRSL</option><option value="TCM1">TCM1</option><option value="BLSD">BLSD</option><option value="REI">REI</option><option value="wpg1">wpg1</option><option value="SHRK">SHRK</option>
+                        </select></div>
+                        <div class="input-group"><i class="fas fa-star input-icon"></i><select id="register-alliance-rank" class="form-input" required>
                             <option value="" disabled selected>Select Alliance Rank</option>
-                            <option value="R5">R5</option><option value="R4">R4</option><option value="R3">R3</option>
-                            <option value="R2">R2</option><option value="R1">R1</option>
-                        </select>
-
-                        <input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input w-full p-3 rounded-lg form-input md:col-span-2" required>
-                        <input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input w-full p-3 rounded-lg form-input" required>
-                        <input type="text" id="register-air-power" placeholder="Air Power" class="power-input w-full p-3 rounded-lg form-input" required>
-                        <input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input w-full p-3 rounded-lg form-input md:col-span-2" required>
-                    </div>
-                    <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Register</button>
-                     <p id="register-error" class="text-red-400 text-center text-sm mt-4"></p>
-                    <p class="text-center text-sm text-gray-400 mt-6">
-                        Already have an account? <a href="#" id="show-login-form" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a>
-                    </p>
+                            <option value="R5">R5 (Leader)</option><option value="R4">R4</option><option value="R3">R3</option><option value="R2">R2</option><option value="R1">R1 (Member)</option>
+                        </select></div>
+                    </div></div>
+                    <!-- Slide 3: Power Stats -->
+                    <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
+                        <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
+                        <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
+                        <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power" class="power-input form-input" required></div>
+                        <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
+                    </div></div>
+                    <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                    <div id="register-nav-container" class="flex items-center mt-6"><button type="button" id="register-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button><div class="flex-grow flex justify-center"><button type="button" id="register-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button><button type="submit" id="register-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Register</button></div></div>
+                    <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
                 </form>
             </div>
         </div>
     </div>
+    
+    <div id="edit-profile-modal-container" class="modal-container">
+         <div class="glass-pane p-6 sm:p-8 relative overflow-hidden">
+            <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+            <h2 class="text-2xl font-bold text-white text-center mb-6">Edit Your Profile</h2>
+            <form id="edit-profile-form">
+                 <div class="space-y-4">
+                    <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
+                    <div class="input-group"><i class="fas fa-shield-alt input-icon"></i><select id="edit-alliance" class="form-input" required>
+                        <option value="THOR">THOR</option><option value="fAfO">fAfO</option><option value="HeRA">HeRA</option><option value="pHNx">pHNx</option><option value="TroW">TroW</option><option value="VaLT">VaLT</option><option value="COLD">COLD</option><option value="Tone">Tone</option><option value="DoM">DoM</option><option value="MINI">MINI</option><option value="MEGA">MEGA</option><option value="Lat1">Lat1</option><option value="WSKT">WSKT</option><option value="ValT">ValT</option><option value="BRSL">BRSL</option><option value="TCM1">TCM1</option><option value="BLSD">BLSD</option><option value="REI">REI</option><option value="wpg1">wpg1</option><option value="SHRK">SHRK</option>
+                    </select></div>
+                    <div class="input-group"><i class="fas fa-star input-icon"></i><select id="edit-alliance-rank" class="form-input" required>
+                        <option value="R5">R5 (Leader)</option><option value="R4">R4</option><option value="R3">R3</option><option value="R2">R2</option><option value="R1">R1 (Member)</option>
+                    </select></div>
+                    <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
+                    <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
+                    <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input" required></div>
+                    <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
+                </div>
+                <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
 
     <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
         <div class="max-w-6xl mx-auto">
@@ -284,78 +397,31 @@
                     <div class="nav-item"><div class="nav-link"><i class="fas fa-globe"></i><span>Language</span></div><div class="dropdown-menu glass-pane"><a href="#" class="dropdown-link">English</a><a href="#" class="dropdown-link">Español</a><a href="#" class="dropdown-link">Deutsch</a></div></div>
                 </nav>
 
-                <div id="auth-container" class="hidden md:flex flex-shrink-0">
+                <div id="auth-container" class="hidden md:flex flex-shrink-0 relative">
                     <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
-                    <button id="logout-btn" class="auth-button hidden"><i class="fas fa-sign-out-alt fa-fw mr-2"></i>Logout</button>
+                    <div id="user-profile-container" class="hidden">
+                        <button id="player-card-btn" class="auth-button">
+                            <span id="username-display"></span>
+                            <i class="fas fa-caret-down ml-2"></i>
+                        </button>
+                        <div id="player-card-dropdown" class="glass-pane p-4">
+                            <div id="player-card-info" class="mb-4"></div>
+                            <button id="edit-profile-btn" class="w-full text-left p-2 rounded-md hover:bg-white/10 flex items-center mb-2"><i class="fas fa-edit w-6 text-center mr-2"></i>Edit Profile</button>
+                            <button id="logout-btn" class="w-full text-left p-2 rounded-md hover:bg-white/10 flex items-center"><i class="fas fa-sign-out-alt w-6 text-center mr-2"></i>Logout</button>
+                        </div>
+                    </div>
                 </div>
                 <button class="md:hidden text-white"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg></button>
             </header>
 
             <!-- Page Content Container -->
             <div id="page-container">
-
-                <!-- Events Page (Visible by default) -->
-                <div id="page-events" class="page-content">
-                    <div class="flex items-center justify-center flex-wrap mb-6" id="event-toggles">
-                        <button class="toggle-button active" data-filter="all">All Events</button>
-                        <button class="toggle-button" data-filter="seasonal-events">Seasonal</button>
-                        <button class="toggle-button" data-filter="server-events">Server-Wide</button>
-                        <button class="toggle-button" data-filter="arms-race-events">Arms Race</button>
-                        <button class="toggle-button" data-filter="alliance-events">Alliance</button>
-                    </div>
-                    <main class="space-y-8" id="events-main-container">
-                        <!-- Event sections will be populated dynamically from Firestore -->
-                        <section id="seasonal-events" class="glass-pane section-container event-section">
-                             <h2 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">Seasonal Events</h2>
-                             <p class="text-gray-400">No active seasonal events. Check back later!</p>
-                        </section>
-                         <section id="server-events" class="glass-pane section-container event-section">
-                             <h2 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">Server-Wide Events</h2>
-                             <p class="text-gray-400">No active server-wide events. Check back later!</p>
-                        </section>
-                    </main>
-                </div>
-
-                <!-- Top Alliances Page -->
-                <div id="page-top-alliances" class="page-content" style="display: none;">
-                    <div class="glass-pane section-container">
-                        <h2 class="text-3xl font-bold text-white text-center mb-8">Top Alliances</h2>
-                        <!-- Podium will be populated dynamically from Firestore -->
-                         <p class="text-center text-gray-400">Alliance ranking data is being calculated. Please check back soon.</p>
-                    </div>
-                </div>
-                <!-- Alliance List Page -->
-                <div id="page-alliance-list" class="page-content" style="display: none;">
-                    <div class="glass-pane section-container">
-                        <h2 class="text-3xl font-bold text-white text-center mb-4">Alliance List</h2>
-                        <div class="mb-6">
-                            <input type="text" placeholder="Search by tag or name..." class="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="styled-table">
-                                <thead>
-                                    <tr>
-                                        <th>Tag</th>
-                                        <th>Name</th>
-                                        <th>Power</th>
-                                        <th>Leader</th>
-                                        <th>Vacancy</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="alliance-list-body">
-                                    <!-- Alliance data will be populated dynamically from Firestore -->
-                                     <tr><td colspan="5" class="text-center py-8 text-gray-400">No alliance data available.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
                 <!-- Players Page -->
                 <div id="page-players" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
                         <h2 class="text-3xl font-bold text-white text-center mb-4">Registered Players</h2>
                         <div class="mb-6">
-                            <input type="text" placeholder="Search for a player..." class="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                            <input type="text" id="player-search" placeholder="Search for a player..." class="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500">
                         </div>
                         <div class="overflow-x-auto">
                             <table class="styled-table">
@@ -373,20 +439,30 @@
                                     </tr>
                                 </thead>
                                 <tbody id="player-list-body">
-                                    <!-- Player data will be populated dynamically from Firestore -->
-                                     <tr><td colspan="9" class="text-center py-8 text-gray-400">No registered players found. Please register to be listed.</td></tr>
+                                     <tr><td colspan="9" class="text-center py-8 text-gray-400">Loading player data...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                <!-- Other Placeholder Pages -->
+                <!-- Other Pages... -->
+                <div id="page-events" class="page-content">
+                    <main class="space-y-8" id="events-main-container">
+                         <section class="glass-pane section-container">
+                             <h2 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">Welcome</h2>
+                             <p class="text-gray-400">This is the official event and player hub for Server 899. Please register or log in to participate.</p>
+                        </section>
+                    </main>
+                </div>
+                <div id="page-top-alliances" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Top Alliances</h2></div></div>
+                <div id="page-alliance-list" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Alliance List</h2></div></div>
                 <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
                 <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
                 <div id="page-season-rewards" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Rewards</h2></div></div>
                 <div id="page-season-history" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season History</h2></div></div>
                 <div id="page-calculators" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Calculators</h2></div></div>
                 <div id="page-guides" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Guides</h2></div></div>
+
             </div>
 
             <footer class="text-center mt-12 py-4 border-t border-gray-800/50"><p class="text-gray-500">&copy; 2024 Last War Survival - Server 899 Community.</p></footer>
@@ -395,296 +471,342 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // TODO: Add your Firebase project's configuration here
+        // TODO: Replace with your Firebase project's configuration
         const firebaseConfig = {
-        apiKey: "AIzaSyA8KKDjjw0Pb_wknZ3TRWuL7-7XMo4VeY0",
-        authDomain: "events-ea397.firebaseapp.com",
-        projectId: "events-ea397",
-        storageBucket: "events-ea397.firebasestorage.app",
-        messagingSenderId: "51859633788",
-        appId: "1:51859633788:web:3653d3e7edb6d3c1c4fbf9",
-        measurementId: "G-0ZCMZ86PJD"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        let currentUserData = null;
 
-        // --- AUTHENTICATION & FIRESTORE LOGIC ---
-
+        // --- DOM ELEMENTS ---
         const authModalBackdrop = document.getElementById('auth-modal-backdrop');
         const authModalContainer = document.getElementById('auth-modal-container');
+        const editProfileModalContainer = document.getElementById('edit-profile-modal-container');
         const loginFormContainer = document.getElementById('login-form-container');
         const registerFormContainer = document.getElementById('register-form-container');
         const loginBtn = document.getElementById('login-btn');
+        const userProfileContainer = document.getElementById('user-profile-container');
+        const usernameDisplay = document.getElementById('username-display');
+        const playerListBody = document.getElementById('player-list-body');
+        const playerCardBtn = document.getElementById('player-card-btn');
+        const playerCardDropdown = document.getElementById('player-card-dropdown');
+        const playerCardInfo = document.getElementById('player-card-info');
+        const editProfileBtn = document.getElementById('edit-profile-btn');
         const logoutBtn = document.getElementById('logout-btn');
-        const closeBtn = document.getElementById('close-modal-btn');
 
-        function showModal() {
+        // --- MODAL & FORM SWITCHING LOGIC ---
+        function showAuthModal(formToShow) {
+            editProfileModalContainer.classList.remove('visible');
             authModalBackdrop.classList.add('visible');
             authModalContainer.classList.add('visible');
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            if (formToShow === 'register') {
+                registerFormContainer.classList.add('active');
+                initializeRegistrationStepper();
+            } else {
+                loginFormContainer.classList.add('active');
+            }
+        }
+        
+        function showEditProfileModal() {
+            authModalBackdrop.classList.add('visible');
+            editProfileModalContainer.classList.add('visible');
+            populateEditForm();
         }
 
-        function hideModal() {
+        function hideAllModals() {
             authModalBackdrop.classList.remove('visible');
             authModalContainer.classList.remove('visible');
+            editProfileModalContainer.classList.remove('visible');
         }
-
-        loginBtn.addEventListener('click', showModal);
-        closeBtn.addEventListener('click', hideModal);
-        authModalBackdrop.addEventListener('click', hideModal);
-
-        document.getElementById('show-register-form').addEventListener('click', (e) => {
-            e.preventDefault();
-            loginFormContainer.style.display = 'none';
-            registerFormContainer.style.display = 'block';
-        });
-
-        document.getElementById('show-login-form').addEventListener('click', (e) => {
-            e.preventDefault();
-            registerFormContainer.style.display = 'none';
-            loginFormContainer.style.display = 'block';
-        });
         
-        // Handle Auth State Changes
-        onAuthStateChanged(auth, user => {
+        loginBtn.addEventListener('click', () => showAuthModal('login'));
+        document.getElementById('close-auth-modal-btn').addEventListener('click', hideAllModals);
+        document.getElementById('close-edit-modal-btn').addEventListener('click', hideAllModals);
+        authModalBackdrop.addEventListener('click', hideAllModals);
+
+        document.getElementById('show-register-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
+        document.getElementById('show-login-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
+
+        // --- AUTHENTICATION STATE & LOGIC ---
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is signed in
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    currentUserData = userDoc.data();
+                    usernameDisplay.textContent = currentUserData.username;
+                    updatePlayerCard(currentUserData);
+                }
                 loginBtn.classList.add('hidden');
-                logoutBtn.classList.remove('hidden');
-                hideModal();
-                // You can fetch user profile here if needed
+                userProfileContainer.classList.remove('hidden');
+                hideAllModals();
             } else {
-                // User is signed out
+                currentUserData = null;
                 loginBtn.classList.remove('hidden');
-                logoutBtn.classList.add('hidden');
+                userProfileContainer.classList.add('hidden');
+                playerCardDropdown.style.display = 'none';
             }
         });
         
-        // Login Form Submission
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Signed in 
-                    console.log('User logged in:', userCredential.user);
-                })
-                .catch((error) => {
-                    console.error("Login Error:", error);
-                    alert(error.message);
-                });
+            const errorElement = document.getElementById('login-error');
+            errorElement.textContent = '';
+            signInWithEmailAndPassword(auth, email, password).catch((error) => {
+                console.error("Login Error:", error);
+                errorElement.textContent = "Invalid email or password.";
+            });
         });
 
-        // Logout
         logoutBtn.addEventListener('click', () => {
             signOut(auth).catch(error => console.error("Logout error:", error));
         });
 
-        // Registration Form Submission
+        document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = prompt("Please enter your email address to receive a password reset link:");
+            if (!email) return;
+            sendPasswordResetEmail(auth, email)
+                .then(() => alert('Password reset email sent! Please check your inbox.'))
+                .catch((error) => alert(error.message));
+        });
+        
+        // --- PLAYER CARD & EDIT PROFILE ---
+        playerCardBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playerCardDropdown.style.display = playerCardDropdown.style.display === 'block' ? 'none' : 'block';
+        });
+        
+        editProfileBtn.addEventListener('click', () => {
+            playerCardDropdown.style.display = 'none';
+            showEditProfileModal();
+        });
+
+        function updatePlayerCard(data) {
+             playerCardInfo.innerHTML = `
+                <p class="text-sm text-gray-400">Alliance: <strong class="text-white">[${data.alliance}] ${data.allianceRank}</strong></p>
+                <p class="text-sm text-gray-400">Power: <strong class="text-white">${data.power.toLocaleString()}</strong></p>
+             `;
+        }
+        
+        function populateEditForm() {
+            if (!currentUserData) return;
+            document.getElementById('edit-username').value = currentUserData.username;
+            document.getElementById('edit-alliance').value = currentUserData.alliance;
+            document.getElementById('edit-alliance-rank').value = currentUserData.allianceRank;
+            document.getElementById('edit-power').value = currentUserData.power.toLocaleString();
+            document.getElementById('edit-tank-power').value = currentUserData.tankPower.toLocaleString();
+            document.getElementById('edit-air-power').value = currentUserData.airPower.toLocaleString();
+            document.getElementById('edit-missile-power').value = currentUserData.missilePower.toLocaleString();
+        }
+
+        document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            const errorElement = document.getElementById('edit-profile-error');
+            errorElement.textContent = '';
+            
+            const parsePower = (str) => parseInt(String(str).replace(/,/g, ''), 10) || 0;
+
+            const updatedData = {
+                username: document.getElementById('edit-username').value,
+                alliance: document.getElementById('edit-alliance').value,
+                allianceRank: document.getElementById('edit-alliance-rank').value,
+                power: parsePower(document.getElementById('edit-power').value),
+                tankPower: parsePower(document.getElementById('edit-tank-power').value),
+                airPower: parsePower(document.getElementById('edit-air-power').value),
+                missilePower: parsePower(document.getElementById('edit-missile-power').value),
+            };
+
+            try {
+                await updateDoc(doc(db, "users", user.uid), updatedData);
+                usernameDisplay.textContent = updatedData.username;
+                currentUserData = {...currentUserData, ...updatedData };
+                updatePlayerCard(currentUserData);
+                hideAllModals();
+            } catch (error) {
+                console.error("Update profile error:", error);
+                errorElement.textContent = "Failed to update profile.";
+            }
+        });
+
+
+        // --- REGISTRATION STEPPER LOGIC ---
+        let currentStep = 0;
+        const formSlides = document.querySelectorAll('.form-slide');
+        const progressSteps = document.querySelectorAll('.progress-step');
+        const progressBarLine = document.querySelector('.progress-bar .line');
+        const backBtn = document.getElementById('register-back-btn');
+        const nextBtn = document.getElementById('register-next-btn');
+        const submitBtn = document.getElementById('register-submit-btn');
+        const registerError = document.getElementById('register-error');
+
+        function initializeRegistrationStepper() { currentStep = 0; showStep(currentStep); }
+        function showStep(stepIndex) {
+            formSlides.forEach((slide, index) => slide.classList.toggle('active', index === stepIndex));
+            updateProgressBar();
+            updateNavButtons();
+        }
+        function updateProgressBar() {
+            progressSteps.forEach((step, index) => step.classList.toggle('active', index <= currentStep));
+            progressBarLine.style.width = `${(currentStep / (formSlides.length - 1)) * 100}%`;
+        }
+        function updateNavButtons() {
+            backBtn.style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+            nextBtn.classList.toggle('hidden', currentStep === formSlides.length - 1);
+            submitBtn.classList.toggle('hidden', currentStep !== formSlides.length - 1);
+        }
+        function validateStep(stepIndex) {
+            registerError.textContent = '';
+            const inputs = formSlides[stepIndex].querySelectorAll('input, select');
+            for (const input of inputs) {
+                if (!input.checkValidity()) { registerError.textContent = 'Please fill out all fields correctly.'; return false; }
+            }
+            if (stepIndex === 0) {
+                const password = document.getElementById('register-password').value;
+                const passwordVerify = document.getElementById('register-password-verify').value;
+                if (password.length < 6) { registerError.textContent = 'Password must be at least 6 characters long.'; return false; }
+                if (password !== passwordVerify) { registerError.textContent = 'Passwords do not match.'; return false; }
+            }
+            return true;
+        }
+        nextBtn.addEventListener('click', () => { if (validateStep(currentStep)) { currentStep++; showStep(currentStep); } });
+        backBtn.addEventListener('click', () => { currentStep--; showStep(currentStep); });
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const errorElement = document.getElementById('register-error');
-            errorElement.textContent = '';
-
+            if (!validateStep(currentStep)) return;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Registering...';
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
-            const passwordVerify = document.getElementById('register-password-verify').value;
             const alliance = document.getElementById('register-alliance').value;
             const allianceRank = document.getElementById('register-alliance-rank').value;
-            
-            // Helper to parse formatted number strings
-            const parsePower = (str) => parseInt(str.replace(/,/g, ''), 10) || 0;
-
+            const parsePower = (str) => parseInt(String(str).replace(/,/g, ''), 10) || 0;
             const power = parsePower(document.getElementById('register-power').value);
             const tankPower = parsePower(document.getElementById('register-tank-power').value);
             const airPower = parsePower(document.getElementById('register-air-power').value);
             const missilePower = parsePower(document.getElementById('register-missile-power').value);
-
-            if (password !== passwordVerify) {
-                errorElement.textContent = "Passwords do not match.";
-                return;
-            }
-            if (!username || !email || !alliance || !allianceRank) {
-                 errorElement.textContent = "Please fill out all fields.";
-                 return;
-            }
-
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-
-                // Now create the user document in Firestore
                 const registrationTimestamp = new Date();
                 const userProfile = {
-                    uid: user.uid,
-                    username: username,
-                    email: email, // Stored for backend use, not public display
-                    alliance: alliance,
-                    allianceRank: allianceRank,
-                    power: power,
-                    tankPower: tankPower,
-                    airPower: airPower,
-                    missilePower: missilePower,
+                    uid: user.uid, username, email, alliance, allianceRank, power, tankPower, airPower, missilePower,
                     likes: 0,
                     registrationTimestampKST: registrationTimestamp.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }),
                     registrationTimestampUTC: registrationTimestamp.toISOString(),
                     browserLanguage: navigator.language || navigator.userLanguage
                 };
-
-                // Use a 'users' collection. The document ID will be the user's UID.
                 await setDoc(doc(db, "users", user.uid), userProfile);
-                
-                console.log('User registered and profile created:', user.uid);
-                hideModal();
-
+                hideAllModals();
             } catch (error) {
                 console.error("Registration Error:", error);
-                errorElement.textContent = error.message;
+                registerError.textContent = error.code === 'auth/email-already-in-use' ? 'This email is already registered.' : 'An error occurred.';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Register';
             }
         });
-
-        // Forgot Password
-        document.getElementById('forgot-password-link').addEventListener('click', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            if (!email) {
-                alert('Please enter your email address in the email field first.');
+        
+        // --- FIRESTORE REAL-TIME PLAYER LIST ---
+        onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
+            const players = [];
+            querySnapshot.forEach((doc) => { players.push(doc.data()); });
+            renderPlayers(players);
+        });
+        function renderPlayers(players) {
+            playerListBody.innerHTML = '';
+            if (players.length === 0) {
+                playerListBody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-400">No registered players found. Be the first!</td></tr>`;
                 return;
             }
-            sendPasswordResetEmail(auth, email)
-                .then(() => {
-                    alert('Password reset email sent! Please check your inbox.');
-                })
-                .catch((error) => {
-                    alert(error.message);
-                });
-        });
+            players.forEach(player => {
+                const playerRow = document.createElement('tr');
+                playerRow.innerHTML = `
+                    <td><img src="https://placehold.co/40x40/0D1117/00BFFF?text=${player.username.charAt(0).toUpperCase()}" class="rounded-full" alt="${player.username}"></td>
+                    <td class="tag">[${player.alliance}]</td>
+                    <td>${player.username}</td>
+                    <td>${player.allianceRank}</td>
+                    <td>${player.power.toLocaleString('en-US')}</td>
+                    <td>${player.tankPower.toLocaleString('en-US')}</td>
+                    <td>${player.airPower.toLocaleString('en-US')}</td>
+                    <td>${player.missilePower.toLocaleString('en-US')}</td>
+                    <td class="flex space-x-2">
+                        <button class="action-button" title="Message Player"><i class="fas fa-comment-dots"></i></button>
+                        <button class="action-button" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                        <button class="action-button" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
+                    </td>
+                `;
+                playerListBody.appendChild(playerRow);
+            });
+        }
 
-        // --- UTILITY & UI SCRIPTS ---
-
-        // Particle animation script
+        // --- UI & PARTICLE SCRIPTS ---
         const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
-
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         function createParticles() {
             particles = []; let particleCount = (canvas.width * canvas.height) / 10000;
-            for (let i = 0; i < particleCount; i++) {
-                particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, size: Math.random() * 1.5 + 0.5, color: Math.random() > 0.3 ? 'rgba(0, 191, 255, 0.5)' : 'rgba(248, 113, 113, 0.1)' });
-            }
+            for (let i = 0; i < particleCount; i++) { particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, size: Math.random() * 1.5 + 0.5, color: Math.random() > 0.3 ? 'rgba(0, 191, 255, 0.5)' : 'rgba(248, 113, 113, 0.1)' }); }
         }
         function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.x += p.vx; p.y += p.vy;
-                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-            });
+            particles.forEach(p => { p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > canvas.width) p.vx *= -1; if (p.y < 0 || p.y > canvas.height) p.vy *= -1; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); });
             requestAnimationFrame(animateParticles);
         }
         window.addEventListener('resize', () => { resizeCanvas(); createParticles(); });
         resizeCanvas(); createParticles(); animateParticles();
-
-        // UI Interaction script
         document.addEventListener('DOMContentLoaded', () => {
             const navItems = document.querySelectorAll('.nav-item');
             const navLinks = document.querySelectorAll('.nav-link');
             const dropdownLinks = document.querySelectorAll('.dropdown-link');
             const pages = document.querySelectorAll('.page-content');
-
             function showPage(targetId) {
-                pages.forEach(page => {
-                    page.style.display = page.id === targetId ? 'block' : 'none';
-                });
-                
+                pages.forEach(page => { page.style.display = page.id === targetId ? 'block' : 'none'; });
                 let activeSet = false;
                 navLinks.forEach(link => {
                     const mainTarget = link.dataset.mainTarget;
                     const parentItem = link.closest('.nav-item');
                     const dropdowns = parentItem.querySelectorAll('.dropdown-link');
                     let isParentOfActive = false;
-
-                    dropdowns.forEach(ddLink => {
-                        if (ddLink.dataset.target === targetId) {
-                           isParentOfActive = true;
-                        }
-                    });
-
-                    if (mainTarget === targetId || isParentOfActive) {
-                        link.classList.add('active');
-                        activeSet = true;
-                    } else {
-                        link.classList.remove('active');
-                    }
+                    dropdowns.forEach(ddLink => { if (ddLink.dataset.target === targetId) { isParentOfActive = true; } });
+                    if (mainTarget === targetId || isParentOfActive) { link.classList.add('active'); activeSet = true; } else { link.classList.remove('active'); }
                 });
-                 if (!activeSet) {
-                    const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]');
-                    if (eventsLink) eventsLink.classList.add('active');
-                }
+                 if (!activeSet) { const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]'); if (eventsLink) eventsLink.classList.add('active'); }
             }
-
             navItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const wasOpen = item.classList.contains('open');
-                    navItems.forEach(i => i.classList.remove('open'));
-                    if (!wasOpen) {
-                        item.classList.add('open');
-                    }
-                });
-                 item.addEventListener('mouseenter', () => {
-                    if (document.querySelector('.nav-item.open')) {
-                         navItems.forEach(i => i.classList.remove('open'));
-                         item.classList.add('open');
-                    }
-                });
+                item.addEventListener('click', (e) => { e.stopPropagation(); const wasOpen = item.classList.contains('open'); navItems.forEach(i => i.classList.remove('open')); if (!wasOpen) { item.classList.add('open'); } });
+                 item.addEventListener('mouseenter', () => { if (document.querySelector('.nav-item.open')) { navItems.forEach(i => i.classList.remove('open')); item.classList.add('open'); } });
             });
-
-            dropdownLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const targetId = link.dataset.target;
-                    if (targetId) {
-                        showPage(targetId);
-                    }
-                    navItems.forEach(i => i.classList.remove('open'));
-                });
-            });
-
-            navLinks.forEach(link => {
-                if (link.dataset.mainTarget) {
-                    link.addEventListener('click', () => {
-                        showPage(link.dataset.mainTarget);
-                    });
-                }
-            });
-
-            window.addEventListener('click', () => {
+            dropdownLinks.forEach(link => { link.addEventListener('click', (e) => { e.stopPropagation(); const targetId = link.dataset.target; if (targetId) { showPage(targetId); } navItems.forEach(i => i.classList.remove('open')); }); });
+            navLinks.forEach(link => { if (link.dataset.mainTarget) { link.addEventListener('click', () => { showPage(link.dataset.mainTarget); }); } });
+            window.addEventListener('click', () => { 
                 navItems.forEach(item => item.classList.remove('open'));
+                playerCardDropdown.style.display = 'none';
             });
-
             showPage('page-events'); 
-
-            // Format power inputs with commas
             document.querySelectorAll('.power-input').forEach(input => {
                 input.addEventListener('input', (e) => {
-                    let value = e.target.value.replace(/,/g, '');
-                    if (isNaN(value)) {
-                        e.target.value = '';
-                        return;
-                    }
+                    let value = String(e.target.value).replace(/,/g, '');
+                    if (isNaN(value)) { e.target.value = ''; return; }
                     e.target.value = Number(value).toLocaleString('en-US');
                 });
             });
