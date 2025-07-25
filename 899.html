@@ -348,7 +348,7 @@
                         </div></div>
                         <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
                              <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                                <div class="custom-select-container w-full">
+                                <div class="custom-select-container w-full" data-type="alliance">
                                     <input type="hidden" id="register-alliance" name="alliance" required>
                                     <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
                                     <div class="custom-select-options dropdown-pane glass-pane">
@@ -357,10 +357,15 @@
                                     </div>
                                 </div>
                              </div>
-                            <div class="input-group"><i class="fas fa-star input-icon"></i><select id="register-alliance-rank" class="form-input" required>
-                                <option value="" disabled selected>Select Alliance Rank</option>
-                                <option value="R5">R5 (Leader)</option><option value="R4">R4</option><option value="R3">R3</option><option value="R2">R2</option><option value="R1">R1 (Member)</option>
-                            </select></div>
+                            <div class="input-group"><i class="fas fa-star input-icon"></i>
+                                <div class="custom-select-container w-full" data-type="rank">
+                                    <input type="hidden" id="register-alliance-rank" name="alliance-rank" required>
+                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options dropdown-pane glass-pane">
+                                        <div class="options-list"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div></div>
                         <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
                             <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
@@ -392,7 +397,7 @@
                  <div class="space-y-4">
                     <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
                     <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                        <div class="custom-select-container w-full">
+                        <div class="custom-select-container w-full" data-type="alliance">
                             <input type="hidden" id="edit-alliance" name="alliance" required>
                             <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
                             <div class="custom-select-options dropdown-pane glass-pane">
@@ -401,9 +406,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="input-group"><i class="fas fa-star input-icon"></i><select id="edit-alliance-rank" class="form-input" required>
-                        <option value="R5">R5 (Leader)</option><option value="R4">R4</option><option value="R3">R3</option><option value="R2">R2</option><option value="R1">R1 (Member)</option>
-                    </select></div>
+                    <div class="input-group"><i class="fas fa-star input-icon"></i>
+                         <div class="custom-select-container w-full" data-type="rank">
+                            <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
+                            <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                            <div class="custom-select-options dropdown-pane glass-pane">
+                                <div class="options-list"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
                     <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
                     <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input" required></div>
@@ -523,13 +534,19 @@
         measurementId: "G-0ZCMZ86PJD"
         };
 
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         let currentUserData = null;
         
         const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
+        const ALLIANCE_RANKS = [
+            { value: 'R5', text: 'R5 (Leader)'},
+            { value: 'R4', text: 'R4'},
+            { value: 'R3', text: 'R3'},
+            { value: 'R2', text: 'R2'},
+            { value: 'R1', text: 'R1 (Member)'},
+        ];
 
         // --- DOM ELEMENTS ---
         const authModalBackdrop = document.getElementById('auth-modal-backdrop');
@@ -655,13 +672,18 @@
         function populateEditForm() {
             if (!currentUserData) return;
             document.getElementById('edit-username').value = currentUserData.username;
-            // For custom select in edit form
-            const editSelectContainer = document.getElementById('edit-alliance').closest('.custom-select-container');
-            const editValueButton = editSelectContainer.querySelector('.custom-select-value span');
-            editValueButton.textContent = currentUserData.alliance;
+            
+            // For custom selects in edit form
+            const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
+            const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
+            
+            editAllianceSelect.querySelector('.custom-select-value span').textContent = currentUserData.alliance;
             document.getElementById('edit-alliance').value = currentUserData.alliance;
             
+            const rankData = ALLIANCE_RANKS.find(r => r.value === currentUserData.allianceRank);
+            editRankSelect.querySelector('.custom-select-value span').textContent = rankData ? rankData.text : currentUserData.allianceRank;
             document.getElementById('edit-alliance-rank').value = currentUserData.allianceRank;
+            
             document.getElementById('edit-power').value = currentUserData.power.toLocaleString();
             document.getElementById('edit-tank-power').value = currentUserData.tankPower.toLocaleString();
             document.getElementById('edit-air-power').value = currentUserData.airPower.toLocaleString();
@@ -735,9 +757,12 @@
         }
         function validateStep(stepIndex) {
             registerError.textContent = '';
-            const inputs = formSlides[stepIndex].querySelectorAll('input, select');
+            const inputs = formSlides[stepIndex].querySelectorAll('input[type="hidden"], input[type="text"], input[type="email"], input[type="password"]');
             for (const input of inputs) {
-                if (!input.checkValidity()) { registerError.textContent = 'Please fill out all fields correctly.'; return false; }
+                if (!input.checkValidity() || !input.value) { 
+                    registerError.textContent = 'Please fill out all fields correctly.'; 
+                    return false; 
+                }
             }
             if (stepIndex === 0) {
                 const password = document.getElementById('register-password').value;
@@ -824,24 +849,33 @@
 
         // --- CUSTOM SELECT LOGIC ---
         function setupCustomSelect(container) {
+            const type = container.dataset.type;
             const hiddenInput = container.querySelector('input[type="hidden"]');
             const valueButton = container.querySelector('.custom-select-value');
             const valueSpan = valueButton.querySelector('span');
             const optionsContainer = container.querySelector('.custom-select-options');
             const searchInput = container.querySelector('.custom-select-search');
             const optionsList = container.querySelector('.options-list');
+            const sourceData = type === 'alliance' ? ALLIANCES : ALLIANCE_RANKS;
+
+            if (searchInput && type === 'rank') {
+                searchInput.style.display = 'none';
+            }
 
             function renderOptions(filter = '') {
                 optionsList.innerHTML = '';
-                ALLIANCES
-                    .filter(alliance => alliance.toLowerCase().includes(filter.toLowerCase()))
-                    .forEach(alliance => {
-                        const optionDiv = document.createElement('div');
-                        optionDiv.className = 'custom-select-option';
-                        optionDiv.textContent = alliance;
-                        optionDiv.dataset.value = alliance;
-                        optionsList.appendChild(optionDiv);
-                    });
+                const filteredData = sourceData.filter(item => {
+                    const itemText = typeof item === 'object' ? item.text : item;
+                    return itemText.toLowerCase().includes(filter.toLowerCase());
+                });
+
+                filteredData.forEach(item => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'custom-select-option';
+                    optionDiv.textContent = typeof item === 'object' ? item.text : item;
+                    optionDiv.dataset.value = typeof item === 'object' ? item.value : item;
+                    optionsList.appendChild(optionDiv);
+                });
             }
 
             valueButton.addEventListener('click', (e) => {
@@ -850,19 +884,24 @@
                 document.querySelectorAll('.custom-select-options').forEach(o => o.style.display = 'none');
                 optionsContainer.style.display = isVisible ? 'none' : 'block';
                 if (!isVisible) {
-                    searchInput.value = '';
-                    searchInput.focus();
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.focus();
+                    }
                     renderOptions();
                 }
             });
 
-            searchInput.addEventListener('input', () => renderOptions(searchInput.value));
+            if (searchInput) {
+                searchInput.addEventListener('input', () => renderOptions(searchInput.value));
+            }
 
             optionsList.addEventListener('click', (e) => {
                 if (e.target.classList.contains('custom-select-option')) {
                     const value = e.target.dataset.value;
+                    const text = e.target.textContent;
                     hiddenInput.value = value;
-                    valueSpan.textContent = value;
+                    valueSpan.textContent = text;
                     optionsContainer.style.display = 'none';
                     hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
@@ -872,6 +911,7 @@
         }
         
         document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
+
 
         // --- MOBILE NAV LOGIC ---
         function buildMobileNav() {
@@ -997,28 +1037,24 @@
             const navItems = document.querySelectorAll('.nav-item');
             
             navItems.forEach(item => {
-                // Use mouseenter for hover effect to open dropdowns on desktop
-                item.addEventListener('mouseenter', (e) => {
-                    if(window.innerWidth > 768) { // Only on desktop
-                        item.classList.add('open');
-                    }
-                });
-                item.addEventListener('mouseleave', (e) => {
-                    if(window.innerWidth > 768) { // Only on desktop
-                        item.classList.remove('open');
-                    }
-                });
-                // Use click for touch devices, can also work on desktop
-                item.addEventListener('click', (e) => {
-                    if(window.innerWidth <= 768) { // Only on mobile/tablet
-                        e.stopPropagation();
-                        const wasOpen = item.classList.contains('open');
-                        navItems.forEach(i => i.classList.remove('open'));
-                        if (!wasOpen) {
-                            item.classList.add('open');
+                const link = item.querySelector('.nav-link');
+                const dropdown = item.querySelector('.dropdown-menu');
+                
+                if (dropdown) {
+                    item.addEventListener('mouseenter', () => { if (window.innerWidth > 768) item.classList.add('open'); });
+                    item.addEventListener('mouseleave', () => { if (window.innerWidth > 768) item.classList.remove('open'); });
+                    link.addEventListener('click', (e) => {
+                        if (window.innerWidth <= 768) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const wasOpen = item.classList.contains('open');
+                            navItems.forEach(i => i.classList.remove('open'));
+                            if (!wasOpen) item.classList.add('open');
                         }
-                    }
-                });
+                    });
+                } else {
+                    link.addEventListener('click', () => showPage(link.dataset.mainTarget));
+                }
             });
             
             window.addEventListener('click', (e) => { 
@@ -1033,25 +1069,14 @@
                 }
             });
 
-            // Handle clicking dropdown links to navigate
             document.querySelectorAll('.dropdown-link').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const targetId = link.dataset.target;
-                    if (targetId) {
-                        showPage(targetId);
-                    }
+                    if (targetId) showPage(targetId);
                     link.closest('.nav-item').classList.remove('open');
                 });
             });
-
-            // Handle clicking main nav links without dropdowns
-             document.querySelectorAll('.nav-link:not(:has(+ .dropdown-menu))').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    showPage(link.dataset.mainTarget);
-                });
-            });
-
 
             showPage('page-events'); 
             document.querySelectorAll('.power-input').forEach(input => {
