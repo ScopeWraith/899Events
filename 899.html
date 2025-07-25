@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Last War: Survival - 899 Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --color-bg: #0D1117;
+            --color-primary: #00BFFF; /* Brighter Blue */
+            --color-highlight: #F87171; /* High-contrast Red */
+            --color-glass-bg: rgba(22, 27, 34, 0.40); 
+            --color-dropdown-bg: rgba(22, 27, 34, 0.95);
+        }
+
+        @keyframes pulse-live {
+            0%, 100% { box-shadow: 0 0 5px var(--color-primary); }
+            50% { box-shadow: 0 0 10px var(--color-primary); }
+        }
+        
+        @keyframes slide-in-right {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--color-bg); color: #c9d1d9; }
+        
+        #particle-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: radial-gradient(circle at top left, rgba(0, 191, 255, 0.1), transparent 40%), radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.1), transparent 40%);
+        }
+        
+        .glass-pane {
+            background-color: var(--color-glass-bg);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-main { 
+            padding: 0.75rem 1.5rem; 
+            position: relative;
+            z-index: 50;
+        }
+        .nav-item { position: relative; }
+        .nav-link {
+            position: relative; padding: 0.5rem; font-weight: 600; font-size: 0.75rem;
+            color: #c9d1d9; transition: color 0.3s ease; display: flex;
+            flex-direction: column; align-items: center; gap: 0.25rem;
+            width: 80px; cursor: pointer;
+        }
+        .nav-link i { font-size: 1rem; }
+        .nav-link:hover { color: #fff; }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 2px;
+            background-color: var(--color-primary); transform: scaleX(0);
+            transform-origin: center; transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .nav-item:hover .nav-link::after, .nav-link.active::after { transform: scaleX(1); }
+        .nav-link.active { color: #fff; }
+        
+        .dropdown-menu {
+            position: absolute; top: calc(100% + 12px); left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s;
+            z-index: 100;
+            padding: 0.5rem;
+            min-width: 180px;
+            border-top: 2px solid var(--color-primary);
+            background-color: var(--color-dropdown-bg);
+        }
+        .nav-item:hover .dropdown-menu,
+        .nav-item.open .dropdown-menu {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1; visibility: visible;
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0s;
+        }
+        .dropdown-link {
+            display: block; padding: 0.6rem 1rem; border-radius: 0.5rem;
+            font-size: 0.875rem; color: #c9d1d9;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            white-space: nowrap; cursor: pointer;
+        }
+        .dropdown-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
+
+        .login-button {
+            padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem;
+            color: #c9d1d9; background-color: rgba(255,255,255,0.05);
+            border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .login-button:hover {
+            color: #fff; background-color: rgba(0, 191, 255, 0.1);
+            border-color: var(--color-primary);
+        }
+
+        .section-container { padding: 1.25rem; }
+        .event-card {
+            background-color: rgba(13, 17, 23, 0.7); border-radius: 0.75rem;
+            overflow: hidden; transition: all 0.3s ease;
+            display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .event-card:hover { box-shadow: 0 0 10px 0px var(--color-primary); }
+        .live-indicator { animation: pulse-live 2s infinite; }
+
+        .carousel-viewport { overflow: hidden; }
+        .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
+        .carousel-slide { display: grid; grid-template-columns: repeat(1, 1fr); gap: 1rem; flex: 0 0 100%; }
+        @media (min-width: 640px) { .carousel-slide { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .carousel-slide { grid-template-columns: repeat(3, 1fr); } }
+        .carousel-button:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        .toggle-button {
+            position: relative; padding: 0.75rem 1rem; font-size: 0.9rem;
+            font-weight: 600; color: #8b949e;
+            background-color: transparent; border: none;
+            transition: color 0.3s ease;
+        }
+        .toggle-button:hover { color: #c9d1d9; }
+        .toggle-button.active { color: #fff; }
+        .toggle-button::after {
+            content: ''; position: absolute; bottom: 0.5rem; left: 1rem; right: 1rem; height: 2px;
+            background-color: var(--color-primary); transform: scaleX(0);
+            transition: transform 0.3s ease-in-out;
+        }
+        .toggle-button.active::after { transform: scaleX(1); }
+
+        .podium-card {
+            display: flex; flex-direction: column; text-align: center;
+            padding: 1.5rem; transition: all 0.3s ease;
+        }
+        .podium-gold { border-image: linear-gradient(to bottom, #FFD700, #FBBF24) 1; }
+        .podium-silver { border-image: linear-gradient(to bottom, #C0C0C0, #D1D5DB) 1; }
+        .podium-bronze { border-image: linear-gradient(to bottom, #CD7F32, #D97706) 1; }
+
+        .styled-table { width: 100%; border-collapse: collapse; }
+        .styled-table th, .styled-table td { padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }
+        .styled-table thead { border-bottom: 2px solid var(--color-primary); }
+        .styled-table th { font-size: 0.875rem; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.05em; }
+        .styled-table tbody tr { border-bottom: 1px solid rgba(255, 255, 255, 0.1); transition: background-color 0.2s ease; }
+        .styled-table tbody tr:last-child { border-bottom: none; }
+        .styled-table tbody tr:hover { background-color: rgba(0, 191, 255, 0.05); }
+        .styled-table .tag { font-weight: 800; color: #fff; }
+        .action-button {
+            background: rgba(255,255,255,0.1); border-radius: 0.375rem;
+            padding: 0.5rem; transition: all 0.2s ease;
+        }
+        .action-button:hover { background: var(--color-primary); color: #0D1117; }
+
+        /* --- Mobile Menu Animation & Styling --- */
+        #mobile-menu {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #mobile-menu.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #mobile-menu-content {
+            transform: translateY(-30px);
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        #mobile-menu.open #mobile-menu-content {
+            transform: translateY(0);
+        }
+        .mobile-nav-link {
+            opacity: 0;
+            transform: translateX(-15px);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .mobile-nav-link:hover {
+            background-color: rgba(0, 191, 255, 0.1);
+            transform: translateX(0px);
+        }
+        #mobile-menu.open .mobile-nav-link,
+        #mobile-menu.open .mobile-menu-divider {
+            animation: slide-in-right 0.5s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        /* Staggered animation delays */
+        #mobile-menu.open .mobile-nav-link:nth-of-type(1) { animation-delay: 0.1s; }
+        #mobile-menu.open .mobile-nav-link:nth-of-type(2) { animation-delay: 0.15s; }
+        #mobile-menu.open .mobile-nav-link:nth-of-type(3) { animation-delay: 0.2s; }
+        #mobile-menu.open .mobile-nav-link:nth-of-type(4) { animation-delay: 0.25s; }
+        #mobile-menu.open .mobile-nav-link:nth-of-type(5) { animation-delay: 0.3s; }
+        #mobile-menu.open .mobile-nav-link:nth-of-type(6) { animation-delay: 0.35s; }
+        #mobile-menu.open .mobile-menu-divider { animation-delay: 0.4s; }
+
+    </style>
+</head>
+<body class="bg-custom-gradient">
+    <canvas id="particle-canvas"></canvas>
+    <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
+        <div class="max-w-6xl mx-auto">
+
+            <header class="glass-pane header-main flex justify-between items-center mb-6">
+                <div class="flex-shrink-0">
+                    <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white">899<span class="font-bold" style="color: var(--color-primary);">EVENTS</span></h1>
+                    <p class="text-xs text-gray-400">Official Event Hub</p>
+                </div>
+                
+                <nav id="main-nav" class="hidden md:flex flex-grow justify-center items-center">
+                    <div class="nav-item"><div class="nav-link"><i class="fas fa-shield-alt"></i><span>Alliances</span></div><div class="dropdown-menu glass-pane"><a class="dropdown-link" data-target="page-top-alliances">Top Alliances</a><a class="dropdown-link" data-target="page-alliance-list">Alliance List</a><a class="dropdown-link" data-target="page-recruitment">Recruitment</a></div></div>
+                    <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
+                    <div class="nav-item"><div class="nav-link active" data-main-target="page-events"><i class="fas fa-calendar-alt"></i><span>Events</span></div></div>
+                    <div class="nav-item"><div class="nav-link"><i class="fas fa-trophy"></i><span>Season</span></div><div class="dropdown-menu glass-pane"><a class="dropdown-link" data-target="page-season-overview">Season Overview</a><a class="dropdown-link" data-target="page-season-rewards">Rewards</a><a class="dropdown-link" data-target="page-season-history">History</a></div></div>
+                    <div class="nav-item"><div class="nav-link"><i class="fas fa-tools"></i><span>Tools</span></div><div class="dropdown-menu glass-pane"><a class="dropdown-link" data-target="page-calculators">Calculators</a><a class="dropdown-link" data-target="page-guides">Guides</a></div></div>
+                    <div class="nav-item"><div class="nav-link"><i class="fas fa-globe"></i><span>Language</span></div><div class="dropdown-menu glass-pane"><a href="#" class="dropdown-link">English</a><a href="#" class="dropdown-link">Español</a><a href="#" class="dropdown-link">Deutsch</a></div></div>
+                </nav>
+
+                <div class="hidden md:flex flex-shrink-0"><a href="#" class="login-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</a></div>
+                
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden text-white p-2 rounded-md hover:bg-white/10 transition-colors z-50">
+                    <svg id="menu-open-icon" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                    <svg id="menu-close-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </header>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="md:hidden fixed inset-0 bg-black/70 backdrop-blur-md z-40 flex items-center justify-center">
+                <div id="mobile-menu-content" class="w-full max-w-sm p-8 space-y-2">
+                    <a href="#" class="mobile-nav-link text-2xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-events"><i class="fas fa-calendar-alt w-6 text-center" style="color: var(--color-primary);"></i>Events</a>
+                    <a href="#" class="mobile-nav-link text-2xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-players"><i class="fas fa-users w-6 text-center" style="color: var(--color-primary);"></i>Players</a>
+                    <a href="#" class="mobile-nav-link text-2xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-top-alliances"><i class="fas fa-shield-alt w-6 text-center" style="color: var(--color-primary);"></i>Top Alliances</a>
+                    <a href="#" class="mobile-nav-link text-2xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-alliance-list"><i class="fas fa-list-ul w-6 text-center" style="color: var(--color-primary);"></i>Alliance List</a>
+                    <a href="#" class="mobile-nav-link text-2xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-season-overview"><i class="fas fa-trophy w-6 text-center" style="color: var(--color-primary);"></i>Season</a>
+                    <a href="#" class="mobile-nav-link text-2xl font-bold flex items-center gap-4 p-4 rounded-lg" data-target="page-calculators"><i class="fas fa-tools w-6 text-center" style="color: var(--color-primary);"></i>Tools</a>
+                    <div class="mobile-menu-divider border-t border-gray-700/50 pt-6 mt-4">
+                         <a href="#" class="login-button justify-center text-lg w-full"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</a>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Page Content Container -->
+            <div id="page-container">
+
+                <!-- Events Page (Visible by default) -->
+                <div id="page-events" class="page-content">
+                    <div class="flex items-center justify-center flex-wrap mb-6" id="event-toggles">
+                        <button class="toggle-button active" data-filter="all">All Events</button>
+                        <button class="toggle-button" data-filter="seasonal-events">Seasonal</button>
+                        <button class="toggle-button" data-filter="server-events">Server-Wide</button>
+                        <button class="toggle-button" data-filter="arms-race-events">Arms Race</button>
+                        <button class="toggle-button" data-filter="alliance-events">Alliance</button>
+                    </div>
+                    <main class="space-y-8" id="events-main-container">
+                        <section id="seasonal-events" class="glass-pane section-container event-section">
+                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold border-l-4 pl-3" style="border-color: var(--color-primary);">Seasonal</h2><div class="flex space-x-2"><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="seasonal-events" data-direction="left"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="seasonal-events" data-direction="right"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div></div>
+                            <div class="carousel-viewport"><div class="carousel-track"><div class="carousel-slide p-1"><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Eden Dissidia</h3><p class="text-gray-400 text-sm my-2 flex-grow">A new season of conquest begins.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Ends in: 15d 8h</span><a href="#" class="font-bold" style="color: var(--color-primary);">View Map &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Doomsday</h3><p class="text-gray-400 text-sm my-2 flex-grow">Build the citadel and fend off invaders.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Status: Not Started</span><a href="#" class="font-bold" style="color: var(--color-primary);">Learn More &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Seasonal Event 3</h3><p class="text-gray-400 text-sm my-2 flex-grow">Placeholder description.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Coming Soon</span><a href="#" class="font-bold" style="color: var(--color-primary);">Details &rarr;</a></div></div></article></div></div></div>
+                        </section>
+                        <section id="server-events" class="glass-pane section-container event-section">
+                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold border-l-4 pl-3" style="border-color: var(--color-primary);">Server-Wide</h2><div class="flex space-x-2"><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="server-events" data-direction="left"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="server-events" data-direction="right"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div></div>
+                            <div class="carousel-viewport"><div class="carousel-track"><div class="carousel-slide p-1"><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><div class="flex justify-between items-center"><h3 class="text-lg font-bold text-white">Server Invasion</h3><span class="live-indicator text-xs font-bold px-2 py-0.5 rounded-full" style="color: var(--color-bg); background-color: var(--color-primary);">LIVE</span></div><p class="text-gray-400 text-sm my-2 flex-grow">Defend the server from invaders.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Status: Active</span><a href="#" class="font-bold" style="color: var(--color-primary);">Engage &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Resource Gathering</h3><p class="text-gray-400 text-sm my-2 flex-grow">Gather for server-wide buffs.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Status: Completed</span><a href="#" class="font-bold" style="color: var(--color-primary);">Results &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Server Event 3</h3><p class="text-gray-400 text-sm my-2 flex-grow">Placeholder description.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Coming Soon</span><a href="#" class="font-bold" style="color: var(--color-primary);">Details &rarr;</a></div></div></article></div></div></div>
+                        </section>
+                        <section id="arms-race-events" class="glass-pane section-container event-section">
+                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold border-l-4 pl-3" style="border-color: var(--color-primary);">Arms Race</h2><div class="flex space-x-2"><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="arms-race-events" data-direction="left"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="arms-race-events" data-direction="right"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div></div>
+                            <div class="carousel-viewport"><div class="carousel-track"><div class="carousel-slide p-1"><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Infantry Day</h3><p class="text-gray-400 text-sm my-2 flex-grow">Train infantry to earn points.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Starts in: 1d 4h</span><a href="#" class="font-bold" style="color: var(--color-primary);">Rewards &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Tank Day</h3><p class="text-gray-400 text-sm my-2 flex-grow">Train tanks to earn points.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Starts in: 2d 4h</span><a href="#" class="font-bold" style="color: var(--color-primary);">Rewards &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Aircraft Day</h3><p class="text-gray-400 text-sm my-2 flex-grow">Train aircraft to earn points.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Starts in: 3d 4h</span><a href="#" class="font-bold" style="color: var(--color-primary);">Rewards &rarr;</a></div></div></article></div></div></div>
+                        </section>
+                        <section id="alliance-events" class="glass-pane section-container event-section">
+                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold border-l-4 pl-3" style="border-color: var(--color-primary);">Alliance</h2><div class="flex space-x-2"><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="alliance-events" data-direction="left"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><button class="carousel-button p-2 rounded-full bg-white/10 hover:bg-white/20" data-carousel="alliance-events" data-direction="right"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button></div></div>
+                            <div class="carousel-viewport"><div class="carousel-track"><div class="carousel-slide p-1"><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Alliance Mobilization</h3><p class="text-gray-400 text-sm my-2 flex-grow">Complete tasks for exclusive rewards.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Ends in: 1d 3h</span><a href="#" class="font-bold" style="color: var(--color-primary);">View Tasks &rarr;</a></div></div></article><article class="event-card"><img src="https://placehold.co/600x300/003344/00A9FF?text=Event" onerror="this.onerror=null;this.src='https://placehold.co/600x300/003344/FFFFFF?text=Image+Error';"/><div class="p-4 flex-grow flex flex-col"><h3 class="text-lg font-bold text-white">Alliance Drill</h3><p class="text-gray-400 text-sm my-2 flex-grow">Test your alliance's might.</p><div class="flex justify-between items-center text-sm mt-auto"><span class="font-semibold text-gray-400">Coming Soon</span><a href="#" class="font-bold" style="color: var(--color-primary);">Details &rarr;</a></div></div></article></div></div></div>
+                        </section>
+                    </main>
+                </div>
+
+                <!-- Top Alliances Page -->
+                <div id="page-top-alliances" class="page-content" style="display: none;">
+                    <div class="glass-pane section-container">
+                        <h2 class="text-3xl font-bold text-white text-center mb-8">Top Alliances</h2>
+                        <div class="flex flex-col md:flex-row items-end justify-center gap-4">
+                            <!-- 2nd Place -->
+                            <div class="w-full md:w-1/4 order-2 md:order-1">
+                                <div class="glass-pane podium-card podium-silver h-full">
+                                    <div class="mb-4"><span class="text-5xl font-black text-gray-300">2</span><sup class="text-2xl font-bold text-gray-400">nd</sup></div>
+                                    <h3 class="text-2xl font-extrabold text-white">[fAfO]</h3>
+                                    <div class="text-sm text-gray-300 mt-2 space-y-1">
+                                        <p><i class="fas fa-crown mr-2 text-gray-400"></i>Leader: Player 2</p>
+                                        <p><i class="fas fa-fist-raised mr-2 text-gray-400"></i>Power: 25.8B</p>
+                                        <p><i class="fas fa-users mr-2 text-gray-400"></i>Members: 98/100</p>
+                                    </div>
+                                    <div class="border-t border-gray-600 my-4"></div>
+                                    <div class="text-left text-sm space-y-2">
+                                        <p><strong class="text-gray-300">Warlord:</strong> Warlord Name</p>
+                                        <p><strong class="text-gray-300">Recruiter:</strong> Recruiter Name</p>
+                                        <p><strong class="text-gray-300">Muse:</strong> Muse Name</p>
+                                        <p><strong class="text-gray-300">Butler:</strong> Butler Name</p>
+                                    </div>
+                                    <div class="border-t border-gray-600 my-4"></div>
+                                    <p class="text-xs text-gray-400 text-left italic">"Find around, find out."</p>
+                                </div>
+                            </div>
+                            <!-- 1st Place -->
+                            <div class="w-full md:w-1/3 order-1 md:order-2">
+                                <div class="glass-pane podium-card podium-gold h-full">
+                                    <div class="mb-4"><span class="text-6xl font-black text-yellow-300">1</span><sup class="text-3xl font-bold text-yellow-400">st</sup></div>
+                                    <h3 class="text-3xl font-extrabold text-white">[THOR]</h3>
+                                    <div class="text-base text-yellow-200 mt-2 space-y-1">
+                                        <p><i class="fas fa-crown mr-2 text-yellow-400"></i>Leader: Player 1</p>
+                                        <p><i class="fas fa-fist-raised mr-2 text-yellow-400"></i>Power: 29.1B</p>
+                                        <p><i class="fas fa-users mr-2 text-yellow-400"></i>Members: 100/100</p>
+                                    </div>
+                                    <div class="border-t border-yellow-500/50 my-4"></div>
+                                    <div class="text-left text-sm space-y-2">
+                                        <p><strong class="text-yellow-200">Warlord:</strong> Warlord Name</p>
+                                        <p><strong class="text-yellow-200">Recruiter:</strong> Recruiter Name</p>
+                                        <p><strong class="text-yellow-200">Muse:</strong> Muse Name</p>
+                                        <p><strong class="text-yellow-200">Butler:</strong> Butler Name</p>
+                                    </div>
+                                    <div class="border-t border-yellow-500/50 my-4"></div>
+                                    <p class="text-sm text-yellow-100 text-left italic">"Forged in thunder, bound by honor."</p>
+                                </div>
+                            </div>
+                            <!-- 3rd Place -->
+                            <div class="w-full md:w-1/4 order-3 md:order-3">
+                                <div class="glass-pane podium-card podium-bronze h-full">
+                                    <div class="mb-4"><span class="text-5xl font-black text-yellow-700">3</span><sup class="text-2xl font-bold text-yellow-800">rd</sup></div>
+                                    <h3 class="text-2xl font-extrabold text-white">[HeRA]</h3>
+                                    <div class="text-sm text-yellow-200/70 mt-2 space-y-1">
+                                        <p><i class="fas fa-crown mr-2 text-yellow-800"></i>Leader: Player 3</p>
+                                        <p><i class="fas fa-fist-raised mr-2 text-yellow-800"></i>Power: 22.5B</p>
+                                        <p><i class="fas fa-users mr-2 text-yellow-800"></i>Members: 95/100</p>
+                                    </div>
+                                    <div class="border-t border-yellow-800/50 my-4"></div>
+                                    <div class="text-left text-sm space-y-2">
+                                        <p><strong class="text-yellow-200/70">Warlord:</strong> Warlord Name</p>
+                                        <p><strong class="text-yellow-200/70">Recruiter:</strong> Recruiter Name</p>
+                                        <p><strong class="text-yellow-200/70">Muse:</strong> Muse Name</p>
+                                        <p><strong class="text-yellow-200/70">Butler:</strong> Butler Name</p>
+                                    </div>
+                                    <div class="border-t border-yellow-800/50 my-4"></div>
+                                    <p class="text-xs text-yellow-300/60 text-left italic">"Strength and wisdom."</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Alliance List Page -->
+                <div id="page-alliance-list" class="page-content" style="display: none;">
+                    <div class="glass-pane section-container">
+                        <h2 class="text-3xl font-bold text-white text-center mb-4">Alliance List</h2>
+                        <div class="mb-6">
+                            <input type="text" placeholder="Search by tag or name..." class="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="styled-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tag</th>
+                                        <th>Name</th>
+                                        <th>Power</th>
+                                        <th>Leader</th>
+                                        <th>Vacancy</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="tag">[THOR]</td><td>Thunder's Wrath</td><td>29.1B</td><td>Player 1</td><td><span class="px-2 py-1 text-xs font-bold text-red-900 bg-red-400 rounded-full">Full</span></td></tr>
+                                    <tr><td class="tag">[fAfO]</td><td>Find Around</td><td>25.8B</td><td>Player 2</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
+                                    <tr><td class="tag">[HeRA]</td><td>Olympus Rising</td><td>22.5B</td><td>Player 3</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
+                                    <tr><td class="tag">[WOLF]</td><td>Wolfpack</td><td>20.1B</td><td>WolfLeader</td><td><span class="px-2 py-1 text-xs font-bold text-red-900 bg-red-400 rounded-full">Full</span></td></tr>
+                                    <tr><td class="tag">[DOOM]</td><td>Doombringers</td><td>18.9B</td><td>LordDoom</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
+                                    <tr><td class="tag">[RAVN]</td><td>Raven Guard</td><td>17.5B</td><td>Corvus</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
+                                    <tr><td class="tag">[VOID]</td><td>Into the Void</td><td>16.2B</td><td>Nova</td><td><span class="px-2 py-1 text-xs font-bold text-red-900 bg-red-400 rounded-full">Full</span></td></tr>
+                                    <tr><td class="tag">[FURY]</td><td>Furious Few</td><td>15.8B</td><td>MadMax</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
+                                    <tr><td class="tag">[KNGT]</td><td>The Knights</td><td>14.3B</td><td>Arthur</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
+                                    <tr><td class="tag">[ZERO]</td><td>Ground Zero</td><td>13.1B</td><td>Genesis</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
+                                    <tr><td class="tag">[APEX]</td><td>Apex Predators</td><td>12.5B</td><td>Raptor</td><td><span class="px-2 py-1 text-xs font-bold text-red-900 bg-red-400 rounded-full">Full</span></td></tr>
+                                    <tr><td class="tag">[PHNX]</td><td>Phoenix Ash</td><td>11.9B</td><td>Blaze</td><td><span class="px-2 py-1 text-xs font-bold text-green-900 bg-green-400 rounded-full">Open</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Players Page -->
+                <div id="page-players" class="page-content" style="display: none;">
+                    <div class="glass-pane section-container">
+                        <h2 class="text-3xl font-bold text-white text-center mb-4">Registered Players</h2>
+                        <div class="mb-6">
+                            <input type="text" placeholder="Search for a player..." class="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="styled-table">
+                                <thead>
+                                    <tr>
+                                        <th class="w-12"></th>
+                                        <th>Alliance</th>
+                                        <th>Name</th>
+                                        <th>Alliance Rank</th>
+                                        <th>Total Power</th>
+                                        <th>Tanks</th>
+                                        <th>Air</th>
+                                        <th>Missiles</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><img src="https://placehold.co/40x40/0D1117/00BFFF?text=P1" class="rounded-full"></td>
+                                        <td class="tag">[THOR]</td>
+                                        <td>Player 1</td>
+                                        <td>Leader</td>
+                                        <td>150.5M</td>
+                                        <td>50.1M</td>
+                                        <td>50.2M</td>
+                                        <td>50.2M</td>
+                                        <td class="flex space-x-2"><button class="action-button"><i class="fas fa-comment-dots"></i></button><button class="action-button"><i class="fas fa-user-plus"></i></button><button class="action-button"><i class="fas fa-plus-circle"></i></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><img src="https://placehold.co/40x40/0D1117/00BFFF?text=P2" class="rounded-full"></td>
+                                        <td class="tag">[fAfO]</td>
+                                        <td>Player 2</td>
+                                        <td>Warlord</td>
+                                        <td>145.2M</td>
+                                        <td>48.1M</td>
+                                        <td>48.5M</td>
+                                        <td>48.6M</td>
+                                        <td class="flex space-x-2"><button class="action-button"><i class="fas fa-comment-dots"></i></button><button class="action-button"><i class="fas fa-user-plus"></i></button><button class="action-button"><i class="fas fa-plus-circle"></i></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><img src="https://placehold.co/40x40/0D1117/00BFFF?text=WL" class="rounded-full"></td>
+                                        <td class="tag">[WOLF]</td>
+                                        <td>WolfLeader</td>
+                                        <td>Leader</td>
+                                        <td>120.8M</td>
+                                        <td>40.1M</td>
+                                        <td>40.3M</td>
+                                        <td>40.4M</td>
+                                        <td class="flex space-x-2"><button class="action-button"><i class="fas fa-comment-dots"></i></button><button class="action-button"><i class="fas fa-user-plus"></i></button><button class="action-button"><i class="fas fa-plus-circle"></i></button></td>
+                                    </tr>
+                                    <!-- Add more placeholder players -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Other Placeholder Pages -->
+                <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
+                <div id="page-event-calendar" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Event Calendar</h2></div></div>
+                <div id="page-past-events" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Past Events</h2></div></div>
+                <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
+                <div id="page-season-rewards" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Rewards</h2></div></div>
+                <div id="page-season-history" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season History</h2></div></div>
+                <div id="page-calculators" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Calculators</h2></div></div>
+                <div id="page-guides" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Guides</h2></div></div>
+            </div>
+
+            <footer class="text-center mt-12 py-4 border-t border-gray-800/50"><p class="text-gray-500">&copy; 2024 Last War Survival - Server 899 Community.</p></footer>
+        </div>
+    </div>
+
+    <script>
+        // Particle animation script
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        function createParticles() {
+            particles = []; let particleCount = (canvas.width * canvas.height) / 10000;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, size: Math.random() * 1.5 + 0.5, color: Math.random() > 0.3 ? 'rgba(0, 191, 255, 0.5)' : 'rgba(248, 113, 113, 0.1)' });
+            }
+        }
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        window.addEventListener('resize', () => { resizeCanvas(); createParticles(); });
+        resizeCanvas(); createParticles(); animateParticles();
+
+        // UI Interaction script
+        document.addEventListener('DOMContentLoaded', () => {
+            const navItems = document.querySelectorAll('.nav-item');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const dropdownLinks = document.querySelectorAll('.dropdown-link');
+            const pages = document.querySelectorAll('.page-content');
+            
+            // Mobile Menu Elements
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuOpenIcon = document.getElementById('menu-open-icon');
+            const menuCloseIcon = document.getElementById('menu-close-icon');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+            const body = document.body;
+
+            function showPage(targetId) {
+                pages.forEach(page => {
+                    page.style.display = page.id === targetId ? 'block' : 'none';
+                });
+                
+                let activeSet = false;
+                navLinks.forEach(link => {
+                    const mainTarget = link.dataset.mainTarget;
+                    const parentItem = link.closest('.nav-item');
+                    const dropdowns = parentItem.querySelectorAll('.dropdown-link');
+                    let isParentOfActive = false;
+
+                    dropdowns.forEach(ddLink => {
+                        if (ddLink.dataset.target === targetId) {
+                           isParentOfActive = true;
+                        }
+                    });
+
+                    if (mainTarget === targetId || isParentOfActive) {
+                        link.classList.add('active');
+                        activeSet = true;
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+                 if (!activeSet) {
+                    const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]');
+                    if (eventsLink) eventsLink.classList.add('active');
+                }
+            }
+            
+            // --- Mobile Menu Logic ---
+            function toggleMobileMenu() {
+                const isOpen = mobileMenu.classList.contains('open');
+                if (isOpen) {
+                    mobileMenu.classList.remove('open');
+                    body.classList.remove('overflow-hidden');
+                } else {
+                    mobileMenu.classList.add('open');
+                    body.classList.add('overflow-hidden');
+                }
+                menuOpenIcon.classList.toggle('hidden');
+                menuCloseIcon.classList.toggle('hidden');
+            }
+
+            mobileMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleMobileMenu();
+            });
+
+            mobileNavLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.dataset.target;
+                    if (targetId) {
+                        showPage(targetId);
+                    }
+                    toggleMobileMenu(); // Close menu after clicking a link
+                });
+            });
+
+
+            // --- Desktop Menu Logic ---
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const wasOpen = item.classList.contains('open');
+                    navItems.forEach(i => i.classList.remove('open'));
+                    if (!wasOpen) {
+                        item.classList.add('open');
+                    }
+                });
+                 item.addEventListener('mouseenter', () => {
+                    if (document.querySelector('.nav-item.open')) {
+                         navItems.forEach(i => i.classList.remove('open'));
+                         item.classList.add('open');
+                    }
+                });
+            });
+
+            dropdownLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const targetId = link.dataset.target;
+                    if (targetId) {
+                        showPage(targetId);
+                    }
+                    navItems.forEach(i => i.classList.remove('open'));
+                });
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.mainTarget) {
+                    link.addEventListener('click', () => {
+                        showPage(link.dataset.mainTarget);
+                    });
+                }
+            });
+
+            window.addEventListener('click', () => {
+                navItems.forEach(item => item.classList.remove('open'));
+            });
+
+            // --- Initial Page Load ---
+            showPage('page-events'); 
+        });
+    </script>
+</body>
+</html>
