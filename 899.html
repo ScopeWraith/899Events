@@ -303,63 +303,15 @@
             background-color: rgba(0, 191, 255, 0.1);
             color: #fff;
         }
-
-        /* Player Gamecard Styles */
-        .player-card {
-            --card-border-color: #c0c0c0; /* Silver as default (R1) */
-            --card-accent-color: #c0c0c0;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .player-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .player-card[data-rank="R5"] { /* Diamond */
-            --card-border-color: #b9f2ff;
-            --card-accent-color: #b9f2ff;
-        }
-        .player-card[data-rank="R4"] { /* Platinum */
-            --card-border-color: #e5e4e2;
-            --card-accent-color: #e5e4e2;
-        }
-        .player-card[data-rank="R3"] { /* Gold */
-            --card-border-color: #ffd700;
-            --card-accent-color: #ffd700;
-        }
-        .player-card[data-rank="R2"] { /* Bronze */
-            --card-border-color: #cd7f32;
-            --card-accent-color: #cd7f32;
-        }
-         .player-card[data-rank="R1"] { /* Silver */
-            --card-border-color: #c0c0c0;
-            --card-accent-color: #c0c0c0;
-        }
-        .themed-line-break {
-            height: 2px;
-            width: 100px;
-            background: var(--color-primary);
-            box-shadow: 0 0 10px var(--color-primary);
-        }
         
-        /* Arms Race Ticker */
-        .arms-race-ticker {
-            background: rgba(13, 17, 23, 0.8);
+        /* Podium Styles */
+        .podium-card {
+            display: flex; flex-direction: column; text-align: center;
+            padding: 1.5rem; transition: all 0.3s ease;
         }
-        .event-thumbnail {
-            transition: transform 0.3s ease;
-            border: 2px solid transparent;
-        }
-        .event-thumbnail:hover {
-            transform: scale(1.05);
-        }
-        .event-thumbnail.current {
-            animation: pulse-live 2s infinite;
-            border-color: var(--color-primary);
-        }
-        .ticker-separator {
-            width: 2px;
-            background-image: linear-gradient(to bottom, transparent, var(--color-primary), transparent);
-        }
+        .podium-gold { border-image: linear-gradient(to bottom, #FFD700, #FBBF24) 1; }
+        .podium-silver { border-image: linear-gradient(to bottom, #C0C0C0, #D1D5DB) 1; }
+        .podium-bronze { border-image: linear-gradient(to bottom, #CD7F32, #D97706) 1; }
     </style>
 </head>
 <body>
@@ -579,8 +531,33 @@
                         </section>
                     </main>
                 </div>
+                <!-- Top Alliances Page -->
+                <div id="page-top-alliances" class="page-content" style="display: none;">
+                    <div class="glass-pane section-container">
+                        <h2 class="text-3xl font-bold text-white text-center mb-8">Top Alliances</h2>
+                        <div id="podium-container" class="flex flex-col md:flex-row items-end justify-center gap-4">
+                            <!-- 2nd Place -->
+                            <div class="w-full md:w-1/4 order-2 md:order-1">
+                                <div id="silver-podium" class="glass-pane podium-card podium-silver h-full">
+                                    <!-- Silver/2nd place content will be populated here -->
+                                </div>
+                            </div>
+                            <!-- 1st Place -->
+                            <div class="w-full md:w-1/3 order-1 md:order-2">
+                                <div id="gold-podium" class="glass-pane podium-card podium-gold h-full">
+                                    <!-- Gold/1st place content will be populated here -->
+                                </div>
+                            </div>
+                            <!-- 3rd Place -->
+                            <div class="w-full md:w-1/4 order-3 md:order-3">
+                                <div id="bronze-podium" class="glass-pane podium-card podium-bronze h-full">
+                                    <!-- Bronze/3rd place content will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Other Pages -->
-                <div id="page-top-alliances" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Top Alliances</h2></div></div>
                 <div id="page-alliance-list" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Alliance List</h2></div></div>
                 <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
                 <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
@@ -924,13 +901,15 @@
             }
         });
         
-        // --- FIRESTORE REAL-TIME PLAYER LIST ---
+        // --- FIRESTORE REAL-TIME DATA ---
         onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
             allPlayers = [];
             querySnapshot.forEach((doc) => { allPlayers.push(doc.data()); });
             applyPlayerFilters();
+            updateTopAlliancesPodium(allPlayers);
         });
 
+        // --- PLAYER LIST LOGIC ---
         function applyPlayerFilters() {
             const searchTerm = playerSearchInput.value.toLowerCase();
             const allianceFilter = allianceFilterInput.value;
@@ -945,7 +924,6 @@
 
         playerSearchInput.addEventListener('input', applyPlayerFilters);
         allianceFilterInput.addEventListener('change', applyPlayerFilters);
-
 
         function renderPlayers(players) {
             playerListContainer.innerHTML = '';
@@ -992,6 +970,56 @@
                 playerListContainer.appendChild(card);
             });
         }
+
+        // --- TOP ALLIANCES PODIUM LOGIC ---
+        function updateTopAlliancesPodium(players) {
+            const topAlliances = ['THOR', 'fAfO', 'HeRA'];
+            const podiumData = topAlliances.map(allianceTag => {
+                const members = players.filter(p => p.alliance === allianceTag);
+                const totalPower = members.reduce((sum, p) => sum + p.power, 0);
+                const leader = members.find(p => p.allianceRank === 'R5')?.username || 'Unassigned';
+                const warlord = members.find(p => p.allianceRole === 'Warlord')?.username || 'Unassigned';
+                const recruiter = members.find(p => p.allianceRole === 'Recruiter')?.username || 'Unassigned';
+                const muse = members.find(p => p.allianceRole === 'Muse')?.username || 'Unassigned';
+                const butler = members.find(p => p.allianceRole === 'Butler')?.username || 'Unassigned';
+                return { tag: allianceTag, totalPower, leader, warlord, recruiter, muse, butler };
+            });
+
+            // For now, we assume the order is fixed as THOR, fAfO, HeRA.
+            // Later, this could be sorted by totalPower.
+            const [gold, silver, bronze] = podiumData;
+
+            document.getElementById('gold-podium').innerHTML = generatePodiumHTML(gold, '1st', 'gold');
+            document.getElementById('silver-podium').innerHTML = generatePodiumHTML(silver, '2nd', 'silver');
+            document.getElementById('bronze-podium').innerHTML = generatePodiumHTML(bronze, '3rd', 'bronze');
+        }
+
+        function generatePodiumHTML(data, rank, type) {
+            if (!data) return '<p>Loading...</p>';
+            const rankClasses = {
+                gold: { sup: 'text-3xl font-bold text-yellow-400', main: 'text-6xl font-black text-yellow-300', text: 'text-yellow-200', border: 'border-yellow-500/50'},
+                silver: { sup: 'text-2xl font-bold text-gray-400', main: 'text-5xl font-black text-gray-300', text: 'text-gray-300', border: 'border-gray-600'},
+                bronze: { sup: 'text-2xl font-bold text-yellow-800', main: 'text-5xl font-black text-yellow-700', text: 'text-yellow-200/70', border: 'border-yellow-800/50'}
+            };
+            const cls = rankClasses[type];
+
+            return `
+                <div class="mb-4"><span class="${cls.main}">${rank.charAt(0)}</span><sup class="${cls.sup}">${rank.slice(1)}</sup></div>
+                <h3 class="text-3xl font-extrabold text-white">[${data.tag}]</h3>
+                <div class="text-base ${cls.text} mt-2 space-y-1">
+                    <p><i class="fas fa-crown mr-2"></i>Leader: ${data.leader}</p>
+                    <p><i class="fas fa-fist-raised mr-2"></i>Power: ${(data.totalPower / 1_000_000_000).toFixed(1)}B</p>
+                </div>
+                <div class="border-t ${cls.border} my-4"></div>
+                <div class="text-left text-sm space-y-2">
+                    <p><strong class="${cls.text}">Warlord:</strong> ${data.warlord}</p>
+                    <p><strong class="${cls.text}">Recruiter:</strong> ${data.recruiter}</p>
+                    <p><strong class="${cls.text}">Muse:</strong> ${data.muse}</p>
+                    <p><strong class="${cls.text}">Butler:</strong> ${data.butler}</p>
+                </div>
+            `;
+        }
+
 
         // --- CUSTOM SELECT LOGIC ---
         function setupCustomSelect(container) {
@@ -1193,84 +1221,6 @@
              if (!activeSet) { const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]'); if (eventsLink) eventsLink.classList.add('active'); }
         }
 
-        // --- ARMS RACE TICKER LOGIC ---
-        const armsRaceEvents = ['Hero', 'City', 'Unit', 'Tech', 'Drone'];
-        const eventDuration = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
-        const cycleDuration = armsRaceEvents.length * eventDuration;
-        const armsRaceTickerContainer = document.getElementById('arms-race-ticker-container');
-        let tickerInterval;
-
-        function getMostRecentMondayKST() {
-            const now = new Date();
-            const nowKST = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
-            const dayOfWeek = nowKST.getDay(); // Sunday = 0, Monday = 1
-            const daysSinceMonday = (dayOfWeek + 6) % 7;
-            const mondayKST = new Date(nowKST);
-            mondayKST.setDate(nowKST.getDate() - daysSinceMonday);
-            mondayKST.setHours(0, 0, 0, 0);
-            // Convert this KST Monday back to a UTC timestamp for accurate calculations
-            return new Date(mondayKST.toLocaleString('en-US', { timeZone: 'UTC' })).getTime() + (9 * 60 * 60 * 1000);
-        }
-
-        function formatTime(ms) {
-            if (ms < 0) ms = 0;
-            const totalSeconds = Math.floor(ms / 1000);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
-
-        function updateArmsRaceTicker() {
-            const now = new Date().getTime();
-            const cycleStart = getMostRecentMondayKST();
-            const timeIntoCycle = now - cycleStart;
-            
-            const currentEventIndex = Math.floor(timeIntoCycle / eventDuration) % armsRaceEvents.length;
-            
-            armsRaceTickerContainer.innerHTML = '';
-
-            for (let i = -1; i <= 3; i++) {
-                const eventIndex = (currentEventIndex + i + armsRaceEvents.length) % armsRaceEvents.length;
-                const eventName = armsRaceEvents[eventIndex];
-                
-                const eventSlot = Math.floor(timeIntoCycle / eventDuration) + i;
-                const eventStart = cycleStart + (eventSlot * eventDuration);
-                const eventEnd = eventStart + eventDuration;
-
-                const isCurrent = (now >= eventStart && now < eventEnd);
-                const isPast = now >= eventEnd;
-
-                let countdownText = '';
-                if(isCurrent) {
-                    countdownText = `Ends in: ${formatTime(eventEnd - now)}`;
-                } else if (!isPast) {
-                    countdownText = `Starts in: ${formatTime(eventStart - now)}`;
-                } else {
-                    countdownText = 'Ended';
-                }
-
-                const card = document.createElement('div');
-                card.className = `event-thumbnail flex-shrink-0 w-32 h-40 rounded-lg p-2 flex flex-col justify-between text-center border-2 ${isCurrent ? 'current' : 'border-transparent'} ${isPast ? 'opacity-50' : ''}`;
-                card.innerHTML = `
-                    <img src="https://placehold.co/128x80/0D1117/FFFFFF?text=${eventName}" class="rounded-md w-full h-20 object-cover">
-                    <h4 class="font-bold text-sm mt-1">${eventName}</h4>
-                    <p class="text-xs font-mono">${countdownText}</p>
-                `;
-                armsRaceTickerContainer.appendChild(card);
-
-                if (i < 3) {
-                    const separator = document.createElement('div');
-                    separator.className = 'ticker-separator h-24 flex-shrink-0 flex flex-col items-center justify-center';
-                    const timeLabel = document.createElement('div');
-                    timeLabel.className = 'text-xs font-bold text-center transform -rotate-90 whitespace-nowrap';
-                    timeLabel.textContent = new Date(eventEnd).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    separator.appendChild(timeLabel);
-                    armsRaceTickerContainer.appendChild(separator);
-                }
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize all custom selects on the page
             document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
@@ -1327,10 +1277,6 @@
                     e.target.value = Number(value).toLocaleString('en-US');
                 });
             });
-
-            // Start the Arms Race Ticker
-            updateArmsRaceTicker();
-            tickerInterval = setInterval(updateArmsRaceTicker, 1000);
         });
     </script>
 </body>
