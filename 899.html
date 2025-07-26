@@ -866,6 +866,11 @@
                 missilePower: parsePower(document.getElementById('edit-missile-power').value),
             };
 
+            // If alliance changed, un-verify the user
+            if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
+                updatedData.isVerified = false;
+            }
+
             try {
                 await updateDoc(doc(db, "users", user.uid), updatedData);
                 usernameDisplay.textContent = updatedData.username;
