@@ -14,12 +14,12 @@
             --color-primary: #00BFFF; /* Brighter Blue */
             --color-highlight: #F87171; /* High-contrast Red */
             --color-glass-bg: rgba(22, 27, 34, 0.40); 
-            --color-dropdown-bg: rgba(22, 27, 34, 0.95);
+            --color-dropdown-bg: rgba(18, 24, 33, 0.98); /* Increased opacity */
         }
 
         @keyframes pulse-live {
-            0%, 100% { box-shadow: 0 0 5px var(--color-primary); }
-            50% { box-shadow: 0 0 10px var(--color-primary); }
+            0%, 100% { box-shadow: 0 0 8px var(--color-primary); }
+            50% { box-shadow: 0 0 16px var(--color-primary); }
         }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -108,20 +108,6 @@
 
         .section-container { padding: 1.25rem; }
         
-        .styled-table { width: 100%; border-collapse: collapse; }
-        .styled-table th, .styled-table td { padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }
-        .styled-table thead { border-bottom: 2px solid var(--color-primary); }
-        .styled-table th { font-size: 0.875rem; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.05em; }
-        .styled-table tbody tr { border-bottom: 1px solid rgba(255, 255, 255, 0.1); transition: background-color 0.2s ease; }
-        .styled-table tbody tr:last-child { border-bottom: none; }
-        .styled-table tbody tr:hover { background-color: rgba(0, 191, 255, 0.05); }
-        .styled-table .tag { font-weight: 800; color: #fff; }
-        .action-button {
-            background: rgba(255,255,255,0.1); border-radius: 0.375rem;
-            padding: 0.5rem; transition: all 0.2s ease;
-        }
-        .action-button:hover { background: var(--color-primary); color: #0D1117; }
-        
         /* --- Modal Styles --- */
         .modal-backdrop {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -158,6 +144,7 @@
         }
         
         .input-group {
+            position: relative; /* Added for dropdown positioning */
             display: flex;
             align-items: center;
             background-color: rgba(13, 17, 23, 0.8);
@@ -246,23 +233,49 @@
         }
 
         /* Custom Select Dropdown */
-        .custom-select-container { position: relative; }
+        .custom-select-container { position: relative; flex-grow: 1; }
         .custom-select-value { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; }
         .custom-select-options { 
-            display: none; 
+            display: block;
             position: absolute; 
-            top: 100%; 
-            left: 0; 
+            left: 0;
             right: 0; 
-            margin-top: 0.25rem; 
-            max-height: 200px; 
+            max-height: 180px; /* Approx 4.5 items */
             overflow-y: auto; 
             z-index: 120;
+            opacity: 0;
+            visibility: hidden;
+            transform: scaleY(0.95);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s;
+            background-color: var(--color-dropdown-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
         }
-        .custom-select-option { display: block; padding: 0.75rem 1rem; cursor: pointer; }
+        .input-group .custom-select-options { left: -45px; } /* Align with parent input group */
+        .custom-select-options.open-down {
+            top: calc(100% + 8px);
+            transform-origin: top;
+        }
+        .custom-select-options.open-up {
+            bottom: calc(100% + 8px);
+            transform-origin: bottom;
+        }
+        .custom-select-container.open .custom-select-options {
+            opacity: 1;
+            visibility: visible;
+            transform: scaleY(1);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0s;
+        }
+        .custom-select-option { display: block; padding: 0.75rem 1rem; cursor: pointer; border-radius: 0.375rem; }
         .custom-select-option:hover { background-color: rgba(0, 191, 255, 0.1); }
         .custom-select-search { background-color: rgba(13, 17, 23, 1); border: none; border-bottom: 1px solid rgba(255,255,255,0.2); padding: 0.75rem; width: 100%; color: #c9d1d9; }
         .custom-select-search:focus { outline: none; border-color: var(--color-primary); }
+        /* Custom Scrollbar */
+        .custom-select-options::-webkit-scrollbar { width: 8px; }
+        .custom-select-options::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .custom-select-options::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
+        .custom-select-options::-webkit-scrollbar-thumb:hover { background: #00a9e0; }
 
         /* Mobile Nav */
         #mobile-nav-menu {
@@ -289,6 +302,63 @@
         .mobile-nav-link:hover {
             background-color: rgba(0, 191, 255, 0.1);
             color: #fff;
+        }
+
+        /* Player Gamecard Styles */
+        .player-card {
+            --card-border-color: #c0c0c0; /* Silver as default (R1) */
+            --card-accent-color: #c0c0c0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .player-card[data-rank="R5"] { /* Diamond */
+            --card-border-color: #b9f2ff;
+            --card-accent-color: #b9f2ff;
+        }
+        .player-card[data-rank="R4"] { /* Platinum */
+            --card-border-color: #e5e4e2;
+            --card-accent-color: #e5e4e2;
+        }
+        .player-card[data-rank="R3"] { /* Gold */
+            --card-border-color: #ffd700;
+            --card-accent-color: #ffd700;
+        }
+        .player-card[data-rank="R2"] { /* Bronze */
+            --card-border-color: #cd7f32;
+            --card-accent-color: #cd7f32;
+        }
+         .player-card[data-rank="R1"] { /* Silver */
+            --card-border-color: #c0c0c0;
+            --card-accent-color: #c0c0c0;
+        }
+        .themed-line-break {
+            height: 2px;
+            width: 100px;
+            background: var(--color-primary);
+            box-shadow: 0 0 10px var(--color-primary);
+        }
+        
+        /* Arms Race Ticker */
+        .arms-race-ticker {
+            background: rgba(13, 17, 23, 0.8);
+        }
+        .event-thumbnail {
+            transition: transform 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .event-thumbnail:hover {
+            transform: scale(1.05);
+        }
+        .event-thumbnail.current {
+            animation: pulse-live 2s infinite;
+            border-color: var(--color-primary);
+        }
+        .ticker-separator {
+            width: 2px;
+            background-image: linear-gradient(to bottom, transparent, var(--color-primary), transparent);
         }
     </style>
 </head>
@@ -348,20 +418,20 @@
                         </div></div>
                         <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
                              <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                                <div class="custom-select-container w-full" data-type="alliance">
+                                <div class="custom-select-container" data-type="alliance">
                                     <input type="hidden" id="register-alliance" name="alliance" required>
                                     <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options dropdown-pane glass-pane">
+                                    <div class="custom-select-options">
                                         <input type="text" class="custom-select-search" placeholder="Search alliances...">
                                         <div class="options-list"></div>
                                     </div>
                                 </div>
                              </div>
                             <div class="input-group"><i class="fas fa-star input-icon"></i>
-                                <div class="custom-select-container w-full" data-type="rank">
+                                <div class="custom-select-container" data-type="rank">
                                     <input type="hidden" id="register-alliance-rank" name="alliance-rank" required>
                                     <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options dropdown-pane glass-pane">
+                                    <div class="custom-select-options">
                                         <div class="options-list"></div>
                                     </div>
                                 </div>
@@ -467,34 +537,41 @@
                 <!-- Players Page -->
                 <div id="page-players" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
-                        <h2 class="text-3xl font-bold text-white text-center mb-4">Registered Players</h2>
-                        <div class="mb-6">
-                            <input type="text" id="player-search" placeholder="Search for a player..." class="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        <div class="text-center mb-8">
+                            <h2 class="text-3xl font-bold text-white tracking-wider" style="text-shadow: 0 0 10px var(--color-primary);">PLAYERS OF 899</h2>
+                            <div class="themed-line-break mx-auto mt-2"></div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="styled-table">
-                                <thead>
-                                    <tr>
-                                        <th class="w-12"></th>
-                                        <th>Alliance</th>
-                                        <th>Name</th>
-                                        <th>Alliance Rank</th>
-                                        <th>Total Power</th>
-                                        <th>Tanks</th>
-                                        <th>Air</th>
-                                        <th>Missiles</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="player-list-body">
-                                     <tr><td colspan="9" class="text-center py-8 text-gray-400">Loading player data...</td></tr>
-                                </tbody>
-                            </table>
+
+                        <div class="flex flex-col md:flex-row gap-4 mb-6">
+                            <div class="input-group flex-grow">
+                                <i class="fas fa-search input-icon"></i>
+                                <input type="text" id="player-search-input" placeholder="Search by player name..." class="form-input">
+                            </div>
+                            <div class="input-group md:max-w-xs">
+                                <i class="fas fa-shield-alt input-icon"></i>
+                                <div class="custom-select-container" data-type="alliance-filter">
+                                    <input type="hidden" id="alliance-filter" name="alliance-filter">
+                                    <button type="button" class="custom-select-value form-input"><span>All Alliances</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options">
+                                        <div class="options-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="player-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                             <!-- Player cards will be inserted here -->
                         </div>
                     </div>
                 </div>
-                <!-- Other Pages... -->
+                <!-- Events Page -->
                 <div id="page-events" class="page-content">
+                    <section class="arms-race-ticker glass-pane p-4 mb-6 relative">
+                         <button id="r5-admin-btn" class="hidden absolute top-4 right-4 secondary-btn !px-3 !py-1.5 text-xs"><i class="fas fa-plus-circle mr-2"></i>Add Event / Mark VS</button>
+                         <div id="arms-race-ticker-container" class="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto">
+                            <!-- Ticker items will be generated here -->
+                         </div>
+                    </section>
                     <main class="space-y-8" id="events-main-container">
                          <section class="glass-pane section-container">
                              <h2 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">Welcome</h2>
@@ -502,6 +579,7 @@
                         </section>
                     </main>
                 </div>
+                <!-- Other Pages -->
                 <div id="page-top-alliances" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Top Alliances</h2></div></div>
                 <div id="page-alliance-list" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Alliance List</h2></div></div>
                 <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
@@ -538,6 +616,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         let currentUserData = null;
+        let allPlayers = []; // Cache for player data
         
         const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
         const ALLIANCE_RANKS = [
@@ -557,7 +636,7 @@
         const loginBtn = document.getElementById('login-btn');
         const userProfileContainer = document.getElementById('user-profile-container');
         const usernameDisplay = document.getElementById('username-display');
-        const playerListBody = document.getElementById('player-list-body');
+        const playerListContainer = document.getElementById('player-list-container');
         const playerCardBtn = document.getElementById('player-card-btn');
         const playerCardDropdown = document.getElementById('player-card-dropdown');
         const playerCardInfo = document.getElementById('player-card-info');
@@ -565,6 +644,9 @@
         const logoutBtn = document.getElementById('logout-btn');
         const mobileNavMenu = document.getElementById('mobile-nav-menu');
         const mobileNavLinksContainer = document.getElementById('mobile-nav-links');
+        const playerSearchInput = document.getElementById('player-search-input');
+        const allianceFilterInput = document.getElementById('alliance-filter');
+        const r5AdminBtn = document.getElementById('r5-admin-btn');
 
         // --- MODAL & FORM SWITCHING LOGIC ---
         function showAuthModal(formToShow) {
@@ -613,6 +695,11 @@
                     currentUserData = userDoc.data();
                     usernameDisplay.textContent = currentUserData.username;
                     updatePlayerCard(currentUserData);
+                    if (currentUserData.allianceRank === 'R5') {
+                        r5AdminBtn.classList.remove('hidden');
+                    } else {
+                        r5AdminBtn.classList.add('hidden');
+                    }
                 }
                 loginBtn.classList.add('hidden');
                 userProfileContainer.classList.remove('hidden');
@@ -622,6 +709,7 @@
                 loginBtn.classList.remove('hidden');
                 userProfileContainer.classList.add('hidden');
                 userProfileContainer.classList.remove('open');
+                r5AdminBtn.classList.add('hidden');
             }
             buildMobileNav();
         });
@@ -757,18 +845,40 @@
         }
         function validateStep(stepIndex) {
             registerError.textContent = '';
-            const inputs = formSlides[stepIndex].querySelectorAll('input[type="hidden"], input[type="text"], input[type="email"], input[type="password"]');
-            for (const input of inputs) {
-                if (!input.checkValidity() || !input.value) { 
-                    registerError.textContent = 'Please fill out all fields correctly.'; 
-                    return false; 
+            const slide = formSlides[stepIndex];
+            if (stepIndex === 0) { // Account Info
+                const username = slide.querySelector('#register-username').value;
+                const email = slide.querySelector('#register-email').value;
+                const password = slide.querySelector('#register-password').value;
+                const passwordVerify = slide.querySelector('#register-password-verify').value;
+
+                if (!username || !email || !password || !passwordVerify) {
+                    registerError.textContent = 'Please fill out all account fields.';
+                    return false;
                 }
-            }
-            if (stepIndex === 0) {
-                const password = document.getElementById('register-password').value;
-                const passwordVerify = document.getElementById('register-password-verify').value;
-                if (password.length < 6) { registerError.textContent = 'Password must be at least 6 characters long.'; return false; }
-                if (password !== passwordVerify) { registerError.textContent = 'Passwords do not match.'; return false; }
+                if (password.length < 6) {
+                    registerError.textContent = 'Password must be at least 6 characters long.';
+                    return false;
+                }
+                if (password !== passwordVerify) {
+                    registerError.textContent = 'Passwords do not match.';
+                    return false;
+                }
+            } else if (stepIndex === 1) { // Alliance Info
+                const alliance = slide.querySelector('#register-alliance').value;
+                const rank = slide.querySelector('#register-alliance-rank').value;
+                if (!alliance || !rank) {
+                    registerError.textContent = 'Please select your alliance and rank.';
+                    return false;
+                }
+            } else if (stepIndex === 2) { // Power Stats
+                const powerInputs = slide.querySelectorAll('.power-input');
+                for(const input of powerInputs) {
+                    if (!input.value) {
+                         registerError.textContent = 'Please enter all power statistics.';
+                         return false;
+                    }
+                }
             }
             return true;
         }
@@ -816,34 +926,70 @@
         
         // --- FIRESTORE REAL-TIME PLAYER LIST ---
         onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
-            const players = [];
-            querySnapshot.forEach((doc) => { players.push(doc.data()); });
-            renderPlayers(players);
+            allPlayers = [];
+            querySnapshot.forEach((doc) => { allPlayers.push(doc.data()); });
+            applyPlayerFilters();
         });
+
+        function applyPlayerFilters() {
+            const searchTerm = playerSearchInput.value.toLowerCase();
+            const allianceFilter = allianceFilterInput.value;
+
+            const filteredPlayers = allPlayers.filter(player => {
+                const nameMatch = player.username.toLowerCase().includes(searchTerm);
+                const allianceMatch = !allianceFilter || player.alliance === allianceFilter;
+                return nameMatch && allianceMatch;
+            });
+            renderPlayers(filteredPlayers);
+        }
+
+        playerSearchInput.addEventListener('input', applyPlayerFilters);
+        allianceFilterInput.addEventListener('change', applyPlayerFilters);
+
+
         function renderPlayers(players) {
-            playerListBody.innerHTML = '';
+            playerListContainer.innerHTML = '';
             if (players.length === 0) {
-                playerListBody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-400">No registered players found. Be the first!</td></tr>`;
+                playerListContainer.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No players match the current filters.</p>`;
                 return;
             }
             players.forEach(player => {
-                const playerRow = document.createElement('tr');
-                playerRow.innerHTML = `
-                    <td><img src="https://placehold.co/40x40/0D1117/00BFFF?text=${player.username.charAt(0).toUpperCase()}" class="rounded-full" alt="${player.username}"></td>
-                    <td class="tag">[${player.alliance}]</td>
-                    <td>${player.username}</td>
-                    <td>${player.allianceRank}</td>
-                    <td>${player.power.toLocaleString('en-US')}</td>
-                    <td>${player.tankPower.toLocaleString('en-US')}</td>
-                    <td>${player.airPower.toLocaleString('en-US')}</td>
-                    <td>${player.missilePower.toLocaleString('en-US')}</td>
-                    <td class="flex space-x-2">
-                        <button class="action-button" title="Message Player"><i class="fas fa-comment-dots"></i></button>
-                        <button class="action-button" title="Add Friend"><i class="fas fa-user-plus"></i></button>
-                        <button class="action-button" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
-                    </td>
+                const card = document.createElement('div');
+                card.className = 'player-card glass-pane p-4 flex flex-col';
+                card.dataset.rank = player.allianceRank;
+                card.innerHTML = `
+                    <div class="flex items-center pb-3 border-b" style="border-color: var(--card-border-color);">
+                        <img src="https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}" class="rounded-full mr-4 border-2" style="border-color: var(--card-border-color);" alt="${player.username}">
+                        <div>
+                            <h3 class="font-bold text-lg text-white">${player.username}</h3>
+                            <p class="text-sm font-semibold" style="color: var(--card-accent-color);">[${player.alliance}] - ${player.allianceRank}</p>
+                        </div>
+                    </div>
+                    <div class="flex-grow my-4 space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400 flex items-center"><i class="fas fa-fist-raised w-6 text-center mr-2" style="color: var(--card-accent-color);"></i>Total Power</span>
+                            <span class="font-bold text-white">${player.power.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400 flex items-center"><i class="fas fa-truck-monster w-6 text-center mr-2" style="color: var(--card-accent-color);"></i>Tank Power</span>
+                            <span class="font-bold text-white">${player.tankPower.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400 flex items-center"><i class="fas fa-fighter-jet w-6 text-center mr-2" style="color: var(--card-accent-color);"></i>Air Power</span>
+                            <span class="font-bold text-white">${player.airPower.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400 flex items-center"><i class="fas fa-rocket w-6 text-center mr-2" style="color: var(--card-accent-color);"></i>Missile Power</span>
+                            <span class="font-bold text-white">${player.missilePower.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-around items-center pt-3 border-t border-white/10">
+                        <button class="action-button !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
+                        <button class="action-button !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                        <button class="action-button !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
+                    </div>
                 `;
-                playerListBody.appendChild(playerRow);
+                playerListContainer.appendChild(card);
             });
         }
 
@@ -856,9 +1002,14 @@
             const optionsContainer = container.querySelector('.custom-select-options');
             const searchInput = container.querySelector('.custom-select-search');
             const optionsList = container.querySelector('.options-list');
-            const sourceData = type === 'alliance' ? ALLIANCES : ALLIANCE_RANKS;
+            
+            let sourceData = [];
+            if (type === 'alliance') sourceData = ALLIANCES;
+            else if (type === 'rank') sourceData = ALLIANCE_RANKS;
+            else if (type === 'alliance-filter') sourceData = [{value: '', text: 'All Alliances'}, ...ALLIANCES.map(a => ({value: a, text: a}))];
 
-            if (searchInput && type === 'rank') {
+
+            if (searchInput && (type === 'rank' || type === 'alliance-filter')) {
                 searchInput.style.display = 'none';
             }
 
@@ -880,15 +1031,25 @@
 
             valueButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const isVisible = optionsContainer.style.display === 'block';
-                document.querySelectorAll('.custom-select-options').forEach(o => o.style.display = 'none');
-                optionsContainer.style.display = isVisible ? 'none' : 'block';
-                if (!isVisible) {
+                const isOpen = container.classList.contains('open');
+                document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
+                if (!isOpen) {
+                    const rect = container.getBoundingClientRect();
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    optionsContainer.classList.remove('open-up', 'open-down');
+                    if (spaceBelow < 220 && rect.top > 220) { 
+                        optionsContainer.classList.add('open-up');
+                    } else {
+                        optionsContainer.classList.add('open-down');
+                    }
+                    container.classList.add('open');
                     if (searchInput) {
                         searchInput.value = '';
                         searchInput.focus();
                     }
                     renderOptions();
+                } else {
+                    container.classList.remove('open');
                 }
             });
 
@@ -902,17 +1063,16 @@
                     const text = e.target.textContent;
                     hiddenInput.value = value;
                     valueSpan.textContent = text;
-                    optionsContainer.style.display = 'none';
+                    container.classList.remove('open');
                     hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             });
             
-            renderOptions();
+            if (!searchInput) {
+                renderOptions();
+            }
         }
         
-        document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
-
-
         // --- MOBILE NAV LOGIC ---
         function buildMobileNav() {
             mobileNavLinksContainer.innerHTML = '';
@@ -1033,7 +1193,88 @@
              if (!activeSet) { const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]'); if (eventsLink) eventsLink.classList.add('active'); }
         }
 
+        // --- ARMS RACE TICKER LOGIC ---
+        const armsRaceEvents = ['Hero', 'City', 'Unit', 'Tech', 'Drone'];
+        const eventDuration = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+        const cycleDuration = armsRaceEvents.length * eventDuration;
+        const armsRaceTickerContainer = document.getElementById('arms-race-ticker-container');
+        let tickerInterval;
+
+        function getMostRecentMondayKST() {
+            const now = new Date();
+            const nowKST = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+            const dayOfWeek = nowKST.getDay(); // Sunday = 0, Monday = 1
+            const daysSinceMonday = (dayOfWeek + 6) % 7;
+            const mondayKST = new Date(nowKST);
+            mondayKST.setDate(nowKST.getDate() - daysSinceMonday);
+            mondayKST.setHours(0, 0, 0, 0);
+            // Convert this KST Monday back to a UTC timestamp for accurate calculations
+            return new Date(mondayKST.toLocaleString('en-US', { timeZone: 'UTC' })).getTime() + (9 * 60 * 60 * 1000);
+        }
+
+        function formatTime(ms) {
+            if (ms < 0) ms = 0;
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function updateArmsRaceTicker() {
+            const now = new Date().getTime();
+            const cycleStart = getMostRecentMondayKST();
+            const timeIntoCycle = now - cycleStart;
+            
+            const currentEventIndex = Math.floor(timeIntoCycle / eventDuration) % armsRaceEvents.length;
+            
+            armsRaceTickerContainer.innerHTML = '';
+
+            for (let i = -1; i <= 3; i++) {
+                const eventIndex = (currentEventIndex + i + armsRaceEvents.length) % armsRaceEvents.length;
+                const eventName = armsRaceEvents[eventIndex];
+                
+                const eventSlot = Math.floor(timeIntoCycle / eventDuration) + i;
+                const eventStart = cycleStart + (eventSlot * eventDuration);
+                const eventEnd = eventStart + eventDuration;
+
+                const isCurrent = (now >= eventStart && now < eventEnd);
+                const isPast = now >= eventEnd;
+
+                let countdownText = '';
+                if(isCurrent) {
+                    countdownText = `Ends in: ${formatTime(eventEnd - now)}`;
+                } else if (!isPast) {
+                    countdownText = `Starts in: ${formatTime(eventStart - now)}`;
+                } else {
+                    countdownText = 'Ended';
+                }
+
+                const card = document.createElement('div');
+                card.className = `event-thumbnail flex-shrink-0 w-32 h-40 rounded-lg p-2 flex flex-col justify-between text-center border-2 ${isCurrent ? 'current' : 'border-transparent'} ${isPast ? 'opacity-50' : ''}`;
+                card.innerHTML = `
+                    <img src="https://placehold.co/128x80/0D1117/FFFFFF?text=${eventName}" class="rounded-md w-full h-20 object-cover">
+                    <h4 class="font-bold text-sm mt-1">${eventName}</h4>
+                    <p class="text-xs font-mono">${countdownText}</p>
+                `;
+                armsRaceTickerContainer.appendChild(card);
+
+                if (i < 3) {
+                    const separator = document.createElement('div');
+                    separator.className = 'ticker-separator h-24 flex-shrink-0 flex flex-col items-center justify-center';
+                    const timeLabel = document.createElement('div');
+                    timeLabel.className = 'text-xs font-bold text-center transform -rotate-90 whitespace-nowrap';
+                    timeLabel.textContent = new Date(eventEnd).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    separator.appendChild(timeLabel);
+                    armsRaceTickerContainer.appendChild(separator);
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize all custom selects on the page
+            document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
+
             const navItems = document.querySelectorAll('.nav-item');
             
             navItems.forEach(item => {
@@ -1065,7 +1306,7 @@
                     userProfileContainer.classList.remove('open');
                 }
                 if (!e.target.closest('.custom-select-container')) {
-                    document.querySelectorAll('.custom-select-options').forEach(o => o.style.display = 'none');
+                    document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
                 }
             });
 
@@ -1086,6 +1327,10 @@
                     e.target.value = Number(value).toLocaleString('en-US');
                 });
             });
+
+            // Start the Arms Race Ticker
+            updateArmsRaceTicker();
+            tickerInterval = setInterval(updateArmsRaceTicker, 1000);
         });
     </script>
 </body>
