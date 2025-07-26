@@ -601,12 +601,6 @@
                 </div>
                 <!-- Events Page -->
                 <div id="page-events" class="page-content">
-                    <section class="arms-race-ticker glass-pane p-4 mb-6 relative">
-                         <button id="r5-admin-btn" class="hidden absolute top-4 right-4 secondary-btn !px-3 !py-1.5 text-xs"><i class="fas fa-plus-circle mr-2"></i>Add Event / Mark VS</button>
-                         <div id="arms-race-ticker-container" class="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto">
-                            <!-- Ticker items will be generated here -->
-                         </div>
-                    </section>
                     <main class="space-y-8" id="events-main-container">
                          <section class="glass-pane section-container">
                              <h2 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">Welcome</h2>
@@ -714,7 +708,6 @@
         const mobileNavLinksContainer = document.getElementById('mobile-nav-links');
         const playerSearchInput = document.getElementById('player-search-input');
         const allianceFilterInput = document.getElementById('alliance-filter');
-        const r5AdminBtn = document.getElementById('r5-admin-btn');
         let activePlayerSettingsUID = null;
 
         // --- MODAL & FORM SWITCHING LOGIC ---
@@ -776,11 +769,6 @@
                     currentUserData = userDoc.data();
                     usernameDisplay.textContent = currentUserData.username;
                     updatePlayerCard(currentUserData);
-                    if (currentUserData.allianceRank === 'R5' || currentUserData.email === 'mikestancato@gmail.com') {
-                        r5AdminBtn.classList.remove('hidden');
-                    } else {
-                        r5AdminBtn.classList.add('hidden');
-                    }
                 }
                 loginBtn.classList.add('hidden');
                 userProfileContainer.classList.remove('hidden');
@@ -790,7 +778,6 @@
                 loginBtn.classList.remove('hidden');
                 userProfileContainer.classList.add('hidden');
                 userProfileContainer.classList.remove('open');
-                r5AdminBtn.classList.add('hidden');
             }
             buildMobileNav();
             applyPlayerFilters(); // Re-render cards with correct permissions
@@ -1043,13 +1030,13 @@
                 card.dataset.rank = player.allianceRank;
 
                 let gearIconHTML = '';
-                if (currentUserData) {
+                if (currentUserData && currentUserData.uid !== player.uid) { // Don't show gear on self
                     const isAdmin = currentUserData.email === 'mikestancato@gmail.com';
                     const isR5 = currentUserData.allianceRank === 'R5';
                     const isR4 = currentUserData.allianceRank === 'R4';
                     
                     let showGear = false;
-                    if (isAdmin && player.allianceRank === 'R5') showGear = true;
+                    if (isAdmin) showGear = true;
                     if (isR5 && player.alliance === currentUserData.alliance && ['R1','R2','R3','R4'].includes(player.allianceRank)) showGear = true;
                     if (isR4 && player.alliance === currentUserData.alliance && ['R1','R2','R3'].includes(player.allianceRank)) showGear = true;
                     
