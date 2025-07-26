@@ -312,6 +312,47 @@
         .podium-gold { border-image: linear-gradient(to bottom, #FFD700, #FBBF24) 1; }
         .podium-silver { border-image: linear-gradient(to bottom, #C0C0C0, #D1D5DB) 1; }
         .podium-bronze { border-image: linear-gradient(to bottom, #CD7F32, #D97706) 1; }
+        
+        /* Verification Toggle */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--color-primary);
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
     </style>
 </head>
 <body>
@@ -444,6 +485,48 @@
                 </div>
                 <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
                 <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Player Settings Modal -->
+    <div id="player-settings-modal-container" class="modal-container">
+         <div class="glass-pane p-6 sm:p-8 relative overflow-hidden">
+            <button id="close-player-settings-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+            <h2 class="text-2xl font-bold text-white text-center mb-2">Player Settings</h2>
+            <p id="player-settings-username" class="text-center text-gray-400 mb-6"></p>
+            <form id="player-settings-form">
+                 <div class="space-y-4">
+                    <div class="input-group"><i class="fas fa-star input-icon"></i>
+                         <div class="custom-select-container w-full" data-type="rank">
+                            <input type="hidden" id="setting-alliance-rank" name="alliance-rank" required>
+                            <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                            <div class="custom-select-options">
+                                <div class="options-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group"><i class="fas fa-user-tag input-icon"></i>
+                         <div class="custom-select-container w-full" data-type="role">
+                            <input type="hidden" id="setting-alliance-role" name="alliance-role">
+                            <button type="button" class="custom-select-value form-input"><span>Select Alliance Role</span><i class="fas fa-chevron-down text-xs"></i></button>
+                            <div class="custom-select-options">
+                                <div class="options-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
+                        <label for="setting-verified" class="font-semibold text-white">Verified Status</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="setting-verified">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <p id="player-settings-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Settings</button>
             </form>
         </div>
     </div>
@@ -603,11 +686,19 @@
             { value: 'R2', text: 'R2'},
             { value: 'R1', text: 'R1 (Member)'},
         ];
+        const ALLIANCE_ROLES = [
+            { value: '', text: 'None'},
+            { value: 'Warlord', text: 'Warlord'},
+            { value: 'Recruiter', text: 'Recruiter'},
+            { value: 'Muse', text: 'Muse'},
+            { value: 'Butler', text: 'Butler'},
+        ];
 
         // --- DOM ELEMENTS ---
         const authModalBackdrop = document.getElementById('auth-modal-backdrop');
         const authModalContainer = document.getElementById('auth-modal-container');
         const editProfileModalContainer = document.getElementById('edit-profile-modal-container');
+        const playerSettingsModalContainer = document.getElementById('player-settings-modal-container');
         const loginFormContainer = document.getElementById('login-form-container');
         const registerFormContainer = document.getElementById('register-form-container');
         const loginBtn = document.getElementById('login-btn');
@@ -624,10 +715,11 @@
         const playerSearchInput = document.getElementById('player-search-input');
         const allianceFilterInput = document.getElementById('alliance-filter');
         const r5AdminBtn = document.getElementById('r5-admin-btn');
+        let activePlayerSettingsUID = null;
 
         // --- MODAL & FORM SWITCHING LOGIC ---
         function showAuthModal(formToShow) {
-            editProfileModalContainer.classList.remove('visible');
+            hideAllModals();
             authModalBackdrop.classList.add('visible');
             authModalContainer.classList.add('visible');
             document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
@@ -640,20 +732,32 @@
         }
         
         function showEditProfileModal() {
+            hideAllModals();
             authModalBackdrop.classList.add('visible');
             editProfileModalContainer.classList.add('visible');
             populateEditForm();
+        }
+
+        function showPlayerSettingsModal(player) {
+            activePlayerSettingsUID = player.uid;
+            hideAllModals();
+            authModalBackdrop.classList.add('visible');
+            playerSettingsModalContainer.classList.add('visible');
+            populatePlayerSettingsForm(player);
         }
 
         function hideAllModals() {
             authModalBackdrop.classList.remove('visible');
             authModalContainer.classList.remove('visible');
             editProfileModalContainer.classList.remove('visible');
+            playerSettingsModalContainer.classList.remove('visible');
+            activePlayerSettingsUID = null;
         }
         
         loginBtn.addEventListener('click', () => showAuthModal('login'));
         document.getElementById('close-auth-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-edit-modal-btn').addEventListener('click', hideAllModals);
+        document.getElementById('close-player-settings-modal-btn').addEventListener('click', hideAllModals);
         authModalBackdrop.addEventListener('click', (e) => {
             if (e.target === authModalBackdrop) {
                 hideAllModals();
@@ -672,7 +776,7 @@
                     currentUserData = userDoc.data();
                     usernameDisplay.textContent = currentUserData.username;
                     updatePlayerCard(currentUserData);
-                    if (currentUserData.allianceRank === 'R5') {
+                    if (currentUserData.allianceRank === 'R5' || currentUserData.email === 'mikestancato@gmail.com') {
                         r5AdminBtn.classList.remove('hidden');
                     } else {
                         r5AdminBtn.classList.add('hidden');
@@ -689,6 +793,7 @@
                 r5AdminBtn.classList.add('hidden');
             }
             buildMobileNav();
+            applyPlayerFilters(); // Re-render cards with correct permissions
         });
         
         document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -738,7 +843,6 @@
             if (!currentUserData) return;
             document.getElementById('edit-username').value = currentUserData.username;
             
-            // For custom selects in edit form
             const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
             const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
             
@@ -883,6 +987,8 @@
                 const userProfile = {
                     uid: user.uid, username, email, alliance, allianceRank, power, tankPower, airPower, missilePower,
                     likes: 0,
+                    allianceRole: '',
+                    isVerified: false,
                     registrationTimestampKST: registrationTimestamp.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }),
                     registrationTimestampUTC: registrationTimestamp.toISOString(),
                     browserLanguage: navigator.language || navigator.userLanguage
@@ -933,9 +1039,27 @@
             }
             players.forEach(player => {
                 const card = document.createElement('div');
-                card.className = 'player-card glass-pane p-4 flex flex-col';
+                card.className = 'player-card glass-pane p-4 flex flex-col relative';
                 card.dataset.rank = player.allianceRank;
+
+                let gearIconHTML = '';
+                if (currentUserData) {
+                    const isAdmin = currentUserData.email === 'mikestancato@gmail.com';
+                    const isR5 = currentUserData.allianceRank === 'R5';
+                    const isR4 = currentUserData.allianceRank === 'R4';
+                    
+                    let showGear = false;
+                    if (isAdmin && player.allianceRank === 'R5') showGear = true;
+                    if (isR5 && player.alliance === currentUserData.alliance && ['R1','R2','R3','R4'].includes(player.allianceRank)) showGear = true;
+                    if (isR4 && player.alliance === currentUserData.alliance && ['R1','R2','R3'].includes(player.allianceRank)) showGear = true;
+                    
+                    if(showGear) {
+                        gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn"><i class="fas fa-cog"></i></button>`;
+                    }
+                }
+
                 card.innerHTML = `
+                    ${gearIconHTML}
                     <div class="flex items-center pb-3 border-b" style="border-color: var(--card-border-color);">
                         <img src="https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}" class="rounded-full mr-4 border-2" style="border-color: var(--card-border-color);" alt="${player.username}">
                         <div>
@@ -967,6 +1091,10 @@
                         <button class="action-button !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
                     </div>
                 `;
+                const settingsBtn = card.querySelector('.player-settings-btn');
+                if (settingsBtn) {
+                    settingsBtn.addEventListener('click', () => showPlayerSettingsModal(player));
+                }
                 playerListContainer.appendChild(card);
             });
         }
@@ -985,8 +1113,6 @@
                 return { tag: allianceTag, totalPower, leader, warlord, recruiter, muse, butler };
             });
 
-            // For now, we assume the order is fixed as THOR, fAfO, HeRA.
-            // Later, this could be sorted by totalPower.
             const [gold, silver, bronze] = podiumData;
 
             document.getElementById('gold-podium').innerHTML = generatePodiumHTML(gold, '1st', 'gold');
@@ -1034,10 +1160,11 @@
             let sourceData = [];
             if (type === 'alliance') sourceData = ALLIANCES;
             else if (type === 'rank') sourceData = ALLIANCE_RANKS;
+            else if (type === 'role') sourceData = ALLIANCE_ROLES;
             else if (type === 'alliance-filter') sourceData = [{value: '', text: 'All Alliances'}, ...ALLIANCES.map(a => ({value: a, text: a}))];
 
 
-            if (searchInput && (type === 'rank' || type === 'alliance-filter')) {
+            if (searchInput && (type === 'rank' || type === 'alliance-filter' || type === 'role')) {
                 searchInput.style.display = 'none';
             }
 
