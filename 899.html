@@ -164,16 +164,20 @@
         .input-group:focus-within .input-icon {
             color: var(--color-primary);
         }
-        .form-input {
+        .form-input, .form-textarea {
             background-color: transparent;
             border: none;
             color: #c9d1d9;
             padding: 0.75rem;
             width: 100%;
         }
-        .form-input:focus {
+        .form-input:focus, .form-textarea:focus {
             outline: none;
             box-shadow: none;
+        }
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
         }
 
         .primary-btn {
@@ -208,7 +212,7 @@
             min-height: 20px;
         }
         
-        /* Registration Stepper */
+        /* Stepper (Registration & Post Creation) */
         .progress-bar { display: flex; justify-content: space-between; margin-bottom: 2rem; position: relative; }
         .progress-bar::before { content: ''; position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 2px; width: 100%; background-color: rgba(255,255,255,0.1); z-index: -1; }
         .progress-bar .line { position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 2px; background-color: var(--color-primary); width: 0%; transition: width 0.4s ease; z-index: 0; }
@@ -218,6 +222,23 @@
         .form-slide.active { display: block; }
         #registration-success { display: none; text-align: center; animation: success-pop 0.5s ease-out forwards; }
         #registration-success .success-icon { font-size: 4rem; color: var(--color-primary); }
+
+        .type-selection-card {
+            border: 2px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        .type-selection-card:hover {
+            border-color: var(--color-primary);
+            background-color: rgba(0, 191, 255, 0.05);
+            transform: translateY(-5px);
+        }
+        .type-selection-card i {
+            transition: all 0.3s ease;
+        }
+        .type-selection-card:hover i {
+            color: var(--color-primary);
+            transform: scale(1.1);
+        }
 
         /* Player Card Dropdown */
         #player-card-dropdown { 
@@ -242,7 +263,7 @@
             right: 0; 
             max-height: 180px; /* Approx 4.5 items */
             overflow-y: auto; 
-            z-index: 120;
+            z-index: 1050; /* Increased z-index to appear over modal content */
             opacity: 0;
             visibility: hidden;
             transform: scaleY(0.95);
@@ -252,7 +273,6 @@
             border-radius: 0.5rem;
             padding: 0.5rem;
         }
-        .input-group .custom-select-options { left: -45px; } /* Align with parent input group */
         .custom-select-options.open-down {
             top: calc(100% + 8px);
             transform-origin: top;
@@ -353,6 +373,23 @@
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+
+        /* Post/Event Card Styles */
+        .post-card {
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+        .post-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .post-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -367,7 +404,7 @@
     </div>
 
     <!-- Auth & Edit Modals -->
-    <div id="auth-modal-backdrop" class="modal-backdrop"></div>
+    <div id="modal-backdrop" class="modal-backdrop"></div>
     <div id="auth-modal-container" class="modal-container">
         <div class="glass-pane p-6 sm:p-8 relative overflow-hidden">
             <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
@@ -383,7 +420,7 @@
                         <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="login-password" placeholder="Password" class="form-input" required></div>
                     </div>
                     <p id="login-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                    <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-2">Login</button>
+                    <button type="submit" id="login-submit-btn" class="w-full p-3 rounded-lg primary-btn mt-2">Login</button>
                     <div class="text-center text-sm text-gray-400 mt-6">
                         <a href="#" id="forgot-password-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Forgot Password?</a>
                     </div>
@@ -396,20 +433,21 @@
             <div id="register-form-container" class="auth-form">
                 <div id="registration-flow">
                     <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
-                    <div class="progress-bar">
+                    <div class="progress-bar" id="register-progress-bar">
                         <div class="line"></div>
                         <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
                         <div class="progress-step" data-step="2"><i class="fas fa-shield-alt"></i></div>
                         <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
+                        <div class="progress-step" data-step="4"><i class="fas fa-camera"></i></div>
                     </div>
                     <form id="register-form">
-                        <div class="form-slide active"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
+                        <div class="form-slide active" data-slide="1"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
                             <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
                             <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
                             <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password (min. 6 characters)" class="form-input" required></div>
                             <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
                         </div></div>
-                        <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
+                        <div class="form-slide" data-slide="2"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
                              <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
                                 <div class="custom-select-container" data-type="alliance">
                                     <input type="hidden" id="register-alliance" name="alliance" required>
@@ -430,12 +468,22 @@
                                 </div>
                             </div>
                         </div></div>
-                        <div class="form-slide"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
+                        <div class="form-slide" data-slide="3"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
                             <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
                             <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
                             <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power" class="power-input form-input" required></div>
                             <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
                         </div></div>
+                        <div class="form-slide" data-slide="4">
+                            <p class="text-center text-gray-400 mb-6">Step 4: Upload an Avatar (Optional)</p>
+                            <div class="flex flex-col items-center gap-4">
+                                <img id="register-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover border-2 border-white/20">
+                                <button type="button" id="register-avatar-btn" class="w-full p-3 rounded-lg secondary-btn">
+                                    <i class="fas fa-upload mr-2"></i> Choose Image
+                                </button>
+                                <input type="file" id="register-avatar-input" class="hidden" accept="image/*">
+                            </div>
+                        </div>
                         <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
                         <div id="register-nav-container" class="flex items-center mt-6"><button type="button" id="register-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button><div class="flex-grow flex justify-center"><button type="button" id="register-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button><button type="submit" id="register-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Register</button></div></div>
                         <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
@@ -531,6 +579,105 @@
         </div>
     </div>
 
+    <!-- Create Event/Announcement Modal -->
+    <div id="create-post-modal-container" class="modal-container">
+         <div class="glass-pane p-6 sm:p-8 relative overflow-hidden">
+            <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+            <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
+            <form id="create-post-form">
+                <div id="post-creation-flow">
+                    <div class="progress-bar" id="post-progress-bar">
+                        <div class="line"></div>
+                        <div class="progress-step" data-step="1"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="progress-step" data-step="2"><i class="fas fa-tags"></i></div>
+                        <div class="progress-step" data-step="3"><i class="fas fa-pencil-alt"></i></div>
+                        <div class="progress-step" data-step="4"><i class="fas fa-clock"></i></div>
+                    </div>
+                     <!-- Slide 1: Main Type -->
+                    <div class="form-slide" data-slide="1">
+                        <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button type="button" data-type="announcement" class="post-type-btn type-selection-card p-6 rounded-lg text-center">
+                                <i class="fas fa-bullhorn fa-3x mb-3 text-gray-400"></i>
+                                <h3 class="font-bold text-lg text-white">Announcement</h3>
+                                <p class="text-sm text-gray-500">Share news with the server or your alliance.</p>
+                            </button>
+                            <button type="button" data-type="event" class="post-type-btn type-selection-card p-6 rounded-lg text-center">
+                                <i class="fas fa-calendar-alt fa-3x mb-3 text-gray-400"></i>
+                                <h3 class="font-bold text-lg text-white">Event</h3>
+                                <p class="text-sm text-gray-500">Schedule a one-time or recurring event.</p>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Slide 2: Sub-Type -->
+                    <div class="form-slide" data-slide="2">
+                        <p class="text-center text-gray-400 mb-6">What kind of <span class="font-bold" id="selected-main-type-text">post</span> is this?</p>
+                        <div class="input-group"><i class="fas fa-tags input-icon"></i>
+                             <div class="custom-select-container w-full" data-type="post-subtype">
+                                <input type="hidden" id="post-subtype" name="post-subtype" required>
+                                <button type="button" class="custom-select-value form-input"><span>Select Category</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                <div class="custom-select-options">
+                                    <div class="options-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="post-alliance-group" class="input-group hidden mt-4"><i class="fas fa-shield-alt input-icon"></i>
+                             <div class="custom-select-container w-full" data-type="alliance">
+                                <input type="hidden" id="post-alliance" name="post-alliance">
+                                <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                <div class="custom-select-options">
+                                    <input type="text" class="custom-select-search" placeholder="Search alliances...">
+                                    <div class="options-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Slide 3: Content -->
+                    <div class="form-slide" data-slide="3">
+                        <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
+                        <div class="space-y-4">
+                            <div class="input-group"><i class="fas fa-heading input-icon"></i><input type="text" id="post-title" placeholder="Title" class="form-input" required></div>
+                            <div class="input-group !items-start"><i class="fas fa-align-left input-icon pt-3"></i><textarea id="post-details" placeholder="Details..." class="form-textarea" required></textarea></div>
+                        </div>
+                    </div>
+                     <!-- Slide 4: Timing -->
+                    <div class="form-slide" data-slide="4">
+                        <p class="text-center text-gray-400 mb-6">Set the schedule for your post.</p>
+                        <div id="post-timing-group" class="space-y-4">
+                            <div class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
+                                <label for="post-repeat-weekly" class="font-semibold text-white">Repeat Weekly</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="post-repeat-weekly">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <!-- Event-specific date/time -->
+                            <div id="post-event-dates" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="input-group"><i class="fas fa-calendar-plus input-icon"></i><input type="datetime-local" id="post-start-time" class="form-input" title="Event Start Time"></div>
+                                <div class="input-group"><i class="fas fa-calendar-minus input-icon"></i><input type="datetime-local" id="post-end-time" class="form-input" title="Event End Time"></div>
+                            </div>
+                             <!-- Recurring Announcement Time -->
+                            <div id="post-recurring-announcement" class="hidden">
+                                 <p class="text-sm text-center text-gray-400">This announcement will repeat weekly at the time it is created.</p>
+                            </div>
+                            <p class="text-xs text-center text-gray-400">Times are entered in your local timezone and will be converted for all users.</p>
+                        </div>
+                    </div>
+                </div>
+                <p id="create-post-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                 <div id="post-nav-container" class="flex items-center mt-6">
+                    <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
+                    <div class="flex-grow flex justify-center">
+                        <button type="button" id="post-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button>
+                        <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
         <div class="max-w-6xl mx-auto">
@@ -554,11 +701,14 @@
                     <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
                     <div id="user-profile-container" class="hidden">
                         <button id="player-card-btn" class="auth-button">
+                             <img id="user-avatar-button" src="" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
                             <span id="username-display"></span>
                             <i class="fas fa-caret-down ml-2"></i>
                         </button>
                         <div id="player-card-dropdown" class="dropdown-pane glass-pane">
                             <div id="player-card-info" class="p-2 mb-2 border-b border-white/10"></div>
+                            <button id="upload-avatar-btn" class="dropdown-link"><i class="fas fa-camera w-6 text-center mr-2"></i>Change Avatar</button>
+                            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
                             <button id="edit-profile-btn" class="dropdown-link"><i class="fas fa-edit w-6 text-center mr-2"></i>Edit Profile</button>
                             <button id="logout-btn" class="dropdown-link"><i class="fas fa-sign-out-alt w-6 text-center mr-2"></i>Logout</button>
                         </div>
@@ -602,9 +752,31 @@
                 <!-- Events Page -->
                 <div id="page-events" class="page-content">
                     <main class="space-y-8" id="events-main-container">
-                         <section class="glass-pane section-container">
-                             <h2 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">Welcome</h2>
-                             <p class="text-gray-400">This is the official event and player hub for Server 899. Please register or log in to participate.</p>
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-3xl font-bold text-white">Events & Announcements</h2>
+                            <button id="create-post-btn" class="primary-btn px-4 py-2 rounded-lg hidden flex items-center gap-2">
+                                <i class="fas fa-plus-circle"></i> Create
+                            </button>
+                        </div>
+
+                        <!-- Announcements Section -->
+                        <section>
+                             <h3 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-highlight);">
+                                <i class="fas fa-bullhorn mr-2"></i>Announcements
+                             </h3>
+                             <div id="announcements-container" class="space-y-4">
+                                 <!-- Announcement cards will be inserted here -->
+                             </div>
+                        </section>
+
+                        <!-- Events Section -->
+                        <section>
+                             <h3 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">
+                                <i class="fas fa-calendar-alt mr-2"></i>Upcoming Events
+                             </h3>
+                             <div id="events-container" class="space-y-4">
+                                 <!-- Event cards will be inserted here -->
+                             </div>
                         </section>
                     </main>
                 </div>
@@ -653,46 +825,142 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        /*
+        * ===============================================
+        * FIREBASE SECURITY RULES V2 (Corrected Syntax)
+        * ===============================================
+        */
+        /*
+        rules_version = '2';
+
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            
+            // Helper Functions
+            function isSignedIn() {
+              return request.auth != null;
+            }
+            
+            function isOwner(userId) {
+              return request.auth.uid == userId;
+            }
+
+            function getUserData() {
+              return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+            }
+
+            function isAdmin() {
+              // Check for the existence of the isAdmin field before accessing it
+              return isSignedIn() && ('isAdmin' in getUserData()) && getUserData().isAdmin == true;
+            }
+            
+            // User profiles: Can be read by any signed-in user, but only written by the owner.
+            match /users/{userId} {
+              allow read: if isSignedIn();
+              allow create: if request.auth.uid == userId;
+              allow update, delete: if isOwner(userId);
+            }
+
+            // Posts: Anyone can read any post
+            match /posts/{postId} {
+              allow read: if true;
+              allow create: if canCreatePost(request.resource.data);
+              allow update, delete: if isOwner(resource.data.authorUid) || isAdmin();
+            }
+
+            function canCreatePost(post) {
+              let user = getUserData();
+              let isVerified = user.isVerified == true;
+              
+              let hasRequiredRank = (post.subType == 'alliance' && user.allianceRank in ['R5', 'R4']) ||
+                                    (post.subType == 'leadership' && user.allianceRank == 'R5');
+              
+              let isAllowedTypeForUser = !(post.subType == 'server' || post.subType == 'seasonal');
+
+              return (isAdmin() && isVerified) || 
+                     (isVerified && isOwner(post.authorUid) && hasRequiredRank && isAllowedTypeForUser);
+            }
+          }
+        }
+        */
+
+        /*
+        * ===============================================
+        * FIREBASE STORAGE RULES V2
+        * ===============================================
+        */
+        /*
+        rules_version = '2';
+
+        service firebase.storage {
+          match /b/{bucket}/o {
+            match /avatars/{userId} {
+              // Allow anyone to read avatars
+              allow read;
+              
+              // Allow a user to write (create, update, delete) their own avatar
+              // if they are authenticated and it's their own user ID.
+              // Also, validate the uploaded file size and type.
+              allow write: if request.auth != null 
+                           && request.auth.uid == userId
+                           && request.resource.size < 1 * 1024 * 1024 // Max 1MB
+                           && request.resource.contentType.matches('image/.*'); // Must be an image
+            }
+          }
+        }
+        */
 
         // TODO: Replace with your Firebase project's configuration
         const firebaseConfig = {
-        apiKey: "AIzaSyA8KKDjjw0Pb_wknZ3TRWuL7-7XMo4VeY0",
-        authDomain: "events-ea397.firebaseapp.com",
-        projectId: "events-ea397",
-        storageBucket: "events-ea397.firebasestorage.app",
-        messagingSenderId: "51859633788",
-        appId: "1:51859633788:web:3653d3e7edb6d3c1c4fbf9",
-        measurementId: "G-0ZCMZ86PJD"
+            apiKey: "AIzaSyA8KKDjjw0Pb_wknZ3TRWuL7-7XMo4VeY0",
+            authDomain: "events-ea397.firebaseapp.com",
+            projectId: "events-ea397",
+            storageBucket: "events-ea397.firebasestorage.app",
+            messagingSenderId: "51859633788",
+            appId: "1:51859633788:web:3653d3e7edb6d3c1c4fbf9",
+            measurementId: "G-0ZCMZ86PJD"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
         let currentUserData = null;
         let allPlayers = []; // Cache for player data
         
         const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
         const ALLIANCE_RANKS = [
-            { value: 'R5', text: 'R5 (Leader)'},
-            { value: 'R4', text: 'R4'},
-            { value: 'R3', text: 'R3'},
-            { value: 'R2', text: 'R2'},
-            { value: 'R1', text: 'R1 (Member)'},
+            { value: 'R5', text: 'R5 (Leader)'}, { value: 'R4', text: 'R4'}, { value: 'R3', text: 'R3'},
+            { value: 'R2', text: 'R2'}, { value: 'R1', text: 'R1 (Member)'},
         ];
         const ALLIANCE_ROLES = [
-            { value: '', text: 'None'},
-            { value: 'Warlord', text: 'Warlord'},
-            { value: 'Recruiter', text: 'Recruiter'},
-            { value: 'Muse', text: 'Muse'},
-            { value: 'Butler', text: 'Butler'},
+            { value: '', text: 'None'}, { value: 'Warlord', text: 'Warlord'}, { value: 'Recruiter', text: 'Recruiter'},
+            { value: 'Muse', text: 'Muse'}, { value: 'Butler', text: 'Butler'},
         ];
+        
+        const SUB_TYPES = {
+            event: [
+                { value: 'alliance', text: 'Alliance Event', allowedRanks: ['R5', 'R4'], visibility: 'alliance' },
+                { value: 'server', text: 'Server Event', isAdminOnly: true, visibility: 'public' },
+                { value: 'seasonal', text: 'Seasonal Event', isAdminOnly: true, visibility: 'public' }
+            ],
+            announcement: [
+                { value: 'alliance', text: 'Alliance Announcement', allowedRanks: ['R5', 'R4'], visibility: 'alliance' },
+                { value: 'leadership', text: 'Leadership Announcement', allowedRanks: ['R5'], visibility: 'leadership' },
+                { value: 'server', text: 'Server Announcement', isAdminOnly: true, visibility: 'public' }
+            ]
+        };
 
         // --- DOM ELEMENTS ---
-        const authModalBackdrop = document.getElementById('auth-modal-backdrop');
+        const modalBackdrop = document.getElementById('modal-backdrop');
         const authModalContainer = document.getElementById('auth-modal-container');
         const editProfileModalContainer = document.getElementById('edit-profile-modal-container');
         const playerSettingsModalContainer = document.getElementById('player-settings-modal-container');
+        const createPostModalContainer = document.getElementById('create-post-modal-container');
+        
         const loginFormContainer = document.getElementById('login-form-container');
         const registerFormContainer = document.getElementById('register-form-container');
         const loginBtn = document.getElementById('login-btn');
@@ -708,13 +976,28 @@
         const mobileNavLinksContainer = document.getElementById('mobile-nav-links');
         const playerSearchInput = document.getElementById('player-search-input');
         const allianceFilterInput = document.getElementById('alliance-filter');
+        const createPostBtn = document.getElementById('create-post-btn');
+        const announcementsContainer = document.getElementById('announcements-container');
+        const eventsContainer = document.getElementById('events-container');
+        const userAvatarButton = document.getElementById('user-avatar-button');
+        const uploadAvatarBtn = document.getElementById('upload-avatar-btn');
+        const avatarUploadInput = document.getElementById('avatar-upload-input');
+
+
         let activePlayerSettingsUID = null;
+        let postCreationData = {}; // Object to hold data across slides
+        let usersListener = null; // To hold the unsubscribe function for the users listener
+        let postsListener = null; // To hold the unsubscribe function for the posts listener
 
         // --- MODAL & FORM SWITCHING LOGIC ---
-        function showAuthModal(formToShow) {
+        function showModal(modal) {
             hideAllModals();
-            authModalBackdrop.classList.add('visible');
-            authModalContainer.classList.add('visible');
+            modalBackdrop.classList.add('visible');
+            modal.classList.add('visible');
+        }
+
+        function showAuthModal(formToShow) {
+            showModal(authModalContainer);
             document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
             if (formToShow === 'register') {
                 registerFormContainer.classList.add('active');
@@ -724,26 +1007,19 @@
             }
         }
         
-        function showEditProfileModal() {
-            hideAllModals();
-            authModalBackdrop.classList.add('visible');
-            editProfileModalContainer.classList.add('visible');
-            populateEditForm();
-        }
-
-        function showPlayerSettingsModal(player) {
-            activePlayerSettingsUID = player.uid;
-            hideAllModals();
-            authModalBackdrop.classList.add('visible');
-            playerSettingsModalContainer.classList.add('visible');
-            populatePlayerSettingsForm(player);
+        function showEditProfileModal() { showModal(editProfileModalContainer); populateEditForm(); }
+        function showPlayerSettingsModal(player) { activePlayerSettingsUID = player.uid; showModal(playerSettingsModalContainer); populatePlayerSettingsForm(player); }
+        function showCreatePostModal() { 
+            showModal(createPostModalContainer); 
+            initializePostStepper();
         }
 
         function hideAllModals() {
-            authModalBackdrop.classList.remove('visible');
+            modalBackdrop.classList.remove('visible');
             authModalContainer.classList.remove('visible');
             editProfileModalContainer.classList.remove('visible');
             playerSettingsModalContainer.classList.remove('visible');
+            createPostModalContainer.classList.remove('visible');
             activePlayerSettingsUID = null;
         }
         
@@ -751,8 +1027,11 @@
         document.getElementById('close-auth-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-edit-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-player-settings-modal-btn').addEventListener('click', hideAllModals);
-        authModalBackdrop.addEventListener('click', (e) => {
-            if (e.target === authModalBackdrop) {
+        document.getElementById('close-create-post-modal-btn').addEventListener('click', hideAllModals);
+        createPostBtn.addEventListener('click', showCreatePostModal);
+
+        modalBackdrop.addEventListener('click', (e) => {
+            if (e.target === modalBackdrop) {
                 hideAllModals();
                 mobileNavMenu.classList.remove('open');
             }
@@ -763,24 +1042,62 @@
 
         // --- AUTHENTICATION STATE & LOGIC ---
         onAuthStateChanged(auth, async (user) => {
+            // Detach any existing listeners before proceeding
+            if (usersListener) usersListener();
+            if (postsListener) postsListener();
+
             if (user) {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
-                    currentUserData = userDoc.data();
+                    currentUserData = { uid: user.uid, ...userDoc.data() };
+                    currentUserData.isAdmin = currentUserData.email === 'mikestancato@gmail.com';
+
                     usernameDisplay.textContent = currentUserData.username;
                     updatePlayerCard(currentUserData);
+                    updateAvatarDisplay(currentUserData);
+
+                    if(currentUserData.isVerified || currentUserData.isAdmin) {
+                        createPostBtn.classList.remove('hidden');
+                    } else {
+                        createPostBtn.classList.add('hidden');
+                    }
                 }
                 loginBtn.classList.add('hidden');
                 userProfileContainer.classList.remove('hidden');
                 hideAllModals();
+
+                // Attach listeners now that we are authenticated
+                usersListener = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
+                    allPlayers = [];
+                    querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
+                    applyPlayerFilters();
+                    updateTopAlliancesPodium(allPlayers);
+                }, (error) => {
+                    console.error("Error with users listener:", error);
+                });
+
+                postsListener = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
+                    let posts = [];
+                    querySnapshot.forEach((doc) => {
+                        posts.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderPosts(posts);
+                }, (error) => {
+                    console.error("Error with posts listener:", error);
+                });
+
             } else {
                 currentUserData = null;
+                allPlayers = [];
                 loginBtn.classList.remove('hidden');
                 userProfileContainer.classList.add('hidden');
                 userProfileContainer.classList.remove('open');
+                createPostBtn.classList.add('hidden');
+                // Clear UI
+                renderPosts([]);
+                renderPlayers([]);
             }
             buildMobileNav();
-            applyPlayerFilters(); // Re-render cards with correct permissions
         });
         
         document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -788,10 +1105,21 @@
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             const errorElement = document.getElementById('login-error');
+            const submitBtn = document.getElementById('login-submit-btn');
             errorElement.textContent = '';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Logging In...';
+
             signInWithEmailAndPassword(auth, email, password).catch((error) => {
                 console.error("Login Error:", error);
-                errorElement.textContent = "Invalid email or password.";
+                if (error.code === 'auth/invalid-credential') {
+                     errorElement.textContent = "Invalid email or password.";
+                } else {
+                     errorElement.textContent = "An unknown error occurred.";
+                }
+            }).finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
             });
         });
 
@@ -822,7 +1150,7 @@
         function updatePlayerCard(data) {
              playerCardInfo.innerHTML = `
                 <p class="text-sm text-gray-400">Alliance: <strong class="text-white">[${data.alliance}] ${data.allianceRank}</strong></p>
-                <p class="text-sm text-gray-400">Power: <strong class="text-white">${data.power.toLocaleString()}</strong></p>
+                <p class="text-sm text-gray-400">Power: <strong class="text-white">${(data.power || 0).toLocaleString()}</strong></p>
              `;
         }
         
@@ -833,17 +1161,14 @@
             const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
             const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
             
-            editAllianceSelect.querySelector('.custom-select-value span').textContent = currentUserData.alliance;
-            document.getElementById('edit-alliance').value = currentUserData.alliance;
-            
+            setCustomSelectValue(editAllianceSelect, currentUserData.alliance);
             const rankData = ALLIANCE_RANKS.find(r => r.value === currentUserData.allianceRank);
-            editRankSelect.querySelector('.custom-select-value span').textContent = rankData ? rankData.text : currentUserData.allianceRank;
-            document.getElementById('edit-alliance-rank').value = currentUserData.allianceRank;
+            setCustomSelectValue(editRankSelect, currentUserData.allianceRank, rankData ? rankData.text : currentUserData.allianceRank);
             
-            document.getElementById('edit-power').value = currentUserData.power.toLocaleString();
-            document.getElementById('edit-tank-power').value = currentUserData.tankPower.toLocaleString();
-            document.getElementById('edit-air-power').value = currentUserData.airPower.toLocaleString();
-            document.getElementById('edit-missile-power').value = currentUserData.missilePower.toLocaleString();
+            document.getElementById('edit-power').value = (currentUserData.power || 0).toLocaleString();
+            document.getElementById('edit-tank-power').value = (currentUserData.tankPower || 0).toLocaleString();
+            document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
+            document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
         }
 
         document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
@@ -866,7 +1191,6 @@
                 missilePower: parsePower(document.getElementById('edit-missile-power').value),
             };
 
-            // If alliance changed, un-verify the user
             if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
                 updatedData.isVerified = false;
             }
@@ -885,83 +1209,90 @@
 
 
         // --- REGISTRATION STEPPER LOGIC ---
-        let currentStep = 0;
+        let currentRegStep = 0;
+        let resizedAvatarBlob = null;
         const registrationFlow = document.getElementById('registration-flow');
         const registrationSuccess = document.getElementById('registration-success');
-        const formSlides = document.querySelectorAll('.form-slide');
-        const progressSteps = document.querySelectorAll('.progress-step');
-        const progressBarLine = document.querySelector('.progress-bar .line');
-        const backBtn = document.getElementById('register-back-btn');
-        const nextBtn = document.getElementById('register-next-btn');
-        const submitBtn = document.getElementById('register-submit-btn');
+        const regFormSlides = registrationFlow.querySelectorAll('.form-slide');
+        const regProgressSteps = registrationFlow.querySelectorAll('.progress-step');
+        const regProgressBarLine = registrationFlow.querySelector('.progress-bar .line');
+        const regBackBtn = document.getElementById('register-back-btn');
+        const regNextBtn = document.getElementById('register-next-btn');
+        const regSubmitBtn = document.getElementById('register-submit-btn');
         const registerError = document.getElementById('register-error');
 
         function initializeRegistrationStepper() { 
-            currentStep = 0; 
-            showStep(currentStep);
+            currentRegStep = 1; 
+            resizedAvatarBlob = null;
+            document.getElementById('register-avatar-preview').src = 'https://placehold.co/128x128/161B22/FFFFFF?text=Avatar';
+            showRegStep(currentRegStep);
             registrationFlow.style.display = 'block';
             registrationSuccess.style.display = 'none';
         }
-        function showStep(stepIndex) {
-            formSlides.forEach((slide, index) => slide.classList.toggle('active', index === stepIndex));
-            updateProgressBar();
-            updateNavButtons();
+        function showRegStep(stepIndex) {
+            regFormSlides.forEach((slide) => slide.classList.remove('active'));
+            const currentSlide = registrationFlow.querySelector(`.form-slide[data-slide="${stepIndex}"]`);
+            if(currentSlide) currentSlide.classList.add('active');
+
+            regProgressSteps.forEach((step, index) => step.classList.toggle('active', index < stepIndex - 1));
+            regProgressBarLine.style.width = `${((stepIndex - 1) / (regFormSlides.length - 1)) * 100}%`;
+            regBackBtn.style.visibility = stepIndex === 1 ? 'hidden' : 'visible';
+            regNextBtn.classList.toggle('hidden', stepIndex === regFormSlides.length);
+            regSubmitBtn.classList.toggle('hidden', stepIndex !== regFormSlides.length);
         }
-        function updateProgressBar() {
-            progressSteps.forEach((step, index) => step.classList.toggle('active', index <= currentStep));
-            progressBarLine.style.width = `${(currentStep / (formSlides.length - 1)) * 100}%`;
-        }
-        function updateNavButtons() {
-            backBtn.style.visibility = currentStep === 0 ? 'hidden' : 'visible';
-            nextBtn.classList.toggle('hidden', currentStep === formSlides.length - 1);
-            submitBtn.classList.toggle('hidden', currentStep !== formSlides.length - 1);
-        }
-        function validateStep(stepIndex) {
+        function validateRegStep(stepIndex) {
             registerError.textContent = '';
-            const slide = formSlides[stepIndex];
-            if (stepIndex === 0) { // Account Info
+            const slide = regFormSlides[stepIndex - 1]; // Adjust for 1-based index
+            if (stepIndex === 1) {
                 const username = slide.querySelector('#register-username').value;
                 const email = slide.querySelector('#register-email').value;
                 const password = slide.querySelector('#register-password').value;
                 const passwordVerify = slide.querySelector('#register-password-verify').value;
-
-                if (!username || !email || !password || !passwordVerify) {
-                    registerError.textContent = 'Please fill out all account fields.';
-                    return false;
-                }
-                if (password.length < 6) {
-                    registerError.textContent = 'Password must be at least 6 characters long.';
-                    return false;
-                }
-                if (password !== passwordVerify) {
-                    registerError.textContent = 'Passwords do not match.';
-                    return false;
-                }
-            } else if (stepIndex === 1) { // Alliance Info
-                const alliance = slide.querySelector('#register-alliance').value;
-                const rank = slide.querySelector('#register-alliance-rank').value;
-                if (!alliance || !rank) {
-                    registerError.textContent = 'Please select your alliance and rank.';
-                    return false;
-                }
-            } else if (stepIndex === 2) { // Power Stats
-                const powerInputs = slide.querySelectorAll('.power-input');
-                for(const input of powerInputs) {
-                    if (!input.value) {
-                         registerError.textContent = 'Please enter all power statistics.';
-                         return false;
-                    }
-                }
+                if (!username || !email || !password || !passwordVerify) { registerError.textContent = 'Please fill out all account fields.'; return false; }
+                if (password.length < 6) { registerError.textContent = 'Password must be at least 6 characters long.'; return false; }
+                if (password !== passwordVerify) { registerError.textContent = 'Passwords do not match.'; return false; }
+            } else if (stepIndex === 2) {
+                if (!slide.querySelector('#register-alliance').value || !slide.querySelector('#register-alliance-rank').value) { registerError.textContent = 'Please select your alliance and rank.'; return false; }
+            } else if (stepIndex === 3) {
+                if (!slide.querySelector('#register-power').value) { registerError.textContent = 'Please enter your total power.'; return false; }
             }
             return true;
         }
-        nextBtn.addEventListener('click', () => { if (validateStep(currentStep)) { currentStep++; showStep(currentStep); } });
-        backBtn.addEventListener('click', () => { currentStep--; showStep(currentStep); });
+        regNextBtn.addEventListener('click', () => { if (validateRegStep(currentRegStep)) { currentRegStep++; showRegStep(currentRegStep); } });
+        regBackBtn.addEventListener('click', () => { currentRegStep--; showRegStep(currentRegStep); });
+        
+        document.getElementById('register-avatar-btn').addEventListener('click', () => {
+            document.getElementById('register-avatar-input').click();
+        });
+
+        document.getElementById('register-avatar-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 300;
+                    canvas.height = 300;
+                    ctx.drawImage(img, 0, 0, 300, 300);
+                    document.getElementById('register-avatar-preview').src = canvas.toDataURL('image/jpeg');
+                    canvas.toBlob((blob) => {
+                        resizedAvatarBlob = blob;
+                    }, 'image/jpeg', 0.9);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!validateStep(currentStep)) return;
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Registering...';
+            if (!validateRegStep(currentRegStep)) return;
+            regSubmitBtn.disabled = true;
+            regSubmitBtn.textContent = 'Registering...';
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
@@ -975,36 +1306,309 @@
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                const registrationTimestamp = new Date();
+                
+                let avatarUrl = null;
+                if (resizedAvatarBlob) {
+                    const avatarRef = ref(storage, `avatars/${user.uid}`);
+                    await uploadBytes(avatarRef, resizedAvatarBlob);
+                    avatarUrl = await getDownloadURL(avatarRef);
+                }
+
                 const userProfile = {
                     uid: user.uid, username, email, alliance, allianceRank, power, tankPower, airPower, missilePower,
-                    likes: 0,
-                    allianceRole: '',
-                    isVerified: false,
-                    registrationTimestampKST: registrationTimestamp.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }),
-                    registrationTimestampUTC: registrationTimestamp.toISOString(),
-                    browserLanguage: navigator.language || navigator.userLanguage
+                    likes: 0, allianceRole: '', isVerified: false, avatarUrl,
+                    isAdmin: email === 'mikestancato@gmail.com', // Set admin status
+                    registrationTimestampUTC: new Date().toISOString(),
                 };
+                if (userProfile.isAdmin) {
+                    userProfile.isVerified = true; // Auto-verify admin
+                }
+
                 await setDoc(doc(db, "users", user.uid), userProfile);
                 registrationFlow.style.display = 'none';
                 registrationSuccess.style.display = 'block';
                 setTimeout(hideAllModals, 3000);
-
             } catch (error) {
                 console.error("Registration Error:", error);
                 registerError.textContent = error.code === 'auth/email-already-in-use' ? 'This email is already registered.' : 'An error occurred.';
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Register';
+                regSubmitBtn.disabled = false;
+                regSubmitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Register';
             }
         });
         
-        // --- FIRESTORE REAL-TIME DATA ---
-        onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
-            allPlayers = [];
-            querySnapshot.forEach((doc) => { allPlayers.push(doc.data()); });
-            applyPlayerFilters();
-            updateTopAlliancesPodium(allPlayers);
+        // --- POST CREATION STEPPER ---
+        let currentPostStep = 1;
+        const postFlow = document.getElementById('post-creation-flow');
+        const postFormSlides = postFlow.querySelectorAll('.form-slide');
+        const postProgressSteps = postFlow.querySelectorAll('.progress-step');
+        const postProgressBarLine = postFlow.querySelector('.progress-bar .line');
+        const postBackBtn = document.getElementById('post-back-btn');
+        const postNextBtn = document.getElementById('post-next-btn');
+        const postSubmitBtn = document.getElementById('post-submit-btn');
+        const createPostError = document.getElementById('create-post-error');
+
+        function initializePostStepper() {
+            document.getElementById('create-post-form').reset();
+            postCreationData = {};
+            currentPostStep = 1;
+            showPostStep(currentPostStep);
+        }
+
+        function showPostStep(stepIndex) {
+            postFormSlides.forEach(slide => slide.classList.remove('active'));
+            const currentSlide = postFlow.querySelector(`.form-slide[data-slide="${stepIndex}"]`);
+            if(currentSlide) currentSlide.classList.add('active');
+
+            const totalSteps = postCreationData.mainType === 'event' ? 4 : 3;
+            document.getElementById('post-progress-bar').style.display = 'flex';
+            if (stepIndex === 1) document.getElementById('post-progress-bar').style.display = 'none';
+
+
+            postProgressSteps.forEach((step, index) => {
+                step.classList.toggle('active', index < stepIndex -1);
+                step.style.display = index < totalSteps ? 'flex' : 'none';
+            });
+            postProgressBarLine.style.width = `${((stepIndex - 1) / (totalSteps - 1)) * 100}%`;
+            
+            postBackBtn.style.visibility = stepIndex === 1 ? 'hidden' : 'visible';
+            postNextBtn.classList.toggle('hidden', stepIndex === totalSteps);
+            postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
+        }
+
+        function validatePostStep(stepIndex) {
+            createPostError.textContent = '';
+            if (stepIndex === 1) {
+                if (!postCreationData.mainType) {
+                    createPostError.textContent = 'Please select a post type.';
+                    return false;
+                }
+            } else if (stepIndex === 2) {
+                if (!document.getElementById('post-subtype').value) {
+                    createPostError.textContent = 'Please select a category.';
+                    return false;
+                }
+            } else if (stepIndex === 3) {
+                 if (!document.getElementById('post-title').value || !document.getElementById('post-details').value) {
+                    createPostError.textContent = 'Title and details are required.';
+                    return false;
+                }
+            } else if (stepIndex === 4 && postCreationData.mainType === 'event') {
+                const isRecurring = document.getElementById('post-repeat-weekly').checked;
+                if (!isRecurring) {
+                    if (!document.getElementById('post-start-time').value || !document.getElementById('post-end-time').value) {
+                        createPostError.textContent = 'Start and end times are required for events.';
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        
+        postNextBtn.addEventListener('click', () => {
+            if (validatePostStep(currentPostStep)) {
+                if (currentPostStep === 3 && postCreationData.mainType === 'announcement') {
+                    currentPostStep++; 
+                }
+                currentPostStep++;
+                showPostStep(currentPostStep);
+            }
+        });
+        
+        postBackBtn.addEventListener('click', () => {
+            if (currentPostStep === 5 && postCreationData.mainType === 'announcement') {
+                currentPostStep--;
+            }
+            currentPostStep--;
+            showPostStep(currentPostStep);
+        });
+
+        document.querySelectorAll('.post-type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                postCreationData.mainType = btn.dataset.type;
+                document.getElementById('selected-main-type-text').textContent = postCreationData.mainType;
+                currentPostStep++;
+                showPostStep(currentPostStep);
+            });
+        });
+
+        document.getElementById('post-subtype').addEventListener('change', () => {
+            const subTypeValue = document.getElementById('post-subtype').value;
+            const subTypeConfig = SUB_TYPES[postCreationData.mainType]?.find(s => s.value === subTypeValue);
+            const allianceGroup = document.getElementById('post-alliance-group');
+            
+            if (currentUserData.isAdmin && subTypeConfig && (subTypeValue === 'alliance' || subTypeValue === 'leadership')) {
+                allianceGroup.classList.remove('hidden');
+            } else {
+                allianceGroup.classList.add('hidden');
+            }
+            document.getElementById('post-event-dates').classList.toggle('hidden', postCreationData.mainType !== 'event');
+            document.getElementById('post-recurring-announcement').classList.toggle('hidden', postCreationData.mainType === 'event');
+        });
+
+
+        // --- EVENTS & ANNOUNCEMENTS LOGIC ---
+        function renderPosts(posts) {
+            if (!currentUserData) { 
+                announcementsContainer.innerHTML = '';
+                eventsContainer.innerHTML = '';
+                return;
+            }
+
+            const visiblePosts = posts.filter(post => {
+                if (post.visibility === 'public') return true;
+                if (currentUserData.isAdmin) return true; 
+                if (post.visibility === 'leadership') return currentUserData.allianceRank === 'R5';
+                if (post.visibility === `alliance_${currentUserData.alliance}`) return true;
+                return false;
+            });
+
+            const announcements = visiblePosts
+                .filter(p => p.mainType === 'announcement')
+                .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+
+            const events = visiblePosts
+                .filter(p => p.mainType === 'event')
+                .sort((a, b) => (a.startTime?.toDate() || 0) - (b.startTime?.toDate() || 0));
+
+            renderAnnouncements(announcements);
+            renderEvents(events);
+        }
+
+        function renderAnnouncements(announcements) {
+            announcementsContainer.innerHTML = '';
+            if (announcements.length === 0) {
+                announcementsContainer.innerHTML = `<p class="text-gray-500">No active announcements.</p>`;
+                return;
+            }
+            announcements.forEach(post => {
+                const card = createPostCard(post);
+                announcementsContainer.appendChild(card);
+            });
+        }
+
+        function renderEvents(events) {
+            eventsContainer.innerHTML = '';
+            if (events.length === 0) {
+                eventsContainer.innerHTML = `<p class="text-gray-500">No upcoming events.</p>`;
+                return;
+            }
+            events.forEach(post => {
+                const card = createPostCard(post);
+                eventsContainer.appendChild(card);
+            });
+        }
+
+        function createPostCard(post) {
+            const card = document.createElement('div');
+            const isAdmin = currentUserData && currentUserData.isAdmin;
+            const isAuthor = currentUserData && currentUserData.uid === post.authorUid;
+            const canEdit = isAdmin || isAuthor;
+
+            const isEvent = post.mainType === 'event';
+            const borderColor = isEvent ? 'var(--color-primary)' : 'var(--color-highlight)';
+            card.className = 'post-card glass-pane p-4 relative';
+            card.style.borderColor = borderColor;
+
+            let tagColor = isEvent ? 'bg-blue-500' : 'bg-red-500';
+            const postDate = post.createdAt.toDate().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+            let timeHTML = '';
+
+            if (post.isRecurring) {
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const localTime = post.recurringTime ? new Date(`1970-01-01T${post.recurringTime}Z`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A';
+                timeHTML = `<p class="text-cyan-400"><i class="fas fa-sync-alt w-5"></i>Repeats weekly on ${days[post.recurringDay]} at ${localTime}</p>`;
+            } else if (isEvent) {
+                const startTime = post.startTime?.toDate().toLocaleString() || 'N/A';
+                const endTime = post.endTime?.toDate().toLocaleString() || 'N/A';
+                timeHTML = `<p class="text-green-400"><i class="fas fa-play-circle w-5"></i>Starts: ${startTime}</p>
+                            <p class="text-red-400"><i class="fas fa-stop-circle w-5"></i>Ends: ${endTime}</p>`;
+            }
+
+            card.innerHTML = `
+                ${canEdit ? `<button class="absolute top-3 right-3 text-gray-400 hover:text-white delete-post-btn" data-id="${post.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
+                <div class="flex items-start gap-3 flex-wrap">
+                    <span class="post-tag ${tagColor}">${post.subType}</span>
+                    ${post.alliance ? `<span class="post-tag bg-gray-700">[${post.alliance}]</span>` : ''}
+                </div>
+                <h4 class="text-lg font-bold text-white mt-2">${post.title}</h4>
+                <p class="text-sm text-gray-400 mt-1">By ${post.authorUsername} on ${postDate}</p>
+                <p class="text-gray-300 mt-3 whitespace-pre-wrap">${post.details}</p>
+                ${timeHTML ? `<div class="mt-3 pt-3 border-t border-white/10 text-sm">${timeHTML}</div>` : ''}
+            `;
+
+            if(canEdit) {
+                card.querySelector('.delete-post-btn').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if(confirm('Are you sure you want to delete this post?')) {
+                        await deleteDoc(doc(db, "posts", post.id));
+                    }
+                });
+            }
+            return card;
+        }
+
+        document.getElementById('create-post-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUserData) {
+                createPostError.textContent = 'You must be logged in to post.';
+                return;
+            }
+            if (!validatePostStep(currentPostStep)) return;
+
+            const subTypeValue = document.getElementById('post-subtype').value;
+            const subTypeConfig = SUB_TYPES[postCreationData.mainType]?.find(s => s.value === subTypeValue);
+            
+            let alliance = (subTypeValue === 'alliance' || subTypeValue === 'leadership') 
+                ? (currentUserData.isAdmin ? document.getElementById('post-alliance').value : currentUserData.alliance)
+                : null;
+            if (!alliance && (subTypeValue === 'alliance' || subTypeValue === 'leadership')) {
+                createPostError.textContent = 'Alliance is required for this post type.';
+                return;
+            }
+            
+            let visibility = subTypeConfig.visibility;
+            if (visibility === 'alliance') {
+                visibility = `alliance_${alliance}`;
+            }
+
+            const finalPostData = {
+                mainType: postCreationData.mainType,
+                subType: subTypeValue,
+                title: document.getElementById('post-title').value,
+                details: document.getElementById('post-details').value,
+                authorUid: currentUserData.uid,
+                authorUsername: currentUserData.username,
+                createdAt: serverTimestamp(),
+                alliance: alliance,
+                visibility: visibility,
+                isRecurring: document.getElementById('post-repeat-weekly').checked,
+            };
+
+            if (finalPostData.isRecurring) {
+                const now = new Date();
+                finalPostData.recurringDay = now.getUTCDay(); // Sunday = 0... in UTC
+                finalPostData.recurringTime = now.toUTCString().slice(17, 22); // "HH:mm" in UTC
+            }
+            
+            if (postCreationData.mainType === 'event' && !finalPostData.isRecurring) {
+                const startTimeValue = document.getElementById('post-start-time').value;
+                const endTimeValue = document.getElementById('post-end-time').value;
+                finalPostData.startTime = new Date(startTimeValue);
+                finalPostData.endTime = new Date(endTimeValue);
+                if (finalPostData.endTime <= finalPostData.startTime) {
+                    createPostError.textContent = 'End time must be after start time.';
+                    return;
+                }
+            }
+            
+            try {
+                await addDoc(collection(db, 'posts'), finalPostData);
+                hideAllModals();
+            } catch (error) {
+                console.error("Error creating post: ", error);
+                createPostError.textContent = 'Failed to create post.';
+            }
         });
 
         // --- PLAYER LIST LOGIC ---
@@ -1036,7 +1640,7 @@
 
                 let gearIconHTML = '';
                 if (currentUserData && currentUserData.uid !== player.uid) { // Don't show gear on self
-                    const isAdmin = currentUserData.email === 'mikestancato@gmail.com';
+                    const isAdmin = currentUserData.isAdmin;
                     const isR5 = currentUserData.allianceRank === 'R5';
                     const isR4 = currentUserData.allianceRank === 'R4';
                     
@@ -1046,46 +1650,51 @@
                     if (isR4 && player.alliance === currentUserData.alliance && ['R1','R2','R3'].includes(player.allianceRank)) showGear = true;
                     
                     if(showGear) {
-                        gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn"><i class="fas fa-cog"></i></button>`;
+                        gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
                     }
                 }
 
+                const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
+
                 card.innerHTML = `
                     ${gearIconHTML}
-                    <div class="flex items-center pb-3 border-b" style="border-color: var(--card-border-color);">
-                        <img src="https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}" class="rounded-full mr-4 border-2" style="border-color: var(--card-border-color);" alt="${player.username}">
+                    <div class="flex items-center pb-3 border-b" style="border-color: rgba(255,255,255,0.1);">
+                        <img src="${avatarUrl}" class="w-12 h-12 rounded-full mr-4 border-2 object-cover" style="border-color: rgba(255,255,255,0.2);" alt="${player.username}">
                         <div>
                             <h3 class="font-bold text-lg text-white">${player.username}</h3>
-                            <p class="text-sm font-semibold" style="color: var(--card-accent-color);">[${player.alliance}] - ${player.allianceRank}</p>
+                            <p class="text-sm font-semibold" style="color: var(--color-primary);">[${player.alliance}] - ${player.allianceRank}</p>
                         </div>
                     </div>
                     <div class="flex-grow my-4 space-y-3">
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-400 flex items-center"><i class="fas fa-fist-raised w-6 text-center mr-2" style="color: var(--card-accent-color);"></i>Total Power</span>
-                            <span class="font-bold text-white">${player.power.toLocaleString()}</span>
+                            <span class="text-gray-400 flex items-center"><i class="fas fa-fist-raised w-6 text-center mr-2" style="color: var(--color-primary);"></i>Total Power</span>
+                            <span class="font-bold text-white">${(player.power || 0).toLocaleString()}</span>
                         </div>
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-400 flex items-center"><i class="fas fa-truck-monster w-6 text-center mr-2" style="color: var(--card-accent-color);"></i>Tank Power</span>
-                            <span class="font-bold text-white">${player.tankPower.toLocaleString()}</span>
+                            <span class="text-gray-400 flex items-center"><i class="fas fa-truck-monster w-6 text-center mr-2" style="color: var(--color-primary);"></i>Tank Power</span>
+                            <span class="font-bold text-white">${(player.tankPower || 0).toLocaleString()}</span>
                         </div>
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-400 flex items-center"><i class="fas fa-fighter-jet w-6 text-center mr-2" style="color: var(--card-accent-color);"></i>Air Power</span>
-                            <span class="font-bold text-white">${player.airPower.toLocaleString()}</span>
+                            <span class="text-gray-400 flex items-center"><i class="fas fa-fighter-jet w-6 text-center mr-2" style="color: var(--color-primary);"></i>Air Power</span>
+                            <span class="font-bold text-white">${(player.airPower || 0).toLocaleString()}</span>
                         </div>
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-400 flex items-center"><i class="fas fa-rocket w-6 text-center mr-2" style="color: var(--card-accent-color);"></i>Missile Power</span>
-                            <span class="font-bold text-white">${player.missilePower.toLocaleString()}</span>
+                            <span class="text-gray-400 flex items-center"><i class="fas fa-rocket w-6 text-center mr-2" style="color: var(--color-primary);"></i>Missile Power</span>
+                            <span class="font-bold text-white">${(player.missilePower || 0).toLocaleString()}</span>
                         </div>
                     </div>
                     <div class="flex justify-around items-center pt-3 border-t border-white/10">
-                        <button class="action-button !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
-                        <button class="action-button !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
-                        <button class="action-button !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
+                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
+                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
                     </div>
                 `;
                 const settingsBtn = card.querySelector('.player-settings-btn');
                 if (settingsBtn) {
-                    settingsBtn.addEventListener('click', () => showPlayerSettingsModal(player));
+                    settingsBtn.addEventListener('click', () => {
+                        const targetPlayer = allPlayers.find(p => p.uid === settingsBtn.dataset.uid);
+                        if(targetPlayer) showPlayerSettingsModal(targetPlayer)
+                    });
                 }
                 playerListContainer.appendChild(card);
             });
@@ -1096,7 +1705,7 @@
             const topAlliances = ['THOR', 'fAfO', 'HeRA'];
             const podiumData = topAlliances.map(allianceTag => {
                 const members = players.filter(p => p.alliance === allianceTag);
-                const totalPower = members.reduce((sum, p) => sum + p.power, 0);
+                const totalPower = members.reduce((sum, p) => sum + (p.power || 0), 0);
                 const leader = members.find(p => p.allianceRank === 'R5')?.username || 'Unassigned';
                 const warlord = members.find(p => p.allianceRole === 'Warlord')?.username || 'Unassigned';
                 const recruiter = members.find(p => p.allianceRole === 'Recruiter')?.username || 'Unassigned';
@@ -1144,40 +1753,45 @@
             const type = container.dataset.type;
             const hiddenInput = container.querySelector('input[type="hidden"]');
             const valueButton = container.querySelector('.custom-select-value');
-            const valueSpan = valueButton.querySelector('span');
             const optionsContainer = container.querySelector('.custom-select-options');
             const searchInput = container.querySelector('.custom-select-search');
             const optionsList = container.querySelector('.options-list');
             
             let sourceData = [];
-            if (type === 'alliance') sourceData = ALLIANCES;
+            if (type === 'alliance') sourceData = ALLIANCES.map(a => ({value: a, text: a}));
             else if (type === 'rank') sourceData = ALLIANCE_RANKS;
             else if (type === 'role') sourceData = ALLIANCE_ROLES;
             else if (type === 'alliance-filter') sourceData = [{value: '', text: 'All Alliances'}, ...ALLIANCES.map(a => ({value: a, text: a}))];
+            
+            const isSearchable = searchInput && type === 'alliance';
+            if(searchInput && !isSearchable) searchInput.style.display = 'none';
 
-
-            if (searchInput && (type === 'rank' || type === 'alliance-filter' || type === 'role')) {
-                searchInput.style.display = 'none';
-            }
-
-            function renderOptions(filter = '') {
+            function renderOptions(data = [], filter = '') {
                 optionsList.innerHTML = '';
-                const filteredData = sourceData.filter(item => {
-                    const itemText = typeof item === 'object' ? item.text : item;
-                    return itemText.toLowerCase().includes(filter.toLowerCase());
-                });
-
+                const filteredData = data.filter(item => item.text.toLowerCase().includes(filter.toLowerCase()));
                 filteredData.forEach(item => {
                     const optionDiv = document.createElement('div');
                     optionDiv.className = 'custom-select-option';
-                    optionDiv.textContent = typeof item === 'object' ? item.text : item;
-                    optionDiv.dataset.value = typeof item === 'object' ? item.value : item;
+                    optionDiv.textContent = item.text;
+                    optionDiv.dataset.value = item.value;
                     optionsList.appendChild(optionDiv);
                 });
             }
 
             valueButton.addEventListener('click', (e) => {
                 e.stopPropagation();
+
+                // **BUG FIX**: Dynamically populate subtype options just before opening
+                if (type === 'post-subtype') {
+                    if (!currentUserData || !postCreationData.mainType) return;
+                    sourceData = SUB_TYPES[postCreationData.mainType].filter(sub => {
+                        if (currentUserData.isAdmin) return true;
+                        if (sub.isAdminOnly) return false;
+                        if (sub.allowedRanks) return sub.allowedRanks.includes(currentUserData.allianceRank);
+                        return false;
+                    });
+                }
+
                 const isOpen = container.classList.contains('open');
                 document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
                 if (!isOpen) {
@@ -1190,34 +1804,34 @@
                         optionsContainer.classList.add('open-down');
                     }
                     container.classList.add('open');
-                    if (searchInput) {
-                        searchInput.value = '';
-                        searchInput.focus();
-                    }
-                    renderOptions();
+                    if (isSearchable) { searchInput.value = ''; searchInput.focus(); }
+                    renderOptions(sourceData);
                 } else {
                     container.classList.remove('open');
                 }
             });
 
-            if (searchInput) {
-                searchInput.addEventListener('input', () => renderOptions(searchInput.value));
+            if (isSearchable) {
+                searchInput.addEventListener('input', () => renderOptions(sourceData, searchInput.value));
             }
 
             optionsList.addEventListener('click', (e) => {
                 if (e.target.classList.contains('custom-select-option')) {
                     const value = e.target.dataset.value;
                     const text = e.target.textContent;
-                    hiddenInput.value = value;
-                    valueSpan.textContent = text;
+                    setCustomSelectValue(container, value, text);
                     container.classList.remove('open');
                     hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             });
-            
-            if (!searchInput) {
-                renderOptions();
-            }
+            renderOptions(sourceData);
+        }
+
+        function setCustomSelectValue(container, value, text) {
+            const hiddenInput = container.querySelector('input[type="hidden"]');
+            const valueSpan = container.querySelector('.custom-select-value span');
+            hiddenInput.value = value;
+            valueSpan.textContent = text || value;
         }
         
         // --- MOBILE NAV LOGIC ---
@@ -1253,7 +1867,7 @@
                             e.preventDefault();
                             showPage(ddLink.dataset.target);
                             mobileNavMenu.classList.remove('open');
-                            authModalBackdrop.classList.remove('visible');
+                            modalBackdrop.classList.remove('visible');
                         });
                         subMenuContainer.appendChild(newDdLink);
                     });
@@ -1264,7 +1878,7 @@
                         e.preventDefault();
                         showPage(link.dataset.mainTarget);
                         mobileNavMenu.classList.remove('open');
-                        authModalBackdrop.classList.remove('visible');
+                        modalBackdrop.classList.remove('visible');
                     });
                     mobileNavLinksContainer.appendChild(newLink);
                 }
@@ -1300,11 +1914,11 @@
 
         document.getElementById('open-mobile-menu-btn').addEventListener('click', () => {
             mobileNavMenu.classList.add('open');
-            authModalBackdrop.classList.add('visible');
+            modalBackdrop.classList.add('visible');
         });
         document.getElementById('close-mobile-menu-btn').addEventListener('click', () => {
             mobileNavMenu.classList.remove('open');
-            authModalBackdrop.classList.remove('visible');
+            modalBackdrop.classList.remove('visible');
         });
 
 
