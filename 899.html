@@ -115,6 +115,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 9: Overhauled event time selection with simplified, styled inputs for date, hour, and minute.
+- Prompt 9: Redesigned post cards to display thumbnails as a square on the left, with themed icons as a fallback.
+- Prompt 9: Heavily styled new components with CSS for a beautiful, integrated look.
 - Prompt 8: Overhauled event/announcement display with countdown timers, status indicators, and a filterable legend.
 - Prompt 8: Implemented a responsive slide-out filter menu for mobile devices.
 - Prompt 7: Redesigned the post creation modal into a more intuitive, guided, multi-step process based on user permissions.
@@ -283,33 +286,23 @@ CHANGELOG
         input:checked + .slider:before { transform: translateX(22px); }
 
         /* Post/Event Card Styles */
-        .post-card { background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0)); border-left: 5px solid; transition: all 0.3s ease; overflow: hidden; }
+        .post-card { display: flex; gap: 1rem; padding: 1rem; transition: all 0.3s ease; }
         .post-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
-        .post-card-banner { height: 120px; background-size: cover; background-position: center; position: relative; }
-        .post-card-banner::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: linear-gradient(to top, rgba(13, 17, 23, 1) 0%, rgba(13, 17, 23, 0.4) 60%, rgba(13, 17, 23, 0.1) 100%); }
-        .post-card-header { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; background: linear-gradient(to right, var(--card-bg-color, rgba(0,0,0,0.3)), transparent); }
-        .post-card-icon { font-size: 1.75rem; width: 40px; text-align: center; }
-        .post-card-title { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.025em; }
-        .post-card-body { padding: 0 1.25rem 1.25rem; }
-        .post-card-meta { font-size: 0.8rem; color: #8b949e; }
-        .post-card-details { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.1); }
-        .post-card-time-info { font-size: 0.875rem; font-weight: 600; }
+        .post-card-visual { flex-shrink: 0; width: 100px; height: 100px; border-radius: 0.75rem; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
+        .post-card-visual i { font-size: 2.5rem; }
+        .post-card-content { flex-grow: 1; display: flex; flex-direction: column; }
+        .post-card-title { font-size: 1.125rem; font-weight: 700; }
+        .post-card-meta { font-size: 0.75rem; color: #8b949e; margin-bottom: 0.5rem; }
+        .post-card-details { font-size: 0.875rem; color: #c9d1d9; flex-grow: 1; }
+        .post-card-time-info { font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; }
         .delete-post-btn.confirm-delete { background-color: var(--color-highlight); color: white; border-radius: 4px; padding: 2px 4px; }
 
-        /* Custom DateTime Picker */
-        #datetime-picker { position: absolute; z-index: 1100; width: 300px; display: none; }
-        .dt-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; }
-        .dt-nav-btn { background: none; border: none; color: #c9d1d9; cursor: pointer; padding: 0.5rem; border-radius: 0.25rem; }
-        .dt-nav-btn:hover { background-color: rgba(255,255,255,0.1); }
-        .dt-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 0.5rem; }
-        .dt-cell { text-align: center; padding: 0.5rem; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.2s; font-size: 0.875rem; }
-        .dt-cell.day-name { font-weight: 600; color: #8b949e; cursor: default; }
-        .dt-cell.other-month { color: #444; }
-        .dt-cell:not(.day-name):not(.disabled):hover { background-color: rgba(0, 191, 255, 0.2); }
-        .dt-cell.selected { background-color: var(--color-primary); color: var(--color-bg); font-weight: 700; }
-        .dt-cell.today { border: 1px solid var(--color-primary); }
-        .dt-time-container { display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem 1rem 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
-        .dt-time-input { width: 60px; text-align: center; background-color: rgba(13, 17, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #c9d1d9; border-radius: 0.25rem; padding: 0.25rem; }
+        /* Custom Time Inputs */
+        .time-input-container { display: flex; align-items: center; gap: 0.5rem; }
+        .time-input-container input { background-color: rgba(13, 17, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #c9d1d9; border-radius: 0.25rem; padding: 0.5rem; text-align: center; }
+        .time-input-container input[type="date"] { flex-grow: 1; }
+        .time-input-container input[type="number"] { width: 60px; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
         /* Filter Legend */
         .filter-legend-item { transition: all 0.2s ease-in-out; }
@@ -327,22 +320,6 @@ CHANGELOG
 </head>
 <body>
     <canvas id="particle-canvas"></canvas>
-
-    <!-- Custom DateTime Picker (shared instance) -->
-    <div id="datetime-picker" class="glass-pane">
-        <div class="dt-header">
-            <button id="dt-prev-month" class="dt-nav-btn"><i class="fas fa-chevron-left"></i></button>
-            <span id="dt-month-year" class="font-semibold"></span>
-            <button id="dt-next-month" class="dt-nav-btn"><i class="fas fa-chevron-right"></i></button>
-        </div>
-        <div id="dt-calendar-grid" class="dt-grid"></div>
-        <div class="dt-time-container">
-            <input type="number" id="dt-hour" min="0" max="23" class="dt-time-input">
-            <span>:</span>
-            <input type="number" id="dt-minute" min="0" max="59" class="dt-time-input">
-            <button id="dt-save" class="primary-btn px-4 py-1 rounded-md ml-4">Set</button>
-        </div>
-    </div>
 
     <!-- Mobile Nav & Filter Menus -->
     <div id="mobile-nav-menu" class="glass-pane !rounded-l-lg !rounded-r-none">
@@ -787,7 +764,7 @@ CHANGELOG
             apiKey: "AIzaSyA8KKDjjw0Pb_wknZ3TRWuL7-7XMo4VeY0",
             authDomain: "events-ea397.firebaseapp.com",
             projectId: "events-ea397",
-            storageBucket: "events-ea397.firebasestorage.app", // Corrected storage bucket domain
+            storageBucket: "events-ea397.appspot.com", // Corrected storage bucket domain
             messagingSenderId: "51859633788",
             appId: "1:51859633788:web:3653d3e7edb6d3c1c4fbf9",
             measurementId: "G-0ZCMZ86PJD"
