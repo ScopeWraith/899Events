@@ -1,3 +1,139 @@
+<!-- 
+===============================================
+FIREBASE SECURITY RULES (FIRESTORE)
+===============================================
+These rules should be deployed to your Firebase project's Firestore settings.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- HELPER FUNCTIONS ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function isAdmin(userId) {
+      let userData = getUserData(userId);
+      return isSignedIn() && 'isAdmin' in userData && userData.isAdmin == true;
+    }
+    
+    function isVerified(userId) {
+        let userData = getUserData(userId);
+        return isSignedIn() && 'isVerified' in userData && userData.isVerified == true;
+    }
+
+    // --- COLLECTION RULES ---
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || canManageUser(userId);
+      allow delete: if isOwner(userId);
+    }
+    
+    function canManageUser(targetUserId) {
+        if (!isSignedIn()) { return false; }
+        let manager = getUserData(request.auth.uid);
+        let targetUser = getUserData(targetUserId);
+
+        if (isAdmin(request.auth.uid)) { return true; }
+        if (manager.alliance != targetUser.alliance) { return false; }
+
+        if (manager.allianceRank == 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetUser.allianceRank)) { return true; }
+        if (manager.allianceRank == 'R4' && ['R3', 'R2', 'R1'].includes(targetUser.allianceRank)) { return true; }
+        
+        return false;
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if canCreatePost(request.resource.data);
+      allow update, delete: if isOwner(resource.data.authorUid) || isAdmin(request.auth.uid);
+    }
+    
+    function canCreatePost(postData) {
+        let requestingUser = getUserData(request.auth.uid);
+        let adminOnlyTypes = ['server', 'seasonal', 'hot_deals', 'wanted_boss', 'campaign', 'vs'];
+
+        if (!isOwner(postData.authorUid)) { return false; }
+        if (isAdmin(request.auth.uid)) { return true; }
+        
+        if (postData.subType in adminOnlyTypes) { return false; }
+        
+        if (!isVerified(request.auth.uid) && postData.subType == 'alliance' && postData.mainType == 'event') { return false; }
+        
+        let rank = requestingUser.allianceRank;
+        
+        if (postData.subType == 'alliance' && (rank == 'R5' || rank == 'R4')) { return true; }
+        if (postData.subType == 'leadership' && rank == 'R5') { return true; }
+
+        return false;
+    }
+  }
+}
+-->
+
+<!-- 
+===============================================
+FIREBASE SECURITY RULES (STORAGE)
+===============================================
+These rules should be deployed to your Firebase project's Storage settings.
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /avatars/{userId} {
+      allow read;
+      allow write: if request.auth != null 
+                   && request.auth.uid == userId
+                   && request.resource.size < 1 * 1024 * 1024 // Max 1MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    match /post_thumbnails/{postId} {
+        allow read;
+        allow write: if request.auth != null
+                     && request.resource.size < 1 * 1024 * 1024
+                     && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
+-->
+
+<!--
+===============================================
+CHANGELOG
+===============================================
+- Prompt 7: Redesigned the post creation modal into a more intuitive, guided, multi-step process based on user permissions.
+- Prompt 6: Implemented themed, scrolling content areas for all modals to prevent overflow on smaller screens.
+- Prompt 5: Refined event/announcement types with specific permissions and optimized the creation modal flow.
+- Prompt 5: Enhanced event creation with an option for weekly repetition over a specified number of weeks.
+- Prompt 5: Updated Firebase security rules to reflect the new, more granular post type permissions.
+- Prompt 4: Added thumbnail upload functionality to the post creation modal with a 300x300px preview.
+- Prompt 4: Themed the uploaded thumbnail into a stylish header banner on the event/announcement cards.
+- Prompt 4: Updated Firebase Storage security rules to accommodate post thumbnail uploads.
+- Prompt 3: Replaced default datetime-local inputs with a custom-styled, user-friendly date and time picker component.
+- Prompt 2: Overhauled the post creation modal for a more efficient, permission-based workflow.
+- Prompt 2: Completely redesigned the display of event and announcement cards with unique styles, icons, and colors for each type.
+- Prompt 2: Updated and refined the permission logic for both creating posts and managing player verification to match detailed requirements.
+- Prompt 1: Added robust Firebase Security Rules for Firestore and Storage.
+- Prompt 1: Fixed a critical bug where the "Change Avatar" button for existing users was non-functional.
+- Prompt 1: Resolved a race condition during user registration that prevented the avatar and profile from displaying correctly without a page refresh.
+- Prompt 1: Refactored authentication handling to use real-time listeners for the user's profile, ensuring instant UI updates.
+- Prompt 1: Replaced the blocking `confirm()` dialog for post deletion with a non-blocking, two-click confirmation button.
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,206 +147,82 @@
     <style>
         :root {
             --color-bg: #0D1117;
-            --color-primary: #00BFFF; /* Brighter Blue */
-            --color-highlight: #F87171; /* High-contrast Red */
+            --color-primary: #00BFFF;
+            --color-highlight: #F87171;
             --color-glass-bg: rgba(22, 27, 34, 0.40); 
-            --color-dropdown-bg: rgba(18, 24, 33, 0.98); /* Increased opacity */
+            --color-dropdown-bg: rgba(18, 24, 33, 0.98);
+            
+            /* Post/Event Theme Colors */
+            --post-color-server: #FFD700;
+            --post-color-seasonal: #9370DB;
+            --post-color-leadership: #C0C0C0;
+            --post-color-alliance: #00BFFF;
+            --post-color-hot_deals: #FF6347;
+            --post-color-wanted_boss: #DC143C;
+            --post-color-campaign: #32CD32;
+            --post-color-vs: #FFA500;
         }
 
-        @keyframes pulse-live {
-            0%, 100% { box-shadow: 0 0 8px var(--color-primary); }
-            50% { box-shadow: 0 0 16px var(--color-primary); }
-        }
-        
+        @keyframes pulse-live { 0%, 100% { box-shadow: 0 0 8px var(--color-primary); } 50% { box-shadow: 0 0 16px var(--color-primary); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-10px); } }
-        @keyframes success-pop { 
-            0% { transform: scale(0.7); opacity: 0; }
-            80% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        @keyframes success-pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes slideOutRight { from { transform: translateX(0); } to { transform: translateX(100%); } }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--color-bg); color: #c9d1d9; overflow-x: hidden; }
         
-        #particle-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background: radial-gradient(circle at top left, rgba(0, 191, 255, 0.1), transparent 40%), radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.1), transparent 40%);
-        }
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at top left, rgba(0, 191, 255, 0.1), transparent 40%), radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.1), transparent 40%); }
         
-        .glass-pane {
-            background-color: var(--color-glass-bg);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
+        .glass-pane { background-color: var(--color-glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
 
-        .header-main { 
-            padding: 0.75rem 1.5rem; 
-            position: relative;
-            z-index: 50;
-        }
+        .header-main { padding: 0.75rem 1.5rem; position: relative; z-index: 50; }
         .nav-item { position: relative; }
-        .nav-link {
-            position: relative; padding: 0.5rem; font-weight: 600; font-size: 0.75rem;
-            color: #c9d1d9; transition: color 0.3s ease; display: flex;
-            flex-direction: column; align-items: center; gap: 0.25rem;
-            width: 80px; cursor: pointer;
-        }
+        .nav-link { position: relative; padding: 0.5rem; font-weight: 600; font-size: 0.75rem; color: #c9d1d9; transition: color 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; width: 80px; cursor: pointer; }
         .nav-link i { font-size: 1rem; }
         .nav-link:hover { color: #fff; }
-        .nav-link::after {
-            content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 2px;
-            background-color: var(--color-primary); transform: scaleX(0);
-            transform-origin: center; transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-        }
+        .nav-link::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 2px; background-color: var(--color-primary); transform: scaleX(0); transform-origin: center; transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); }
         .nav-item:hover .nav-link::after, .nav-link.active::after { transform: scaleX(1); }
         .nav-link.active { color: #fff; }
         
-        .dropdown-pane {
-            position: absolute;
-            opacity: 0; visibility: hidden;
-            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s;
-            z-index: 100;
-            padding: 0.5rem;
-            min-width: 180px;
-            border-top: 2px solid var(--color-primary);
-        }
-        .dropdown-menu {
-            top: calc(100% + 12px); left: 50%;
-            transform: translateX(-50%) translateY(-10px);
-        }
-        .nav-item.open .dropdown-menu {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1; visibility: visible;
-            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0s;
-        }
-        .dropdown-link {
-            display: block; padding: 0.6rem 1rem; border-radius: 0.5rem;
-            font-size: 0.875rem; color: #c9d1d9;
-            transition: background-color 0.2s ease, color 0.2s ease;
-            white-space: nowrap; cursor: pointer;
-        }
+        .dropdown-pane { position: absolute; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; z-index: 100; padding: 0.5rem; min-width: 180px; border-top: 2px solid var(--color-primary); }
+        .dropdown-menu { top: calc(100% + 12px); left: 50%; transform: translateX(-50%) translateY(-10px); }
+        .nav-item.open .dropdown-menu { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0s; }
+        .dropdown-link { display: block; padding: 0.6rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; color: #c9d1d9; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
         .dropdown-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
 
-        .auth-button {
-            padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem;
-            color: #c9d1d9; background-color: rgba(255,255,255,0.05);
-            border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            display: flex; align-items: center; gap: 0.5rem;
-        }
-        .auth-button:hover {
-            color: #fff; background-color: rgba(0, 191, 255, 0.1);
-            border-color: var(--color-primary);
-        }
+        .auth-button { padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem; color: #c9d1d9; background-color: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
+        .auth-button:hover { color: #fff; background-color: rgba(0, 191, 255, 0.1); border-color: var(--color-primary); }
 
         .section-container { padding: 1.25rem; }
         
         /* --- Modal Styles --- */
-        .modal-backdrop {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        .modal-container {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.95);
-            z-index: 1001;
-            width: 90%;
-            max-width: 500px;
-            opacity: 0;
-            transition: all 0.3s ease;
-            pointer-events: none;
-        }
-        .modal-backdrop.visible, .modal-container.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal-container.visible {
-             transform: translate(-50%, -50%) scale(1);
-        }
-        .auth-form {
-            display: none;
-            animation: fadeIn 0.5s forwards;
-        }
-        .auth-form.active {
-            display: block;
-        }
+        .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 1000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+        .modal-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); z-index: 1001; width: 90%; max-width: 500px; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
+        .modal-backdrop.visible, .modal-container.visible { opacity: 1; pointer-events: auto; }
+        .modal-container.visible { transform: translate(-50%, -50%) scale(1); }
+        .auth-form { display: none; animation: fadeIn 0.5s forwards; }
+        .auth-form.active { display: block; }
+        .modal-content-scroll { max-height: 85vh; overflow-y: auto; }
+        .modal-content-scroll::-webkit-scrollbar { width: 8px; }
+        .modal-content-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .modal-content-scroll::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
+        .modal-content-scroll::-webkit-scrollbar-thumb:hover { background: #00a9e0; }
         
-        .input-group {
-            position: relative; /* Added for dropdown positioning */
-            display: flex;
-            align-items: center;
-            background-color: rgba(13, 17, 23, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .input-group:focus-within {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.3);
-        }
-        .input-icon {
-            padding: 0 0.75rem;
-            color: #667;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .input-group:focus-within .input-icon {
-            color: var(--color-primary);
-        }
-        .form-input, .form-textarea {
-            background-color: transparent;
-            border: none;
-            color: #c9d1d9;
-            padding: 0.75rem;
-            width: 100%;
-        }
-        .form-input:focus, .form-textarea:focus {
-            outline: none;
-            box-shadow: none;
-        }
-        .form-textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
+        .input-group { position: relative; display: flex; align-items: center; background-color: rgba(13, 17, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+        .input-group:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.3); }
+        .input-icon { padding: 0 0.75rem; color: #667; border-right: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-group:focus-within .input-icon { color: var(--color-primary); }
+        .form-input, .form-textarea { background-color: transparent; border: none; color: #c9d1d9; padding: 0.75rem; width: 100%; }
+        .form-input:focus, .form-textarea:focus { outline: none; box-shadow: none; }
+        .form-textarea { min-height: 120px; resize: vertical; }
 
-        .primary-btn {
-            background-color: var(--color-primary);
-            color: var(--color-bg);
-            font-weight: 700;
-            transition: all 0.3s ease;
-        }
-        .primary-btn:hover {
-            background-color: #00a9e0;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2);
-        }
-        .primary-btn:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .secondary-btn {
-            background-color: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #c9d1d9;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .secondary-btn:hover {
-            background-color: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.3);
-        }
-        .form-error {
-            min-height: 20px;
-        }
+        .primary-btn { background-color: var(--color-primary); color: var(--color-bg); font-weight: 700; transition: all 0.3s ease; }
+        .primary-btn:hover { background-color: #00a9e0; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2); }
+        .primary-btn:disabled { background-color: #555; cursor: not-allowed; transform: none; box-shadow: none; }
+        .secondary-btn { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #c9d1d9; font-weight: 600; transition: all 0.3s ease; }
+        .secondary-btn:hover { background-color: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
+        .form-error { min-height: 20px; }
         
         /* Stepper (Registration & Post Creation) */
         .progress-bar { display: flex; justify-content: space-between; margin-bottom: 2rem; position: relative; }
@@ -223,177 +235,99 @@
         #registration-success { display: none; text-align: center; animation: success-pop 0.5s ease-out forwards; }
         #registration-success .success-icon { font-size: 4rem; color: var(--color-primary); }
 
-        .type-selection-card {
-            border: 2px solid rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-        }
-        .type-selection-card:hover {
-            border-color: var(--color-primary);
-            background-color: rgba(0, 191, 255, 0.05);
-            transform: translateY(-5px);
-        }
-        .type-selection-card i {
-            transition: all 0.3s ease;
-        }
-        .type-selection-card:hover i {
-            color: var(--color-primary);
-            transform: scale(1.1);
-        }
+        .type-selection-card { border: 2px solid rgba(255,255,255,0.1); transition: all 0.3s ease; }
+        .type-selection-card:hover { border-color: var(--color-primary); background-color: rgba(0, 191, 255, 0.05); transform: translateY(-5px); }
+        .type-selection-card i { transition: all 0.3s ease; }
+        .type-selection-card:hover i { color: var(--color-primary); transform: scale(1.1); }
 
         /* Player Card Dropdown */
-        #player-card-dropdown { 
-            top: calc(100% + 10px); 
-            right: 0; 
-            min-width: 250px;
-            transform: translateY(-10px);
-        }
-        #user-profile-container.open #player-card-dropdown {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
+        #player-card-dropdown { top: calc(100% + 10px); right: 0; min-width: 250px; transform: translateY(-10px); }
+        #user-profile-container.open #player-card-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
 
         /* Custom Select Dropdown */
         .custom-select-container { position: relative; flex-grow: 1; }
         .custom-select-value { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; }
-        .custom-select-options { 
-            display: block;
-            position: absolute; 
-            left: 0;
-            right: 0; 
-            max-height: 180px; /* Approx 4.5 items */
-            overflow-y: auto; 
-            z-index: 1050; /* Increased z-index to appear over modal content */
-            opacity: 0;
-            visibility: hidden;
-            transform: scaleY(0.95);
-            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s;
-            background-color: var(--color-dropdown-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-        }
-        .custom-select-options.open-down {
-            top: calc(100% + 8px);
-            transform-origin: top;
-        }
-        .custom-select-options.open-up {
-            bottom: calc(100% + 8px);
-            transform-origin: bottom;
-        }
-        .custom-select-container.open .custom-select-options {
-            opacity: 1;
-            visibility: visible;
-            transform: scaleY(1);
-            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0s;
-        }
+        .custom-select-options { display: block; position: absolute; left: 0; right: 0; max-height: 180px; overflow-y: auto; z-index: 1050; opacity: 0; visibility: hidden; transform: scaleY(0.95); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s; background-color: var(--color-dropdown-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; padding: 0.5rem; }
+        .custom-select-options.open-down { top: calc(100% + 8px); transform-origin: top; }
+        .custom-select-options.open-up { bottom: calc(100% + 8px); transform-origin: bottom; }
+        .custom-select-container.open .custom-select-options { opacity: 1; visibility: visible; transform: scaleY(1); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0s; }
         .custom-select-option { display: block; padding: 0.75rem 1rem; cursor: pointer; border-radius: 0.375rem; }
         .custom-select-option:hover { background-color: rgba(0, 191, 255, 0.1); }
         .custom-select-search { background-color: rgba(13, 17, 23, 1); border: none; border-bottom: 1px solid rgba(255,255,255,0.2); padding: 0.75rem; width: 100%; color: #c9d1d9; }
         .custom-select-search:focus { outline: none; border-color: var(--color-primary); }
-        /* Custom Scrollbar */
         .custom-select-options::-webkit-scrollbar { width: 8px; }
         .custom-select-options::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
         .custom-select-options::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
         .custom-select-options::-webkit-scrollbar-thumb:hover { background: #00a9e0; }
 
         /* Mobile Nav */
-        #mobile-nav-menu {
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 280px;
-            z-index: 200;
-            transform: translateX(100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        #mobile-nav-menu.open {
-            transform: translateX(0);
-        }
-        .mobile-nav-link {
-            display: block;
-            padding: 1rem 1.5rem;
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #c9d1d9;
-            transition: all 0.2s ease;
-        }
-        .mobile-nav-link:hover {
-            background-color: rgba(0, 191, 255, 0.1);
-            color: #fff;
-        }
+        #mobile-nav-menu { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 200; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #mobile-nav-menu.open { transform: translateX(0); }
+        .mobile-nav-link { display: block; padding: 1rem 1.5rem; font-size: 1.125rem; font-weight: 600; color: #c9d1d9; transition: all 0.2s ease; }
+        .mobile-nav-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
         
         /* Podium Styles */
-        .podium-card {
-            display: flex; flex-direction: column; text-align: center;
-            padding: 1.5rem; transition: all 0.3s ease;
-        }
+        .podium-card { display: flex; flex-direction: column; text-align: center; padding: 1.5rem; transition: all 0.3s ease; }
         .podium-gold { border-image: linear-gradient(to bottom, #FFD700, #FBBF24) 1; }
         .podium-silver { border-image: linear-gradient(to bottom, #C0C0C0, #D1D5DB) 1; }
         .podium-bronze { border-image: linear-gradient(to bottom, #CD7F32, #D97706) 1; }
         
         /* Verification Toggle */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 28px;
-        }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #333;
-            transition: .4s;
-            border-radius: 28px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: var(--color-primary);
-        }
-        input:checked + .slider:before {
-            transform: translateX(22px);
-        }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--color-primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
 
         /* Post/Event Card Styles */
-        .post-card {
-            border-left: 4px solid;
-            transition: all 0.3s ease;
-        }
-        .post-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        .post-tag {
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.25rem 0.6rem;
-            border-radius: 9999px;
-            text-transform: uppercase;
-        }
+        .post-card { background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0)); border-left: 5px solid; transition: all 0.3s ease; overflow: hidden; }
+        .post-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+        .post-card-banner { height: 120px; background-size: cover; background-position: center; position: relative; }
+        .post-card-banner::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: linear-gradient(to top, rgba(13, 17, 23, 1) 0%, rgba(13, 17, 23, 0.4) 60%, rgba(13, 17, 23, 0.1) 100%); }
+        .post-card-header { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; background: linear-gradient(to right, var(--card-bg-color, rgba(0,0,0,0.3)), transparent); }
+        .post-card-icon { font-size: 1.75rem; width: 40px; text-align: center; }
+        .post-card-title { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.025em; }
+        .post-card-body { padding: 0 1.25rem 1.25rem; }
+        .post-card-meta { font-size: 0.8rem; color: #8b949e; }
+        .post-card-details { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.1); }
+        .post-card-time-info { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; }
+        .delete-post-btn.confirm-delete { background-color: var(--color-highlight); color: white; border-radius: 4px; padding: 2px 4px; }
+
+        /* Custom DateTime Picker */
+        #datetime-picker { position: absolute; z-index: 1100; width: 300px; display: none; }
+        .dt-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; }
+        .dt-nav-btn { background: none; border: none; color: #c9d1d9; cursor: pointer; padding: 0.5rem; border-radius: 0.25rem; }
+        .dt-nav-btn:hover { background-color: rgba(255,255,255,0.1); }
+        .dt-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 0.5rem; }
+        .dt-cell { text-align: center; padding: 0.5rem; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.2s; font-size: 0.875rem; }
+        .dt-cell.day-name { font-weight: 600; color: #8b949e; cursor: default; }
+        .dt-cell.other-month { color: #444; }
+        .dt-cell:not(.day-name):not(.disabled):hover { background-color: rgba(0, 191, 255, 0.2); }
+        .dt-cell.selected { background-color: var(--color-primary); color: var(--color-bg); font-weight: 700; }
+        .dt-cell.today { border: 1px solid var(--color-primary); }
+        .dt-time-container { display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem 1rem 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
+        .dt-time-input { width: 60px; text-align: center; background-color: rgba(13, 17, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #c9d1d9; border-radius: 0.25rem; padding: 0.25rem; }
     </style>
 </head>
 <body>
     <canvas id="particle-canvas"></canvas>
+
+    <!-- Custom DateTime Picker (shared instance) -->
+    <div id="datetime-picker" class="glass-pane">
+        <div class="dt-header">
+            <button id="dt-prev-month" class="dt-nav-btn"><i class="fas fa-chevron-left"></i></button>
+            <span id="dt-month-year" class="font-semibold"></span>
+            <button id="dt-next-month" class="dt-nav-btn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div id="dt-calendar-grid" class="dt-grid"></div>
+        <div class="dt-time-container">
+            <input type="number" id="dt-hour" min="0" max="23" class="dt-time-input">
+            <span>:</span>
+            <input type="number" id="dt-minute" min="0" max="59" class="dt-time-input">
+            <button id="dt-save" class="primary-btn px-4 py-1 rounded-md ml-4">Set</button>
+        </div>
+    </div>
 
     <!-- Mobile Nav Menu -->
     <div id="mobile-nav-menu" class="glass-pane !rounded-l-lg !rounded-r-none">
@@ -406,7 +340,7 @@
     <!-- Auth & Edit Modals -->
     <div id="modal-backdrop" class="modal-backdrop"></div>
     <div id="auth-modal-container" class="modal-container">
-        <div class="glass-pane p-6 sm:p-8 relative overflow-hidden">
+        <div class="glass-pane modal-content-scroll p-6 sm:p-8 relative overflow-hidden">
             <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                 <i class="fas fa-times fa-lg"></i>
             </button>
@@ -499,7 +433,7 @@
     </div>
     
     <div id="edit-profile-modal-container" class="modal-container">
-         <div class="glass-pane p-6 sm:p-8 relative overflow-hidden">
+         <div class="glass-pane modal-content-scroll p-6 sm:p-8 relative overflow-hidden">
             <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                 <i class="fas fa-times fa-lg"></i>
             </button>
@@ -539,7 +473,7 @@
 
     <!-- Player Settings Modal -->
     <div id="player-settings-modal-container" class="modal-container">
-         <div class="glass-pane p-6 sm:p-8 relative overflow-hidden">
+         <div class="glass-pane modal-content-scroll p-6 sm:p-8 relative overflow-hidden">
             <button id="close-player-settings-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                 <i class="fas fa-times fa-lg"></i>
             </button>
@@ -565,7 +499,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
+                    <div id="verification-toggle-container" class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
                         <label for="setting-verified" class="font-semibold text-white">Verified Status</label>
                         <label class="toggle-switch">
                             <input type="checkbox" id="setting-verified">
@@ -581,70 +515,62 @@
 
     <!-- Create Event/Announcement Modal -->
     <div id="create-post-modal-container" class="modal-container">
-         <div class="glass-pane p-6 sm:p-8 relative overflow-hidden">
+         <div class="glass-pane modal-content-scroll p-6 sm:p-8 relative overflow-hidden">
             <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                 <i class="fas fa-times fa-lg"></i>
             </button>
-            <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
+            
             <form id="create-post-form">
                 <div id="post-creation-flow">
-                    <div class="progress-bar" id="post-progress-bar">
-                        <div class="line"></div>
-                        <div class="progress-step" data-step="1"><i class="fas fa-clipboard-list"></i></div>
-                        <div class="progress-step" data-step="2"><i class="fas fa-tags"></i></div>
-                        <div class="progress-step" data-step="3"><i class="fas fa-pencil-alt"></i></div>
-                        <div class="progress-step" data-step="4"><i class="fas fa-clock"></i></div>
-                    </div>
-                     <!-- Slide 1: Main Type -->
+                     <!-- Slide 1: Main Type (Event vs Announcement) -->
                     <div class="form-slide" data-slide="1">
+                        <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
                         <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <button type="button" data-type="announcement" class="post-type-btn type-selection-card p-6 rounded-lg text-center">
-                                <i class="fas fa-bullhorn fa-3x mb-3 text-gray-400"></i>
-                                <h3 class="font-bold text-lg text-white">Announcement</h3>
-                                <p class="text-sm text-gray-500">Share news with the server or your alliance.</p>
-                            </button>
-                            <button type="button" data-type="event" class="post-type-btn type-selection-card p-6 rounded-lg text-center">
-                                <i class="fas fa-calendar-alt fa-3x mb-3 text-gray-400"></i>
-                                <h3 class="font-bold text-lg text-white">Event</h3>
-                                <p class="text-sm text-gray-500">Schedule a one-time or recurring event.</p>
-                            </button>
+                        <div id="post-main-type-selection-container" class="space-y-4">
+                           <!-- Dynamically inserted buttons for Event/Announcement -->
                         </div>
                     </div>
-                    <!-- Slide 2: Sub-Type -->
+                    <!-- Slide 2: Sub-Type Selection -->
                     <div class="form-slide" data-slide="2">
-                        <p class="text-center text-gray-400 mb-6">What kind of <span class="font-bold" id="selected-main-type-text">post</span> is this?</p>
-                        <div class="input-group"><i class="fas fa-tags input-icon"></i>
-                             <div class="custom-select-container w-full" data-type="post-subtype">
-                                <input type="hidden" id="post-subtype" name="post-subtype" required>
-                                <button type="button" class="custom-select-value form-input"><span>Select Category</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                <div class="custom-select-options">
-                                    <div class="options-list"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="post-alliance-group" class="input-group hidden mt-4"><i class="fas fa-shield-alt input-icon"></i>
-                             <div class="custom-select-container w-full" data-type="alliance">
-                                <input type="hidden" id="post-alliance" name="post-alliance">
-                                <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                <div class="custom-select-options">
-                                    <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                    <div class="options-list"></div>
-                                </div>
-                            </div>
+                        <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
+                        <p class="text-center text-gray-400 mb-6">Select a category.</p>
+                        <div id="post-subtype-selection-container" class="space-y-3">
+                           <!-- Dynamically inserted sub-type buttons -->
                         </div>
                     </div>
                     <!-- Slide 3: Content -->
                     <div class="form-slide" data-slide="3">
+                        <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
                         <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
                         <div class="space-y-4">
+                            <div id="post-alliance-group" class="input-group hidden"><i class="fas fa-shield-alt input-icon"></i>
+                                 <div class="custom-select-container w-full" data-type="alliance">
+                                    <input type="hidden" id="post-alliance" name="post-alliance">
+                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options">
+                                        <input type="text" class="custom-select-search" placeholder="Search alliances...">
+                                        <div class="options-list"></div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="input-group"><i class="fas fa-heading input-icon"></i><input type="text" id="post-title" placeholder="Title" class="form-input" required></div>
                             <div class="input-group !items-start"><i class="fas fa-align-left input-icon pt-3"></i><textarea id="post-details" placeholder="Details..." class="form-textarea" required></textarea></div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
+                                <div class="flex items-center gap-4">
+                                    <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=300x300" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
+                                    <button type="button" id="post-thumbnail-btn" class="flex-grow p-3 rounded-lg secondary-btn">
+                                        <i class="fas fa-upload mr-2"></i> Choose Image
+                                    </button>
+                                    <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                     <!-- Slide 4: Timing -->
+                     <!-- Slide 4: Timing (for events) -->
                     <div class="form-slide" data-slide="4">
-                        <p class="text-center text-gray-400 mb-6">Set the schedule for your post.</p>
+                        <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
+                        <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
                         <div id="post-timing-group" class="space-y-4">
                             <div class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
                                 <label for="post-repeat-weekly" class="font-semibold text-white">Repeat Weekly</label>
@@ -653,16 +579,14 @@
                                     <span class="slider"></span>
                                 </label>
                             </div>
-                            <!-- Event-specific date/time -->
-                            <div id="post-event-dates" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="input-group"><i class="fas fa-calendar-plus input-icon"></i><input type="datetime-local" id="post-start-time" class="form-input" title="Event Start Time"></div>
-                                <div class="input-group"><i class="fas fa-calendar-minus input-icon"></i><input type="datetime-local" id="post-end-time" class="form-input" title="Event End Time"></div>
+                            <div class="input-group"><i class="fas fa-calendar-plus input-icon"></i><input type="text" id="post-start-time" class="form-input" placeholder="Event Start Time" readonly></div>
+                            <div id="post-event-dates">
+                                <div class="input-group"><i class="fas fa-calendar-minus input-icon"></i><input type="text" id="post-end-time" class="form-input" placeholder="Event End Time" readonly></div>
                             </div>
-                             <!-- Recurring Announcement Time -->
-                            <div id="post-recurring-announcement" class="hidden">
-                                 <p class="text-sm text-center text-gray-400">This announcement will repeat weekly at the time it is created.</p>
+                            <div id="post-repeat-weeks-container" class="hidden">
+                                <div class="input-group"><i class="fas fa-redo-alt input-icon"></i><input type="number" id="post-repeat-weeks" class="form-input" min="1" value="1" placeholder="Number of weeks"></div>
                             </div>
-                            <p class="text-xs text-center text-gray-400">Times are entered in your local timezone and will be converted for all users.</p>
+                            <p class="text-xs text-center text-gray-400">Times are based on your local timezone.</p>
                         </div>
                     </div>
                 </div>
@@ -701,7 +625,7 @@
                     <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
                     <div id="user-profile-container" class="hidden">
                         <button id="player-card-btn" class="auth-button">
-                             <img id="user-avatar-button" src="" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
+                             <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
                             <span id="username-display"></span>
                             <i class="fas fa-caret-down ml-2"></i>
                         </button>
@@ -828,97 +752,12 @@
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-        /*
-        * ===============================================
-        * FIREBASE SECURITY RULES V2 (Corrected Syntax)
-        * ===============================================
-        */
-        /*
-        rules_version = '2';
-
-        service cloud.firestore {
-          match /databases/{database}/documents {
-            
-            // Helper Functions
-            function isSignedIn() {
-              return request.auth != null;
-            }
-            
-            function isOwner(userId) {
-              return request.auth.uid == userId;
-            }
-
-            function getUserData() {
-              return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-            }
-
-            function isAdmin() {
-              // Check for the existence of the isAdmin field before accessing it
-              return isSignedIn() && ('isAdmin' in getUserData()) && getUserData().isAdmin == true;
-            }
-            
-            // User profiles: Can be read by any signed-in user, but only written by the owner.
-            match /users/{userId} {
-              allow read: if isSignedIn();
-              allow create: if request.auth.uid == userId;
-              allow update, delete: if isOwner(userId);
-            }
-
-            // Posts: Anyone can read any post
-            match /posts/{postId} {
-              allow read: if true;
-              allow create: if canCreatePost(request.resource.data);
-              allow update, delete: if isOwner(resource.data.authorUid) || isAdmin();
-            }
-
-            function canCreatePost(post) {
-              let user = getUserData();
-              let isVerified = user.isVerified == true;
-              
-              let hasRequiredRank = (post.subType == 'alliance' && user.allianceRank in ['R5', 'R4']) ||
-                                    (post.subType == 'leadership' && user.allianceRank == 'R5');
-              
-              let isAllowedTypeForUser = !(post.subType == 'server' || post.subType == 'seasonal');
-
-              return (isAdmin() && isVerified) || 
-                     (isVerified && isOwner(post.authorUid) && hasRequiredRank && isAllowedTypeForUser);
-            }
-          }
-        }
-        */
-
-        /*
-        * ===============================================
-        * FIREBASE STORAGE RULES V2
-        * ===============================================
-        */
-        /*
-        rules_version = '2';
-
-        service firebase.storage {
-          match /b/{bucket}/o {
-            match /avatars/{userId} {
-              // Allow anyone to read avatars
-              allow read;
-              
-              // Allow a user to write (create, update, delete) their own avatar
-              // if they are authenticated and it's their own user ID.
-              // Also, validate the uploaded file size and type.
-              allow write: if request.auth != null 
-                           && request.auth.uid == userId
-                           && request.resource.size < 1 * 1024 * 1024 // Max 1MB
-                           && request.resource.contentType.matches('image/.*'); // Must be an image
-            }
-          }
-        }
-        */
-
         // TODO: Replace with your Firebase project's configuration
         const firebaseConfig = {
             apiKey: "AIzaSyA8KKDjjw0Pb_wknZ3TRWuL7-7XMo4VeY0",
             authDomain: "events-ea397.firebaseapp.com",
             projectId: "events-ea397",
-            storageBucket: "events-ea397.firebasestorage.app",
+            storageBucket: "events-ea397.appspot.com", // Corrected storage bucket domain
             messagingSenderId: "51859633788",
             appId: "1:51859633788:web:3653d3e7edb6d3c1c4fbf9",
             measurementId: "G-0ZCMZ86PJD"
@@ -941,18 +780,32 @@
             { value: 'Muse', text: 'Muse'}, { value: 'Butler', text: 'Butler'},
         ];
         
-        const SUB_TYPES = {
-            event: [
-                { value: 'alliance', text: 'Alliance Event', allowedRanks: ['R5', 'R4'], visibility: 'alliance' },
-                { value: 'server', text: 'Server Event', isAdminOnly: true, visibility: 'public' },
-                { value: 'seasonal', text: 'Seasonal Event', isAdminOnly: true, visibility: 'public' }
-            ],
-            announcement: [
-                { value: 'alliance', text: 'Alliance Announcement', allowedRanks: ['R5', 'R4'], visibility: 'alliance' },
-                { value: 'leadership', text: 'Leadership Announcement', allowedRanks: ['R5'], visibility: 'leadership' },
-                { value: 'server', text: 'Server Announcement', isAdminOnly: true, visibility: 'public' }
-            ]
+        const POST_TYPES = {
+            // Announcements
+            server_announcement: { mainType: 'announcement', subType: 'server', text: 'Server Announcement', isAdminOnly: true, visibility: 'public' },
+            leadership_announcement: { mainType: 'announcement', subType: 'leadership', text: 'Leadership Announcement', allowedRanks: ['R5'], visibility: 'public' },
+            alliance_announcement: { mainType: 'announcement', subType: 'alliance', text: 'Alliance Announcement', allowedRanks: ['R5', 'R4'], visibility: 'alliance' },
+            // Events
+            alliance_event: { mainType: 'event', subType: 'alliance', text: 'Alliance Event', allowedRanks: ['R5', 'R4'], isVerifiedRequired: true, visibility: 'alliance' },
+            server_event: { mainType: 'event', subType: 'server', text: 'Server Event', isAdminOnly: true, visibility: 'public' },
+            seasonal_event: { mainType: 'event', subType: 'seasonal', text: 'Seasonal Event', isAdminOnly: true, visibility: 'public' },
+            hot_deals: { mainType: 'event', subType: 'hot_deals', text: 'Hot Deals Event', isAdminOnly: true, visibility: 'public' },
+            wanted_boss: { mainType: 'event', subType: 'wanted_boss', text: 'Wanted Boss Event', isAdminOnly: true, visibility: 'public' },
+            campaign: { mainType: 'event', subType: 'campaign', text: 'Campaign Event', isAdminOnly: true, visibility: 'public' },
+            vs: { mainType: 'event', subType: 'vs', text: 'VS Event', isAdminOnly: true, visibility: 'public' },
         };
+
+        const POST_STYLES = {
+            server: { color: 'var(--post-color-server)', icon: 'fas fa-server', bgColor: 'rgba(255, 215, 0, 0.1)'},
+            seasonal: { color: 'var(--post-color-seasonal)', icon: 'fas fa-snowflake', bgColor: 'rgba(147, 112, 219, 0.1)'},
+            leadership: { color: 'var(--post-color-leadership)', icon: 'fas fa-crown', bgColor: 'rgba(192, 192, 192, 0.1)'},
+            alliance: { color: 'var(--post-color-alliance)', icon: 'fas fa-shield-alt', bgColor: 'rgba(0, 191, 255, 0.1)'},
+            hot_deals: { color: 'var(--post-color-hot_deals)', icon: 'fas fa-fire-alt', bgColor: 'rgba(255, 99, 71, 0.1)'},
+            wanted_boss: { color: 'var(--post-color-wanted_boss)', icon: 'fas fa-skull-crossbones', bgColor: 'rgba(220, 20, 60, 0.1)'},
+            campaign: { color: 'var(--post-color-campaign)', icon: 'fas fa-map-marked-alt', bgColor: 'rgba(50, 205, 50, 0.1)'},
+            vs: { color: 'var(--post-color-vs)', icon: 'fas fa-fist-raised', bgColor: 'rgba(255, 165, 0, 0.1)'},
+        };
+
 
         // --- DOM ELEMENTS ---
         const modalBackdrop = document.getElementById('modal-backdrop');
@@ -982,12 +835,17 @@
         const userAvatarButton = document.getElementById('user-avatar-button');
         const uploadAvatarBtn = document.getElementById('upload-avatar-btn');
         const avatarUploadInput = document.getElementById('avatar-upload-input');
+        const verificationToggleContainer = document.getElementById('verification-toggle-container');
 
 
         let activePlayerSettingsUID = null;
         let postCreationData = {}; // Object to hold data across slides
-        let usersListener = null; // To hold the unsubscribe function for the users listener
-        let postsListener = null; // To hold the unsubscribe function for the posts listener
+        let resizedThumbnailBlob = null;
+        
+        // --- UNSUBSCRIBE FUNCTIONS FOR LISTENERS ---
+        let userDocListener = null;
+        let usersListener = null;
+        let postsListener = null;
 
         // --- MODAL & FORM SWITCHING LOGIC ---
         function showModal(modal) {
@@ -1041,65 +899,79 @@
         document.getElementById('show-login-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
 
         // --- AUTHENTICATION STATE & LOGIC ---
-        onAuthStateChanged(auth, async (user) => {
-            // Detach any existing listeners before proceeding
+        onAuthStateChanged(auth, (user) => {
+            // Detach all listeners to prevent memory leaks on user change
+            if (userDocListener) userDocListener();
             if (usersListener) usersListener();
             if (postsListener) postsListener();
 
             if (user) {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    currentUserData = { uid: user.uid, ...userDoc.data() };
-                    currentUserData.isAdmin = currentUserData.email === 'mikestancato@gmail.com';
-
-                    usernameDisplay.textContent = currentUserData.username;
-                    updatePlayerCard(currentUserData);
-                    updateAvatarDisplay(currentUserData);
-
-                    if(currentUserData.isVerified || currentUserData.isAdmin) {
-                        createPostBtn.classList.remove('hidden');
-                    } else {
-                        createPostBtn.classList.add('hidden');
+                // Attach a real-time listener to the logged-in user's document
+                userDocListener = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
+                    if (userDoc.exists()) {
+                        currentUserData = { uid: user.uid, ...userDoc.data() };
+                        updateUIForLoggedInUser();
                     }
-                }
-                loginBtn.classList.add('hidden');
-                userProfileContainer.classList.remove('hidden');
-                hideAllModals();
+                });
 
-                // Attach listeners now that we are authenticated
+                // Attach listeners for collections now that we are authenticated
                 usersListener = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
                     allPlayers = [];
                     querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
                     applyPlayerFilters();
                     updateTopAlliancesPodium(allPlayers);
-                }, (error) => {
-                    console.error("Error with users listener:", error);
-                });
+                }, (error) => console.error("Error with users listener:", error));
 
                 postsListener = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
                     let posts = [];
-                    querySnapshot.forEach((doc) => {
-                        posts.push({ id: doc.id, ...doc.data() });
-                    });
+                    querySnapshot.forEach((doc) => posts.push({ id: doc.id, ...doc.data() }));
                     renderPosts(posts);
-                }, (error) => {
-                    console.error("Error with posts listener:", error);
-                });
+                }, (error) => console.error("Error with posts listener:", error));
+
+                hideAllModals();
 
             } else {
+                // User is signed out
                 currentUserData = null;
                 allPlayers = [];
-                loginBtn.classList.remove('hidden');
-                userProfileContainer.classList.add('hidden');
-                userProfileContainer.classList.remove('open');
-                createPostBtn.classList.add('hidden');
-                // Clear UI
-                renderPosts([]);
-                renderPlayers([]);
+                updateUIForLoggedOutUser();
             }
-            buildMobileNav();
+            buildMobileNav(); // Rebuild mobile nav to show correct auth state
         });
         
+        function updateUIForLoggedInUser() {
+            if (!currentUserData) return;
+            usernameDisplay.textContent = currentUserData.username;
+            updateAvatarDisplay(currentUserData);
+            updatePlayerCard(currentUserData);
+
+            const canCreateAnyPost = Object.values(POST_TYPES).some(type => {
+                if (type.isAdminOnly) return currentUserData.isAdmin;
+                if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
+                if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
+                return false;
+            });
+            
+            if (canCreateAnyPost) {
+                createPostBtn.classList.remove('hidden');
+            } else {
+                createPostBtn.classList.add('hidden');
+            }
+
+            loginBtn.classList.add('hidden');
+            userProfileContainer.classList.remove('hidden');
+        }
+
+        function updateUIForLoggedOutUser() {
+            loginBtn.classList.remove('hidden');
+            userProfileContainer.classList.add('hidden');
+            userProfileContainer.classList.remove('open');
+            createPostBtn.classList.add('hidden');
+            // Clear UI content
+            renderPosts([]);
+            renderPlayers([]);
+        }
+
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -1112,11 +984,9 @@
 
             signInWithEmailAndPassword(auth, email, password).catch((error) => {
                 console.error("Login Error:", error);
-                if (error.code === 'auth/invalid-credential') {
-                     errorElement.textContent = "Invalid email or password.";
-                } else {
-                     errorElement.textContent = "An unknown error occurred.";
-                }
+                errorElement.textContent = (error.code === 'auth/invalid-credential') 
+                    ? "Invalid email or password." 
+                    : "An unknown error occurred.";
             }).finally(() => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Login';
@@ -1131,12 +1001,13 @@
             e.preventDefault();
             const email = prompt("Please enter your email address to receive a password reset link:");
             if (!email) return;
+
             sendPasswordResetEmail(auth, email)
                 .then(() => alert('Password reset email sent! Please check your inbox.'))
                 .catch((error) => alert(error.message));
         });
         
-        // --- PLAYER CARD & EDIT PROFILE ---
+        // --- PLAYER CARD, AVATAR & EDIT PROFILE ---
         playerCardBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             userProfileContainer.classList.toggle('open');
@@ -1146,6 +1017,33 @@
             userProfileContainer.classList.remove('open');
             showEditProfileModal();
         });
+
+        uploadAvatarBtn.addEventListener('click', () => avatarUploadInput.click());
+
+        avatarUploadInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            const user = auth.currentUser;
+            if (!file || !user) return;
+
+            userAvatarButton.style.opacity = '0.5';
+            try {
+                const resizedBlob = await resizeImage(file, 300, 300);
+                const avatarRef = ref(storage, `avatars/${user.uid}`);
+                await uploadBytes(avatarRef, resizedBlob);
+                const downloadURL = await getDownloadURL(avatarRef);
+                await updateDoc(doc(db, "users", user.uid), { avatarUrl: downloadURL });
+            } catch (error) {
+                console.error("Avatar upload error:", error);
+                alert("Failed to upload avatar. Please try again.");
+            } finally {
+                userAvatarButton.style.opacity = '1';
+            }
+        });
+
+        function updateAvatarDisplay(data) {
+            const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
+            userAvatarButton.src = avatarUrl;
+        }
 
         function updatePlayerCard(data) {
              playerCardInfo.innerHTML = `
@@ -1197,9 +1095,6 @@
 
             try {
                 await updateDoc(doc(db, "users", user.uid), updatedData);
-                usernameDisplay.textContent = updatedData.username;
-                currentUserData = {...currentUserData, ...updatedData };
-                updatePlayerCard(currentUserData);
                 hideAllModals();
             } catch (error) {
                 console.error("Update profile error:", error);
@@ -1209,7 +1104,7 @@
 
 
         // --- REGISTRATION STEPPER LOGIC ---
-        let currentRegStep = 0;
+        let currentRegStep = 1;
         let resizedAvatarBlob = null;
         const registrationFlow = document.getElementById('registration-flow');
         const registrationSuccess = document.getElementById('registration-success');
@@ -1265,34 +1160,47 @@
             document.getElementById('register-avatar-input').click();
         });
 
-        document.getElementById('register-avatar-input').addEventListener('change', (e) => {
+        document.getElementById('register-avatar-input').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = 300;
-                    canvas.height = 300;
-                    ctx.drawImage(img, 0, 0, 300, 300);
-                    document.getElementById('register-avatar-preview').src = canvas.toDataURL('image/jpeg');
-                    canvas.toBlob((blob) => {
-                        resizedAvatarBlob = blob;
-                    }, 'image/jpeg', 0.9);
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+            resizedAvatarBlob = await resizeImage(file, 300, 300);
+            document.getElementById('register-avatar-preview').src = URL.createObjectURL(resizedAvatarBlob);
         });
+        
+        // Helper function to resize images, returns a Promise with the blob
+        function resizeImage(file, width, height) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Canvas to Blob conversion failed'));
+                            }
+                        }, 'image/jpeg', 0.9);
+                    };
+                    img.onerror = reject;
+                    img.src = event.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
 
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!validateRegStep(currentRegStep)) return;
             regSubmitBtn.disabled = true;
-            regSubmitBtn.textContent = 'Registering...';
+            regSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Registering...';
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
@@ -1315,16 +1223,17 @@
                 }
 
                 const userProfile = {
-                    uid: user.uid, username, email, alliance, allianceRank, power, tankPower, airPower, missilePower,
+                    username, email, alliance, allianceRank, power, tankPower, airPower, missilePower,
                     likes: 0, allianceRole: '', isVerified: false, avatarUrl,
-                    isAdmin: email === 'mikestancato@gmail.com', // Set admin status
+                    isAdmin: email === 'mikestancato@gmail.com',
                     registrationTimestampUTC: new Date().toISOString(),
                 };
                 if (userProfile.isAdmin) {
-                    userProfile.isVerified = true; // Auto-verify admin
+                    userProfile.isVerified = true;
                 }
 
                 await setDoc(doc(db, "users", user.uid), userProfile);
+                
                 registrationFlow.style.display = 'none';
                 registrationSuccess.style.display = 'block';
                 setTimeout(hideAllModals, 3000);
@@ -1341,8 +1250,6 @@
         let currentPostStep = 1;
         const postFlow = document.getElementById('post-creation-flow');
         const postFormSlides = postFlow.querySelectorAll('.form-slide');
-        const postProgressSteps = postFlow.querySelectorAll('.progress-step');
-        const postProgressBarLine = postFlow.querySelector('.progress-bar .line');
         const postBackBtn = document.getElementById('post-back-btn');
         const postNextBtn = document.getElementById('post-next-btn');
         const postSubmitBtn = document.getElementById('post-submit-btn');
@@ -1351,53 +1258,136 @@
         function initializePostStepper() {
             document.getElementById('create-post-form').reset();
             postCreationData = {};
+            resizedThumbnailBlob = null;
+            document.getElementById('post-thumbnail-preview').src = 'https://placehold.co/100x100/161B22/444444?text=300x300';
             currentPostStep = 1;
+            populateMainTypeSelection();
             showPostStep(currentPostStep);
+        }
+
+        function getAvailablePostTypes(mainType) {
+            return Object.entries(POST_TYPES).filter(([key, type]) => {
+                if (type.mainType !== mainType) return false;
+                if (type.isAdminOnly) return currentUserData.isAdmin;
+                if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
+                if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
+                return false;
+            });
+        }
+
+        function populateMainTypeSelection() {
+            const container = document.getElementById('post-main-type-selection-container');
+            container.innerHTML = '';
+
+            const canCreateAnnouncement = getAvailablePostTypes('announcement').length > 0;
+            const canCreateEvent = getAvailablePostTypes('event').length > 0;
+
+            if (canCreateAnnouncement && canCreateEvent) {
+                // Show choice
+                container.innerHTML = `
+                    <button type="button" data-main-type="announcement" class="main-type-btn type-selection-card w-full p-6 rounded-lg text-center">
+                        <i class="fas fa-bullhorn fa-3x mb-3 text-gray-400"></i>
+                        <h3 class="font-bold text-lg text-white">Announcement</h3>
+                        <p class="text-sm text-gray-500">Share news with the server or your alliance.</p>
+                    </button>
+                    <button type="button" data-main-type="event" class="main-type-btn type-selection-card w-full p-6 rounded-lg text-center">
+                        <i class="fas fa-calendar-alt fa-3x mb-3 text-gray-400"></i>
+                        <h3 class="font-bold text-lg text-white">Event</h3>
+                        <p class="text-sm text-gray-500">Schedule a one-time or recurring event.</p>
+                    </button>
+                `;
+                container.querySelectorAll('.main-type-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        postCreationData.mainType = btn.dataset.mainType;
+                        currentPostStep++;
+                        populateSubTypeSelection();
+                        showPostStep(currentPostStep);
+                    });
+                });
+            } else if (canCreateAnnouncement) {
+                postCreationData.mainType = 'announcement';
+                populateSubTypeSelection();
+                showPostStep(2); // Skip to sub-type selection
+            } else if (canCreateEvent) {
+                postCreationData.mainType = 'event';
+                populateSubTypeSelection();
+                showPostStep(2); // Skip to sub-type selection
+            } else {
+                container.innerHTML = `<p class="text-center text-gray-400">You do not have permission to create any posts.</p>`;
+            }
+        }
+        
+        function populateSubTypeSelection() {
+            const container = document.getElementById('post-subtype-selection-container');
+            const header = document.getElementById('post-subtype-header');
+            header.textContent = `Select ${postCreationData.mainType.charAt(0).toUpperCase() + postCreationData.mainType.slice(1)} Type`;
+            container.innerHTML = '';
+            
+            const availableSubTypes = getAvailablePostTypes(postCreationData.mainType);
+
+            availableSubTypes.forEach(([key, type]) => {
+                const style = POST_STYLES[type.subType];
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.dataset.key = key;
+                button.className = 'type-selection-card w-full p-4 rounded-lg text-left flex items-center gap-4';
+                button.innerHTML = `
+                    <i class="${style.icon} fa-2x w-10 text-center" style="color: ${style.color};"></i>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">${type.text}</h3>
+                        <p class="text-sm text-gray-500">Create a new ${type.subType.replace('_', ' ')} ${type.mainType}.</p>
+                    </div>
+                `;
+                button.addEventListener('click', () => {
+                    Object.assign(postCreationData, type);
+                    currentPostStep++;
+                    showPostStep(currentPostStep);
+                });
+                container.appendChild(button);
+            });
         }
 
         function showPostStep(stepIndex) {
             postFormSlides.forEach(slide => slide.classList.remove('active'));
             const currentSlide = postFlow.querySelector(`.form-slide[data-slide="${stepIndex}"]`);
             if(currentSlide) currentSlide.classList.add('active');
-
-            const totalSteps = postCreationData.mainType === 'event' ? 4 : 3;
-            document.getElementById('post-progress-bar').style.display = 'flex';
-            if (stepIndex === 1) document.getElementById('post-progress-bar').style.display = 'none';
-
-
-            postProgressSteps.forEach((step, index) => {
-                step.classList.toggle('active', index < stepIndex -1);
-                step.style.display = index < totalSteps ? 'flex' : 'none';
-            });
-            postProgressBarLine.style.width = `${((stepIndex - 1) / (totalSteps - 1)) * 100}%`;
             
+            const isEvent = postCreationData.mainType === 'event';
+            const totalSteps = isEvent ? 4 : 3;
+
             postBackBtn.style.visibility = stepIndex === 1 ? 'hidden' : 'visible';
-            postNextBtn.classList.toggle('hidden', stepIndex === totalSteps);
+            postNextBtn.classList.toggle('hidden', stepIndex >= totalSteps);
             postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
+            
+            if(stepIndex === 3) { // Content slide
+                const header = document.getElementById('post-content-header');
+                header.textContent = `New ${postCreationData.text}`;
+                const allianceGroup = document.getElementById('post-alliance-group');
+                if(currentUserData.isAdmin && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership')) {
+                    allianceGroup.classList.remove('hidden');
+                } else {
+                    allianceGroup.classList.add('hidden');
+                }
+            }
         }
 
         function validatePostStep(stepIndex) {
             createPostError.textContent = '';
-            if (stepIndex === 1) {
-                if (!postCreationData.mainType) {
-                    createPostError.textContent = 'Please select a post type.';
-                    return false;
-                }
-            } else if (stepIndex === 2) {
-                if (!document.getElementById('post-subtype').value) {
-                    createPostError.textContent = 'Please select a category.';
-                    return false;
-                }
-            } else if (stepIndex === 3) {
+            if (stepIndex === 3) { // Content slide
                  if (!document.getElementById('post-title').value || !document.getElementById('post-details').value) {
                     createPostError.textContent = 'Title and details are required.';
                     return false;
                 }
-            } else if (stepIndex === 4 && postCreationData.mainType === 'event') {
+            } else if (stepIndex === 4 && postCreationData.mainType === 'event') { // Timing slide
                 const isRecurring = document.getElementById('post-repeat-weekly').checked;
                 if (!isRecurring) {
-                    if (!document.getElementById('post-start-time').value || !document.getElementById('post-end-time').value) {
-                        createPostError.textContent = 'Start and end times are required for events.';
+                    if (!document.getElementById('post-start-time').dataset.isoValue || !document.getElementById('post-end-time').dataset.isoValue) {
+                        createPostError.textContent = 'Start and end times are required for non-recurring events.';
+                        return false;
+                    }
+                } else {
+                    if (!document.getElementById('post-start-time').dataset.isoValue) {
+                        createPostError.textContent = 'A start time is required for recurring events.';
                         return false;
                     }
                 }
@@ -1407,65 +1397,46 @@
         
         postNextBtn.addEventListener('click', () => {
             if (validatePostStep(currentPostStep)) {
-                if (currentPostStep === 3 && postCreationData.mainType === 'announcement') {
-                    currentPostStep++; 
-                }
                 currentPostStep++;
                 showPostStep(currentPostStep);
             }
         });
         
         postBackBtn.addEventListener('click', () => {
-            if (currentPostStep === 5 && postCreationData.mainType === 'announcement') {
-                currentPostStep--;
-            }
             currentPostStep--;
             showPostStep(currentPostStep);
         });
 
-        document.querySelectorAll('.post-type-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                postCreationData.mainType = btn.dataset.type;
-                document.getElementById('selected-main-type-text').textContent = postCreationData.mainType;
-                currentPostStep++;
-                showPostStep(currentPostStep);
-            });
+        document.getElementById('post-thumbnail-btn').addEventListener('click', () => {
+            document.getElementById('post-thumbnail-input').click();
         });
 
-        document.getElementById('post-subtype').addEventListener('change', () => {
-            const subTypeValue = document.getElementById('post-subtype').value;
-            const subTypeConfig = SUB_TYPES[postCreationData.mainType]?.find(s => s.value === subTypeValue);
-            const allianceGroup = document.getElementById('post-alliance-group');
-            
-            if (currentUserData.isAdmin && subTypeConfig && (subTypeValue === 'alliance' || subTypeValue === 'leadership')) {
-                allianceGroup.classList.remove('hidden');
-            } else {
-                allianceGroup.classList.add('hidden');
-            }
-            document.getElementById('post-event-dates').classList.toggle('hidden', postCreationData.mainType !== 'event');
-            document.getElementById('post-recurring-announcement').classList.toggle('hidden', postCreationData.mainType === 'event');
+        document.getElementById('post-thumbnail-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            resizedThumbnailBlob = await resizeImage(file, 300, 300);
+            document.getElementById('post-thumbnail-preview').src = URL.createObjectURL(resizedThumbnailBlob);
         });
-
+        
+        document.getElementById('post-repeat-weekly').addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            document.getElementById('post-event-dates').style.display = isChecked ? 'none' : 'grid';
+            document.getElementById('post-repeat-weeks-container').style.display = isChecked ? 'block' : 'none';
+        });
 
         // --- EVENTS & ANNOUNCEMENTS LOGIC ---
         function renderPosts(posts) {
-            if (!currentUserData) { 
-                announcementsContainer.innerHTML = '';
-                eventsContainer.innerHTML = '';
-                return;
-            }
-
             const visiblePosts = posts.filter(post => {
+                if (!currentUserData) return false;
                 if (post.visibility === 'public') return true;
                 if (currentUserData.isAdmin) return true; 
-                if (post.visibility === 'leadership') return currentUserData.allianceRank === 'R5';
-                if (post.visibility === `alliance_${currentUserData.alliance}`) return true;
+                if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
                 return false;
             });
 
             const announcements = visiblePosts
                 .filter(p => p.mainType === 'announcement')
-                .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+                .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
 
             const events = visiblePosts
                 .filter(p => p.mainType === 'event')
@@ -1504,44 +1475,71 @@
             const isAdmin = currentUserData && currentUserData.isAdmin;
             const isAuthor = currentUserData && currentUserData.uid === post.authorUid;
             const canEdit = isAdmin || isAuthor;
+            
+            const style = POST_STYLES[post.subType] || POST_STYLES.alliance;
+            
+            card.className = 'post-card glass-pane relative';
+            card.style.borderColor = style.color;
+            card.style.setProperty('--card-bg-color', style.bgColor);
 
-            const isEvent = post.mainType === 'event';
-            const borderColor = isEvent ? 'var(--color-primary)' : 'var(--color-highlight)';
-            card.className = 'post-card glass-pane p-4 relative';
-            card.style.borderColor = borderColor;
-
-            let tagColor = isEvent ? 'bg-blue-500' : 'bg-red-500';
-            const postDate = post.createdAt.toDate().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+            const postDate = post.createdAt?.toDate().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) || '...';
             let timeHTML = '';
 
             if (post.isRecurring) {
-                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                const localTime = post.recurringTime ? new Date(`1970-01-01T${post.recurringTime}Z`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A';
-                timeHTML = `<p class="text-cyan-400"><i class="fas fa-sync-alt w-5"></i>Repeats weekly on ${days[post.recurringDay]} at ${localTime}</p>`;
-            } else if (isEvent) {
+                const weeks = post.repeatWeeks || 1;
+                const startTime = post.startTime?.toDate();
+                let endTimeText = 'N/A';
+                if (startTime) {
+                    const endTime = new Date(startTime.getTime() + weeks * 7 * 24 * 60 * 60 * 1000);
+                    endTimeText = endTime.toLocaleString();
+                }
+                timeHTML = `<div class="flex items-center gap-2 text-cyan-400"><i class="fas fa-sync-alt fa-fw"></i><span>Repeats weekly for ${weeks} week(s). Ends ~${endTimeText}</span></div>`;
+            } else if (post.mainType === 'event') {
                 const startTime = post.startTime?.toDate().toLocaleString() || 'N/A';
                 const endTime = post.endTime?.toDate().toLocaleString() || 'N/A';
-                timeHTML = `<p class="text-green-400"><i class="fas fa-play-circle w-5"></i>Starts: ${startTime}</p>
-                            <p class="text-red-400"><i class="fas fa-stop-circle w-5"></i>Ends: ${endTime}</p>`;
+                timeHTML = `
+                    <div class="flex items-center gap-2 text-green-400"><i class="fas fa-play-circle fa-fw"></i><span>Starts: ${startTime}</span></div>
+                    <div class="flex items-center gap-2 text-red-400"><i class="fas fa-stop-circle fa-fw"></i><span>Ends: ${endTime}</span></div>
+                `;
             }
+            
+            const bannerHTML = post.thumbnailUrl ? `<div class="post-card-banner" style="background-image: url(${post.thumbnailUrl})"></div>` : '';
 
             card.innerHTML = `
-                ${canEdit ? `<button class="absolute top-3 right-3 text-gray-400 hover:text-white delete-post-btn" data-id="${post.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
-                <div class="flex items-start gap-3 flex-wrap">
-                    <span class="post-tag ${tagColor}">${post.subType}</span>
-                    ${post.alliance ? `<span class="post-tag bg-gray-700">[${post.alliance}]</span>` : ''}
+                ${canEdit ? `<button class="absolute top-3 right-3 text-gray-400 hover:text-white delete-post-btn z-10" data-id="${post.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
+                ${bannerHTML}
+                <div class="post-card-header">
+                    <i class="post-card-icon ${style.icon}" style="color: ${style.color};"></i>
+                    <div>
+                        <h4 class="post-card-title text-white">${post.title}</h4>
+                        <p class="post-card-meta">
+                            ${post.subType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} ${post.mainType} ${post.alliance ? `for [${post.alliance}]` : ''}
+                        </p>
+                    </div>
                 </div>
-                <h4 class="text-lg font-bold text-white mt-2">${post.title}</h4>
-                <p class="text-sm text-gray-400 mt-1">By ${post.authorUsername} on ${postDate}</p>
-                <p class="text-gray-300 mt-3 whitespace-pre-wrap">${post.details}</p>
-                ${timeHTML ? `<div class="mt-3 pt-3 border-t border-white/10 text-sm">${timeHTML}</div>` : ''}
+                <div class="post-card-body">
+                    <p class="text-gray-300 whitespace-pre-wrap">${post.details}</p>
+                    <div class="post-card-details">
+                        <div class="post-card-time-info">${timeHTML}</div>
+                        <p class="text-xs text-gray-500 mt-3 text-right">By ${post.authorUsername} on ${postDate}</p>
+                    </div>
+                </div>
             `;
 
             if(canEdit) {
-                card.querySelector('.delete-post-btn').addEventListener('click', async (e) => {
+                const deleteBtn = card.querySelector('.delete-post-btn');
+                deleteBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    if(confirm('Are you sure you want to delete this post?')) {
+                    const isConfirm = deleteBtn.classList.contains('confirm-delete');
+                    if (isConfirm) {
                         await deleteDoc(doc(db, "posts", post.id));
+                    } else {
+                        deleteBtn.classList.add('confirm-delete');
+                        deleteBtn.innerHTML = 'Confirm?';
+                        setTimeout(() => {
+                            deleteBtn.classList.remove('confirm-delete');
+                            deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                        }, 3000);
                     }
                 });
             }
@@ -1550,31 +1548,32 @@
 
         document.getElementById('create-post-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const submitBtn = document.getElementById('post-submit-btn');
             if (!currentUserData) {
                 createPostError.textContent = 'You must be logged in to post.';
                 return;
             }
             if (!validatePostStep(currentPostStep)) return;
 
-            const subTypeValue = document.getElementById('post-subtype').value;
-            const subTypeConfig = SUB_TYPES[postCreationData.mainType]?.find(s => s.value === subTypeValue);
-            
-            let alliance = (subTypeValue === 'alliance' || subTypeValue === 'leadership') 
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+
+            let alliance = (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership') 
                 ? (currentUserData.isAdmin ? document.getElementById('post-alliance').value : currentUserData.alliance)
                 : null;
-            if (!alliance && (subTypeValue === 'alliance' || subTypeValue === 'leadership')) {
+            if (!alliance && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership')) {
                 createPostError.textContent = 'Alliance is required for this post type.';
                 return;
             }
             
-            let visibility = subTypeConfig.visibility;
+            let visibility = postCreationData.visibility;
             if (visibility === 'alliance') {
                 visibility = `alliance_${alliance}`;
             }
 
             const finalPostData = {
                 mainType: postCreationData.mainType,
-                subType: subTypeValue,
+                subType: postCreationData.subType,
                 title: document.getElementById('post-title').value,
                 details: document.getElementById('post-details').value,
                 authorUid: currentUserData.uid,
@@ -1583,35 +1582,48 @@
                 alliance: alliance,
                 visibility: visibility,
                 isRecurring: document.getElementById('post-repeat-weekly').checked,
+                thumbnailUrl: null
             };
 
-            if (finalPostData.isRecurring) {
-                const now = new Date();
-                finalPostData.recurringDay = now.getUTCDay(); // Sunday = 0... in UTC
-                finalPostData.recurringTime = now.toUTCString().slice(17, 22); // "HH:mm" in UTC
-            }
-            
-            if (postCreationData.mainType === 'event' && !finalPostData.isRecurring) {
-                const startTimeValue = document.getElementById('post-start-time').value;
-                const endTimeValue = document.getElementById('post-end-time').value;
+            if (postCreationData.mainType === 'event') {
+                const startTimeValue = document.getElementById('post-start-time').dataset.isoValue;
                 finalPostData.startTime = new Date(startTimeValue);
-                finalPostData.endTime = new Date(endTimeValue);
-                if (finalPostData.endTime <= finalPostData.startTime) {
-                    createPostError.textContent = 'End time must be after start time.';
-                    return;
+                
+                if (finalPostData.isRecurring) {
+                    finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
+                } else {
+                    const endTimeValue = document.getElementById('post-end-time').dataset.isoValue;
+                    finalPostData.endTime = new Date(endTimeValue);
+                    if (finalPostData.endTime <= finalPostData.startTime) {
+                        createPostError.textContent = 'End time must be after start time.';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Create Post';
+                        return;
+                    }
                 }
             }
             
             try {
-                await addDoc(collection(db, 'posts'), finalPostData);
+                const postDocRef = await addDoc(collection(db, 'posts'), finalPostData);
+                
+                if (resizedThumbnailBlob) {
+                    const thumbnailRef = ref(storage, `post_thumbnails/${postDocRef.id}`);
+                    await uploadBytes(thumbnailRef, resizedThumbnailBlob);
+                    const downloadURL = await getDownloadURL(thumbnailRef);
+                    await updateDoc(postDocRef, { thumbnailUrl: downloadURL });
+                }
+
                 hideAllModals();
             } catch (error) {
                 console.error("Error creating post: ", error);
                 createPostError.textContent = 'Failed to create post.';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Create Post';
             }
         });
 
-        // --- PLAYER LIST LOGIC ---
+        // --- PLAYER LIST & SETTINGS LOGIC ---
         function applyPlayerFilters() {
             const searchTerm = playerSearchInput.value.toLowerCase();
             const allianceFilter = allianceFilterInput.value;
@@ -1639,17 +1651,9 @@
                 card.dataset.rank = player.allianceRank;
 
                 let gearIconHTML = '';
-                if (currentUserData && currentUserData.uid !== player.uid) { // Don't show gear on self
-                    const isAdmin = currentUserData.isAdmin;
-                    const isR5 = currentUserData.allianceRank === 'R5';
-                    const isR4 = currentUserData.allianceRank === 'R4';
-                    
-                    let showGear = false;
-                    if (isAdmin) showGear = true;
-                    if (isR5 && player.alliance === currentUserData.alliance && ['R1','R2','R3','R4'].includes(player.allianceRank)) showGear = true;
-                    if (isR4 && player.alliance === currentUserData.alliance && ['R1','R2','R3'].includes(player.allianceRank)) showGear = true;
-                    
-                    if(showGear) {
+                if (currentUserData && currentUserData.uid !== player.uid) {
+                    const canManage = canManageUser(currentUserData, player);
+                    if(canManage) {
                         gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
                     }
                 }
@@ -1659,7 +1663,7 @@
                 card.innerHTML = `
                     ${gearIconHTML}
                     <div class="flex items-center pb-3 border-b" style="border-color: rgba(255,255,255,0.1);">
-                        <img src="${avatarUrl}" class="w-12 h-12 rounded-full mr-4 border-2 object-cover" style="border-color: rgba(255,255,255,0.2);" alt="${player.username}">
+                        <img src="${avatarUrl}" class="w-12 h-12 rounded-full mr-4 border-2 object-cover" style="border-color: rgba(255,255,255,0.2);" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
                         <div>
                             <h3 class="font-bold text-lg text-white">${player.username}</h3>
                             <p class="text-sm font-semibold" style="color: var(--color-primary);">[${player.alliance}] - ${player.allianceRank}</p>
@@ -1699,6 +1703,58 @@
                 playerListContainer.appendChild(card);
             });
         }
+        
+        function canManageUser(manager, targetUser) {
+            if (!manager || !targetUser) return false;
+            if (manager.isAdmin) return true;
+            if (manager.alliance !== targetUser.alliance) return false;
+            if (manager.allianceRank === 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
+            if (manager.allianceRank === 'R4' && ['R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
+            return false;
+        }
+
+        function populatePlayerSettingsForm(player) {
+            document.getElementById('player-settings-username').textContent = player.username;
+            const rankSelect = document.getElementById('setting-alliance-rank').closest('.custom-select-container');
+            const roleSelect = document.getElementById('setting-alliance-role').closest('.custom-select-container');
+            const verifiedCheckbox = document.getElementById('setting-verified');
+            
+            setCustomSelectValue(rankSelect, player.allianceRank, ALLIANCE_RANKS.find(r => r.value === player.allianceRank)?.text);
+            setCustomSelectValue(roleSelect, player.allianceRole, ALLIANCE_ROLES.find(r => r.value === player.allianceRole)?.text);
+            verifiedCheckbox.checked = player.isVerified || false;
+
+            const canVerify = canManageUser(currentUserData, player);
+            verificationToggleContainer.style.display = canVerify ? 'flex' : 'none';
+        }
+
+        document.getElementById('player-settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!activePlayerSettingsUID || !currentUserData) return;
+
+            const targetPlayer = allPlayers.find(p => p.uid === activePlayerSettingsUID);
+            if (!targetPlayer) return;
+
+            const errorElement = document.getElementById('player-settings-error');
+            errorElement.textContent = '';
+
+            const updatedData = {
+                allianceRank: document.getElementById('setting-alliance-rank').value,
+                allianceRole: document.getElementById('setting-alliance-role').value,
+            };
+
+            if (canManageUser(currentUserData, targetPlayer)) {
+                updatedData.isVerified = document.getElementById('setting-verified').checked;
+            }
+
+            try {
+                await updateDoc(doc(db, "users", activePlayerSettingsUID), updatedData);
+                hideAllModals();
+            } catch (error) {
+                console.error("Error updating player settings:", error);
+                errorElement.textContent = "Failed to save settings.";
+            }
+        });
+
 
         // --- TOP ALLIANCES PODIUM LOGIC ---
         function updateTopAlliancesPodium(players) {
@@ -1780,17 +1836,6 @@
 
             valueButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-
-                // **BUG FIX**: Dynamically populate subtype options just before opening
-                if (type === 'post-subtype') {
-                    if (!currentUserData || !postCreationData.mainType) return;
-                    sourceData = SUB_TYPES[postCreationData.mainType].filter(sub => {
-                        if (currentUserData.isAdmin) return true;
-                        if (sub.isAdminOnly) return false;
-                        if (sub.allowedRanks) return sub.allowedRanks.includes(currentUserData.allianceRank);
-                        return false;
-                    });
-                }
 
                 const isOpen = container.classList.contains('open');
                 document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
@@ -1954,9 +1999,96 @@
              if (!activeSet) { const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]'); if (eventsLink) eventsLink.classList.add('active'); }
         }
 
+        // --- DATETIME PICKER LOGIC ---
+        const picker = document.getElementById('datetime-picker');
+        const monthYearEl = document.getElementById('dt-month-year');
+        const gridEl = document.getElementById('dt-calendar-grid');
+        const hourInput = document.getElementById('dt-hour');
+        const minuteInput = document.getElementById('dt-minute');
+        let activePickerInput = null;
+        let currentDate = new Date();
+        let selectedDate = new Date();
+
+        function renderDateTimePicker() {
+            gridEl.innerHTML = '';
+            monthYearEl.textContent = currentDate.toLocaleDateString([], { month: 'long', year: 'numeric' });
+
+            const month = currentDate.getMonth();
+            const year = currentDate.getFullYear();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            ['S','M','T','W','T','F','S'].forEach(day => {
+                gridEl.innerHTML += `<div class="dt-cell day-name">${day}</div>`;
+            });
+
+            for (let i = 0; i < firstDay; i++) {
+                gridEl.innerHTML += `<div class="dt-cell"></div>`;
+            }
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'dt-cell';
+                cell.textContent = i;
+                const today = new Date();
+                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    cell.classList.add('today');
+                }
+                if (i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear()) {
+                    cell.classList.add('selected');
+                }
+                cell.addEventListener('click', () => {
+                    selectedDate.setDate(i);
+                    selectedDate.setMonth(month);
+                    selectedDate.setFullYear(year);
+                    renderDateTimePicker();
+                });
+                gridEl.appendChild(cell);
+            }
+        }
+        
+        function showDateTimePicker(inputElement) {
+            activePickerInput = inputElement;
+            const initialDate = inputElement.dataset.isoValue ? new Date(inputElement.dataset.isoValue) : new Date();
+            currentDate = new Date(initialDate);
+            selectedDate = new Date(initialDate);
+            
+            hourInput.value = selectedDate.getHours().toString().padStart(2, '0');
+            minuteInput.value = selectedDate.getMinutes().toString().padStart(2, '0');
+
+            const rect = inputElement.getBoundingClientRect();
+            picker.style.top = `${rect.bottom + 5}px`;
+            picker.style.left = `${rect.left}px`;
+            picker.style.display = 'block';
+            renderDateTimePicker();
+        }
+
+        document.getElementById('dt-prev-month').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderDateTimePicker();
+        });
+        document.getElementById('dt-next-month').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderDateTimePicker();
+        });
+        document.getElementById('dt-save').addEventListener('click', () => {
+            selectedDate.setHours(parseInt(hourInput.value, 10));
+            selectedDate.setMinutes(parseInt(minuteInput.value, 10));
+            
+            activePickerInput.value = selectedDate.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+            activePickerInput.dataset.isoValue = selectedDate.toISOString();
+            picker.style.display = 'none';
+            activePickerInput = null;
+        });
+
+
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize all custom selects on the page
             document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
+
+            // Initialize DateTime Pickers
+            document.getElementById('post-start-time').addEventListener('click', (e) => showDateTimePicker(e.target));
+            document.getElementById('post-end-time').addEventListener('click', (e) => showDateTimePicker(e.target));
 
             const navItems = document.querySelectorAll('.nav-item');
             
@@ -1990,6 +2122,9 @@
                 }
                 if (!e.target.closest('.custom-select-container')) {
                     document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
+                }
+                if (!picker.contains(e.target) && e.target !== activePickerInput) {
+                    picker.style.display = 'none';
                 }
             });
 
