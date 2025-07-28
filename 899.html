@@ -854,6 +854,62 @@ CHANGELOG
         let activeFilters = new Set(Object.keys(POST_STYLES));
         let countdownInterval = null;
         
+        // --- COUNTDOWN LOGIC ---
+        function formatDuration(ms) {
+            if (ms < 0) ms = 0;
+            const totalSeconds = Math.floor(ms / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            let parts = [];
+            if (days > 0) parts.push(`${days}d`);
+            if (hours > 0) parts.push(`${hours}h`);
+            if (minutes > 0) parts.push(`${minutes}m`);
+            if (days === 0 && hours === 0) { // Only show seconds if less than an hour left
+                parts.push(`${seconds}s`);
+            }
+            
+            return parts.slice(0, 3).join(' ') || '0s'; // Show at most 3 parts, or 0s if it's over
+        }
+
+        function updateCountdowns() {
+            const now = new Date();
+            document.querySelectorAll('.post-card-time-info').forEach(el => {
+                const startTimeAttr = el.dataset.startTime;
+                const endTimeAttr = el.dataset.endTime;
+                const isRecurring = el.dataset.isRecurring === 'true';
+
+                if (!startTimeAttr || startTimeAttr === 'null' || startTimeAttr === 'undefined') {
+                    el.innerHTML = '<span class="text-gray-500">Time not specified</span>';
+                    return;
+                }
+                
+                const startTime = new Date(startTimeAttr);
+                const endTime = (endTimeAttr && endTimeAttr !== 'null' && endTimeAttr !== 'undefined') ? new Date(endTimeAttr) : null;
+
+                if (isRecurring) {
+                    const dayOfWeek = startTime.toLocaleDateString([], { weekday: 'long' });
+                    const time = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    el.innerHTML = `<span style="color: var(--post-color-seasonal);"><i class="fas fa-redo-alt mr-2"></i>Weekly on ${dayOfWeek} at ${time}</span>`;
+                    return;
+                }
+
+                const diffToStart = startTime - now;
+                const diffToEnd = endTime ? endTime - now : null;
+
+                if (diffToStart > 0) {
+                    el.innerHTML = `<span class="text-yellow-400"><i class="far fa-clock mr-2"></i>Starts in: ${formatDuration(diffToStart)}</span>`;
+                } else if (diffToEnd !== null && diffToEnd > 0) {
+                    el.innerHTML = `<span class="text-red-500 animate-pulse"><i class="fas fa-broadcast-tower mr-2"></i>LIVE | Ends in: ${formatDuration(diffToEnd)}</span>`;
+                } else {
+                    const endedDate = endTime || startTime;
+                    el.innerHTML = `<span class="text-gray-500"><i class="fas fa-check-circle mr-2"></i>Ended on ${endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>`;
+                }
+            });
+        }
+
         // --- UNSUBSCRIBE FUNCTIONS FOR LISTENERS ---
         let userDocListener = null;
         let usersListener = null;
@@ -2130,7 +2186,7 @@ CHANGELOG
                 if (!e.target.closest('.custom-select-container')) {
                     document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
                 }
-                if (!picker.contains(e.target) && e.target !== activePickerInput) {
+                if (picker && !picker.contains(e.target) && e.target !== activePickerInput) {
                     picker.style.display = 'none';
                 }
             });
