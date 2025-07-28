@@ -115,6 +115,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 18: Separated Events and Announcements into distinct, professionally styled sections.
+- Prompt 18: Created a new, visually appealing card layout for announcements.
+- Prompt 18: Overhauled the event list item design for better clarity, visual hierarchy, and interactivity.
 - Prompt 17: Completely overhauled event/announcement display to a more professional, grouped list format.
 - Prompt 17: Added dynamic status indicators (Live, Upcoming, Ended) with unique styling and animations for each state.
 - Prompt 17: Implemented themed group headers for better organization of the event list.
@@ -293,7 +296,16 @@ CHANGELOG
         #mobile-nav-menu, #mobile-filter-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 1100; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #mobile-nav-menu.open, #mobile-filter-panel.open { transform: translateX(0); }
         
-        /* New Event List Styles */
+        /* New Event & Announcement Styles */
+        .section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--color-primary), transparent) 1; }
+        
+        .announcement-card { background: linear-gradient(135deg, rgba(22, 27, 34, 0.4), rgba(22, 27, 34, 0.2)); border: 1px solid rgba(255,255,255,0.1); padding: 1rem; border-radius: 0.75rem; animation: fadeIn 0.5s ease-out; }
+        .announcement-header { display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.75rem; }
+        .announcement-author-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-primary); }
+        .announcement-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+        .announcement-meta { font-size: 0.75rem; color: #8b949e; }
+        .announcement-body { padding-top: 0.75rem; font-size: 0.9rem; color: #c9d1d9; }
+
         .event-group-header { font-size: 1.2rem; font-weight: 800; color: #fff; padding: 0.5rem 1rem; background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border-radius: 0.5rem; margin-bottom: 0.5rem; }
         .event-list-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background-color: rgba(13, 17, 23, 0.5); border-radius: 0.5rem; border-left: 4px solid transparent; transition: all 0.3s ease; animation: fadeIn 0.5s ease-out forwards; }
         .event-list-item:hover { background-color: rgba(13, 17, 23, 0.8); transform: translateX(5px); }
@@ -726,6 +738,9 @@ CHANGELOG
                         </div>
                         <div class="themed-divider hidden"></div>
 
+                        <div id="announcements-container" class="space-y-4">
+                            <!-- New announcement cards will be rendered here -->
+                        </div>
                         <div id="event-list-container" class="space-y-6">
                             <!-- New event list will be rendered here -->
                         </div>
@@ -869,6 +884,7 @@ CHANGELOG
         const playerSearchInput = document.getElementById('player-search-input');
         const allianceFilterInput = document.getElementById('alliance-filter');
         const createPostBtn = document.getElementById('create-post-btn');
+        const announcementsContainer = document.getElementById('announcements-container');
         const eventListContainer = document.getElementById('event-list-container');
         const userAvatarButton = document.getElementById('user-avatar-button');
         const uploadAvatarBtn = document.getElementById('upload-avatar-btn');
@@ -1528,6 +1544,7 @@ CHANGELOG
 
         function renderPosts(posts) {
             if (countdownInterval) clearInterval(countdownInterval);
+            announcementsContainer.innerHTML = '';
             eventListContainer.innerHTML = '';
 
             const visiblePosts = posts.filter(post => {
@@ -1539,8 +1556,58 @@ CHANGELOG
                 return false;
             });
 
+            const announcements = visiblePosts
+                .filter(p => p.mainType === 'announcement')
+                .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+
+            const events = visiblePosts.filter(p => p.mainType === 'event');
+            
+            renderAnnouncements(announcements);
+            renderEvents(events);
+
+            countdownInterval = setInterval(updateCountdowns, 1000);
+        }
+
+        function renderAnnouncements(announcements) {
+             if (announcements.length > 0) {
+                const header = document.createElement('h3');
+                header.className = 'section-header text-xl font-bold mb-4';
+                header.style.setProperty('--color-primary', 'var(--color-highlight)');
+                header.innerHTML = `<i class="fas fa-bullhorn"></i>Announcements`;
+                announcementsContainer.appendChild(header);
+                announcements.forEach(post => {
+                    announcementsContainer.appendChild(createAnnouncementCard(post));
+                });
+            }
+        }
+
+        function createAnnouncementCard(post) {
+            const card = document.createElement('div');
+            card.className = 'announcement-card';
+            const postDate = post.createdAt?.toDate().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) || '...';
+            
+            // Find author data to get avatar
+            const author = allPlayers.find(p => p.uid === post.authorUid);
+            const avatarUrl = author?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${post.authorUsername.charAt(0).toUpperCase()}`;
+
+            card.innerHTML = `
+                <div class="announcement-header">
+                    <img src="${avatarUrl}" class="announcement-author-avatar">
+                    <div>
+                        <p class="announcement-title">${post.title}</p>
+                        <p class="announcement-meta">By ${post.authorUsername} on ${postDate}</p>
+                    </div>
+                </div>
+                <div class="announcement-body">
+                    <p>${post.details}</p>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderEvents(events) {
             Object.entries(EVENT_GROUPS).forEach(([groupName, subTypes]) => {
-                const groupPosts = visiblePosts.filter(p => subTypes.includes(p.subType));
+                const groupPosts = events.filter(p => subTypes.includes(p.subType));
                 if (groupPosts.length > 0) {
                     const header = document.createElement('h3');
                     header.className = 'event-group-header';
@@ -1557,8 +1624,7 @@ CHANGELOG
                     eventListContainer.appendChild(list);
                 }
             });
-
-            countdownInterval = setInterval(updateCountdowns, 1000);
+            updateCountdowns();
         }
 
         function createEventListItem(post) {
