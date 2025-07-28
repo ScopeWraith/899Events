@@ -115,6 +115,11 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 14: Widened main layout to fix header crowding and better utilize space.
+- Prompt 14: Completely redesigned and fixed the Event Schedule modal layout for clarity.
+- Prompt 14: Visually optimized event type selection buttons and section headers.
+- Prompt 14: Hid the main "Events & Announcements" title and divider as requested.
+- Prompt 14: Corrected and locked the Firebase storageBucket URL.
 - Prompt 13: Redesigned Event Schedule modal for clarity and better layout.
 - Prompt 13: Replaced plain dividers with themed, glowing gradient dividers.
 - Prompt 13: Enhanced interactivity of modal selection buttons with new hover effects.
@@ -610,7 +615,7 @@ CHANGELOG
 
 
     <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-6xl mx-auto">
 
             <header class="glass-pane header-main flex justify-between items-center mb-6">
                 <div class="flex-shrink-0">
@@ -674,7 +679,7 @@ CHANGELOG
                             </div>
                         </div>
 
-                        <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                              <!-- Player cards will be inserted here -->
                         </div>
                     </div>
@@ -683,7 +688,7 @@ CHANGELOG
                 <div id="page-events" class="page-content">
                     <main class="space-y-8" id="events-main-container">
                         <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                            <h2 class="text-3xl font-bold text-white">Events & Announcements</h2>
+                            <h2 class="text-3xl font-bold text-white hidden">Events & Announcements</h2>
                             <div class="flex items-center gap-2">
                                 <button id="open-mobile-filter-btn" class="md:hidden secondary-btn px-4 py-2 rounded-lg flex items-center gap-2">
                                     <i class="fas fa-filter"></i> Filter
@@ -693,7 +698,7 @@ CHANGELOG
                                 </button>
                             </div>
                         </div>
-                        <div class="themed-divider"></div>
+                        <div class="themed-divider hidden"></div>
 
                         <!-- Announcements Section -->
                         <section>
