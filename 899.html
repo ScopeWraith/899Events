@@ -115,6 +115,10 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 12: Implemented a robust modal scrolling solution with a new wrapper div.
+- Prompt 12: Executed a major visual overhaul, beautifying buttons, cards, modals, and forms with gradients, shadows, and refined styles.
+- Prompt 12: Enhanced the glass effect for a more vibrant and polished UI.
+- Prompt 12: Fixed a latent bug in the Firebase Storage configuration.
 - Prompt 11: Reduced overall website width and font sizes for a more compact UI.
 - Prompt 11: Overhauled all modals to ensure content fits better and scrolls correctly when overflowing.
 - Prompt 11: Adjusted multi-column layouts to better suit the new, narrower design.
@@ -160,8 +164,9 @@ CHANGELOG
         :root {
             --color-bg: #0D1117;
             --color-primary: #00BFFF;
+            --color-primary-glow: rgba(0, 191, 255, 0.5);
             --color-highlight: #F87171;
-            --color-glass-bg: rgba(22, 27, 34, 0.40); 
+            --color-glass-bg: rgba(22, 27, 34, 0.6); 
             --color-dropdown-bg: rgba(18, 24, 33, 0.98);
             
             /* Post/Event Theme Colors */
@@ -177,30 +182,30 @@ CHANGELOG
 
         @keyframes pulse-live { 0%, 100% { box-shadow: 0 0 8px var(--color-primary); } 50% { box-shadow: 0 0 16px var(--color-primary); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-10px); } }
         @keyframes success-pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        @keyframes slideOutRight { from { transform: translateX(0); } to { transform: translateX(100%); } }
 
         /* Global size reduction */
-        html {
-            font-size: 80%;
-        }
+        html { font-size: 80%; }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--color-bg); color: #c9d1d9; overflow-x: hidden; }
         
-        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at top left, rgba(0, 191, 255, 0.1), transparent 40%), radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.1), transparent 40%); }
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at top left, rgba(0, 191, 255, 0.05), transparent 30%), radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.05), transparent 30%); }
         
-        .glass-pane { background-color: var(--color-glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        .glass-pane { 
+            background: linear-gradient(135deg, rgba(22, 27, 34, 0.6), rgba(22, 27, 34, 0.3));
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+            border-radius: 1rem; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
+        }
 
         .header-main { padding: 0.75rem 1.5rem; position: relative; z-index: 50; }
         .nav-item { position: relative; }
         .nav-link { position: relative; padding: 0.5rem; font-weight: 600; font-size: 0.75rem; color: #c9d1d9; transition: color 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; width: 80px; cursor: pointer; }
         .nav-link i { font-size: 1rem; }
-        .nav-link:hover { color: #fff; }
+        .nav-link:hover, .nav-link.active { color: #fff; }
         .nav-link::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 2px; background-color: var(--color-primary); transform: scaleX(0); transform-origin: center; transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); }
         .nav-item:hover .nav-link::after, .nav-link.active::after { transform: scaleX(1); }
-        .nav-link.active { color: #fff; }
         
         .dropdown-pane { position: absolute; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; z-index: 100; padding: 0.5rem; min-width: 180px; border-top: 2px solid var(--color-primary); }
         .dropdown-menu { top: calc(100% + 12px); left: 50%; transform: translateX(-50%) translateY(-10px); }
@@ -215,108 +220,59 @@ CHANGELOG
         
         /* --- Modal Styles --- */
         .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 1000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
-        .modal-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); z-index: 1001; width: 90%; max-width: 500px; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
+        .modal-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); z-index: 1001; width: 90%; max-width: 450px; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
         .modal-backdrop.visible, .modal-container.visible { opacity: 1; pointer-events: auto; }
         .modal-container.visible { transform: translate(-50%, -50%) scale(1); }
         .auth-form { display: none; animation: fadeIn 0.5s forwards; }
         .auth-form.active { display: block; }
-        .modal-content-scroll { max-height: 85vh; overflow-y: auto; }
+        .modal-content-wrapper { padding: 1.5rem; max-height: 85vh; display: flex; flex-direction: column; }
+        .modal-content-scroll { overflow-y: auto; }
         .modal-content-scroll::-webkit-scrollbar { width: 8px; }
         .modal-content-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
         .modal-content-scroll::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
         .modal-content-scroll::-webkit-scrollbar-thumb:hover { background: #00a9e0; }
         
         .input-group { position: relative; display: flex; align-items: center; background-color: rgba(13, 17, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
-        .input-group:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.3); }
+        .input-group:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-glow), inset 0 1px 2px rgba(0,0,0,0.5); }
         .input-icon { padding: 0 0.75rem; color: #667; border-right: 1px solid rgba(255, 255, 255, 0.1); }
         .input-group:focus-within .input-icon { color: var(--color-primary); }
         .form-input, .form-textarea { background-color: transparent; border: none; color: #c9d1d9; padding: 0.75rem; width: 100%; }
         .form-input:focus, .form-textarea:focus { outline: none; box-shadow: none; }
-        .form-textarea { min-height: 120px; resize: vertical; }
+        .form-textarea { min-height: 100px; resize: vertical; }
 
-        .primary-btn { background-color: var(--color-primary); color: var(--color-bg); font-weight: 700; transition: all 0.3s ease; }
-        .primary-btn:hover { background-color: #00a9e0; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2); }
-        .primary-btn:disabled { background-color: #555; cursor: not-allowed; transform: none; box-shadow: none; }
+        .primary-btn { background: linear-gradient(to right, #00BFFF, #1E90FF); color: white; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2); }
+        .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 191, 255, 0.3); }
+        .primary-btn:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
         .secondary-btn { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #c9d1d9; font-weight: 600; transition: all 0.3s ease; }
         .secondary-btn:hover { background-color: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
         .form-error { min-height: 20px; }
         
-        /* Stepper (Registration & Post Creation) */
-        .progress-bar { display: flex; justify-content: space-between; margin-bottom: 2rem; position: relative; }
+        /* Stepper */
+        .progress-bar { display: flex; justify-content: space-between; margin-bottom: 1.5rem; position: relative; }
         .progress-bar::before { content: ''; position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 2px; width: 100%; background-color: rgba(255,255,255,0.1); z-index: -1; }
         .progress-bar .line { position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 2px; background-color: var(--color-primary); width: 0%; transition: width 0.4s ease; z-index: 0; }
-        .progress-step { width: 30px; height: 30px; background-color: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.4s ease; position: relative; z-index: 1; }
+        .progress-step { width: 25px; height: 25px; background-color: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.4s ease; position: relative; z-index: 1; }
         .progress-step.active { background-color: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg); }
         .form-slide { display: none; animation: fadeIn 0.5s ease-in-out; }
         .form-slide.active { display: block; }
-        #registration-success { display: none; text-align: center; animation: success-pop 0.5s ease-out forwards; }
-        #registration-success .success-icon { font-size: 4rem; color: var(--color-primary); }
-
-        .type-selection-card { border: 2px solid rgba(255,255,255,0.1); transition: all 0.3s ease; }
-        .type-selection-card:hover { border-color: var(--color-primary); background-color: rgba(0, 191, 255, 0.05); transform: translateY(-5px); }
-        .type-selection-card i { transition: all 0.3s ease; }
-        .type-selection-card:hover i { color: var(--color-primary); transform: scale(1.1); }
-
-        /* Player Card Dropdown */
-        #player-card-dropdown { top: calc(100% + 10px); right: 0; min-width: 250px; transform: translateY(-10px); }
-        #user-profile-container.open #player-card-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
-
-        /* Custom Select Dropdown */
-        .custom-select-container { position: relative; flex-grow: 1; }
-        .custom-select-value { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; }
-        .custom-select-options { display: block; position: absolute; left: 0; right: 0; max-height: 200px; overflow-y: auto; z-index: 1050; opacity: 0; visibility: hidden; transform: scaleY(0.95); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s; background-color: var(--color-dropdown-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; padding: 0.5rem; }
-        .custom-select-options.open-down { top: calc(100% + 8px); transform-origin: top; }
-        .custom-select-options.open-up { bottom: calc(100% + 8px); transform-origin: bottom; }
-        .custom-select-container.open .custom-select-options { opacity: 1; visibility: visible; transform: scaleY(1); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0s; }
-        .custom-select-option { display: block; padding: 0.75rem 1rem; cursor: pointer; border-radius: 0.375rem; }
-        .custom-select-option:hover { background-color: rgba(0, 191, 255, 0.1); }
-        .custom-select-search { background-color: rgba(13, 17, 23, 1); border: none; border-bottom: 1px solid rgba(255,255,255,0.2); padding: 0.75rem; width: 100%; color: #c9d1d9; }
-        .custom-select-search:focus { outline: none; border-color: var(--color-primary); }
-        .custom-select-options::-webkit-scrollbar { width: 8px; }
-        .custom-select-options::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
-        .custom-select-options::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
-        .custom-select-options::-webkit-scrollbar-thumb:hover { background: #00a9e0; }
 
         /* Mobile Nav & Filter Panel */
-        #mobile-nav-menu { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 1100; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        #mobile-nav-menu.open { transform: translateX(0); }
-        .mobile-nav-link { display: block; padding: 1rem 1.5rem; font-size: 1.125rem; font-weight: 600; color: #c9d1d9; transition: all 0.2s ease; }
-        .mobile-nav-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
+        #mobile-nav-menu, #mobile-filter-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 1100; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #mobile-nav-menu.open, #mobile-filter-panel.open { transform: translateX(0); }
         
-        #mobile-filter-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 1200; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        #mobile-filter-panel.open { transform: translateX(0); }
-        
-        /* Podium Styles */
-        .podium-card { display: flex; flex-direction: column; text-align: center; padding: 1.5rem; transition: all 0.3s ease; }
-        .podium-gold { border-image: linear-gradient(to bottom, #FFD700, #FBBF24) 1; }
-        .podium-silver { border-image: linear-gradient(to bottom, #C0C0C0, #D1D5DB) 1; }
-        .podium-bronze { border-image: linear-gradient(to bottom, #CD7F32, #D97706) 1; }
-        
-        /* Verification Toggle */
-        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 28px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--color-primary); }
-        input:checked + .slider:before { transform: translateX(22px); }
-
         /* Post/Event Card Styles */
-        .post-card { display: flex; gap: 1rem; padding: 1rem; transition: all 0.3s ease; }
+        .post-card { display: flex; gap: 1rem; padding: 1rem; transition: all 0.3s ease; border: 1px solid transparent; background-clip: padding-box; }
+        .post-card:before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: -1; margin: -1px; border-radius: inherit; background: linear-gradient(to bottom right, var(--card-border-color, rgba(255,255,255,0.1)), rgba(255,255,255,0.05)); }
         .post-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
-        .post-card-visual { flex-shrink: 0; width: 100px; height: 100px; border-radius: 0.75rem; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
-        .post-card-visual i { font-size: 2.5rem; }
+        .post-card-visual { flex-shrink: 0; width: 80px; height: 80px; border-radius: 0.75rem; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
+        .post-card-visual i { font-size: 2rem; }
         .post-card-content { flex-grow: 1; display: flex; flex-direction: column; }
-        .post-card-title { font-size: 1.125rem; font-weight: 700; }
-        .post-card-meta { font-size: 0.75rem; color: #8b949e; margin-bottom: 0.5rem; }
-        .post-card-details { font-size: 0.875rem; color: #c9d1d9; flex-grow: 1; }
-        .post-card-time-info { font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; }
+        .post-card-title { font-size: 1.1rem; font-weight: 700; }
+        .post-card-meta { font-size: 0.7rem; color: #8b949e; margin-bottom: 0.25rem; }
+        .post-card-details { font-size: 0.85rem; color: #c9d1d9; flex-grow: 1; }
+        .post-card-time-info { font-size: 0.8rem; font-weight: 600; margin-top: 0.5rem; }
         .delete-post-btn.confirm-delete { background-color: var(--color-highlight); color: white; border-radius: 4px; padding: 2px 4px; }
 
-        /* Filter Legend */
-        .filter-legend-item { transition: all 0.2s ease-in-out; }
-        .filter-legend-item.disabled { opacity: 0.4; filter: grayscale(80%); }
-        .filter-legend-item:not(.disabled):hover { background-color: rgba(255,255,255,0.1); }
-        
     </style>
 </head>
 <body>
@@ -340,294 +296,309 @@ CHANGELOG
     <!-- Auth & Edit Modals -->
     <div id="modal-backdrop" class="modal-backdrop"></div>
     <div id="auth-modal-container" class="modal-container">
-        <div class="glass-pane modal-content-scroll p-6 relative overflow-hidden">
-            <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                <i class="fas fa-times fa-lg"></i>
-            </button>
-            <!-- Login Form -->
-            <div id="login-form-container" class="auth-form">
-                <h2 class="text-2xl font-bold text-white text-center mb-4">Login</h2>
-                <p class="text-center text-gray-400 mb-6">Welcome back to the 899 Hub.</p>
-                <form id="login-form">
-                    <div class="space-y-4">
-                        <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="login-email" placeholder="Email" class="form-input" required></div>
-                        <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="login-password" placeholder="Password" class="form-input" required></div>
+        <div class="glass-pane">
+            <div class="modal-content-wrapper">
+                <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+                <div class="modal-content-scroll">
+                    <!-- Login Form -->
+                    <div id="login-form-container" class="auth-form">
+                        <h2 class="text-2xl font-bold text-white text-center mb-4">Login</h2>
+                        <p class="text-center text-gray-400 mb-6">Welcome back to the 899 Hub.</p>
+                        <form id="login-form">
+                            <div class="space-y-4">
+                                <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="login-email" placeholder="Email" class="form-input" required></div>
+                                <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="login-password" placeholder="Password" class="form-input" required></div>
+                            </div>
+                            <p id="login-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                            <button type="submit" id="login-submit-btn" class="w-full p-3 rounded-lg primary-btn mt-2">Login</button>
+                            <div class="text-center text-sm text-gray-400 mt-6">
+                                <a href="#" id="forgot-password-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Forgot Password?</a>
+                            </div>
+                            <p class="text-center text-sm text-gray-400 mt-4">
+                                Don't have an account? <a href="#" id="show-register-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Register here</a>
+                            </p>
+                        </form>
                     </div>
-                    <p id="login-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                    <button type="submit" id="login-submit-btn" class="w-full p-3 rounded-lg primary-btn mt-2">Login</button>
-                    <div class="text-center text-sm text-gray-400 mt-6">
-                        <a href="#" id="forgot-password-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Forgot Password?</a>
-                    </div>
-                    <p class="text-center text-sm text-gray-400 mt-4">
-                        Don't have an account? <a href="#" id="show-register-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Register here</a>
-                    </p>
-                </form>
-            </div>
-            <!-- Registration Form -->
-            <div id="register-form-container" class="auth-form">
-                <div id="registration-flow">
-                    <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
-                    <div class="progress-bar" id="register-progress-bar">
-                        <div class="line"></div>
-                        <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
-                        <div class="progress-step" data-step="2"><i class="fas fa-shield-alt"></i></div>
-                        <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
-                        <div class="progress-step" data-step="4"><i class="fas fa-camera"></i></div>
-                    </div>
-                    <form id="register-form">
-                        <div class="form-slide active" data-slide="1"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
-                            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
-                            <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
-                            <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password (min. 6 characters)" class="form-input" required></div>
-                            <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
-                        </div></div>
-                        <div class="form-slide" data-slide="2"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
-                             <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                                <div class="custom-select-container" data-type="alliance">
-                                    <input type="hidden" id="register-alliance" name="alliance" required>
-                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options">
-                                        <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                        <div class="options-list"></div>
+                    <!-- Registration Form -->
+                    <div id="register-form-container" class="auth-form">
+                        <div id="registration-flow">
+                            <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
+                            <div class="progress-bar" id="register-progress-bar">
+                                <div class="line"></div>
+                                <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
+                                <div class="progress-step" data-step="2"><i class="fas fa-shield-alt"></i></div>
+                                <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
+                                <div class="progress-step" data-step="4"><i class="fas fa-camera"></i></div>
+                            </div>
+                            <form id="register-form">
+                                <div class="form-slide active" data-slide="1"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
+                                    <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
+                                    <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
+                                    <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password (min. 6 characters)" class="form-input" required></div>
+                                    <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
+                                </div></div>
+                                <div class="form-slide" data-slide="2"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
+                                     <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
+                                        <div class="custom-select-container" data-type="alliance">
+                                            <input type="hidden" id="register-alliance" name="alliance" required>
+                                            <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                            <div class="custom-select-options">
+                                                <input type="text" class="custom-select-search" placeholder="Search alliances...">
+                                                <div class="options-list"></div>
+                                            </div>
+                                        </div>
+                                     </div>
+                                    <div class="input-group"><i class="fas fa-star input-icon"></i>
+                                        <div class="custom-select-container" data-type="rank">
+                                            <input type="hidden" id="register-alliance-rank" name="alliance-rank" required>
+                                            <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                            <div class="custom-select-options">
+                                                <div class="options-list"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div></div>
+                                <div class="form-slide" data-slide="3"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
+                                    <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
+                                    <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
+                                    <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power" class="power-input form-input" required></div>
+                                    <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
+                                </div></div>
+                                <div class="form-slide" data-slide="4">
+                                    <p class="text-center text-gray-400 mb-6">Step 4: Upload an Avatar (Optional)</p>
+                                    <div class="flex flex-col items-center gap-4">
+                                        <img id="register-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover border-2 border-white/20">
+                                        <button type="button" id="register-avatar-btn" class="w-full p-3 rounded-lg secondary-btn">
+                                            <i class="fas fa-upload mr-2"></i> Choose Image
+                                        </button>
+                                        <input type="file" id="register-avatar-input" class="hidden" accept="image/*">
                                     </div>
                                 </div>
-                             </div>
-                            <div class="input-group"><i class="fas fa-star input-icon"></i>
-                                <div class="custom-select-container" data-type="rank">
-                                    <input type="hidden" id="register-alliance-rank" name="alliance-rank" required>
-                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options">
-                                        <div class="options-list"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div></div>
-                        <div class="form-slide" data-slide="3"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
-                            <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
-                            <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
-                            <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power" class="power-input form-input" required></div>
-                            <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
-                        </div></div>
-                        <div class="form-slide" data-slide="4">
-                            <p class="text-center text-gray-400 mb-6">Step 4: Upload an Avatar (Optional)</p>
-                            <div class="flex flex-col items-center gap-4">
-                                <img id="register-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover border-2 border-white/20">
-                                <button type="button" id="register-avatar-btn" class="w-full p-3 rounded-lg secondary-btn">
-                                    <i class="fas fa-upload mr-2"></i> Choose Image
-                                </button>
-                                <input type="file" id="register-avatar-input" class="hidden" accept="image/*">
-                            </div>
+                                <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                                <div id="register-nav-container" class="flex items-center mt-6"><button type="button" id="register-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button><div class="flex-grow flex justify-center"><button type="button" id="register-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button><button type="submit" id="register-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Register</button></div></div>
+                                <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
+                            </form>
                         </div>
-                        <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                        <div id="register-nav-container" class="flex items-center mt-6"><button type="button" id="register-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button><div class="flex-grow flex justify-center"><button type="button" id="register-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button><button type="submit" id="register-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Register</button></div></div>
-                        <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
-                    </form>
-                </div>
-                <div id="registration-success">
-                    <i class="fas fa-check-circle success-icon"></i>
-                    <h2 class="text-2xl font-bold text-white mt-4">Registration Complete!</h2>
-                    <p class="text-gray-400 mt-2">Welcome to the 899 Hub. You will be logged in shortly.</p>
+                        <div id="registration-success">
+                            <i class="fas fa-check-circle success-icon"></i>
+                            <h2 class="text-2xl font-bold text-white mt-4">Registration Complete!</h2>
+                            <p class="text-gray-400 mt-2">Welcome to the 899 Hub. You will be logged in shortly.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
     <div id="edit-profile-modal-container" class="modal-container">
-         <div class="glass-pane modal-content-scroll p-6 relative overflow-hidden">
-            <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                <i class="fas fa-times fa-lg"></i>
-            </button>
-            <h2 class="text-2xl font-bold text-white text-center mb-6">Edit Your Profile</h2>
-            <form id="edit-profile-form">
-                 <div class="space-y-4">
-                    <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
-                    <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                        <div class="custom-select-container w-full" data-type="alliance">
-                            <input type="hidden" id="edit-alliance" name="alliance" required>
-                            <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                            <div class="custom-select-options dropdown-pane glass-pane">
-                                <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                <div class="options-list"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-group"><i class="fas fa-star input-icon"></i>
-                         <div class="custom-select-container w-full" data-type="rank">
-                            <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
-                            <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                            <div class="custom-select-options dropdown-pane glass-pane">
-                                <div class="options-list"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
-                    <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
-                    <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input" required></div>
-                    <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
-                </div>
-                <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Player Settings Modal -->
-    <div id="player-settings-modal-container" class="modal-container">
-         <div class="glass-pane modal-content-scroll p-6 relative overflow-hidden">
-            <button id="close-player-settings-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                <i class="fas fa-times fa-lg"></i>
-            </button>
-            <h2 class="text-2xl font-bold text-white text-center mb-2">Player Settings</h2>
-            <p id="player-settings-username" class="text-center text-gray-400 mb-6"></p>
-            <form id="player-settings-form">
-                 <div class="space-y-4">
-                    <div class="input-group"><i class="fas fa-star input-icon"></i>
-                         <div class="custom-select-container w-full" data-type="rank">
-                            <input type="hidden" id="setting-alliance-rank" name="alliance-rank" required>
-                            <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                            <div class="custom-select-options">
-                                <div class="options-list"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-group"><i class="fas fa-user-tag input-icon"></i>
-                         <div class="custom-select-container w-full" data-type="role">
-                            <input type="hidden" id="setting-alliance-role" name="alliance-role">
-                            <button type="button" class="custom-select-value form-input"><span>Select Alliance Role</span><i class="fas fa-chevron-down text-xs"></i></button>
-                            <div class="custom-select-options">
-                                <div class="options-list"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="verification-toggle-container" class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
-                        <label for="setting-verified" class="font-semibold text-white">Verified Status</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="setting-verified">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <p id="player-settings-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Settings</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Create Event/Announcement Modal -->
-    <div id="create-post-modal-container" class="modal-container">
-         <div class="glass-pane modal-content-scroll p-6 relative overflow-hidden">
-            <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                <i class="fas fa-times fa-lg"></i>
-            </button>
-            
-            <form id="create-post-form">
-                <div id="post-creation-flow">
-                     <!-- Slide 1: Main Type (Event vs Announcement) -->
-                    <div class="form-slide" data-slide="1">
-                        <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
-                        <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
-                        <div id="post-main-type-selection-container" class="space-y-4">
-                           <!-- Dynamically inserted buttons for Event/Announcement -->
-                        </div>
-                    </div>
-                    <!-- Slide 2: Sub-Type Selection -->
-                    <div class="form-slide" data-slide="2">
-                        <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
-                        <p class="text-center text-gray-400 mb-6">Select a category.</p>
-                        <div id="post-subtype-selection-container" class="space-y-3">
-                           <!-- Dynamically inserted sub-type buttons -->
-                        </div>
-                    </div>
-                    <!-- Slide 3: Content -->
-                    <div class="form-slide" data-slide="3">
-                        <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
-                        <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
-                        <div class="space-y-4">
-                            <div id="post-alliance-group" class="input-group hidden"><i class="fas fa-shield-alt input-icon"></i>
-                                 <div class="custom-select-container w-full" data-type="alliance">
-                                    <input type="hidden" id="post-alliance" name="post-alliance">
+         <div class="glass-pane">
+            <div class="modal-content-wrapper">
+                <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+                <div class="modal-content-scroll">
+                    <h2 class="text-2xl font-bold text-white text-center mb-6">Edit Your Profile</h2>
+                    <form id="edit-profile-form">
+                         <div class="space-y-4">
+                            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
+                            <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
+                                <div class="custom-select-container w-full" data-type="alliance">
+                                    <input type="hidden" id="edit-alliance" name="alliance" required>
                                     <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options">
+                                    <div class="custom-select-options dropdown-pane glass-pane">
                                         <input type="text" class="custom-select-search" placeholder="Search alliances...">
                                         <div class="options-list"></div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="input-group"><i class="fas fa-heading input-icon"></i><input type="text" id="post-title" placeholder="Title" class="form-input" required></div>
-                            <div class="input-group !items-start"><i class="fas fa-align-left input-icon pt-3"></i><textarea id="post-details" placeholder="Details..." class="form-textarea" required></textarea></div>
-                            <div>
-                                <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
-                                <div class="flex items-center gap-4">
-                                    <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=300x300" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
-                                    <button type="button" id="post-thumbnail-btn" class="flex-grow p-3 rounded-lg secondary-btn">
-                                        <i class="fas fa-upload mr-2"></i> Choose Image
-                                    </button>
-                                    <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
+                            <div class="input-group"><i class="fas fa-star input-icon"></i>
+                                 <div class="custom-select-container w-full" data-type="rank">
+                                    <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
+                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options dropdown-pane glass-pane">
+                                        <div class="options-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
+                            <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
+                            <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input" required></div>
+                            <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
+                        </div>
+                        <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                        <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Settings Modal -->
+    <div id="player-settings-modal-container" class="modal-container">
+         <div class="glass-pane">
+            <div class="modal-content-wrapper">
+                <button id="close-player-settings-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+                <div class="modal-content-scroll">
+                    <h2 class="text-2xl font-bold text-white text-center mb-2">Player Settings</h2>
+                    <p id="player-settings-username" class="text-center text-gray-400 mb-6"></p>
+                    <form id="player-settings-form">
+                         <div class="space-y-4">
+                            <div class="input-group"><i class="fas fa-star input-icon"></i>
+                                 <div class="custom-select-container w-full" data-type="rank">
+                                    <input type="hidden" id="setting-alliance-rank" name="alliance-rank" required>
+                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options">
+                                        <div class="options-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="input-group"><i class="fas fa-user-tag input-icon"></i>
+                                 <div class="custom-select-container w-full" data-type="role">
+                                    <input type="hidden" id="setting-alliance-role" name="alliance-role">
+                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance Role</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options">
+                                        <div class="options-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="verification-toggle-container" class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
+                                <label for="setting-verified" class="font-semibold text-white">Verified Status</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="setting-verified">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <p id="player-settings-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                        <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Event/Announcement Modal -->
+    <div id="create-post-modal-container" class="modal-container">
+         <div class="glass-pane">
+            <div class="modal-content-wrapper">
+                <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+                <div class="modal-content-scroll">
+                    <form id="create-post-form">
+                        <div id="post-creation-flow">
+                             <!-- Slide 1: Main Type (Event vs Announcement) -->
+                            <div class="form-slide" data-slide="1">
+                                <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
+                                <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
+                                <div id="post-main-type-selection-container" class="space-y-4">
+                                   <!-- Dynamically inserted buttons for Event/Announcement -->
+                                </div>
+                            </div>
+                            <!-- Slide 2: Sub-Type Selection -->
+                            <div class="form-slide" data-slide="2">
+                                <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
+                                <p class="text-center text-gray-400 mb-6">Select a category.</p>
+                                <div id="post-subtype-selection-container" class="space-y-3">
+                                   <!-- Dynamically inserted sub-type buttons -->
+                                </div>
+                            </div>
+                            <!-- Slide 3: Content -->
+                            <div class="form-slide" data-slide="3">
+                                <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
+                                <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
+                                <div class="space-y-4">
+                                    <div id="post-alliance-group" class="input-group hidden"><i class="fas fa-shield-alt input-icon"></i>
+                                         <div class="custom-select-container w-full" data-type="alliance">
+                                            <input type="hidden" id="post-alliance" name="post-alliance">
+                                            <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                            <div class="custom-select-options">
+                                                <input type="text" class="custom-select-search" placeholder="Search alliances...">
+                                                <div class="options-list"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="input-group"><i class="fas fa-heading input-icon"></i><input type="text" id="post-title" placeholder="Title" class="form-input" required></div>
+                                    <div class="input-group !items-start"><i class="fas fa-align-left input-icon pt-3"></i><textarea id="post-details" placeholder="Details..." class="form-textarea" required></textarea></div>
+                                    <div>
+                                        <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
+                                        <div class="flex items-center gap-4">
+                                            <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=300x300" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
+                                            <button type="button" id="post-thumbnail-btn" class="flex-grow p-3 rounded-lg secondary-btn">
+                                                <i class="fas fa-upload mr-2"></i> Choose Image
+                                            </button>
+                                            <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                             <!-- Slide 4: Timing (for events) -->
+                            <div class="form-slide" data-slide="4">
+                                <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
+                                <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
+                                <div id="post-timing-group" class="space-y-4">
+                                     <div>
+                                        <label class="text-sm font-semibold text-gray-400 mb-1 block">Start Time</label>
+                                        <div class="flex gap-2">
+                                            <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
+                                                <div class="custom-select-container" data-type="day-of-week">
+                                                    <input type="hidden" id="post-start-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                </div>
+                                            </div>
+                                            <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
+                                                <div class="custom-select-container" data-type="hour-of-day">
+                                                    <input type="hidden" id="post-start-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-400 mb-1 block">End Time</label>
+                                        <div class="flex gap-2">
+                                             <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
+                                                <div class="custom-select-container" data-type="day-of-week">
+                                                    <input type="hidden" id="post-end-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                </div>
+                                            </div>
+                                            <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
+                                                <div class="custom-select-container" data-type="hour-of-day">
+                                                    <input type="hidden" id="post-end-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                     <div>
+                                        <label class="text-sm font-semibold text-gray-400 mb-1 block">Repetition</label>
+                                        <div class="flex gap-2">
+                                             <div class="input-group w-1/2"><i class="fas fa-redo-alt input-icon"></i>
+                                                <div class="custom-select-container" data-type="repeat-type">
+                                                    <input type="hidden" id="post-repeat-type" value="none" required><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                </div>
+                                            </div>
+                                            <div id="post-repeat-weeks-container" class="input-group w-1/2 hidden"><i class="fas fa-hashtag input-icon"></i>
+                                                <input type="number" id="post-repeat-weeks" class="form-input" min="1" value="1" placeholder="Weeks">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-center text-gray-400">Times are based on your local timezone.</p>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                     <!-- Slide 4: Timing (for events) -->
-                    <div class="form-slide" data-slide="4">
-                        <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
-                        <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
-                        <div id="post-timing-group" class="space-y-4">
-                             <div>
-                                <label class="text-sm font-semibold text-gray-400 mb-1 block">Start Time</label>
-                                <div class="flex gap-2">
-                                    <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
-                                        <div class="custom-select-container" data-type="day-of-week">
-                                            <input type="hidden" id="post-start-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                        </div>
-                                    </div>
-                                    <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
-                                        <div class="custom-select-container" data-type="hour-of-day">
-                                            <input type="hidden" id="post-start-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <p id="create-post-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                         <div id="post-nav-container" class="flex items-center mt-6">
+                            <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
+                            <div class="flex-grow flex justify-center">
+                                <button type="button" id="post-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button>
+                                <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
                             </div>
-                            <div>
-                                <label class="text-sm font-semibold text-gray-400 mb-1 block">End Time</label>
-                                <div class="flex gap-2">
-                                     <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
-                                        <div class="custom-select-container" data-type="day-of-week">
-                                            <input type="hidden" id="post-end-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                        </div>
-                                    </div>
-                                    <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
-                                        <div class="custom-select-container" data-type="hour-of-day">
-                                            <input type="hidden" id="post-end-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                             <div>
-                                <label class="text-sm font-semibold text-gray-400 mb-1 block">Repetition</label>
-                                <div class="flex gap-2">
-                                     <div class="input-group w-1/2"><i class="fas fa-redo-alt input-icon"></i>
-                                        <div class="custom-select-container" data-type="repeat-type">
-                                            <input type="hidden" id="post-repeat-type" value="none" required><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                        </div>
-                                    </div>
-                                    <div id="post-repeat-weeks-container" class="input-group w-1/2 hidden"><i class="fas fa-hashtag input-icon"></i>
-                                        <input type="number" id="post-repeat-weeks" class="form-input" min="1" value="1" placeholder="Weeks">
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="text-xs text-center text-gray-400">Times are based on your local timezone.</p>
                         </div>
-                    </div>
+                    </form>
                 </div>
-                <p id="create-post-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                 <div id="post-nav-container" class="flex items-center mt-6">
-                    <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
-                    <div class="flex-grow flex justify-center">
-                        <button type="button" id="post-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button>
-                        <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
-                    </div>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -637,7 +608,7 @@ CHANGELOG
 
             <header class="glass-pane header-main flex justify-between items-center mb-6">
                 <div class="flex-shrink-0">
-                    <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white">899<span class="font-bold" style="color: var(--color-primary);">EVENTS</span></h1>
+                    <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white" style="text-shadow: 0 0 10px var(--color-primary-glow);">899<span class="font-bold" style="color: var(--color-primary);">EVENTS</span></h1>
                     <p class="text-xs text-gray-400">Official Event Hub</p>
                 </div>
                 
@@ -789,12 +760,11 @@ CHANGELOG
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-        // TODO: Replace with your Firebase project's configuration
         const firebaseConfig = {
             apiKey: "AIzaSyA8KKDjjw0Pb_wknZ3TRWuL7-7XMo4VeY0",
             authDomain: "events-ea397.firebaseapp.com",
             projectId: "events-ea397",
-            storageBucket: "events-ea397.firebasestorage.app", // Corrected storage bucket domain
+            storageBucket: "events-ea397.firebasestorage.app",
             messagingSenderId: "51859633788",
             appId: "1:51859633788:web:3653d3e7edb6d3c1c4fbf9",
             measurementId: "G-0ZCMZ86PJD"
@@ -1598,8 +1568,7 @@ CHANGELOG
             const style = POST_STYLES[post.subType] || POST_STYLES.alliance;
             
             card.className = 'post-card glass-pane relative';
-            card.style.borderColor = style.color;
-            card.style.setProperty('--card-bg-color', style.bgColor);
+            card.style.setProperty('--card-border-color', style.color);
             card.dataset.postType = post.subType;
 
             const postDate = post.createdAt?.toDate().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) || '...';
