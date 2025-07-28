@@ -115,6 +115,10 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 10: Overhauled event scheduling with intuitive Day of Week and Hour of Day dropdowns.
+- Prompt 10: Simplified event repetition to a "None" or "Weekly" choice, with an input for week count.
+- Prompt 10: Fixed mobile navigation menu being obscured by the modal backdrop.
+- Prompt 10: Stabilized custom dropdown menus to prevent unexpected closing.
 - Prompt 9: Overhauled event time selection with simplified, styled inputs for date, hour, and minute.
 - Prompt 9: Redesigned post cards to display thumbnails as a square on the left, with themed icons as a fallback.
 - Prompt 9: Heavily styled new components with CSS for a beautiful, integrated look.
@@ -252,7 +256,7 @@ CHANGELOG
         /* Custom Select Dropdown */
         .custom-select-container { position: relative; flex-grow: 1; }
         .custom-select-value { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; }
-        .custom-select-options { display: block; position: absolute; left: 0; right: 0; max-height: 180px; overflow-y: auto; z-index: 1050; opacity: 0; visibility: hidden; transform: scaleY(0.95); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s; background-color: var(--color-dropdown-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; padding: 0.5rem; }
+        .custom-select-options { display: block; position: absolute; left: 0; right: 0; max-height: 200px; overflow-y: auto; z-index: 1050; opacity: 0; visibility: hidden; transform: scaleY(0.95); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s; background-color: var(--color-dropdown-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; padding: 0.5rem; }
         .custom-select-options.open-down { top: calc(100% + 8px); transform-origin: top; }
         .custom-select-options.open-up { bottom: calc(100% + 8px); transform-origin: bottom; }
         .custom-select-container.open .custom-select-options { opacity: 1; visibility: visible; transform: scaleY(1); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0s; }
@@ -265,11 +269,14 @@ CHANGELOG
         .custom-select-options::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
         .custom-select-options::-webkit-scrollbar-thumb:hover { background: #00a9e0; }
 
-        /* Mobile Nav */
-        #mobile-nav-menu { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 200; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Mobile Nav & Filter Panel */
+        #mobile-nav-menu { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 1100; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #mobile-nav-menu.open { transform: translateX(0); }
         .mobile-nav-link { display: block; padding: 1rem 1.5rem; font-size: 1.125rem; font-weight: 600; color: #c9d1d9; transition: all 0.2s ease; }
         .mobile-nav-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
+        
+        #mobile-filter-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 1200; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #mobile-filter-panel.open { transform: translateX(0); }
         
         /* Podium Styles */
         .podium-card { display: flex; flex-direction: column; text-align: center; padding: 1.5rem; transition: all 0.3s ease; }
@@ -297,25 +304,11 @@ CHANGELOG
         .post-card-time-info { font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; }
         .delete-post-btn.confirm-delete { background-color: var(--color-highlight); color: white; border-radius: 4px; padding: 2px 4px; }
 
-        /* Custom Time Inputs */
-        .time-input-container { display: flex; align-items: center; gap: 0.5rem; }
-        .time-input-container input { background-color: rgba(13, 17, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #c9d1d9; border-radius: 0.25rem; padding: 0.5rem; text-align: center; }
-        .time-input-container input[type="date"] { flex-grow: 1; }
-        .time-input-container input[type="number"] { width: 60px; }
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-
         /* Filter Legend */
         .filter-legend-item { transition: all 0.2s ease-in-out; }
         .filter-legend-item.disabled { opacity: 0.4; filter: grayscale(80%); }
         .filter-legend-item:not(.disabled):hover { background-color: rgba(255,255,255,0.1); }
         
-        /* Mobile Filter Panel */
-        #mobile-filter-panel {
-            position: fixed; top: 0; right: 0; bottom: 0; width: 280px;
-            z-index: 1200; transform: translateX(100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        #mobile-filter-panel.open { transform: translateX(0); }
     </style>
 </head>
 <body>
@@ -571,19 +564,48 @@ CHANGELOG
                         <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
                         <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
                         <div id="post-timing-group" class="space-y-4">
-                            <div class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
-                                <label for="post-repeat-weekly" class="font-semibold text-white">Repeat Weekly</label>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="post-repeat-weekly">
-                                    <span class="slider"></span>
-                                </label>
+                             <div>
+                                <label class="text-sm font-semibold text-gray-400 mb-1 block">Start Time</label>
+                                <div class="flex gap-2">
+                                    <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
+                                        <div class="custom-select-container" data-type="day-of-week">
+                                            <input type="hidden" id="post-start-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                        </div>
+                                    </div>
+                                    <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
+                                        <div class="custom-select-container" data-type="hour-of-day">
+                                            <input type="hidden" id="post-start-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="input-group"><i class="fas fa-calendar-plus input-icon"></i><input type="text" id="post-start-time" class="form-input" placeholder="Event Start Time" readonly></div>
-                            <div id="post-event-dates">
-                                <div class="input-group"><i class="fas fa-calendar-minus input-icon"></i><input type="text" id="post-end-time" class="form-input" placeholder="Event End Time" readonly></div>
+                            <div>
+                                <label class="text-sm font-semibold text-gray-400 mb-1 block">End Time</label>
+                                <div class="flex gap-2">
+                                     <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
+                                        <div class="custom-select-container" data-type="day-of-week">
+                                            <input type="hidden" id="post-end-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                        </div>
+                                    </div>
+                                    <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
+                                        <div class="custom-select-container" data-type="hour-of-day">
+                                            <input type="hidden" id="post-end-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div id="post-repeat-weeks-container" class="hidden">
-                                <div class="input-group"><i class="fas fa-redo-alt input-icon"></i><input type="number" id="post-repeat-weeks" class="form-input" min="1" value="1" placeholder="Number of weeks"></div>
+                             <div>
+                                <label class="text-sm font-semibold text-gray-400 mb-1 block">Repetition</label>
+                                <div class="flex gap-2">
+                                     <div class="input-group w-1/2"><i class="fas fa-redo-alt input-icon"></i>
+                                        <div class="custom-select-container" data-type="repeat-type">
+                                            <input type="hidden" id="post-repeat-type" value="none" required><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                        </div>
+                                    </div>
+                                    <div id="post-repeat-weeks-container" class="input-group w-1/2 hidden"><i class="fas fa-hashtag input-icon"></i>
+                                        <input type="number" id="post-repeat-weeks" class="form-input" min="1" value="1" placeholder="Weeks">
+                                    </div>
+                                </div>
                             </div>
                             <p class="text-xs text-center text-gray-400">Times are based on your local timezone.</p>
                         </div>
@@ -786,6 +808,19 @@ CHANGELOG
             { value: '', text: 'None'}, { value: 'Warlord', text: 'Warlord'}, { value: 'Recruiter', text: 'Recruiter'},
             { value: 'Muse', text: 'Muse'}, { value: 'Butler', text: 'Butler'},
         ];
+        const DAYS_OF_WEEK = [
+            { value: '0', text: 'Sunday' }, { value: '1', text: 'Monday' }, { value: '2', text: 'Tuesday' },
+            { value: '3', text: 'Wednesday' }, { value: '4', text: 'Thursday' }, { value: '5', text: 'Friday' },
+            { value: '6', text: 'Saturday' }
+        ];
+        const HOURS_OF_DAY = Array.from({ length: 24 }, (_, i) => ({
+            value: i.toString(),
+            text: `${i.toString().padStart(2, '0')}:00`
+        }));
+        const REPEAT_TYPES = [
+            { value: 'none', text: 'None' },
+            { value: 'weekly', text: 'Weekly' }
+        ];
         
         const POST_TYPES = {
             // Announcements
@@ -886,10 +921,18 @@ CHANGELOG
                     return;
                 }
                 
-                const startTime = new Date(startTimeAttr);
+                let startTime = new Date(startTimeAttr);
                 const endTime = (endTimeAttr && endTimeAttr !== 'null' && endTimeAttr !== 'undefined') ? new Date(endTimeAttr) : null;
 
                 if (isRecurring) {
+                    const repeatWeeks = parseInt(el.dataset.repeatWeeks, 10) || 1;
+                    const weekInMillis = repeatWeeks * 7 * 24 * 60 * 60 * 1000;
+                    
+                    // If the start time is in the past, find the next occurrence
+                    while (startTime < now) {
+                        startTime = new Date(startTime.getTime() + weekInMillis);
+                    }
+
                     const dayOfWeek = startTime.toLocaleDateString([], { weekday: 'long' });
                     const time = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     el.innerHTML = `<span style="color: var(--post-color-seasonal);"><i class="fas fa-redo-alt mr-2"></i>Weekly on ${dayOfWeek} at ${time}</span>`;
@@ -1449,17 +1492,10 @@ CHANGELOG
                     return false;
                 }
             } else if (stepIndex === 4 && postCreationData.mainType === 'event') { // Timing slide
-                const isRecurring = document.getElementById('post-repeat-weekly').checked;
-                if (!isRecurring) {
-                    if (!document.getElementById('post-start-time').dataset.isoValue || !document.getElementById('post-end-time').dataset.isoValue) {
-                        createPostError.textContent = 'Start and end times are required for non-recurring events.';
-                        return false;
-                    }
-                } else {
-                    if (!document.getElementById('post-start-time').dataset.isoValue) {
-                        createPostError.textContent = 'A start time is required for recurring events.';
-                        return false;
-                    }
+                if (!document.getElementById('post-start-day').value || !document.getElementById('post-start-hour').value ||
+                    !document.getElementById('post-end-day').value || !document.getElementById('post-end-hour').value) {
+                    createPostError.textContent = 'Please select a start/end day and hour for the event.';
+                    return false;
                 }
             }
             return true;
@@ -1488,10 +1524,9 @@ CHANGELOG
             document.getElementById('post-thumbnail-preview').src = URL.createObjectURL(resizedThumbnailBlob);
         });
         
-        document.getElementById('post-repeat-weekly').addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            document.getElementById('post-event-dates').style.display = isChecked ? 'none' : 'grid';
-            document.getElementById('post-repeat-weeks-container').style.display = isChecked ? 'block' : 'none';
+        document.getElementById('post-repeat-type').addEventListener('change', (e) => {
+            const repeatWeeksContainer = document.getElementById('post-repeat-weeks-container');
+            repeatWeeksContainer.classList.toggle('hidden', e.target.value !== 'weekly');
         });
 
         // --- EVENTS & ANNOUNCEMENTS LOGIC ---
@@ -1566,25 +1601,30 @@ CHANGELOG
                 timeHTML = `<div class="post-card-time-info" data-start-time="${post.startTime?.toDate()}" data-end-time="${post.endTime?.toDate()}" data-is-recurring="${post.isRecurring}" data-repeat-weeks="${post.repeatWeeks}">Loading...</div>`;
             }
             
-            const bannerHTML = post.thumbnailUrl ? `<div class="post-card-banner" style="background-image: url(${post.thumbnailUrl})"></div>` : '';
+            const visualHTML = post.thumbnailUrl 
+                ? `<div class="post-card-visual" style="background-image: url(${post.thumbnailUrl})"></div>`
+                : `<div class="post-card-visual" style="background-color: ${style.bgColor};"><i class="${style.icon}" style="color: ${style.color};"></i></div>`;
 
             card.innerHTML = `
-                ${canEdit ? `<button class="absolute top-3 right-3 text-gray-400 hover:text-white delete-post-btn z-10" data-id="${post.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
-                ${bannerHTML}
-                <div class="post-card-header">
-                    <i class="post-card-icon ${style.icon}" style="color: ${style.color};"></i>
-                    <div>
-                        <h4 class="post-card-title text-white">${post.title}</h4>
-                        <p class="post-card-meta">
-                            ${post.subType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} ${post.mainType} ${post.alliance ? `for [${post.alliance}]` : ''}
-                        </p>
-                    </div>
-                </div>
-                <div class="post-card-body">
-                    <p class="text-gray-300 whitespace-pre-wrap">${post.details}</p>
-                    <div class="post-card-details">
-                        ${timeHTML}
-                        <p class="text-xs text-gray-500 mt-3 text-right">By ${post.authorUsername}</p>
+                <div class="flex items-start gap-4">
+                    ${visualHTML}
+                    <div class="post-card-content">
+                        <div class="flex justify-between items-start">
+                             <div>
+                                <h4 class="post-card-title text-white">${post.title}</h4>
+                                <p class="post-card-meta">
+                                    ${post.subType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} ${post.mainType} ${post.alliance ? `for [${post.alliance}]` : ''}
+                                </p>
+                            </div>
+                            ${canEdit ? `<button class="flex-shrink-0 text-gray-400 hover:text-white delete-post-btn z-10 ml-2" data-id="${post.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
+                        </div>
+                        <div class="post-card-details">
+                            <p class="text-gray-300 whitespace-pre-wrap mt-2">${post.details}</p>
+                        </div>
+                        <div class="mt-auto pt-2">
+                             ${timeHTML}
+                             <p class="text-xs text-gray-500 mt-1 text-right">By ${post.authorUsername}</p>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1607,6 +1647,28 @@ CHANGELOG
                 });
             }
             return card;
+        }
+
+        // Helper to calculate the next occurrence of a given day and hour
+        function calculateNextDateTime(dayOfWeek, hour) {
+            const targetDay = parseInt(dayOfWeek, 10);
+            const targetHour = parseInt(hour, 10);
+            let resultDate = new Date();
+            resultDate.setHours(targetHour, 0, 0, 0);
+
+            let currentDay = resultDate.getDay();
+            let diff = targetDay - currentDay;
+            if (diff < 0) {
+                diff += 7; // It's a past day of this week, so aim for next week
+            }
+            
+            // If it's today, but the hour has passed, schedule for next week
+            if (diff === 0 && resultDate < new Date()) {
+                diff += 7;
+            }
+
+            resultDate.setDate(resultDate.getDate() + diff);
+            return resultDate;
         }
 
         document.getElementById('create-post-form').addEventListener('submit', async (e) => {
@@ -1644,25 +1706,26 @@ CHANGELOG
                 createdAt: serverTimestamp(),
                 alliance: alliance,
                 visibility: visibility,
-                isRecurring: document.getElementById('post-repeat-weekly').checked,
+                isRecurring: document.getElementById('post-repeat-type').value === 'weekly',
                 thumbnailUrl: null
             };
 
             if (postCreationData.mainType === 'event') {
-                const startTimeValue = document.getElementById('post-start-time').dataset.isoValue;
-                finalPostData.startTime = new Date(startTimeValue);
+                const startDay = document.getElementById('post-start-day').value;
+                const startHour = document.getElementById('post-start-hour').value;
+                const endDay = document.getElementById('post-end-day').value;
+                const endHour = document.getElementById('post-end-hour').value;
+
+                finalPostData.startTime = calculateNextDateTime(startDay, startHour);
+                finalPostData.endTime = calculateNextDateTime(endDay, endHour);
+
+                // If end time is before start time, assume it's for the following week
+                if (finalPostData.endTime < finalPostData.startTime) {
+                    finalPostData.endTime.setDate(finalPostData.endTime.getDate() + 7);
+                }
                 
                 if (finalPostData.isRecurring) {
                     finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
-                } else {
-                    const endTimeValue = document.getElementById('post-end-time').dataset.isoValue;
-                    finalPostData.endTime = new Date(endTimeValue);
-                    if (finalPostData.endTime <= finalPostData.startTime) {
-                        createPostError.textContent = 'End time must be after start time.';
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Create Post';
-                        return;
-                    }
                 }
             }
             
@@ -1881,6 +1944,9 @@ CHANGELOG
             else if (type === 'rank') sourceData = ALLIANCE_RANKS;
             else if (type === 'role') sourceData = ALLIANCE_ROLES;
             else if (type === 'alliance-filter') sourceData = [{value: '', text: 'All Alliances'}, ...ALLIANCES.map(a => ({value: a, text: a}))];
+            else if (type === 'day-of-week') sourceData = DAYS_OF_WEEK;
+            else if (type === 'hour-of-day') sourceData = HOURS_OF_DAY;
+            else if (type === 'repeat-type') sourceData = REPEAT_TYPES;
             
             const isSearchable = searchInput && type === 'alliance';
             if(searchInput && !isSearchable) searchInput.style.display = 'none';
@@ -2062,96 +2128,9 @@ CHANGELOG
              if (!activeSet) { const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]'); if (eventsLink) eventsLink.classList.add('active'); }
         }
 
-        // --- DATETIME PICKER LOGIC ---
-        const picker = document.getElementById('datetime-picker');
-        const monthYearEl = document.getElementById('dt-month-year');
-        const gridEl = document.getElementById('dt-calendar-grid');
-        const hourInput = document.getElementById('dt-hour');
-        const minuteInput = document.getElementById('dt-minute');
-        let activePickerInput = null;
-        let currentDate = new Date();
-        let selectedDate = new Date();
-
-        function renderDateTimePicker() {
-            gridEl.innerHTML = '';
-            monthYearEl.textContent = currentDate.toLocaleDateString([], { month: 'long', year: 'numeric' });
-
-            const month = currentDate.getMonth();
-            const year = currentDate.getFullYear();
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            ['S','M','T','W','T','F','S'].forEach(day => {
-                gridEl.innerHTML += `<div class="dt-cell day-name">${day}</div>`;
-            });
-
-            for (let i = 0; i < firstDay; i++) {
-                gridEl.innerHTML += `<div class="dt-cell"></div>`;
-            }
-
-            for (let i = 1; i <= daysInMonth; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'dt-cell';
-                cell.textContent = i;
-                const today = new Date();
-                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-                    cell.classList.add('today');
-                }
-                if (i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear()) {
-                    cell.classList.add('selected');
-                }
-                cell.addEventListener('click', () => {
-                    selectedDate.setDate(i);
-                    selectedDate.setMonth(month);
-                    selectedDate.setFullYear(year);
-                    renderDateTimePicker();
-                });
-                gridEl.appendChild(cell);
-            }
-        }
-        
-        function showDateTimePicker(inputElement) {
-            activePickerInput = inputElement;
-            const initialDate = inputElement.dataset.isoValue ? new Date(inputElement.dataset.isoValue) : new Date();
-            currentDate = new Date(initialDate);
-            selectedDate = new Date(initialDate);
-            
-            hourInput.value = selectedDate.getHours().toString().padStart(2, '0');
-            minuteInput.value = selectedDate.getMinutes().toString().padStart(2, '0');
-
-            const rect = inputElement.getBoundingClientRect();
-            picker.style.top = `${rect.bottom + 5}px`;
-            picker.style.left = `${rect.left}px`;
-            picker.style.display = 'block';
-            renderDateTimePicker();
-        }
-
-        document.getElementById('dt-prev-month').addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderDateTimePicker();
-        });
-        document.getElementById('dt-next-month').addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderDateTimePicker();
-        });
-        document.getElementById('dt-save').addEventListener('click', () => {
-            selectedDate.setHours(parseInt(hourInput.value, 10));
-            selectedDate.setMinutes(parseInt(minuteInput.value, 10));
-            
-            activePickerInput.value = selectedDate.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'});
-            activePickerInput.dataset.isoValue = selectedDate.toISOString();
-            picker.style.display = 'none';
-            activePickerInput = null;
-        });
-
-
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize all custom selects on the page
             document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
-
-            // Initialize DateTime Pickers
-            document.getElementById('post-start-time').addEventListener('click', (e) => showDateTimePicker(e.target));
-            document.getElementById('post-end-time').addEventListener('click', (e) => showDateTimePicker(e.target));
 
             const navItems = document.querySelectorAll('.nav-item');
             
@@ -2185,9 +2164,6 @@ CHANGELOG
                 }
                 if (!e.target.closest('.custom-select-container')) {
                     document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
-                }
-                if (picker && !picker.contains(e.target) && e.target !== activePickerInput) {
-                    picker.style.display = 'none';
                 }
             });
 
