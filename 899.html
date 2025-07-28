@@ -115,6 +115,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 13: Redesigned Event Schedule modal for clarity and better layout.
+- Prompt 13: Replaced plain dividers with themed, glowing gradient dividers.
+- Prompt 13: Enhanced interactivity of modal selection buttons with new hover effects.
 - Prompt 12: Implemented a robust modal scrolling solution with a new wrapper div.
 - Prompt 12: Executed a major visual overhaul, beautifying buttons, cards, modals, and forms with gradients, shadows, and refined styles.
 - Prompt 12: Enhanced the glass effect for a more vibrant and polished UI.
@@ -226,7 +229,7 @@ CHANGELOG
         .auth-form { display: none; animation: fadeIn 0.5s forwards; }
         .auth-form.active { display: block; }
         .modal-content-wrapper { padding: 1.5rem; max-height: 85vh; display: flex; flex-direction: column; }
-        .modal-content-scroll { overflow-y: auto; }
+        .modal-content-scroll { overflow-y: auto; padding-right: 1rem; margin-right: -1rem; }
         .modal-content-scroll::-webkit-scrollbar { width: 8px; }
         .modal-content-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
         .modal-content-scroll::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
@@ -272,6 +275,9 @@ CHANGELOG
         .post-card-details { font-size: 0.85rem; color: #c9d1d9; flex-grow: 1; }
         .post-card-time-info { font-size: 0.8rem; font-weight: 600; margin-top: 0.5rem; }
         .delete-post-btn.confirm-delete { background-color: var(--color-highlight); color: white; border-radius: 4px; padding: 2px 4px; }
+        
+        .themed-divider { height: 1px; width: 100%; background: linear-gradient(to right, transparent, var(--color-primary), transparent); opacity: 0.3; }
+        .section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--color-primary), transparent) 1; }
 
     </style>
 </head>
@@ -687,14 +693,12 @@ CHANGELOG
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Filter Legend -->
-                        <div id="filter-legend-container" class="hidden md:flex flex-wrap gap-2 p-2 glass-pane !rounded-full"></div>
+                        <div class="themed-divider"></div>
 
                         <!-- Announcements Section -->
                         <section>
-                             <h3 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-highlight);">
-                                <i class="fas fa-bullhorn mr-2"></i>Announcements
+                             <h3 class="section-header text-xl font-bold mb-4" style="--color-primary: var(--color-highlight);">
+                                <i class="fas fa-bullhorn"></i>Announcements
                              </h3>
                              <div id="announcements-container" class="space-y-4">
                                  <!-- Announcement cards will be inserted here -->
@@ -703,8 +707,8 @@ CHANGELOG
 
                         <!-- Events Section -->
                         <section>
-                             <h3 class="text-xl font-bold border-l-4 pl-3 mb-4" style="border-color: var(--color-primary);">
-                                <i class="fas fa-calendar-alt mr-2"></i>Upcoming Events
+                             <h3 class="section-header text-xl font-bold mb-4">
+                                <i class="fas fa-calendar-alt"></i>Upcoming Events
                              </h3>
                              <div id="events-container" class="space-y-4">
                                  <!-- Event cards will be inserted here -->
