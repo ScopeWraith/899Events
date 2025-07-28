@@ -115,6 +115,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 19: Graphically overhauled Announcement cards with a new layout featuring themed icons and accent colors.
+- Prompt 19: Reworked Event list items into a 'ticket' style layout for improved scannability and visual appeal.
+- Prompt 19: Enhanced status indicators for events to be more prominent and descriptive.
 - Prompt 18: Separated Events and Announcements into distinct, professionally styled sections.
 - Prompt 18: Created a new, visually appealing card layout for announcements.
 - Prompt 18: Overhauled the event list item design for better clarity, visual hierarchy, and interactivity.
@@ -296,31 +299,164 @@ CHANGELOG
         #mobile-nav-menu, #mobile-filter-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 1100; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #mobile-nav-menu.open, #mobile-filter-panel.open { transform: translateX(0); }
         
-        /* New Event & Announcement Styles */
+        /* --- Reworked Event & Announcement Styles --- */
         .section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--color-primary), transparent) 1; }
         
-        .announcement-card { background: linear-gradient(135deg, rgba(22, 27, 34, 0.4), rgba(22, 27, 34, 0.2)); border: 1px solid rgba(255,255,255,0.1); padding: 1rem; border-radius: 0.75rem; animation: fadeIn 0.5s ease-out; }
-        .announcement-header { display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.75rem; }
-        .announcement-author-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-primary); }
-        .announcement-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
-        .announcement-meta { font-size: 0.75rem; color: #8b949e; }
-        .announcement-body { padding-top: 0.75rem; font-size: 0.9rem; color: #c9d1d9; }
+        /* New Announcement Card Style */
+        .announcement-card {
+            display: flex;
+            background: linear-gradient(145deg, rgba(22, 27, 34, 0.7), rgba(22, 27, 34, 0.4));
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left-width: 4px;
+            border-left-color: var(--card-theme-color, var(--color-primary));
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .announcement-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 15px var(--card-theme-color-glow, rgba(0,191,255,0.2));
+        }
+        .announcement-icon-container {
+            flex-shrink: 0;
+            width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0,0,0,0.2);
+        }
+        .announcement-content {
+            padding: 1rem 1.25rem;
+            flex-grow: 1;
+        }
+        .announcement-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .announcement-body {
+            font-size: 0.9rem;
+            color: #c9d1d9;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .announcement-meta-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #8b949e;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .author-info img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
 
+        /* New Event List Item Style */
         .event-group-header { font-size: 1.2rem; font-weight: 800; color: #fff; padding: 0.5rem 1rem; background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border-radius: 0.5rem; margin-bottom: 0.5rem; }
-        .event-list-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background-color: rgba(13, 17, 23, 0.5); border-radius: 0.5rem; border-left: 4px solid transparent; transition: all 0.3s ease; animation: fadeIn 0.5s ease-out forwards; }
-        .event-list-item:hover { background-color: rgba(13, 17, 23, 0.8); transform: translateX(5px); }
-        .event-list-item.live { border-left-color: var(--glow-color); animation: pulse-live 2s infinite; }
-        .event-list-item.ended { opacity: 0.5; }
-        .event-icon { flex-shrink: 0; width: 50px; height: 50px; border-radius: 0.5rem; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
-        .event-icon i { font-size: 1.5rem; }
-        .event-details { flex-grow: 1; }
-        .event-title { font-size: 1rem; font-weight: 600; color: #fff; }
-        .event-subtitle { font-size: 0.8rem; color: #8b949e; }
-        .event-time-status { flex-shrink: 0; text-align: right; }
-        .time-status-label { font-size: 1rem; font-weight: 600; }
-        .time-status-sublabel { font-size: 0.75rem; color: #8b949e; }
-        .time-status-live { color: var(--color-highlight); }
-        .time-status-upcoming { color: var(--post-color-server); }
+        
+        .event-list-item {
+            display: grid;
+            grid-template-columns: 60px 1fr auto;
+            gap: 1rem;
+            align-items: center;
+            background: linear-gradient(to right, rgba(13, 17, 23, 0.8), rgba(13, 17, 23, 0.5));
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .event-list-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--glow-color);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .event-list-item:hover {
+            transform: scale(1.02);
+            background: linear-gradient(to right, rgba(13, 17, 23, 1), rgba(13, 17, 23, 0.7));
+            border-color: rgba(255,255,255,0.1);
+        }
+        .event-list-item.live::before {
+            opacity: 1;
+            animation: pulse-live 2s infinite;
+        }
+        .event-list-item.ended {
+            opacity: 0.6;
+            filter: grayscale(50%);
+        }
+        .event-icon-wrapper {
+            width: 50px;
+            height: 50px;
+            border-radius: 0.5rem;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+        .event-icon-wrapper i {
+            font-size: 1.5rem;
+        }
+        .event-details {
+            flex-grow: 1;
+        }
+        .event-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .event-subtitle {
+            font-size: 0.8rem;
+            color: #8b949e;
+            margin-top: 0.1rem;
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .event-time-status {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            min-width: 120px;
+        }
+        .time-status-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .time-status-sublabel {
+            font-size: 0.75rem;
+            color: #8b949e;
+        }
+        .event-list-item.live .time-status-label { color: var(--color-highlight); }
+        .event-list-item.upcoming .time-status-label { color: var(--post-color-server); }
+        .event-list-item.ended .time-status-label { color: #6e7681; }
 
     </style>
 </head>
@@ -925,7 +1061,7 @@ CHANGELOG
             const now = new Date();
             document.querySelectorAll('.event-list-item').forEach(el => {
                 const startTimeAttr = el.dataset.startTime;
-                if (!startTimeAttr) return;
+                if (!startTimeAttr || startTimeAttr === 'undefined') return;
 
                 const endTimeAttr = el.dataset.endTime;
                 const isRecurring = el.dataset.isRecurring === 'true';
@@ -933,27 +1069,27 @@ CHANGELOG
                 let startTime = new Date(startTimeAttr);
                 const endTime = (endTimeAttr && endTimeAttr !== 'null' && endTimeAttr !== 'undefined') ? new Date(endTimeAttr) : null;
 
+                const statusEl = el.querySelector('.event-time-status');
+                el.classList.remove('live', 'ended', 'upcoming');
+
                 if (isRecurring) {
-                    // Recurring logic is display-only for now, handled in render
+                    statusEl.innerHTML = `<div class="time-status-label">RECURRING</div><div class="time-status-sublabel">Weekly Event</div>`;
                     return;
                 }
 
                 const diffToStart = startTime - now;
                 const diffToEnd = endTime ? endTime - now : null;
 
-                const statusEl = el.querySelector('.event-time-status');
-                el.classList.remove('live', 'ended', 'upcoming');
-
                 if (diffToStart > 0) {
                     el.classList.add('upcoming');
-                    statusEl.innerHTML = `<div class="time-status-label time-status-upcoming">Starts In</div><div class="time-status-sublabel">${formatDuration(diffToStart)}</div>`;
+                    statusEl.innerHTML = `<div class="time-status-label">UPCOMING</div><div class="time-status-sublabel">${formatDuration(diffToStart)}</div>`;
                 } else if (diffToEnd !== null && diffToEnd > 0) {
                     el.classList.add('live');
-                    statusEl.innerHTML = `<div class="time-status-label time-status-live">Remaining</div><div class="time-status-sublabel">${formatDuration(diffToEnd)}</div>`;
+                    statusEl.innerHTML = `<div class="time-status-label">LIVE</div><div class="time-status-sublabel">Ends in ${formatDuration(diffToEnd)}</div>`;
                 } else {
                     el.classList.add('ended');
                     const endedDate = endTime || startTime;
-                    statusEl.innerHTML = `<div class="time-status-label">Ended</div><div class="time-status-sublabel">${endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
+                    statusEl.innerHTML = `<div class="time-status-label">ENDED</div><div class="time-status-sublabel">${endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
                 }
             });
         }
@@ -1566,6 +1702,7 @@ CHANGELOG
             renderEvents(events);
 
             countdownInterval = setInterval(updateCountdowns, 1000);
+            updateCountdowns(); // Initial call
         }
 
         function renderAnnouncements(announcements) {
@@ -1584,28 +1721,44 @@ CHANGELOG
         function createAnnouncementCard(post) {
             const card = document.createElement('div');
             card.className = 'announcement-card';
-            const postDate = post.createdAt?.toDate().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) || '...';
+            const style = POST_STYLES[post.subType] || {};
+            const postDate = post.createdAt?.toDate().toLocaleString([], { month: 'short', day: 'numeric'}) || '...';
             
-            // Find author data to get avatar
             const author = allPlayers.find(p => p.uid === post.authorUid);
             const avatarUrl = author?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${post.authorUsername.charAt(0).toUpperCase()}`;
 
+            // Set theme colors for border and hover glow
+            card.style.setProperty('--card-theme-color', style.color || 'var(--color-primary)');
+            const glowColor = style.color ? style.color.replace(')', ', 0.3)').replace('rgb', 'rgba') : 'var(--color-primary-glow)';
+            card.style.setProperty('--card-theme-color-glow', glowColor);
+
             card.innerHTML = `
-                <div class="announcement-header">
-                    <img src="${avatarUrl}" class="announcement-author-avatar">
-                    <div>
-                        <p class="announcement-title">${post.title}</p>
-                        <p class="announcement-meta">By ${post.authorUsername} on ${postDate}</p>
-                    </div>
+                <div class="announcement-icon-container" style="background-color: ${style.bgColor};">
+                    <i class="${style.icon} fa-2x" style="color: ${style.color};"></i>
                 </div>
-                <div class="announcement-body">
-                    <p>${post.details}</p>
+                <div class="announcement-content">
+                    <p class="announcement-title">${post.title}</p>
+                    <div class="announcement-body">
+                        <p>${post.details}</p>
+                    </div>
+                    <div class="announcement-meta-footer">
+                        <div class="author-info">
+                            <img src="${avatarUrl}" alt="${post.authorUsername}">
+                            <span>By <strong>${post.authorUsername}</strong></span>
+                        </div>
+                        <span>${postDate}</span>
+                    </div>
                 </div>
             `;
             return card;
         }
 
         function renderEvents(events) {
+            if (events.length > 0 && announcementsContainer.innerHTML !== '') {
+                 const divider = document.createElement('div');
+                 divider.className = 'py-4';
+                 eventListContainer.appendChild(divider);
+            }
             Object.entries(EVENT_GROUPS).forEach(([groupName, subTypes]) => {
                 const groupPosts = events.filter(p => subTypes.includes(p.subType));
                 if (groupPosts.length > 0) {
@@ -1624,7 +1777,6 @@ CHANGELOG
                     eventListContainer.appendChild(list);
                 }
             });
-            updateCountdowns();
         }
 
         function createEventListItem(post) {
@@ -1638,8 +1790,8 @@ CHANGELOG
             item.dataset.isRecurring = post.isRecurring || false;
             
             const visualHTML = post.thumbnailUrl 
-                ? `<div class="event-icon" style="background-image: url(${post.thumbnailUrl})"></div>`
-                : `<div class="event-icon" style="background-color: ${style.bgColor};"><i class="${style.icon}" style="color: ${style.color};"></i></div>`;
+                ? `<div class="event-icon-wrapper" style="background-image: url(${post.thumbnailUrl})"></div>`
+                : `<div class="event-icon-wrapper" style="background-color: ${style.bgColor};"><i class="${style.icon}" style="color: ${style.color};"></i></div>`;
 
             item.innerHTML = `
                 ${visualHTML}
