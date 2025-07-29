@@ -90,14 +90,14 @@ service firebase.storage {
       allow read;
       allow write: if request.auth != null 
                    && request.auth.uid == userId
-                   && request.resource.size < 1 * 1024 * 1024 // Max 1MB
+                   && request.resource.size < 2 * 1024 * 1024 // Max 2MB for larger images
                    && request.resource.contentType.matches('image/.*');
     }
 
     match /post_thumbnails/{postId} {
         allow read;
         allow write: if request.auth != null
-                     && request.resource.size < 1 * 1024 * 1024
+                     && request.resource.size < 2 * 1024 * 1024 // Max 2MB for larger images
                      && request.resource.contentType.matches('image/.*');
     }
   }
@@ -108,6 +108,7 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 30: Fixed image squishing on upload. Images are now resized to a max of 1024x1024 while maintaining their original aspect ratio.
 - Prompt 29: Changed card layout to a single-column, full-width design for a more focused view.
 - Prompt 29: Made cards more vertically compact by adjusting header height and internal padding.
 - Prompt 29: Fixed distorted header images by ensuring `background-size: cover` is applied correctly.
@@ -188,7 +189,7 @@ CHANGELOG
 - Prompt 5: Refined event/announcement types with specific permissions and optimized the creation modal flow.
 - Prompt 5: Enhanced event creation with an option for weekly repetition over a specified number of weeks.
 - Prompt 5: Updated Firebase security rules to reflect the new, more granular post type permissions.
-- Prompt 4: Added thumbnail upload functionality to the post creation modal with a 300x300px preview.
+- Prompt 4: Added thumbnail upload functionality to the post creation modal with a 300x300 preview.
 - Prompt 4: Themed the uploaded thumbnail into a stylish header banner on the event/announcement cards.
 - Prompt 4: Updated Firebase Storage security rules to accommodate post thumbnail uploads.
 - Prompt 3: Replaced default datetime-local inputs with a custom-styled, user-friendly date and time picker component.
@@ -326,7 +327,7 @@ CHANGELOG
             filter: grayscale(60%);
         }
         .post-card-header {
-            width: 200px;
+            width: 400px;
             flex-shrink: 0;
             background-size: cover;
             background-position: center;
@@ -658,7 +659,7 @@ CHANGELOG
                                     <div>
                                         <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
                                         <div class="flex items-center gap-4">
-                                            <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=300x300" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
+                                            <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=PREVIEW" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
                                             <button type="button" id="post-thumbnail-btn" class="flex-grow p-3 rounded-lg secondary-btn">
                                                 <i class="fas fa-upload mr-2"></i> Choose Image
                                             </button>
@@ -1289,7 +1290,7 @@ CHANGELOG
 
             userAvatarButton.style.opacity = '0.5';
             try {
-                const resizedBlob = await resizeImage(file, 300, 300);
+                const resizedBlob = await resizeImage(file, { maxWidth: 1024, maxHeight: 1024 });
                 const avatarRef = ref(storage, `avatars/${user.uid}`);
                 await uploadBytes(avatarRef, resizedBlob);
                 const downloadURL = await getDownloadURL(avatarRef);
@@ -1425,34 +1426,51 @@ CHANGELOG
         document.getElementById('register-avatar-input').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            resizedAvatarBlob = await resizeImage(file, 300, 300);
+            resizedAvatarBlob = await resizeImage(file, { maxWidth: 1024, maxHeight: 1024 });
             document.getElementById('register-avatar-preview').src = URL.createObjectURL(resizedAvatarBlob);
         });
         
-        // Helper function to resize images, returns a Promise with the blob
-        function resizeImage(file, width, height) {
+        // Helper function to resize images while maintaining aspect ratio
+        function resizeImage(file, options) {
+            const { maxWidth, maxHeight } = options;
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const img = new Image();
                     img.onload = () => {
+                        let { width, height } = img;
+
+                        // Maintain aspect ratio
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round(height * (maxWidth / width));
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round(width * (maxHeight / height));
+                                height = maxHeight;
+                            }
+                        }
+
                         const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
                         canvas.width = width;
                         canvas.height = height;
+                        const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
+
                         canvas.toBlob((blob) => {
                             if (blob) {
                                 resolve(blob);
                             } else {
                                 reject(new Error('Canvas to Blob conversion failed'));
                             }
-                        }, 'image/jpeg', 0.9);
+                        }, 'image/jpeg', 0.9); // Use jpeg for smaller file sizes
                     };
-                    img.onerror = reject;
+                    img.onerror = (err) => reject(err);
                     img.src = event.target.result;
                 };
-                reader.onerror = reject;
+                reader.onerror = (err) => reject(err);
                 reader.readAsDataURL(file);
             });
         }
@@ -1521,7 +1539,7 @@ CHANGELOG
             document.getElementById('create-post-form').reset();
             postCreationData = {};
             resizedThumbnailBlob = null;
-            document.getElementById('post-thumbnail-preview').src = 'https://placehold.co/100x100/161B22/444444?text=300x300';
+            document.getElementById('post-thumbnail-preview').src = 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
             currentPostStep = 1;
             populateMainTypeSelection();
             showPostStep(currentPostStep);
@@ -1671,7 +1689,7 @@ CHANGELOG
         document.getElementById('post-thumbnail-input').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            resizedThumbnailBlob = await resizeImage(file, 300, 300);
+            resizedThumbnailBlob = await resizeImage(file, { maxWidth: 1024, maxHeight: 1024 });
             document.getElementById('post-thumbnail-preview').src = URL.createObjectURL(resizedThumbnailBlob);
         });
         
@@ -1897,7 +1915,7 @@ CHANGELOG
             // Populate content fields
             document.getElementById('post-title').value = post.title;
             document.getElementById('post-details').value = post.details;
-            document.getElementById('post-thumbnail-preview').src = post.thumbnailUrl || 'https://placehold.co/100x100/161B22/444444?text=300x300';
+            document.getElementById('post-thumbnail-preview').src = post.thumbnailUrl || 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
             
             // Populate timing fields if it's an event
             if (post.mainType === 'event' && post.startTime) {
