@@ -108,6 +108,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 26: Redesigned event and announcement cards for a more appealing and engaging layout.
+- Prompt 26: Implemented a generic confirmation modal for post deletion to prevent accidental removal.
+- Prompt 26: Integrated edit functionality to reuse the creation modal, pre-filling it with the selected post's data for a seamless editing experience.
 - Prompt 25: Corrected Firebase rules syntax by removing invalid 'in' keyword and fixing logic in 'isAdmin' and 'isVerified'.
 - Prompt 25: Added a "LIVE" text overlay to event thumbnails for currently running events.
 - Prompt 25: Ensured event thumbnails use `object-fit: cover` within an `<img>` tag to prevent stretching.
@@ -315,7 +318,7 @@ CHANGELOG
         /* --- Professional Overhaul Styles --- */
         .section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--color-primary), transparent) 1; }
         
-        /* Refined Announcement Card */
+        /* Redesigned Announcement Card */
         .announcement-card {
             display: flex;
             position: relative;
@@ -337,19 +340,12 @@ CHANGELOG
         .announcement-reactions { display: flex; align-items: center; gap: 0.5rem; color: #8b949e; cursor: pointer; transition: color 0.2s ease; }
         .announcement-reactions:hover { color: var(--color-highlight); }
 
-        /* New Event List Item Design */
-        .event-list-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
+        /* Redesigned Event Card */
         .event-list-item {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
+            display: flex;
             gap: 1rem;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
             position: relative;
             background: linear-gradient(135deg, rgba(22, 27, 34, 0.6), rgba(22, 27, 34, 0.3));
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -360,7 +356,7 @@ CHANGELOG
             content: '';
             position: absolute;
             inset: 0;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             padding: 1px;
             background: linear-gradient(135deg, var(--glow-color-transparent), transparent);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -373,11 +369,11 @@ CHANGELOG
         .event-list-item:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .event-list-item.ended { opacity: 0.6; }
         
-        .event-icon-wrapper {
+        .event-thumbnail-wrapper {
             flex-shrink: 0;
-            width: 48px;
-            height: 48px;
-            border-radius: 0.375rem;
+            width: 80px;
+            height: 80px;
+            border-radius: 0.5rem;
             background-color: #101419;
             border: 1px solid rgba(255,255,255,0.1);
             display: flex;
@@ -386,34 +382,35 @@ CHANGELOG
             overflow: hidden;
             position: relative;
         }
-        .event-icon-wrapper img {
+        .event-thumbnail-wrapper img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             filter: grayscale(1);
             transition: filter 0.3s ease;
         }
-        .event-list-item.live .event-icon-wrapper img { filter: grayscale(0); }
-        .event-icon-wrapper i { font-size: 1.5rem; }
+        .event-list-item.live .event-thumbnail-wrapper img { filter: grayscale(0); }
+        .event-thumbnail-wrapper i { font-size: 2rem; }
         .live-overlay {
             position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            color: var(--post-color-server);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
+            bottom: 4px;
+            right: 4px;
+            background: rgba(220, 20, 60, 0.8);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
             font-weight: 800;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             opacity: 0;
             transition: opacity 0.3s ease;
             backdrop-filter: blur(2px);
         }
         .event-list-item.live .live-overlay { opacity: 1; }
 
-        .event-details { flex-grow: 1; }
-        .event-title { font-size: 1rem; font-weight: 600; color: #EAEAEA; }
+        .event-content { flex-grow: 1; display: flex; flex-direction: column; }
+        .event-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .event-title { font-size: 1.1rem; font-weight: 700; color: #EAEAEA; margin-bottom: 0.25rem; }
         .event-category {
             font-size: 0.7rem;
             font-weight: 700;
@@ -427,6 +424,12 @@ CHANGELOG
         .event-list-item.live .time-status-label { color: var(--post-color-server); }
         .event-list-item.upcoming .time-status-label { color: #AAA; }
         .event-list-item.ended .time-status-label { color: #666; }
+        .event-description {
+            font-size: 0.85rem;
+            color: #a0a8b1;
+            margin-top: auto;
+            padding-top: 0.5rem;
+        }
         
         /* Post Controls */
         .post-controls {
@@ -455,7 +458,7 @@ CHANGELOG
             transition: all 0.2s ease;
         }
         .control-btn:hover { color: #fff; background: rgba(30,30,30,0.8); }
-        .control-btn.delete-btn.confirm-delete { background-color: var(--color-highlight); color: #fff; }
+        .control-btn.delete-btn:hover { background-color: var(--color-highlight); }
 
     </style>
 </head>
@@ -665,7 +668,7 @@ CHANGELOG
         </div>
     </div>
 
-    <!-- Create Event/Announcement Modal -->
+    <!-- Create/Edit Post Modal -->
     <div id="create-post-modal-container" class="modal-container">
          <div class="glass-pane">
             <div class="modal-content-wrapper">
@@ -786,6 +789,20 @@ CHANGELOG
         </div>
     </div>
 
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal-container" class="modal-container">
+        <div class="glass-pane">
+            <div class="modal-content-wrapper p-6 text-center">
+                <h2 id="confirmation-title" class="text-2xl font-bold text-white mb-4">Confirm Action</h2>
+                <p id="confirmation-message" class="text-gray-300 mb-6">Are you sure?</p>
+                <div class="flex justify-center gap-4">
+                    <button id="confirmation-cancel-btn" class="w-full p-3 rounded-lg secondary-btn">Cancel</button>
+                    <button id="confirmation-confirm-btn" class="w-full p-3 rounded-lg primary-btn bg-red-600 hover:bg-red-700 !shadow-red-500/30">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
         <div class="max-w-6xl mx-auto">
@@ -877,7 +894,7 @@ CHANGELOG
                             <!-- New announcement cards will be rendered here -->
                         </div>
 
-                        <div id="events-section-container">
+                        <div id="events-section-container" class="space-y-4">
                             <!-- Event group headers and lists will be rendered here -->
                         </div>
 
@@ -947,6 +964,7 @@ CHANGELOG
         const storage = getStorage(app);
         let currentUserData = null;
         let allPlayers = []; // Cache for player data
+        let allPosts = []; // Cache for post data
         
         const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
         const ALLIANCE_RANKS = [
@@ -1004,6 +1022,7 @@ CHANGELOG
         const editProfileModalContainer = document.getElementById('edit-profile-modal-container');
         const playerSettingsModalContainer = document.getElementById('player-settings-modal-container');
         const createPostModalContainer = document.getElementById('create-post-modal-container');
+        const confirmationModalContainer = document.getElementById('confirmation-modal-container');
         
         const loginFormContainer = document.getElementById('login-form-container');
         const registerFormContainer = document.getElementById('register-form-container');
@@ -1030,6 +1049,7 @@ CHANGELOG
         const filterLegendContainer = document.getElementById('filter-legend-container');
         const mobileFilterPanel = document.getElementById('mobile-filter-panel');
         const mobileFilterLegendContainer = document.getElementById('mobile-filter-legend');
+        const eventsMainContainer = document.getElementById('events-main-container');
 
 
         let activePlayerSettingsUID = null;
@@ -1086,10 +1106,12 @@ CHANGELOG
                 const endTime = (endTimeAttr && endTimeAttr !== 'null' && endTimeAttr !== 'undefined') ? new Date(endTimeAttr) : null;
 
                 const statusEl = el.querySelector('.event-time-status');
+                const liveOverlay = el.querySelector('.live-overlay');
                 el.classList.remove('live', 'ended', 'upcoming');
 
                 if (isRecurring) {
                     statusEl.innerHTML = `<div class="time-status-label" style="color: var(--glow-color)">RECURRING</div><div class="time-status-sublabel">Weekly Event</div>`;
+                    if (liveOverlay) liveOverlay.style.opacity = 0;
                     return;
                 }
 
@@ -1099,13 +1121,16 @@ CHANGELOG
                 if (diffToStart > 0) {
                     el.classList.add('upcoming');
                     statusEl.innerHTML = `<div class="time-status-label">STARTS IN</div><div class="time-status-sublabel">${formatDuration(diffToStart)}</div>`;
+                    if (liveOverlay) liveOverlay.style.opacity = 0;
                 } else if (diffToEnd !== null && diffToEnd > 0) {
                     el.classList.add('live');
                     statusEl.innerHTML = `<div class="time-status-label">REMAINING</div><div class="time-status-sublabel">${formatDuration(diffToEnd)}</div>`;
+                    if (liveOverlay) liveOverlay.style.opacity = 1;
                 } else {
                     el.classList.add('ended');
                     const endedDate = endTime || startTime;
                     statusEl.innerHTML = `<div class="time-status-label">ENDED</div><div class="time-status-sublabel">${endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
+                    if (liveOverlay) liveOverlay.style.opacity = 0;
                 }
             });
         }
@@ -1138,10 +1163,27 @@ CHANGELOG
         
         function showCreatePostModal() { 
             editingPostId = null;
+            document.getElementById('create-post-form').reset();
             showModal(createPostModalContainer); 
             initializePostStepper();
             document.getElementById('post-content-header').textContent = 'Create New Post';
             document.getElementById('post-submit-btn').innerHTML = '<i class="fas fa-check-circle mr-2"></i>Create Post';
+        }
+
+        function showConfirmationModal(title, message, onConfirm) {
+            document.getElementById('confirmation-title').textContent = title;
+            document.getElementById('confirmation-message').textContent = message;
+            
+            const confirmBtn = document.getElementById('confirmation-confirm-btn');
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            
+            newConfirmBtn.addEventListener('click', () => {
+                onConfirm();
+                hideAllModals();
+            });
+            
+            showModal(confirmationModalContainer);
         }
 
         function hideAllModals() {
@@ -1150,6 +1192,7 @@ CHANGELOG
             editProfileModalContainer.classList.remove('visible');
             playerSettingsModalContainer.classList.remove('visible');
             createPostModalContainer.classList.remove('visible');
+            confirmationModalContainer.classList.remove('visible');
             activePlayerSettingsUID = null;
             editingPostId = null;
         }
@@ -1159,6 +1202,8 @@ CHANGELOG
         document.getElementById('close-edit-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-player-settings-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-create-post-modal-btn').addEventListener('click', hideAllModals);
+        document.getElementById('confirmation-cancel-btn').addEventListener('click', hideAllModals);
+
         createPostBtn.addEventListener('click', showCreatePostModal);
 
         modalBackdrop.addEventListener('click', (e) => {
@@ -1198,9 +1243,9 @@ CHANGELOG
                 }, (error) => console.error("Error with users listener:", error));
 
                 postsListener = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
-                    let posts = [];
-                    querySnapshot.forEach((doc) => posts.push({ id: doc.id, ...doc.data() }));
-                    renderPosts(posts);
+                    allPosts = [];
+                    querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
+                    renderPosts(allPosts);
                 }, (error) => console.error("Error with posts listener:", error));
 
                 hideAllModals();
@@ -1209,6 +1254,7 @@ CHANGELOG
                 // User is signed out
                 currentUserData = null;
                 allPlayers = [];
+                allPosts = [];
                 updateUIForLoggedOutUser();
             }
             buildMobileNav(); // Rebuild mobile nav to show correct auth state
@@ -1521,7 +1567,7 @@ CHANGELOG
             }
         });
         
-        // --- POST CREATION STEPPER ---
+        // --- POST CREATION/EDIT STEPPER ---
         let currentPostStep = 1;
         const postFlow = document.getElementById('post-creation-flow');
         const postFormSlides = postFlow.querySelectorAll('.form-slide');
@@ -1538,6 +1584,8 @@ CHANGELOG
             currentPostStep = 1;
             populateMainTypeSelection();
             showPostStep(currentPostStep);
+            postBackBtn.classList.remove('hidden');
+            postNextBtn.classList.remove('hidden');
         }
 
         function getAvailablePostTypes(mainType) {
@@ -1636,7 +1684,7 @@ CHANGELOG
             
             if(stepIndex === 3) { // Content slide
                 const header = document.getElementById('post-content-header');
-                header.textContent = `New ${postCreationData.text}`;
+                header.textContent = editingPostId ? `Edit ${postCreationData.text}` : `New ${postCreationData.text}`;
                 const allianceGroup = document.getElementById('post-alliance-group');
                 if(currentUserData.isAdmin && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership')) {
                     allianceGroup.classList.remove('hidden');
@@ -1699,7 +1747,7 @@ CHANGELOG
 
             const visiblePosts = posts.filter(post => {
                 if (!currentUserData) return false;
-                if (!activeFilters.has(post.subType)) return false;
+                // if (!activeFilters.has(post.subType)) return false; // Filtering logic can be re-enabled here
                 if (post.visibility === 'public') return true;
                 if (currentUserData.isAdmin) return true;
                 if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
@@ -1765,7 +1813,7 @@ CHANGELOG
                 <div class="announcement-content">
                     <p class="announcement-title">${post.title}</p>
                     <div class="announcement-body">
-                        <p>${post.details}</p>
+                        <p>${post.details.replace(/\n/g, '<br>')}</p>
                     </div>
                     <div class="announcement-meta-footer">
                         <div class="author-info">
@@ -1795,11 +1843,9 @@ CHANGELOG
                 }
                 const header = document.createElement('h3');
                 header.className = 'section-header text-xl font-bold mb-4';
-                header.innerHTML = 'Events';
+                header.innerHTML = '<i class="fas fa-calendar-alt"></i>Events';
                 eventsSectionContainer.appendChild(header);
 
-                const listContainer = document.createElement('div');
-                listContainer.className = 'event-list-container';
                 events.sort((a, b) => {
                     const now = new Date();
                     const startTimeA = a.startTime?.toDate() || 0;
@@ -1814,17 +1860,16 @@ CHANGELOG
                 });
                 events.forEach(post => {
                     const item = createEventListItem(post);
-                    listContainer.appendChild(item);
+                    eventsSectionContainer.appendChild(item);
                 });
-                eventsSectionContainer.appendChild(listContainer);
             }
         }
 
         function createEventListItem(post) {
             const item = document.createElement('div');
             const style = POST_STYLES[post.subType] || {};
-            const postTypeDetails = POST_TYPES[`${post.subType}_event`] || {};
-            const eventTypeText = postTypeDetails.text || post.subType.replace('_', ' ').toUpperCase();
+            const postTypeKey = `${post.subType}_${post.mainType}`;
+            const eventTypeText = POST_TYPES[postTypeKey]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
             
             item.className = 'event-list-item';
             
@@ -1839,8 +1884,8 @@ CHANGELOG
             item.dataset.isRecurring = post.isRecurring || false;
             
             const visualHTML = post.thumbnailUrl 
-                ? `<div class="event-icon-wrapper"><img src="${post.thumbnailUrl}" alt="${post.title}"><div class="live-overlay">LIVE</div></div>`
-                : `<div class="event-icon-wrapper"><i class="${style.icon}" style="color: ${style.color};"></i><div class="live-overlay">LIVE</div></div>`;
+                ? `<div class="event-thumbnail-wrapper"><img src="${post.thumbnailUrl}" alt="${post.title}"><div class="live-overlay">LIVE</div></div>`
+                : `<div class="event-thumbnail-wrapper"><i class="${style.icon}" style="color: ${style.color};"></i><div class="live-overlay">LIVE</div></div>`;
             
             let controlsHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
@@ -1854,12 +1899,17 @@ CHANGELOG
 
             item.innerHTML = `
                 ${visualHTML}
-                <div class="event-details">
-                    <p class="event-category">${eventTypeText}</p>
-                    <p class="event-title">${post.title}</p>
-                </div>
-                <div class="event-time-status">
-                    <!-- Status updated by JS -->
+                <div class="event-content">
+                    <div class="event-header">
+                        <div>
+                            <p class="event-category">${eventTypeText}</p>
+                            <p class="event-title">${post.title}</p>
+                        </div>
+                        <div class="event-time-status text-right flex-shrink-0 ml-4">
+                            <!-- Status updated by JS -->
+                        </div>
+                    </div>
+                    <p class="event-description">${post.details.substring(0, 100)}${post.details.length > 100 ? '...' : ''}</p>
                 </div>
                 ${controlsHTML}
             `;
@@ -1887,6 +1937,57 @@ CHANGELOG
             resultDate.setDate(resultDate.getDate() + diff);
             return resultDate;
         }
+
+        async function populatePostFormForEdit(postId) {
+            const post = allPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            editingPostId = postId;
+            postCreationData = { ...POST_TYPES[`${post.subType}_${post.mainType}`] };
+
+            // Change modal title and button
+            document.getElementById('post-content-header').textContent = `Edit ${postCreationData.text}`;
+            const submitBtn = document.getElementById('post-submit-btn');
+            submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
+
+            // Hide stepper nav
+            document.getElementById('post-nav-container').style.display = 'none';
+
+            // Show all relevant slides
+            document.querySelectorAll('.form-slide').forEach(s => s.classList.remove('active'));
+            document.querySelector('.form-slide[data-slide="3"]').classList.add('active'); // Content
+            if (post.mainType === 'event') {
+                document.querySelector('.form-slide[data-slide="4"]').classList.add('active'); // Timing
+            }
+            
+            // Populate content fields
+            document.getElementById('post-title').value = post.title;
+            document.getElementById('post-details').value = post.details;
+            document.getElementById('post-thumbnail-preview').src = post.thumbnailUrl || 'https://placehold.co/100x100/161B22/444444?text=300x300';
+            
+            // Populate timing fields if it's an event
+            if (post.mainType === 'event' && post.startTime) {
+                const startDate = post.startTime.toDate();
+                const endDate = post.endTime.toDate();
+
+                setCustomSelectValue(document.querySelector('#post-start-day').closest('.custom-select-container'), startDate.getDay().toString(), DAYS_OF_WEEK[startDate.getDay()].text);
+                setCustomSelectValue(document.querySelector('#post-start-hour').closest('.custom-select-container'), startDate.getHours().toString(), HOURS_OF_DAY[startDate.getHours()].text);
+                setCustomSelectValue(document.querySelector('#post-end-day').closest('.custom-select-container'), endDate.getDay().toString(), DAYS_OF_WEEK[endDate.getDay()].text);
+                setCustomSelectValue(document.querySelector('#post-end-hour').closest('.custom-select-container'), endDate.getHours().toString(), HOURS_OF_DAY[endDate.getHours()].text);
+                
+                const repeatType = post.isRecurring ? 'weekly' : 'none';
+                setCustomSelectValue(document.querySelector('#post-repeat-type').closest('.custom-select-container'), repeatType, REPEAT_TYPES.find(rt => rt.value === repeatType).text);
+                document.getElementById('post-repeat-weeks-container').classList.toggle('hidden', !post.isRecurring);
+                if (post.isRecurring) {
+                    document.getElementById('post-repeat-weeks').value = post.repeatWeeks || 1;
+                }
+            }
+            
+            // Show the modal
+            showModal(createPostModalContainer);
+            postSubmitBtn.classList.remove('hidden'); // Ensure submit is visible
+        }
+
 
         document.getElementById('create-post-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -2341,6 +2442,7 @@ CHANGELOG
              if (!activeSet) { const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]'); if (eventsLink) eventsLink.classList.add('active'); }
         }
 
+        // --- GLOBAL EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize all custom selects on the page
             document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
@@ -2387,6 +2489,25 @@ CHANGELOG
                     if (targetId) showPage(targetId);
                     link.closest('.nav-item').classList.remove('open');
                 });
+            });
+
+            // Event delegation for post controls
+            eventsMainContainer.addEventListener('click', e => {
+                const editBtn = e.target.closest('.edit-post-btn');
+                const deleteBtn = e.target.closest('.delete-post-btn');
+
+                if (editBtn) {
+                    const postId = editBtn.dataset.postId;
+                    populatePostFormForEdit(postId);
+                }
+
+                if (deleteBtn) {
+                    const postId = deleteBtn.dataset.postId;
+                    showConfirmationModal('Delete Post?', 'This action cannot be undone.', () => {
+                        deleteDoc(doc(db, 'posts', postId))
+                            .catch(err => console.error("Error deleting post: ", err));
+                    });
+                }
             });
 
             showPage('page-events'); 
