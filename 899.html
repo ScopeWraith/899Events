@@ -115,6 +115,13 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 21: Overhauled Event display to a professional, color-coded list format inspired by user-provided reference.
+- Prompt 21: Implemented a "time ago" timestamp for announcements and prepended author names with their alliance tag.
+- Prompt 21: Refined "live" event styling for better visual prominence.
+- Prompt 20: Completely redesigned Event display into professional, multi-part cards for superior clarity and visual appeal.
+- Prompt 20: Implemented a responsive two-column grid layout for the event list on larger screens.
+- Prompt 20: Refined Announcement cards with more subtle styling and added a placeholder for future 'reaction' functionality.
+- Prompt 20: Enhanced event status indicators (Live, Upcoming, etc.) to be more prominent and visually integrated into the new card design.
 - Prompt 19: Graphically overhauled Announcement cards with a new layout featuring themed icons and accent colors.
 - Prompt 19: Reworked Event list items into a 'ticket' style layout for improved scannability and visual appeal.
 - Prompt 19: Enhanced status indicators for events to be more prominent and descriptive.
@@ -299,164 +306,80 @@ CHANGELOG
         #mobile-nav-menu, #mobile-filter-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 1100; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #mobile-nav-menu.open, #mobile-filter-panel.open { transform: translateX(0); }
         
-        /* --- Reworked Event & Announcement Styles --- */
+        /* --- Professional Overhaul Styles --- */
         .section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--color-primary), transparent) 1; }
         
-        /* New Announcement Card Style */
+        /* Refined Announcement Card */
         .announcement-card {
             display: flex;
-            background: linear-gradient(145deg, rgba(22, 27, 34, 0.7), rgba(22, 27, 34, 0.4));
+            background: linear-gradient(145deg, rgba(22, 27, 34, 0.5), rgba(22, 27, 34, 0.2));
             border-radius: 0.75rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-left-width: 4px;
-            border-left-color: var(--card-theme-color, var(--color-primary));
             overflow: hidden;
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease-out;
         }
-        .announcement-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 15px var(--card-theme-color-glow, rgba(0,191,255,0.2));
-        }
-        .announcement-icon-container {
-            flex-shrink: 0;
-            width: 60px;
+        .announcement-card:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); }
+        .announcement-icon-container { flex-shrink: 0; width: 60px; display: flex; align-items: center; justify-content: center; background-color: var(--card-theme-bg, rgba(0,0,0,0.2)); border-right: 1px solid rgba(255,255,255,0.1); }
+        .announcement-content { padding: 1rem 1.25rem; flex-grow: 1; }
+        .announcement-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+        .announcement-body { font-size: 0.9rem; color: #c9d1d9; padding-top: 0.5rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); }
+        .announcement-meta-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #8b949e; margin-top: 0.75rem; }
+        .author-info { display: flex; align-items: center; gap: 0.5rem; }
+        .author-info img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+        .announcement-reactions { display: flex; align-items: center; gap: 0.5rem; color: #8b949e; cursor: pointer; transition: color 0.2s ease; }
+        .announcement-reactions:hover { color: var(--color-highlight); }
+
+        /* New Event List Item Design */
+        .event-list-container {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0,0,0,0.2);
-        }
-        .announcement-content {
-            padding: 1rem 1.25rem;
-            flex-grow: 1;
-        }
-        .announcement-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #fff;
-        }
-        .announcement-body {
-            font-size: 0.9rem;
-            color: #c9d1d9;
-            padding-top: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        .announcement-meta-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: #8b949e;
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        .author-info {
-            display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 0.5rem;
         }
-        .author-info img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        /* New Event List Item Style */
-        .event-group-header { font-size: 1.2rem; font-weight: 800; color: #fff; padding: 0.5rem 1rem; background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border-radius: 0.5rem; margin-bottom: 0.5rem; }
-        
         .event-list-item {
-            display: grid;
-            grid-template-columns: 60px 1fr auto;
-            gap: 1rem;
+            display: flex;
             align-items: center;
-            background: linear-gradient(to right, rgba(13, 17, 23, 0.8), rgba(13, 17, 23, 0.5));
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(255,255,255,0.05);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: #1C1C1C;
+            border-radius: 0.375rem;
+            border: 1px solid #303030;
+            border-left-width: 4px;
+            border-left-color: var(--glow-color, #444);
+            transition: all 0.2s ease-in-out;
             animation: fadeIn 0.5s ease-out forwards;
         }
-        .event-list-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background-color: var(--glow-color);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
         .event-list-item:hover {
-            transform: scale(1.02);
-            background: linear-gradient(to right, rgba(13, 17, 23, 1), rgba(13, 17, 23, 0.7));
-            border-color: rgba(255,255,255,0.1);
+            background: #282828;
+            border-color: #505050;
         }
-        .event-list-item.live::before {
-            opacity: 1;
-            animation: pulse-live 2s infinite;
+        .event-list-item.live {
+            border-left-color: var(--glow-color);
+            background: linear-gradient(to right, rgba(255, 215, 0, 0.1), #1C1C1C 25%);
         }
-        .event-list-item.ended {
-            opacity: 0.6;
-            filter: grayscale(50%);
-        }
+        .event-list-item.ended { opacity: 0.6; }
         .event-icon-wrapper {
-            width: 50px;
-            height: 50px;
-            border-radius: 0.5rem;
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 0.375rem;
             background-size: cover;
             background-position: center;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255,255,255,0.1);
-            overflow: hidden;
+            background-color: #303030;
         }
-        .event-icon-wrapper i {
-            font-size: 1.5rem;
-        }
-        .event-details {
-            flex-grow: 1;
-        }
-        .event-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #fff;
-        }
-        .event-subtitle {
-            font-size: 0.8rem;
-            color: #8b949e;
-            margin-top: 0.1rem;
-            max-width: 300px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .event-time-status {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            justify-content: center;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            min-width: 120px;
-        }
-        .time-status-label {
-            font-size: 0.9rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .time-status-sublabel {
-            font-size: 0.75rem;
-            color: #8b949e;
-        }
-        .event-list-item.live .time-status-label { color: var(--color-highlight); }
-        .event-list-item.upcoming .time-status-label { color: var(--post-color-server); }
-        .event-list-item.ended .time-status-label { color: #6e7681; }
+        .event-icon-wrapper i { font-size: 1.5rem; }
+        .event-details { flex-grow: 1; }
+        .event-title { font-size: 1rem; font-weight: 600; color: #EAEAEA; }
+        .event-subtitle { font-size: 0.8rem; color: #888; }
+        .event-time-status { text-align: right; }
+        .time-status-label { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; }
+        .time-status-sublabel { font-size: 0.8rem; color: #AAA; }
+        .event-list-item.live .time-status-label { color: var(--post-color-server); }
+        .event-list-item.upcoming .time-status-label { color: #AAA; }
+        .event-list-item.ended .time-status-label { color: #666; }
 
     </style>
 </head>
@@ -877,9 +800,11 @@ CHANGELOG
                         <div id="announcements-container" class="space-y-4">
                             <!-- New announcement cards will be rendered here -->
                         </div>
-                        <div id="event-list-container" class="space-y-6">
-                            <!-- New event list will be rendered here -->
+
+                        <div id="events-section-container">
+                            <!-- Event group headers and lists will be rendered here -->
                         </div>
+
                     </main>
                 </div>
                 <!-- Top Alliances Page -->
@@ -1021,7 +946,7 @@ CHANGELOG
         const allianceFilterInput = document.getElementById('alliance-filter');
         const createPostBtn = document.getElementById('create-post-btn');
         const announcementsContainer = document.getElementById('announcements-container');
-        const eventListContainer = document.getElementById('event-list-container');
+        const eventsSectionContainer = document.getElementById('events-section-container');
         const userAvatarButton = document.getElementById('user-avatar-button');
         const uploadAvatarBtn = document.getElementById('upload-avatar-btn');
         const avatarUploadInput = document.getElementById('avatar-upload-input');
@@ -1037,24 +962,38 @@ CHANGELOG
         let activeFilters = new Set(Object.keys(POST_STYLES));
         let countdownInterval = null;
         
-        // --- COUNTDOWN LOGIC ---
+        // --- UTILITY FUNCTIONS ---
+        function formatTimeAgo(date) {
+            if (!date) return '';
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+
+            let interval = seconds / 31536000;
+            if (interval > 1) return `${Math.floor(interval)}y ago`;
+            interval = seconds / 2592000;
+            if (interval > 1) return `${Math.floor(interval)}mo ago`;
+            interval = seconds / 86400;
+            if (interval > 1) return `${Math.floor(interval)}d ago`;
+            interval = seconds / 3600;
+            if (interval > 1) return `${Math.floor(interval)}h ago`;
+            interval = seconds / 60;
+            if (interval > 1) return `${Math.floor(interval)}m ago`;
+            return `${Math.floor(seconds)}s ago`;
+        }
+
         function formatDuration(ms) {
             if (ms < 0) ms = 0;
             const totalSeconds = Math.floor(ms / 1000);
             const days = Math.floor(totalSeconds / 86400);
             const hours = Math.floor((totalSeconds % 86400) / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-
+            
             let parts = [];
             if (days > 0) parts.push(`${days}d`);
             if (hours > 0) parts.push(`${hours}h`);
             if (minutes > 0) parts.push(`${minutes}m`);
-            if (days === 0 && hours === 0) { // Only show seconds if less than an hour left
-                parts.push(`${seconds}s`);
-            }
             
-            return parts.slice(0, 3).join(' ') || '0s'; // Show at most 3 parts, or 0s if it's over
+            return parts.slice(0, 2).join(' ') || '<1m';
         }
 
         function updateCountdowns() {
@@ -1073,7 +1012,7 @@ CHANGELOG
                 el.classList.remove('live', 'ended', 'upcoming');
 
                 if (isRecurring) {
-                    statusEl.innerHTML = `<div class="time-status-label">RECURRING</div><div class="time-status-sublabel">Weekly Event</div>`;
+                    statusEl.innerHTML = `<div class="time-status-label" style="color: var(--glow-color)">RECURRING</div><div class="time-status-sublabel">Weekly Event</div>`;
                     return;
                 }
 
@@ -1082,10 +1021,10 @@ CHANGELOG
 
                 if (diffToStart > 0) {
                     el.classList.add('upcoming');
-                    statusEl.innerHTML = `<div class="time-status-label">UPCOMING</div><div class="time-status-sublabel">${formatDuration(diffToStart)}</div>`;
+                    statusEl.innerHTML = `<div class="time-status-label">STARTS IN</div><div class="time-status-sublabel">${formatDuration(diffToStart)}</div>`;
                 } else if (diffToEnd !== null && diffToEnd > 0) {
                     el.classList.add('live');
-                    statusEl.innerHTML = `<div class="time-status-label">LIVE</div><div class="time-status-sublabel">Ends in ${formatDuration(diffToEnd)}</div>`;
+                    statusEl.innerHTML = `<div class="time-status-label">REMAINING</div><div class="time-status-sublabel">${formatDuration(diffToEnd)}</div>`;
                 } else {
                     el.classList.add('ended');
                     const endedDate = endTime || startTime;
@@ -1681,7 +1620,7 @@ CHANGELOG
         function renderPosts(posts) {
             if (countdownInterval) clearInterval(countdownInterval);
             announcementsContainer.innerHTML = '';
-            eventListContainer.innerHTML = '';
+            eventsSectionContainer.innerHTML = '';
 
             const visiblePosts = posts.filter(post => {
                 if (!currentUserData) return false;
@@ -1722,18 +1661,19 @@ CHANGELOG
             const card = document.createElement('div');
             card.className = 'announcement-card';
             const style = POST_STYLES[post.subType] || {};
-            const postDate = post.createdAt?.toDate().toLocaleString([], { month: 'short', day: 'numeric'}) || '...';
             
             const author = allPlayers.find(p => p.uid === post.authorUid);
+            const authorAllianceTag = author ? `[${author.alliance}] ` : '';
+            const authorDisplayName = `${authorAllianceTag}${post.authorUsername}`;
             const avatarUrl = author?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${post.authorUsername.charAt(0).toUpperCase()}`;
+            
+            const postDate = post.createdAt?.toDate();
+            const timestamp = postDate ? formatTimeAgo(postDate) : '...';
 
-            // Set theme colors for border and hover glow
-            card.style.setProperty('--card-theme-color', style.color || 'var(--color-primary)');
-            const glowColor = style.color ? style.color.replace(')', ', 0.3)').replace('rgb', 'rgba') : 'var(--color-primary-glow)';
-            card.style.setProperty('--card-theme-color-glow', glowColor);
+            card.style.setProperty('--card-theme-bg', style.bgColor || 'rgba(0,0,0,0.2)');
 
             card.innerHTML = `
-                <div class="announcement-icon-container" style="background-color: ${style.bgColor};">
+                <div class="announcement-icon-container">
                     <i class="${style.icon} fa-2x" style="color: ${style.color};"></i>
                 </div>
                 <div class="announcement-content">
@@ -1744,9 +1684,15 @@ CHANGELOG
                     <div class="announcement-meta-footer">
                         <div class="author-info">
                             <img src="${avatarUrl}" alt="${post.authorUsername}">
-                            <span>By <strong>${post.authorUsername}</strong></span>
+                            <span>By <strong>${authorDisplayName}</strong></span>
                         </div>
-                        <span>${postDate}</span>
+                        <div class="flex items-center gap-4">
+                            <span title="${postDate?.toLocaleString() || ''}">${timestamp}</span>
+                            <div class="announcement-reactions" title="React">
+                                <i class="far fa-heart"></i>
+                                <span>${post.likes || 0}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1754,27 +1700,39 @@ CHANGELOG
         }
 
         function renderEvents(events) {
+            eventsSectionContainer.innerHTML = '';
             if (events.length > 0 && announcementsContainer.innerHTML !== '') {
                  const divider = document.createElement('div');
                  divider.className = 'py-4';
-                 eventListContainer.appendChild(divider);
+                 eventsSectionContainer.appendChild(divider);
             }
             Object.entries(EVENT_GROUPS).forEach(([groupName, subTypes]) => {
                 const groupPosts = events.filter(p => subTypes.includes(p.subType));
                 if (groupPosts.length > 0) {
                     const header = document.createElement('h3');
-                    header.className = 'event-group-header';
-                    header.textContent = groupName;
-                    eventListContainer.appendChild(header);
+                    header.className = 'section-header text-xl font-bold my-4';
+                    header.innerHTML = groupName;
+                    eventsSectionContainer.appendChild(header);
 
-                    const list = document.createElement('div');
-                    list.className = 'space-y-2';
-                    groupPosts.sort((a, b) => (a.startTime?.toDate() || 0) - (b.startTime?.toDate() || 0));
+                    const listContainer = document.createElement('div');
+                    listContainer.className = 'event-list-container';
+                    groupPosts.sort((a, b) => {
+                        const now = new Date();
+                        const startTimeA = a.startTime?.toDate() || 0;
+                        const startTimeB = b.startTime?.toDate() || 0;
+                        const aIsLive = startTimeA < now && (a.endTime?.toDate() || new Date()) > now;
+                        const bIsLive = startTimeB < now && (b.endTime?.toDate() || new Date()) > now;
+
+                        if (aIsLive && !bIsLive) return -1;
+                        if (!aIsLive && bIsLive) return 1;
+                        
+                        return startTimeA - startTimeB;
+                    });
                     groupPosts.forEach(post => {
                         const item = createEventListItem(post);
-                        list.appendChild(item);
+                        listContainer.appendChild(item);
                     });
-                    eventListContainer.appendChild(list);
+                    eventsSectionContainer.appendChild(listContainer);
                 }
             });
         }
@@ -1791,7 +1749,7 @@ CHANGELOG
             
             const visualHTML = post.thumbnailUrl 
                 ? `<div class="event-icon-wrapper" style="background-image: url(${post.thumbnailUrl})"></div>`
-                : `<div class="event-icon-wrapper" style="background-color: ${style.bgColor};"><i class="${style.icon}" style="color: ${style.color};"></i></div>`;
+                : `<div class="event-icon-wrapper"><i class="${style.icon}" style="color: ${style.color};"></i></div>`;
 
             item.innerHTML = `
                 ${visualHTML}
@@ -1864,7 +1822,8 @@ CHANGELOG
                 alliance: alliance,
                 visibility: visibility,
                 isRecurring: document.getElementById('post-repeat-type').value === 'weekly',
-                thumbnailUrl: null
+                thumbnailUrl: null,
+                likes: 0
             };
 
             if (postCreationData.mainType === 'event') {
