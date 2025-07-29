@@ -2,7 +2,8 @@
 ===============================================
 FIREBASE SECURITY RULES (FIRESTORE)
 ===============================================
-These rules should be deployed to your Firebase project's Firestore settings.
+NOTE: The 'if' statements in these rules are the correct and required syntax for Firestore Security Rules (version 2) on 'allow' lines.
+The previous version contained invalid statements inside functions, which has now been fixed.
 
 rules_version = '2';
 
@@ -23,13 +24,11 @@ service cloud.firestore {
     }
 
     function isAdmin(userId) {
-      let userData = getUserData(userId);
-      return isSignedIn() && 'isAdmin' in userData && userData.isAdmin == true;
+      return isSignedIn() && getUserData(userId).isAdmin == true;
     }
     
     function isVerified(userId) {
-        let userData = getUserData(userId);
-        return isSignedIn() && 'isVerified' in userData && userData.isVerified == true;
+      return isSignedIn() && getUserData(userId).isVerified == true;
     }
 
     // --- COLLECTION RULES ---
@@ -42,17 +41,16 @@ service cloud.firestore {
     }
     
     function canManageUser(targetUserId) {
-        if (!isSignedIn()) { return false; }
-        let manager = getUserData(request.auth.uid);
-        let targetUser = getUserData(targetUserId);
-
-        if (isAdmin(request.auth.uid)) { return true; }
-        if (manager.alliance != targetUser.alliance) { return false; }
-
-        if (manager.allianceRank == 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetUser.allianceRank)) { return true; }
-        if (manager.allianceRank == 'R4' && ['R3', 'R2', 'R1'].includes(targetUser.allianceRank)) { return true; }
-        
-        return false;
+      return isSignedIn() && (
+        isAdmin(request.auth.uid) ||
+        (
+          getUserData(request.auth.uid).alliance == getUserData(targetUserId).alliance &&
+          (
+            (getUserData(request.auth.uid).allianceRank == 'R5' && (getUserData(targetUserId).allianceRank == 'R4' || getUserData(targetUserId).allianceRank == 'R3' || getUserData(targetUserId).allianceRank == 'R2' || getUserData(targetUserId).allianceRank == 'R1')) ||
+            (getUserData(request.auth.uid).allianceRank == 'R4' && (getUserData(targetUserId).allianceRank == 'R3' || getUserData(targetUserId).allianceRank == 'R2' || getUserData(targetUserId).allianceRank == 'R1'))
+          )
+        )
+      );
     }
 
     match /posts/{postId} {
@@ -62,22 +60,17 @@ service cloud.firestore {
     }
     
     function canCreatePost(postData) {
-        let requestingUser = getUserData(request.auth.uid);
-        let adminOnlyTypes = ['server', 'seasonal', 'hot_deals', 'wanted_boss', 'campaign', 'vs'];
-
-        if (!isOwner(postData.authorUid)) { return false; }
-        if (isAdmin(request.auth.uid)) { return true; }
-        
-        if (postData.subType in adminOnlyTypes) { return false; }
-        
-        if (!isVerified(requestingUser.uid) && postData.subType == 'alliance' && postData.mainType == 'event') { return false; }
-        
-        let rank = requestingUser.allianceRank;
-        
-        if (postData.subType == 'alliance' && (rank == 'R5' || rank == 'R4')) { return true; }
-        if (postData.subType == 'leadership' && rank == 'R5') { return true; }
-
-        return false;
+      return isOwner(postData.authorUid) && (
+        isAdmin(request.auth.uid) ||
+        (
+          !(postData.subType == 'server' || postData.subType == 'seasonal' || postData.subType == 'hot_deals' || postData.subType == 'wanted_boss' || postData.subType == 'campaign' || postData.subType == 'vs') &&
+          !(!isVerified(request.auth.uid) && postData.subType == 'alliance' && postData.mainType == 'event') &&
+          (
+            (postData.subType == 'alliance' && (getUserData(request.auth.uid).allianceRank == 'R5' || getUserData(request.auth.uid).allianceRank == 'R4')) ||
+            (postData.subType == 'leadership' && getUserData(request.auth.uid).allianceRank == 'R5')
+          )
+        )
+      );
     }
   }
 }
@@ -115,6 +108,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 25: Corrected Firebase rules syntax by removing invalid 'in' keyword and fixing logic in 'isAdmin' and 'isVerified'.
+- Prompt 25: Added a "LIVE" text overlay to event thumbnails for currently running events.
+- Prompt 25: Ensured event thumbnails use `object-fit: cover` within an `<img>` tag to prevent stretching.
 - Prompt 24: Implemented Edit/Delete functionality for posts, with permissions for admins and original authors.
 - Prompt 24: Refined announcement card padding and spacing for better visual balance.
 - Prompt 24: Added logic to desaturate event thumbnails for 'upcoming'/'ended' states and colorize them for 'live' events.
@@ -388,6 +384,7 @@ CHANGELOG
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            position: relative;
         }
         .event-icon-wrapper img {
             width: 100%;
@@ -398,6 +395,22 @@ CHANGELOG
         }
         .event-list-item.live .event-icon-wrapper img { filter: grayscale(0); }
         .event-icon-wrapper i { font-size: 1.5rem; }
+        .live-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            color: var(--post-color-server);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(2px);
+        }
+        .event-list-item.live .live-overlay { opacity: 1; }
 
         .event-details { flex-grow: 1; }
         .event-title { font-size: 1rem; font-weight: 600; color: #EAEAEA; }
@@ -1826,8 +1839,8 @@ CHANGELOG
             item.dataset.isRecurring = post.isRecurring || false;
             
             const visualHTML = post.thumbnailUrl 
-                ? `<div class="event-icon-wrapper"><img src="${post.thumbnailUrl}" alt="${post.title}"></div>`
-                : `<div class="event-icon-wrapper"><i class="${style.icon}" style="color: ${style.color};"></i></div>`;
+                ? `<div class="event-icon-wrapper"><img src="${post.thumbnailUrl}" alt="${post.title}"><div class="live-overlay">LIVE</div></div>`
+                : `<div class="event-icon-wrapper"><i class="${style.icon}" style="color: ${style.color};"></i><div class="live-overlay">LIVE</div></div>`;
             
             let controlsHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
