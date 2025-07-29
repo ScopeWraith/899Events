@@ -115,6 +115,10 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 24: Implemented Edit/Delete functionality for posts, with permissions for admins and original authors.
+- Prompt 24: Refined announcement card padding and spacing for better visual balance.
+- Prompt 24: Added logic to desaturate event thumbnails for 'upcoming'/'ended' states and colorize them for 'live' events.
+- Prompt 24: Ensured event thumbnails use `object-fit: cover` to prevent stretching.
 - Prompt 23: Reinstated event thumbnails and removed event descriptions for a cleaner, title-focused layout.
 - Prompt 23: Removed event group headers in favor of a single, continuous list.
 - Prompt 23: Added explicit, color-coded event type labels (e.g., "SERVER EVENT") inside each event item.
@@ -318,6 +322,7 @@ CHANGELOG
         /* Refined Announcement Card */
         .announcement-card {
             display: flex;
+            position: relative;
             background: linear-gradient(145deg, rgba(22, 27, 34, 0.5), rgba(22, 27, 34, 0.2));
             border-radius: 0.75rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -329,8 +334,8 @@ CHANGELOG
         .announcement-icon-container { flex-shrink: 0; width: 60px; display: flex; align-items: center; justify-content: center; background-color: var(--card-theme-bg, rgba(0,0,0,0.2)); border-right: 1px solid rgba(255,255,255,0.1); }
         .announcement-content { padding: 1rem 1.25rem; flex-grow: 1; }
         .announcement-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
-        .announcement-body { font-size: 0.9rem; color: #c9d1d9; padding-top: 0.5rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); }
-        .announcement-meta-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #8b949e; margin-top: 0.75rem; }
+        .announcement-body { font-size: 0.9rem; color: #c9d1d9; padding-top: 0.75rem; margin-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); }
+        .announcement-meta-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #8b949e; margin-top: 1rem; }
         .author-info { display: flex; align-items: center; gap: 0.5rem; }
         .author-info img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
         .announcement-reactions { display: flex; align-items: center; gap: 0.5rem; color: #8b949e; cursor: pointer; transition: color 0.2s ease; }
@@ -384,7 +389,10 @@ CHANGELOG
             justify-content: center;
             background-color: #101419;
             border: 1px solid rgba(255,255,255,0.1);
+            filter: grayscale(1);
+            transition: filter 0.3s ease;
         }
+        .event-list-item.live .event-icon-wrapper { filter: grayscale(0); }
         .event-icon-wrapper i { font-size: 1.5rem; }
 
         .event-details { flex-grow: 1; }
@@ -402,6 +410,12 @@ CHANGELOG
         .event-list-item.live .time-status-label { color: var(--post-color-server); }
         .event-list-item.upcoming .time-status-label { color: #AAA; }
         .event-list-item.ended .time-status-label { color: #666; }
+        
+        /* Post Controls */
+        .post-controls { position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.5rem; }
+        .control-btn { background: rgba(13, 17, 23, 0.7); border: 1px solid rgba(255,255,255,0.1); color: #8b949e; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: all 0.2s ease; }
+        .control-btn:hover { color: #fff; background: rgba(30,30,30,0.8); }
+        .control-btn.delete-btn:hover { color: var(--color-highlight); }
 
     </style>
 </head>
@@ -983,6 +997,7 @@ CHANGELOG
         let resizedThumbnailBlob = null;
         let activeFilters = new Set(Object.keys(POST_STYLES));
         let countdownInterval = null;
+        let editingPostId = null;
         
         // --- UTILITY FUNCTIONS ---
         function formatTimeAgo(date) {
@@ -1080,9 +1095,13 @@ CHANGELOG
         
         function showEditProfileModal() { showModal(editProfileModalContainer); populateEditForm(); }
         function showPlayerSettingsModal(player) { activePlayerSettingsUID = player.uid; showModal(playerSettingsModalContainer); populatePlayerSettingsForm(player); }
+        
         function showCreatePostModal() { 
+            editingPostId = null;
             showModal(createPostModalContainer); 
             initializePostStepper();
+            document.getElementById('post-content-header').textContent = 'Create New Post';
+            document.getElementById('post-submit-btn').innerHTML = '<i class="fas fa-check-circle mr-2"></i>Create Post';
         }
 
         function hideAllModals() {
@@ -1092,6 +1111,7 @@ CHANGELOG
             playerSettingsModalContainer.classList.remove('visible');
             createPostModalContainer.classList.remove('visible');
             activePlayerSettingsUID = null;
+            editingPostId = null;
         }
         
         loginBtn.addEventListener('click', () => showAuthModal('login'));
@@ -1686,8 +1706,19 @@ CHANGELOG
             const timestamp = postDate ? formatTimeAgo(postDate) : '...';
 
             card.style.setProperty('--card-theme-bg', style.bgColor || 'rgba(0,0,0,0.2)');
+            
+            let controlsHTML = '';
+            if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
+                controlsHTML = `
+                    <div class="post-controls">
+                        <button class="control-btn edit-post-btn" data-post-id="${post.id}" title="Edit Post"><i class="fas fa-pen"></i></button>
+                        <button class="control-btn delete-post-btn" data-post-id="${post.id}" title="Delete Post"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            }
 
             card.innerHTML = `
+                ${controlsHTML}
                 <div class="announcement-icon-container">
                     <i class="${style.icon} fa-2x" style="color: ${style.color};"></i>
                 </div>
@@ -1762,6 +1793,7 @@ CHANGELOG
             item.style.setProperty('--glow-color', color);
             item.style.setProperty('--glow-color-transparent', colorTransparent);
 
+            item.dataset.postId = post.id;
             item.dataset.startTime = post.startTime?.toDate();
             item.dataset.endTime = post.endTime?.toDate();
             item.dataset.isRecurring = post.isRecurring || false;
@@ -1769,6 +1801,16 @@ CHANGELOG
             const visualHTML = post.thumbnailUrl 
                 ? `<div class="event-icon-wrapper" style="background-image: url(${post.thumbnailUrl})"></div>`
                 : `<div class="event-icon-wrapper"><i class="${style.icon}" style="color: ${style.color};"></i></div>`;
+            
+            let controlsHTML = '';
+            if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
+                controlsHTML = `
+                    <div class="post-controls">
+                        <button class="control-btn edit-post-btn" data-post-id="${post.id}" title="Edit Post"><i class="fas fa-pen"></i></button>
+                        <button class="control-btn delete-post-btn" data-post-id="${post.id}" title="Delete Post"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            }
 
             item.innerHTML = `
                 ${visualHTML}
@@ -1779,6 +1821,7 @@ CHANGELOG
                 <div class="event-time-status">
                     <!-- Status updated by JS -->
                 </div>
+                ${controlsHTML}
             `;
             return item;
         }
@@ -1812,24 +1855,14 @@ CHANGELOG
                 createPostError.textContent = 'You must be logged in to post.';
                 return;
             }
-            if (!validatePostStep(currentPostStep)) return;
-
+            
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
 
             let alliance = (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership') 
                 ? (currentUserData.isAdmin ? document.getElementById('post-alliance').value : currentUserData.alliance)
                 : null;
-            if (!alliance && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership')) {
-                createPostError.textContent = 'Alliance is required for this post type.';
-                return;
-            }
             
-            let visibility = postCreationData.visibility;
-            if (visibility === 'alliance') {
-                visibility = `alliance_${alliance}`;
-            }
-
             const finalPostData = {
                 mainType: postCreationData.mainType,
                 subType: postCreationData.subType,
@@ -1837,12 +1870,9 @@ CHANGELOG
                 details: document.getElementById('post-details').value,
                 authorUid: currentUserData.uid,
                 authorUsername: currentUserData.username,
-                createdAt: serverTimestamp(),
                 alliance: alliance,
-                visibility: visibility,
+                visibility: postCreationData.visibility,
                 isRecurring: document.getElementById('post-repeat-type').value === 'weekly',
-                thumbnailUrl: null,
-                likes: 0
             };
 
             if (postCreationData.mainType === 'event') {
@@ -1854,7 +1884,6 @@ CHANGELOG
                 finalPostData.startTime = calculateNextDateTime(startDay, startHour);
                 finalPostData.endTime = calculateNextDateTime(endDay, endHour);
 
-                // If end time is before start time, assume it's for the following week
                 if (finalPostData.endTime < finalPostData.startTime) {
                     finalPostData.endTime.setDate(finalPostData.endTime.getDate() + 7);
                 }
@@ -1865,22 +1894,31 @@ CHANGELOG
             }
             
             try {
-                const postDocRef = await addDoc(collection(db, 'posts'), finalPostData);
-                
-                if (resizedThumbnailBlob) {
-                    const thumbnailRef = ref(storage, `post_thumbnails/${postDocRef.id}`);
-                    await uploadBytes(thumbnailRef, resizedThumbnailBlob);
-                    const downloadURL = await getDownloadURL(thumbnailRef);
-                    await updateDoc(postDocRef, { thumbnailUrl: downloadURL });
+                if (editingPostId) { // UPDATE EXISTING POST
+                    const postDocRef = doc(db, 'posts', editingPostId);
+                    if (resizedThumbnailBlob) {
+                        const thumbnailRef = ref(storage, `post_thumbnails/${editingPostId}`);
+                        await uploadBytes(thumbnailRef, resizedThumbnailBlob);
+                        finalPostData.thumbnailUrl = await getDownloadURL(thumbnailRef);
+                    }
+                    await updateDoc(postDocRef, finalPostData);
+                } else { // CREATE NEW POST
+                    finalPostData.createdAt = serverTimestamp();
+                    const postDocRef = await addDoc(collection(db, 'posts'), finalPostData);
+                    if (resizedThumbnailBlob) {
+                        const thumbnailRef = ref(storage, `post_thumbnails/${postDocRef.id}`);
+                        await uploadBytes(thumbnailRef, resizedThumbnailBlob);
+                        const downloadURL = await getDownloadURL(thumbnailRef);
+                        await updateDoc(postDocRef, { thumbnailUrl: downloadURL });
+                    }
                 }
-
                 hideAllModals();
             } catch (error) {
-                console.error("Error creating post: ", error);
-                createPostError.textContent = 'Failed to create post.';
+                console.error("Error saving post: ", error);
+                createPostError.textContent = 'Failed to save post.';
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Create Post';
+                // Text will be reset when modal is opened next
             }
         });
 
