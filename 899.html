@@ -115,6 +115,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 23: Reinstated event thumbnails and removed event descriptions for a cleaner, title-focused layout.
+- Prompt 23: Removed event group headers in favor of a single, continuous list.
+- Prompt 23: Added explicit, color-coded event type labels (e.g., "SERVER EVENT") inside each event item.
 - Prompt 22: Reverted event items to a glass pane background for UI consistency.
 - Prompt 22: Added distinct, color-coded labels with icons to each event item for clear identification.
 - Prompt 22: Implemented subtle gradient and shadow effects on live/hovered events for a polished, glowing look.
@@ -369,20 +372,30 @@ CHANGELOG
         .event-list-item:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .event-list-item.ended { opacity: 0.6; }
         
-        .event-type-label {
+        .event-icon-wrapper {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 0.375rem;
+            background-size: cover;
+            background-position: center;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            background-color: var(--glow-color-transparent);
-            color: var(--glow-color);
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.375rem;
-            font-weight: 600;
-            font-size: 0.75rem;
+            justify-content: center;
+            background-color: #101419;
+            border: 1px solid rgba(255,255,255,0.1);
         }
+        .event-icon-wrapper i { font-size: 1.5rem; }
+
         .event-details { flex-grow: 1; }
         .event-title { font-size: 1rem; font-weight: 600; color: #EAEAEA; }
-        .event-subtitle { font-size: 0.8rem; color: #aaa; }
+        .event-category {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--glow-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         .event-time-status { text-align: right; }
         .time-status-label { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; }
         .time-status-sublabel { font-size: 0.8rem; color: #AAA; }
@@ -1619,13 +1632,6 @@ CHANGELOG
         });
 
         // --- EVENTS & ANNOUNCEMENTS LOGIC ---
-        const EVENT_GROUPS = {
-            "ARMS RACE": ['server', 'vs', 'campaign'],
-            "SEASONAL": ['seasonal'],
-            "ALLIANCE": ['alliance', 'leadership'],
-            "OTHER": ['hot_deals', 'wanted_boss'],
-        };
-
         function renderPosts(posts) {
             if (countdownInterval) clearInterval(countdownInterval);
             announcementsContainer.innerHTML = '';
@@ -1710,46 +1716,43 @@ CHANGELOG
 
         function renderEvents(events) {
             eventsSectionContainer.innerHTML = '';
-            if (events.length > 0 && announcementsContainer.innerHTML !== '') {
-                 const divider = document.createElement('div');
-                 divider.className = 'py-4';
-                 eventsSectionContainer.appendChild(divider);
-            }
-            Object.entries(EVENT_GROUPS).forEach(([groupName, subTypes]) => {
-                const groupPosts = events.filter(p => subTypes.includes(p.subType));
-                if (groupPosts.length > 0) {
-                    const header = document.createElement('h3');
-                    header.className = 'section-header text-xl font-bold my-4';
-                    header.innerHTML = groupName;
-                    eventsSectionContainer.appendChild(header);
-
-                    const listContainer = document.createElement('div');
-                    listContainer.className = 'event-list-container';
-                    groupPosts.sort((a, b) => {
-                        const now = new Date();
-                        const startTimeA = a.startTime?.toDate() || 0;
-                        const startTimeB = b.startTime?.toDate() || 0;
-                        const aIsLive = startTimeA < now && (a.endTime?.toDate() || new Date()) > now;
-                        const bIsLive = startTimeB < now && (b.endTime?.toDate() || new Date()) > now;
-
-                        if (aIsLive && !bIsLive) return -1;
-                        if (!aIsLive && bIsLive) return 1;
-                        
-                        return startTimeA - startTimeB;
-                    });
-                    groupPosts.forEach(post => {
-                        const item = createEventListItem(post);
-                        listContainer.appendChild(item);
-                    });
-                    eventsSectionContainer.appendChild(listContainer);
+            if (events.length > 0) {
+                if (announcementsContainer.innerHTML !== '') {
+                    const divider = document.createElement('div');
+                    divider.className = 'py-4';
+                    eventsSectionContainer.appendChild(divider);
                 }
-            });
+                const header = document.createElement('h3');
+                header.className = 'section-header text-xl font-bold mb-4';
+                header.innerHTML = 'Events';
+                eventsSectionContainer.appendChild(header);
+
+                const listContainer = document.createElement('div');
+                listContainer.className = 'event-list-container';
+                events.sort((a, b) => {
+                    const now = new Date();
+                    const startTimeA = a.startTime?.toDate() || 0;
+                    const startTimeB = b.startTime?.toDate() || 0;
+                    const aIsLive = startTimeA < now && (a.endTime?.toDate() || new Date()) > now;
+                    const bIsLive = startTimeB < now && (b.endTime?.toDate() || new Date()) > now;
+
+                    if (aIsLive && !bIsLive) return -1;
+                    if (!aIsLive && bIsLive) return 1;
+                    
+                    return startTimeA - startTimeB;
+                });
+                events.forEach(post => {
+                    const item = createEventListItem(post);
+                    listContainer.appendChild(item);
+                });
+                eventsSectionContainer.appendChild(listContainer);
+            }
         }
 
         function createEventListItem(post) {
             const item = document.createElement('div');
             const style = POST_STYLES[post.subType] || {};
-            const postTypeDetails = POST_TYPES[post.mainType === 'event' ? `${post.subType}_event` : `${post.subType}_announcement`] || POST_TYPES[`${post.subType}`] || {};
+            const postTypeDetails = POST_TYPES[`${post.subType}_event`] || {};
             const eventTypeText = postTypeDetails.text || post.subType.replace('_', ' ').toUpperCase();
             
             item.className = 'event-list-item';
@@ -1763,12 +1766,14 @@ CHANGELOG
             item.dataset.endTime = post.endTime?.toDate();
             item.dataset.isRecurring = post.isRecurring || false;
             
+            const visualHTML = post.thumbnailUrl 
+                ? `<div class="event-icon-wrapper" style="background-image: url(${post.thumbnailUrl})"></div>`
+                : `<div class="event-icon-wrapper"><i class="${style.icon}" style="color: ${style.color};"></i></div>`;
+
             item.innerHTML = `
-                <div class="event-type-label">
-                    <i class="${style.icon} fa-fw"></i>
-                    <span>${eventTypeText}</span>
-                </div>
+                ${visualHTML}
                 <div class="event-details">
+                    <p class="event-category">${eventTypeText}</p>
                     <p class="event-title">${post.title}</p>
                 </div>
                 <div class="event-time-status">
