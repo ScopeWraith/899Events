@@ -108,6 +108,10 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 27: Completely redesigned event and announcement cards with a "gamer-like" aesthetic, featuring angled elements, glowing borders, and improved layout.
+- Prompt 27: Integrated Edit/Delete buttons seamlessly into the card footer for a cleaner look and better user experience, removing poorly-placed hover buttons.
+- Prompt 27: Fixed the bug where the edit modal would appear empty by correcting the form population logic in `populatePostFormForEdit`.
+- Prompt 27: Enhanced the edit modal flow to hide the stepper navigation and show a combined form for a more intuitive editing process.
 - Prompt 26: Redesigned event and announcement cards for a more appealing and engaging layout.
 - Prompt 26: Implemented a generic confirmation modal for post deletion to prevent accidental removal.
 - Prompt 26: Integrated edit functionality to reuse the creation modal, pre-filling it with the selected post's data for a seamless editing experience.
@@ -197,7 +201,6 @@ CHANGELOG
     <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         :root {
@@ -223,21 +226,10 @@ CHANGELOG
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes success-pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* Global size reduction */
         html { font-size: 80%; }
-
         body { font-family: 'Inter', sans-serif; background-color: var(--color-bg); color: #c9d1d9; overflow-x: hidden; }
-        
         #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at top left, rgba(0, 191, 255, 0.05), transparent 30%), radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.05), transparent 30%); }
-        
-        .glass-pane { 
-            background: linear-gradient(135deg, rgba(22, 27, 34, 0.6), rgba(22, 27, 34, 0.3));
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
-            border-radius: 1rem; 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
-        }
-
+        .glass-pane { background: linear-gradient(135deg, rgba(22, 27, 34, 0.6), rgba(22, 27, 34, 0.3)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
         .header-main { padding: 0.75rem 1.5rem; position: relative; z-index: 50; }
         .nav-item { position: relative; }
         .nav-link { position: relative; padding: 0.5rem; font-weight: 600; font-size: 0.75rem; color: #c9d1d9; transition: color 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; width: 80px; cursor: pointer; }
@@ -245,19 +237,14 @@ CHANGELOG
         .nav-link:hover, .nav-link.active { color: #fff; }
         .nav-link::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 2px; background-color: var(--color-primary); transform: scaleX(0); transform-origin: center; transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); }
         .nav-item:hover .nav-link::after, .nav-link.active::after { transform: scaleX(1); }
-        
         .dropdown-pane { position: absolute; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; z-index: 100; padding: 0.5rem; min-width: 180px; border-top: 2px solid var(--color-primary); }
         .dropdown-menu { top: calc(100% + 12px); left: 50%; transform: translateX(-50%) translateY(-10px); }
         .nav-item.open .dropdown-menu { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0s; }
         .dropdown-link { display: block; padding: 0.6rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; color: #c9d1d9; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
         .dropdown-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
-
         .auth-button { padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem; color: #c9d1d9; background-color: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
         .auth-button:hover { color: #fff; background-color: rgba(0, 191, 255, 0.1); border-color: var(--color-primary); }
-
         .section-container { padding: 1.25rem; }
-        
-        /* --- Modal Styles --- */
         .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 1000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
         .modal-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); z-index: 1001; width: 90%; max-width: 450px; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
         .modal-backdrop.visible, .modal-container.visible { opacity: 1; pointer-events: auto; }
@@ -270,7 +257,6 @@ CHANGELOG
         .modal-content-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
         .modal-content-scroll::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
         .modal-content-scroll::-webkit-scrollbar-thumb:hover { background: #00a9e0; }
-        
         .input-group { position: relative; display: flex; align-items: center; background-color: rgba(13, 17, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
         .input-group:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-glow), inset 0 1px 2px rgba(0,0,0,0.5); }
         .input-icon { padding: 0 0.75rem; color: #667; border-right: 1px solid rgba(255, 255, 255, 0.1); }
@@ -278,15 +264,12 @@ CHANGELOG
         .form-input, .form-textarea { background-color: transparent; border: none; color: #c9d1d9; padding: 0.75rem; width: 100%; }
         .form-input:focus, .form-textarea:focus { outline: none; box-shadow: none; }
         .form-textarea { min-height: 100px; resize: vertical; }
-
         .primary-btn { background: linear-gradient(to right, #00BFFF, #1E90FF); color: white; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2); }
         .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 191, 255, 0.3); }
         .primary-btn:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
         .secondary-btn { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #c9d1d9; font-weight: 600; transition: all 0.3s ease; }
         .secondary-btn:hover { background-color: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
         .form-error { min-height: 20px; }
-        
-        /* Stepper */
         .progress-bar { display: flex; justify-content: space-between; margin-bottom: 1.5rem; position: relative; }
         .progress-bar::before { content: ''; position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 2px; width: 100%; background-color: rgba(255,255,255,0.1); z-index: -1; }
         .progress-bar .line { position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 2px; background-color: var(--color-primary); width: 0%; transition: width 0.4s ease; z-index: 0; }
@@ -294,8 +277,6 @@ CHANGELOG
         .progress-step.active { background-color: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg); }
         .form-slide { display: none; animation: fadeIn 0.5s ease-in-out; }
         .form-slide.active { display: block; }
-
-        /* Custom Select Dropdown */
         .custom-select-container { position: relative; flex-grow: 1; }
         .custom-select-value { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; }
         .custom-select-options { display: block; position: absolute; left: 0; right: 0; max-height: 200px; overflow-y: auto; z-index: 1050; opacity: 0; visibility: hidden; transform: scaleY(0.95); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s; background-color: var(--color-dropdown-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; padding: 0.5rem; }
@@ -310,155 +291,126 @@ CHANGELOG
         .custom-select-options::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
         .custom-select-options::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
         .custom-select-options::-webkit-scrollbar-thumb:hover { background: #00a9e0; }
-
-        /* Mobile Nav & Filter Panel */
         #mobile-nav-menu, #mobile-filter-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 1100; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         #mobile-nav-menu.open, #mobile-filter-panel.open { transform: translateX(0); }
+        .section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--glow-color, var(--color-primary)), transparent) 1; }
         
-        /* --- Professional Overhaul Styles --- */
-        .section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--color-primary), transparent) 1; }
-        
-        /* Redesigned Announcement Card */
-        .announcement-card {
-            display: flex;
+        /* --- Gamer UI Card Styles --- */
+        .post-card {
+            background-color: #161B22;
+            border: 1px solid rgba(56, 62, 74, 0.5);
+            border-radius: 0.5rem;
             position: relative;
-            background: linear-gradient(145deg, rgba(22, 27, 34, 0.5), rgba(22, 27, 34, 0.2));
-            border-radius: 0.75rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease-out;
         }
-        .announcement-card:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); }
-        .announcement-icon-container { flex-shrink: 0; width: 60px; display: flex; align-items: center; justify-content: center; background-color: var(--card-theme-bg, rgba(0,0,0,0.2)); border-right: 1px solid rgba(255,255,255,0.1); }
-        .announcement-content { padding: 1rem 1.25rem; flex-grow: 1; }
-        .announcement-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
-        .announcement-body { font-size: 0.9rem; color: #c9d1d9; padding-top: 0.75rem; margin-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); }
-        .announcement-meta-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #8b949e; margin-top: 1rem; }
-        .author-info { display: flex; align-items: center; gap: 0.5rem; }
-        .author-info img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
-        .announcement-reactions { display: flex; align-items: center; gap: 0.5rem; color: #8b949e; cursor: pointer; transition: color 0.2s ease; }
-        .announcement-reactions:hover { color: var(--color-highlight); }
-
-        /* Redesigned Event Card */
-        .event-list-item {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            position: relative;
-            background: linear-gradient(135deg, rgba(22, 27, 34, 0.6), rgba(22, 27, 34, 0.3));
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            animation: fadeIn 0.5s ease-out forwards;
+        .post-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 20px var(--glow-color, rgba(0, 191, 255, 0.3));
+            border-color: var(--glow-color, var(--color-primary));
         }
-        .event-list-item::before {
+        .post-card.ended {
+            opacity: 0.6;
+            filter: grayscale(50%);
+        }
+        .post-card-header {
+            height: 120px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0.75rem;
+        }
+        .post-card-header::before {
             content: '';
             position: absolute;
             inset: 0;
-            border-radius: 0.75rem;
-            padding: 1px;
-            background: linear-gradient(135deg, var(--glow-color-transparent), transparent);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            background: linear-gradient(to top, rgba(22, 27, 34, 0.9) 0%, rgba(22, 27, 34, 0.2) 60%, rgba(22, 27, 34, 0) 100%);
         }
-        .event-list-item:hover::before, .event-list-item.live::before { opacity: 1; }
-        .event-list-item:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .event-list-item.ended { opacity: 0.6; }
-        
-        .event-thumbnail-wrapper {
-            flex-shrink: 0;
-            width: 80px;
-            height: 80px;
-            border-radius: 0.5rem;
-            background-color: #101419;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-        .event-thumbnail-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: grayscale(1);
-            transition: filter 0.3s ease;
-        }
-        .event-list-item.live .event-thumbnail-wrapper img { filter: grayscale(0); }
-        .event-thumbnail-wrapper i { font-size: 2rem; }
-        .live-overlay {
-            position: absolute;
-            bottom: 4px;
-            right: 4px;
-            background: rgba(220, 20, 60, 0.8);
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 4px;
+        .post-card-category {
+            align-self: flex-start;
+            background-color: var(--glow-color, var(--color-primary));
+            color: #0D1117;
+            padding: 0.25rem 0.75rem;
             font-size: 0.7rem;
             font-weight: 800;
-            letter-spacing: 0.5px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            backdrop-filter: blur(2px);
-        }
-        .event-list-item.live .live-overlay { opacity: 1; }
-
-        .event-content { flex-grow: 1; display: flex; flex-direction: column; }
-        .event-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .event-title { font-size: 1.1rem; font-weight: 700; color: #EAEAEA; margin-bottom: 0.25rem; }
-        .event-category {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--glow-color);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            border-radius: 0.25rem;
+            z-index: 1;
         }
-        .event-time-status { text-align: right; }
-        .time-status-label { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; }
-        .time-status-sublabel { font-size: 0.8rem; color: #AAA; }
-        .event-list-item.live .time-status-label { color: var(--post-color-server); }
-        .event-list-item.upcoming .time-status-label { color: #AAA; }
-        .event-list-item.ended .time-status-label { color: #666; }
-        .event-description {
-            font-size: 0.85rem;
-            color: #a0a8b1;
-            margin-top: auto;
-            padding-top: 0.5rem;
+        .post-card-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+            z-index: 1;
+            line-height: 1.2;
         }
-        
-        /* Post Controls */
-        .post-controls {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
+        .post-card-body {
+            padding: 1rem;
+            flex-grow: 1;
+        }
+        .post-card-details {
+            font-size: 0.9rem;
+            color: #c9d1d9;
+            line-height: 1.5;
+        }
+        .post-card-footer {
             display: flex;
-            gap: 0.5rem;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background-color: rgba(13, 17, 23, 0.5);
+            border-top: 1px solid rgba(56, 62, 74, 0.5);
         }
-        .announcement-card:hover .post-controls, .event-list-item:hover .post-controls {
-            opacity: 1;
-        }
-        .control-btn {
-            background: rgba(13, 17, 23, 0.7);
+        .author-info { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
+        .author-info img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+        .card-actions { display: flex; gap: 0.5rem; }
+        .card-action-btn {
+            background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
             color: #8b949e;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
+            width: 32px; height: 32px;
+            border-radius: 0.375rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem;
             transition: all 0.2s ease;
         }
-        .control-btn:hover { color: #fff; background: rgba(30,30,30,0.8); }
-        .control-btn.delete-btn:hover { background-color: var(--color-highlight); }
+        .card-action-btn:hover { color: #fff; background: rgba(255,255,255,0.1); border-color: var(--glow-color, var(--color-primary)); }
+        .card-action-btn.delete-btn:hover { background-color: var(--color-highlight); border-color: var(--color-highlight); }
+
+        /* Event Specific Card Styles */
+        .event-card-status {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: rgba(13, 17, 23, 0.8);
+            backdrop-filter: blur(5px);
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            text-align: right;
+            z-index: 1;
+        }
+        .event-card-status .status-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #a0a8b1;
+        }
+        .event-card-status .status-time {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .event-card.live .event-card-status .status-label,
+        .event-card.live .event-card-status .status-time {
+            color: var(--post-color-server);
+        }
 
     </style>
 </head>
@@ -1095,7 +1047,7 @@ CHANGELOG
 
         function updateCountdowns() {
             const now = new Date();
-            document.querySelectorAll('.event-list-item').forEach(el => {
+            document.querySelectorAll('.event-card').forEach(el => {
                 const startTimeAttr = el.dataset.startTime;
                 if (!startTimeAttr || startTimeAttr === 'undefined') return;
 
@@ -1105,13 +1057,12 @@ CHANGELOG
                 let startTime = new Date(startTimeAttr);
                 const endTime = (endTimeAttr && endTimeAttr !== 'null' && endTimeAttr !== 'undefined') ? new Date(endTimeAttr) : null;
 
-                const statusEl = el.querySelector('.event-time-status');
-                const liveOverlay = el.querySelector('.live-overlay');
+                const statusEl = el.querySelector('.event-card-status');
                 el.classList.remove('live', 'ended', 'upcoming');
 
                 if (isRecurring) {
-                    statusEl.innerHTML = `<div class="time-status-label" style="color: var(--glow-color)">RECURRING</div><div class="time-status-sublabel">Weekly Event</div>`;
-                    if (liveOverlay) liveOverlay.style.opacity = 0;
+                    statusEl.innerHTML = `<div class="status-label" style="color: var(--glow-color)">RECURRING</div><div class="status-time">Weekly Event</div>`;
+                     el.classList.add('live'); // Make recurring always appear 'live' visually
                     return;
                 }
 
@@ -1120,17 +1071,14 @@ CHANGELOG
 
                 if (diffToStart > 0) {
                     el.classList.add('upcoming');
-                    statusEl.innerHTML = `<div class="time-status-label">STARTS IN</div><div class="time-status-sublabel">${formatDuration(diffToStart)}</div>`;
-                    if (liveOverlay) liveOverlay.style.opacity = 0;
+                    statusEl.innerHTML = `<div class="status-label">STARTS IN</div><div class="status-time">${formatDuration(diffToStart)}</div>`;
                 } else if (diffToEnd !== null && diffToEnd > 0) {
                     el.classList.add('live');
-                    statusEl.innerHTML = `<div class="time-status-label">REMAINING</div><div class="time-status-sublabel">${formatDuration(diffToEnd)}</div>`;
-                    if (liveOverlay) liveOverlay.style.opacity = 1;
+                    statusEl.innerHTML = `<div class="status-label">ENDS IN</div><div class="status-time">${formatDuration(diffToEnd)}</div>`;
                 } else {
                     el.classList.add('ended');
                     const endedDate = endTime || startTime;
-                    statusEl.innerHTML = `<div class="time-status-label">ENDED</div><div class="time-status-sublabel">${endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
-                    if (liveOverlay) liveOverlay.style.opacity = 0;
+                    statusEl.innerHTML = `<div class="status-label">ENDED</div><div class="status-time">${endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
                 }
             });
         }
@@ -1164,6 +1112,7 @@ CHANGELOG
         function showCreatePostModal() { 
             editingPostId = null;
             document.getElementById('create-post-form').reset();
+            document.getElementById('post-nav-container').style.display = 'flex';
             showModal(createPostModalContainer); 
             initializePostStepper();
             document.getElementById('post-content-header').textContent = 'Create New Post';
@@ -1763,7 +1712,7 @@ CHANGELOG
             renderAnnouncements(announcements);
             renderEvents(events);
 
-            countdownInterval = setInterval(updateCountdowns, 1000);
+            countdownInterval = setInterval(updateCountdowns, 1000 * 30); // Update every 30 seconds
             updateCountdowns(); // Initial call
         }
 
@@ -1771,67 +1720,65 @@ CHANGELOG
              if (announcements.length > 0) {
                 const header = document.createElement('h3');
                 header.className = 'section-header text-xl font-bold mb-4';
-                header.style.setProperty('--color-primary', 'var(--color-highlight)');
+                header.style.setProperty('--glow-color', 'var(--color-highlight)');
                 header.innerHTML = `<i class="fas fa-bullhorn"></i>Announcements`;
                 announcementsContainer.appendChild(header);
+
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
                 announcements.forEach(post => {
-                    announcementsContainer.appendChild(createAnnouncementCard(post));
+                    grid.appendChild(createAnnouncementCard(post));
                 });
+                announcementsContainer.appendChild(grid);
             }
         }
-
+        
         function createAnnouncementCard(post) {
             const card = document.createElement('div');
-            card.className = 'announcement-card';
             const style = POST_STYLES[post.subType] || {};
-            
+            card.className = 'post-card announcement-card';
+            card.style.setProperty('--glow-color', style.color);
+
             const author = allPlayers.find(p => p.uid === post.authorUid);
             const authorAllianceTag = author ? `[${author.alliance}] ` : '';
             const authorDisplayName = `${authorAllianceTag}${post.authorUsername}`;
             const avatarUrl = author?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${post.authorUsername.charAt(0).toUpperCase()}`;
-            
             const postDate = post.createdAt?.toDate();
             const timestamp = postDate ? formatTimeAgo(postDate) : '...';
 
-            card.style.setProperty('--card-theme-bg', style.bgColor || 'rgba(0,0,0,0.2)');
-            
-            let controlsHTML = '';
+            let actionsHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
-                controlsHTML = `
-                    <div class="post-controls">
-                        <button class="control-btn edit-post-btn" data-post-id="${post.id}" title="Edit Post"><i class="fas fa-pen"></i></button>
-                        <button class="control-btn delete-post-btn" data-post-id="${post.id}" title="Delete Post"><i class="fas fa-trash"></i></button>
+                actionsHTML = `
+                    <div class="card-actions">
+                        <button class="card-action-btn edit-post-btn" data-post-id="${post.id}" title="Edit"><i class="fas fa-pen"></i></button>
+                        <button class="card-action-btn delete-btn" data-post-id="${post.id}" title="Delete"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
             }
 
             card.innerHTML = `
-                ${controlsHTML}
-                <div class="announcement-icon-container">
-                    <i class="${style.icon} fa-2x" style="color: ${style.color};"></i>
+                <div class="post-card-body">
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="post-card-category">${post.subType.replace('_', ' ')}</span>
+                        <i class="${style.icon} text-2xl" style="color: ${style.color}; opacity: 0.5;"></i>
+                    </div>
+                    <h3 class="post-card-title !text-left !text-lg mb-3">${post.title}</h3>
+                    <p class="post-card-details">${post.details.replace(/\n/g, '<br>')}</p>
                 </div>
-                <div class="announcement-content">
-                    <p class="announcement-title">${post.title}</p>
-                    <div class="announcement-body">
-                        <p>${post.details.replace(/\n/g, '<br>')}</p>
-                    </div>
-                    <div class="announcement-meta-footer">
-                        <div class="author-info">
-                            <img src="${avatarUrl}" alt="${post.authorUsername}">
-                            <span>By <strong>${authorDisplayName}</strong></span>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span title="${postDate?.toLocaleString() || ''}">${timestamp}</span>
-                            <div class="announcement-reactions" title="React">
-                                <i class="far fa-heart"></i>
-                                <span>${post.likes || 0}</span>
-                            </div>
+                <div class="post-card-footer">
+                    <div class="author-info">
+                        <img src="${avatarUrl}" alt="${post.authorUsername}">
+                        <div>
+                            <strong>${authorDisplayName}</strong>
+                            <div class="text-xs text-gray-400" title="${postDate?.toLocaleString() || ''}">${timestamp}</div>
                         </div>
                     </div>
+                    ${actionsHTML}
                 </div>
             `;
             return card;
         }
+
 
         function renderEvents(events) {
             eventsSectionContainer.innerHTML = '';
@@ -1846,6 +1793,9 @@ CHANGELOG
                 header.innerHTML = '<i class="fas fa-calendar-alt"></i>Events';
                 eventsSectionContainer.appendChild(header);
 
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+
                 events.sort((a, b) => {
                     const now = new Date();
                     const startTimeA = a.startTime?.toDate() || 0;
@@ -1859,61 +1809,61 @@ CHANGELOG
                     return startTimeA - startTimeB;
                 });
                 events.forEach(post => {
-                    const item = createEventListItem(post);
-                    eventsSectionContainer.appendChild(item);
+                    grid.appendChild(createEventListItem(post));
                 });
+                eventsSectionContainer.appendChild(grid);
             }
         }
 
         function createEventListItem(post) {
-            const item = document.createElement('div');
+            const card = document.createElement('div');
             const style = POST_STYLES[post.subType] || {};
             const postTypeKey = `${post.subType}_${post.mainType}`;
             const eventTypeText = POST_TYPES[postTypeKey]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
             
-            item.className = 'event-list-item';
+            card.className = 'post-card event-card';
+            card.style.setProperty('--glow-color', style.color);
+            card.dataset.postId = post.id;
+            card.dataset.startTime = post.startTime?.toDate();
+            card.dataset.endTime = post.endTime?.toDate();
+            card.dataset.isRecurring = post.isRecurring || false;
             
-            const color = style.color || 'var(--color-primary)';
-            const colorTransparent = color.replace(')', ', 0.15)').replace('rgb', 'rgba');
-            item.style.setProperty('--glow-color', color);
-            item.style.setProperty('--glow-color-transparent', colorTransparent);
+            const author = allPlayers.find(p => p.uid === post.authorUid);
+            const authorDisplayName = author ? `${author.username}` : post.authorUsername;
+            const avatarUrl = author?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorDisplayName.charAt(0).toUpperCase()}`;
 
-            item.dataset.postId = post.id;
-            item.dataset.startTime = post.startTime?.toDate();
-            item.dataset.endTime = post.endTime?.toDate();
-            item.dataset.isRecurring = post.isRecurring || false;
-            
-            const visualHTML = post.thumbnailUrl 
-                ? `<div class="event-thumbnail-wrapper"><img src="${post.thumbnailUrl}" alt="${post.title}"><div class="live-overlay">LIVE</div></div>`
-                : `<div class="event-thumbnail-wrapper"><i class="${style.icon}" style="color: ${style.color};"></i><div class="live-overlay">LIVE</div></div>`;
-            
-            let controlsHTML = '';
+            let actionsHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
-                controlsHTML = `
-                    <div class="post-controls">
-                        <button class="control-btn edit-post-btn" data-post-id="${post.id}" title="Edit Post"><i class="fas fa-pen"></i></button>
-                        <button class="control-btn delete-post-btn" data-post-id="${post.id}" title="Delete Post"><i class="fas fa-trash"></i></button>
+                actionsHTML = `
+                    <div class="card-actions">
+                        <button class="card-action-btn edit-post-btn" data-post-id="${post.id}" title="Edit"><i class="fas fa-pen"></i></button>
+                        <button class="card-action-btn delete-btn" data-post-id="${post.id}" title="Delete"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
             }
 
-            item.innerHTML = `
-                ${visualHTML}
-                <div class="event-content">
-                    <div class="event-header">
-                        <div>
-                            <p class="event-category">${eventTypeText}</p>
-                            <p class="event-title">${post.title}</p>
-                        </div>
-                        <div class="event-time-status text-right flex-shrink-0 ml-4">
-                            <!-- Status updated by JS -->
-                        </div>
+            const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
+
+            card.innerHTML = `
+                <div class="post-card-header" style="${headerStyle}">
+                    <span class="post-card-category">${eventTypeText}</span>
+                    <div class="event-card-status">
+                        <!-- Status updated by JS -->
                     </div>
-                    <p class="event-description">${post.details.substring(0, 100)}${post.details.length > 100 ? '...' : ''}</p>
+                    <h3 class="post-card-title">${post.title}</h3>
                 </div>
-                ${controlsHTML}
+                <div class="post-card-body">
+                    <p class="post-card-details">${post.details.substring(0, 150)}${post.details.length > 150 ? '...' : ''}</p>
+                </div>
+                <div class="post-card-footer">
+                    <div class="author-info">
+                        <img src="${avatarUrl}" alt="${authorDisplayName}">
+                        <span>By <strong>${authorDisplayName}</strong></span>
+                    </div>
+                    ${actionsHTML}
+                </div>
             `;
-            return item;
+            return card;
         }
 
         // Helper to calculate the next occurrence of a given day and hour
@@ -1940,20 +1890,23 @@ CHANGELOG
 
         async function populatePostFormForEdit(postId) {
             const post = allPosts.find(p => p.id === postId);
-            if (!post) return;
+            if (!post) {
+                console.error("Post not found for editing:", postId);
+                return;
+            }
 
             editingPostId = postId;
             postCreationData = { ...POST_TYPES[`${post.subType}_${post.mainType}`] };
 
+            document.getElementById('create-post-form').reset();
+            
             // Change modal title and button
             document.getElementById('post-content-header').textContent = `Edit ${postCreationData.text}`;
             const submitBtn = document.getElementById('post-submit-btn');
             submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
 
-            // Hide stepper nav
+            // Hide stepper nav and show the combined form
             document.getElementById('post-nav-container').style.display = 'none';
-
-            // Show all relevant slides
             document.querySelectorAll('.form-slide').forEach(s => s.classList.remove('active'));
             document.querySelector('.form-slide[data-slide="3"]').classList.add('active'); // Content
             if (post.mainType === 'event') {
@@ -2494,7 +2447,7 @@ CHANGELOG
             // Event delegation for post controls
             eventsMainContainer.addEventListener('click', e => {
                 const editBtn = e.target.closest('.edit-post-btn');
-                const deleteBtn = e.target.closest('.delete-post-btn');
+                const deleteBtn = e.target.closest('.delete-btn');
 
                 if (editBtn) {
                     const postId = editBtn.dataset.postId;
