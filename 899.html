@@ -108,6 +108,11 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 28: Executed a major visual optimization of the "gamer-style" cards, focusing on unique aesthetics.
+- Prompt 28: Implemented `clip-path` to create dynamic, angled shapes for card headers and category tags, enhancing the futuristic look.
+- Prompt 28: Refined typography, including font sizes, weights, and letter-spacing, to establish a clearer and more professional visual hierarchy.
+- Prompt 28: Optimized margins and padding within the cards for better balance and content readability.
+- Prompt 28: Enhanced hover effects for a more engaging and responsive user interaction.
 - Prompt 27: Completely redesigned event and announcement cards with a "gamer-like" aesthetic, featuring angled elements, glowing borders, and improved layout.
 - Prompt 27: Integrated Edit/Delete buttons seamlessly into the card footer for a cleaner look and better user experience, removing poorly-placed hover buttons.
 - Prompt 27: Fixed the bug where the edit modal would appear empty by correcting the form population logic in `populatePostFormForEdit`.
@@ -298,82 +303,85 @@ CHANGELOG
         /* --- Gamer UI Card Styles --- */
         .post-card {
             background-color: #161B22;
-            border: 1px solid rgba(56, 62, 74, 0.5);
-            border-radius: 0.5rem;
             position: relative;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease-out;
+            border-radius: 4px;
+            border: 1px solid #222933;
         }
         .post-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 0 20px var(--glow-color, rgba(0, 191, 255, 0.3));
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 20px var(--glow-color-transparent, rgba(0, 191, 255, 0.2));
             border-color: var(--glow-color, var(--color-primary));
         }
         .post-card.ended {
-            opacity: 0.6;
-            filter: grayscale(50%);
+            opacity: 0.65;
+            filter: grayscale(60%);
         }
         .post-card-header {
-            height: 120px;
+            height: 140px;
             background-size: cover;
             background-position: center;
             position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 0.75rem;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
         }
         .post-card-header::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(to top, rgba(22, 27, 34, 0.9) 0%, rgba(22, 27, 34, 0.2) 60%, rgba(22, 27, 34, 0) 100%);
+            background: linear-gradient(to top, rgba(22, 27, 34, 1) 0%, rgba(22, 27, 34, 0.3) 50%, rgba(22, 27, 34, 0) 100%);
         }
-        .post-card-category {
-            align-self: flex-start;
-            background-color: var(--glow-color, var(--color-primary));
-            color: #0D1117;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            border-radius: 0.25rem;
-            z-index: 1;
-        }
-        .post-card-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #fff;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.7);
-            z-index: 1;
-            line-height: 1.2;
-        }
-        .post-card-body {
-            padding: 1rem;
+        .post-card-content {
+            padding: 1rem 1.25rem;
+            margin-top: -35px; /* Pull content up over the clipped header */
+            position: relative;
+            z-index: 2;
             flex-grow: 1;
         }
+        .post-card-top-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        .post-card-category {
+            background-color: var(--glow-color, var(--color-primary));
+            color: #0D1117;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
+        }
+        .post-card-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+        }
         .post-card-details {
-            font-size: 0.9rem;
-            color: #c9d1d9;
-            line-height: 1.5;
+            font-size: 0.85rem;
+            color: #aeb8c5;
+            line-height: 1.6;
         }
         .post-card-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 1rem;
-            background-color: rgba(13, 17, 23, 0.5);
-            border-top: 1px solid rgba(56, 62, 74, 0.5);
+            padding: 0.75rem 1.25rem;
+            background-color: rgba(13, 17, 23, 0.7);
+            border-top: 1px solid #222933;
         }
-        .author-info { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
-        .author-info img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+        .author-info { display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; }
+        .author-info img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 2px solid #30363d; }
         .card-actions { display: flex; gap: 0.5rem; }
         .card-action-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: #21262d;
+            border: 1px solid #30363d;
             color: #8b949e;
             width: 32px; height: 32px;
             border-radius: 0.375rem;
@@ -381,29 +389,22 @@ CHANGELOG
             font-size: 0.8rem;
             transition: all 0.2s ease;
         }
-        .card-action-btn:hover { color: #fff; background: rgba(255,255,255,0.1); border-color: var(--glow-color, var(--color-primary)); }
+        .card-action-btn:hover { color: #fff; background: #30363d; border-color: var(--glow-color, var(--color-primary)); }
         .card-action-btn.delete-btn:hover { background-color: var(--color-highlight); border-color: var(--color-highlight); }
 
         /* Event Specific Card Styles */
         .event-card-status {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            background: rgba(13, 17, 23, 0.8);
-            backdrop-filter: blur(5px);
-            border-radius: 0.375rem;
-            padding: 0.5rem 0.75rem;
             text-align: right;
-            z-index: 1;
         }
         .event-card-status .status-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
             color: #a0a8b1;
+            letter-spacing: 0.5px;
         }
         .event-card-status .status-time {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: #fff;
         }
@@ -411,6 +412,9 @@ CHANGELOG
         .event-card.live .event-card-status .status-time {
             color: var(--post-color-server);
         }
+        .announcement-card .post-card-content { margin-top: 0; }
+        .announcement-card .post-card-top-info { margin-bottom: 0; }
+        .announcement-card .post-card-title { margin-top: 0.5rem; }
 
     </style>
 </head>
@@ -1725,7 +1729,7 @@ CHANGELOG
                 announcementsContainer.appendChild(header);
 
                 const grid = document.createElement('div');
-                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
                 announcements.forEach(post => {
                     grid.appendChild(createAnnouncementCard(post));
                 });
@@ -1737,7 +1741,10 @@ CHANGELOG
             const card = document.createElement('div');
             const style = POST_STYLES[post.subType] || {};
             card.className = 'post-card announcement-card';
-            card.style.setProperty('--glow-color', style.color);
+            const color = style.color || 'var(--color-primary)';
+            const colorTransparent = color.replace(')', ', 0.2)').replace('rgb', 'rgba');
+            card.style.setProperty('--glow-color', color);
+            card.style.setProperty('--glow-color-transparent', colorTransparent);
 
             const author = allPlayers.find(p => p.uid === post.authorUid);
             const authorAllianceTag = author ? `[${author.alliance}] ` : '';
@@ -1755,14 +1762,16 @@ CHANGELOG
                     </div>
                 `;
             }
+            
+            const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
 
             card.innerHTML = `
-                <div class="post-card-body">
-                    <div class="flex items-start justify-between mb-3">
+                <div class="post-card-header" style="${headerStyle}"></div>
+                <div class="post-card-content">
+                    <div class="post-card-top-info">
                         <span class="post-card-category">${post.subType.replace('_', ' ')}</span>
-                        <i class="${style.icon} text-2xl" style="color: ${style.color}; opacity: 0.5;"></i>
                     </div>
-                    <h3 class="post-card-title !text-left !text-lg mb-3">${post.title}</h3>
+                    <h3 class="post-card-title">${post.title}</h3>
                     <p class="post-card-details">${post.details.replace(/\n/g, '<br>')}</p>
                 </div>
                 <div class="post-card-footer">
@@ -1794,7 +1803,7 @@ CHANGELOG
                 eventsSectionContainer.appendChild(header);
 
                 const grid = document.createElement('div');
-                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
 
                 events.sort((a, b) => {
                     const now = new Date();
@@ -1822,7 +1831,11 @@ CHANGELOG
             const eventTypeText = POST_TYPES[postTypeKey]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
             
             card.className = 'post-card event-card';
-            card.style.setProperty('--glow-color', style.color);
+            const color = style.color || 'var(--color-primary)';
+            const colorTransparent = color.replace(')', ', 0.2)').replace('rgb', 'rgba');
+            card.style.setProperty('--glow-color', color);
+            card.style.setProperty('--glow-color-transparent', colorTransparent);
+
             card.dataset.postId = post.id;
             card.dataset.startTime = post.startTime?.toDate();
             card.dataset.endTime = post.endTime?.toDate();
@@ -1845,14 +1858,15 @@ CHANGELOG
             const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
 
             card.innerHTML = `
-                <div class="post-card-header" style="${headerStyle}">
-                    <span class="post-card-category">${eventTypeText}</span>
-                    <div class="event-card-status">
-                        <!-- Status updated by JS -->
+                <div class="post-card-header" style="${headerStyle}"></div>
+                <div class="post-card-content">
+                    <div class="post-card-top-info">
+                        <span class="post-card-category">${eventTypeText}</span>
+                        <div class="event-card-status">
+                            <!-- Status updated by JS -->
+                        </div>
                     </div>
                     <h3 class="post-card-title">${post.title}</h3>
-                </div>
-                <div class="post-card-body">
                     <p class="post-card-details">${post.details.substring(0, 150)}${post.details.length > 150 ? '...' : ''}</p>
                 </div>
                 <div class="post-card-footer">
