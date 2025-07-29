@@ -108,6 +108,11 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 29: Changed card layout to a single-column, full-width design for a more focused view.
+- Prompt 29: Made cards more vertically compact by adjusting header height and internal padding.
+- Prompt 29: Fixed distorted header images by ensuring `background-size: cover` is applied correctly.
+- Prompt 29: Removed author information from the card footer to simplify the design.
+- Prompt 29: Relocated the event status/timestamp to the card footer for better information flow, placing it to the left of the action buttons.
 - Prompt 28: Executed a major visual optimization of the "gamer-style" cards, focusing on unique aesthetics.
 - Prompt 28: Implemented `clip-path` to create dynamic, angled shapes for card headers and category tags, enhancing the futuristic look.
 - Prompt 28: Refined typography, including font sizes, weights, and letter-spacing, to establish a clearer and more professional visual hierarchy.
@@ -305,14 +310,14 @@ CHANGELOG
             background-color: #161B22;
             position: relative;
             display: flex;
-            flex-direction: column;
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease-out;
             border-radius: 4px;
             border: 1px solid #222933;
+            min-height: 120px;
         }
         .post-card:hover {
-            transform: translateY(-5px) scale(1.02);
+            transform: translateY(-5px) scale(1.01);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 20px var(--glow-color-transparent, rgba(0, 191, 255, 0.2));
             border-color: var(--glow-color, var(--color-primary));
         }
@@ -321,63 +326,68 @@ CHANGELOG
             filter: grayscale(60%);
         }
         .post-card-header {
-            height: 140px;
+            width: 200px;
+            flex-shrink: 0;
             background-size: cover;
             background-position: center;
             position: relative;
-            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
         }
         .post-card-header::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(to top, rgba(22, 27, 34, 1) 0%, rgba(22, 27, 34, 0.3) 50%, rgba(22, 27, 34, 0) 100%);
+            background: linear-gradient(to right, rgba(22, 27, 34, 0) 0%, rgba(22, 27, 34, 0.4) 80%, rgba(22, 27, 34, 0.8) 100%);
         }
-        .post-card-content {
-            padding: 1rem 1.25rem;
-            margin-top: -35px; /* Pull content up over the clipped header */
-            position: relative;
-            z-index: 2;
-            flex-grow: 1;
-        }
-        .post-card-top-info {
+        .post-card-body {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 1rem 1.25rem;
         }
         .post-card-category {
             background-color: var(--glow-color, var(--color-primary));
             color: #0D1117;
-            padding: 0.3rem 0.8rem;
+            padding: 0.25rem 0.75rem;
             font-size: 0.7rem;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
+            align-self: flex-start;
         }
         .post-card-title {
-            font-size: 1.3rem;
-            font-weight: 800;
+            font-size: 1.2rem;
+            font-weight: 700;
             color: #fff;
-            line-height: 1.2;
-            margin-bottom: 0.75rem;
-        }
-        .post-card-details {
-            font-size: 0.85rem;
-            color: #aeb8c5;
-            line-height: 1.6;
+            line-height: 1.3;
+            margin: 0.5rem 0;
+            flex-grow: 1;
         }
         .post-card-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 1.25rem;
-            background-color: rgba(13, 17, 23, 0.7);
-            border-top: 1px solid #222933;
+            margin-top: auto;
         }
-        .author-info { display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; }
-        .author-info img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 2px solid #30363d; }
+        .card-footer-status {
+            text-align: left;
+        }
+        .card-footer-status .status-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #a0a8b1;
+            letter-spacing: 0.5px;
+        }
+        .card-footer-status .status-time {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .event-card.live .card-footer-status .status-label,
+        .event-card.live .card-footer-status .status-time {
+            color: var(--post-color-server);
+        }
         .card-actions { display: flex; gap: 0.5rem; }
         .card-action-btn {
             background: #21262d;
@@ -391,30 +401,8 @@ CHANGELOG
         }
         .card-action-btn:hover { color: #fff; background: #30363d; border-color: var(--glow-color, var(--color-primary)); }
         .card-action-btn.delete-btn:hover { background-color: var(--color-highlight); border-color: var(--color-highlight); }
-
-        /* Event Specific Card Styles */
-        .event-card-status {
-            text-align: right;
-        }
-        .event-card-status .status-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #a0a8b1;
-            letter-spacing: 0.5px;
-        }
-        .event-card-status .status-time {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #fff;
-        }
-        .event-card.live .event-card-status .status-label,
-        .event-card.live .event-card-status .status-time {
-            color: var(--post-color-server);
-        }
-        .announcement-card .post-card-content { margin-top: 0; }
-        .announcement-card .post-card-top-info { margin-bottom: 0; }
-        .announcement-card .post-card-title { margin-top: 0.5rem; }
+        .announcement-card .post-card-header { width: 100px; clip-path: polygon(0 0, 100% 0, 75% 100%, 0% 100%); }
+        .announcement-card .post-card-title { font-size: 1.1rem; }
 
     </style>
 </head>
@@ -835,7 +823,7 @@ CHANGELOG
                     <main class="space-y-8" id="events-main-container">
                         <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                             <h2 class="text-3xl font-bold text-white hidden">Events & Announcements</h2>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 ml-auto">
                                 <button id="open-mobile-filter-btn" class="md:hidden secondary-btn px-4 py-2 rounded-lg flex items-center gap-2">
                                     <i class="fas fa-filter"></i> Filter
                                 </button>
@@ -1061,7 +1049,7 @@ CHANGELOG
                 let startTime = new Date(startTimeAttr);
                 const endTime = (endTimeAttr && endTimeAttr !== 'null' && endTimeAttr !== 'undefined') ? new Date(endTimeAttr) : null;
 
-                const statusEl = el.querySelector('.event-card-status');
+                const statusEl = el.querySelector('.card-footer-status');
                 el.classList.remove('live', 'ended', 'upcoming');
 
                 if (isRecurring) {
@@ -1729,7 +1717,7 @@ CHANGELOG
                 announcementsContainer.appendChild(header);
 
                 const grid = document.createElement('div');
-                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
+                grid.className = 'grid grid-cols-1 gap-4';
                 announcements.forEach(post => {
                     grid.appendChild(createAnnouncementCard(post));
                 });
@@ -1745,11 +1733,7 @@ CHANGELOG
             const colorTransparent = color.replace(')', ', 0.2)').replace('rgb', 'rgba');
             card.style.setProperty('--glow-color', color);
             card.style.setProperty('--glow-color-transparent', colorTransparent);
-
-            const author = allPlayers.find(p => p.uid === post.authorUid);
-            const authorAllianceTag = author ? `[${author.alliance}] ` : '';
-            const authorDisplayName = `${authorAllianceTag}${post.authorUsername}`;
-            const avatarUrl = author?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${post.authorUsername.charAt(0).toUpperCase()}`;
+            
             const postDate = post.createdAt?.toDate();
             const timestamp = postDate ? formatTimeAgo(postDate) : '...';
 
@@ -1767,22 +1751,16 @@ CHANGELOG
 
             card.innerHTML = `
                 <div class="post-card-header" style="${headerStyle}"></div>
-                <div class="post-card-content">
-                    <div class="post-card-top-info">
-                        <span class="post-card-category">${post.subType.replace('_', ' ')}</span>
-                    </div>
+                <div class="post-card-body">
+                    <span class="post-card-category">${post.subType.replace('_', ' ')}</span>
                     <h3 class="post-card-title">${post.title}</h3>
-                    <p class="post-card-details">${post.details.replace(/\n/g, '<br>')}</p>
-                </div>
-                <div class="post-card-footer">
-                    <div class="author-info">
-                        <img src="${avatarUrl}" alt="${post.authorUsername}">
-                        <div>
-                            <strong>${authorDisplayName}</strong>
-                            <div class="text-xs text-gray-400" title="${postDate?.toLocaleString() || ''}">${timestamp}</div>
+                    <div class="post-card-footer">
+                        <div class="card-footer-status">
+                            <div class="status-label" title="${postDate?.toLocaleString() || ''}">Posted</div>
+                            <div class="status-time">${timestamp}</div>
                         </div>
+                        ${actionsHTML}
                     </div>
-                    ${actionsHTML}
                 </div>
             `;
             return card;
@@ -1803,7 +1781,7 @@ CHANGELOG
                 eventsSectionContainer.appendChild(header);
 
                 const grid = document.createElement('div');
-                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
+                grid.className = 'grid grid-cols-1 gap-4';
 
                 events.sort((a, b) => {
                     const now = new Date();
@@ -1840,10 +1818,6 @@ CHANGELOG
             card.dataset.startTime = post.startTime?.toDate();
             card.dataset.endTime = post.endTime?.toDate();
             card.dataset.isRecurring = post.isRecurring || false;
-            
-            const author = allPlayers.find(p => p.uid === post.authorUid);
-            const authorDisplayName = author ? `${author.username}` : post.authorUsername;
-            const avatarUrl = author?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorDisplayName.charAt(0).toUpperCase()}`;
 
             let actionsHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
@@ -1859,22 +1833,15 @@ CHANGELOG
 
             card.innerHTML = `
                 <div class="post-card-header" style="${headerStyle}"></div>
-                <div class="post-card-content">
-                    <div class="post-card-top-info">
-                        <span class="post-card-category">${eventTypeText}</span>
-                        <div class="event-card-status">
+                <div class="post-card-body">
+                    <span class="post-card-category">${eventTypeText}</span>
+                    <h3 class="post-card-title">${post.title}</h3>
+                    <div class="post-card-footer">
+                        <div class="card-footer-status">
                             <!-- Status updated by JS -->
                         </div>
+                        ${actionsHTML}
                     </div>
-                    <h3 class="post-card-title">${post.title}</h3>
-                    <p class="post-card-details">${post.details.substring(0, 150)}${post.details.length > 150 ? '...' : ''}</p>
-                </div>
-                <div class="post-card-footer">
-                    <div class="author-info">
-                        <img src="${avatarUrl}" alt="${authorDisplayName}">
-                        <span>By <strong>${authorDisplayName}</strong></span>
-                    </div>
-                    ${actionsHTML}
                 </div>
             `;
             return card;
