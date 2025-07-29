@@ -382,17 +382,21 @@ CHANGELOG
             width: 48px;
             height: 48px;
             border-radius: 0.375rem;
-            background-size: cover;
-            background-position: center;
+            background-color: #101419;
+            border: 1px solid rgba(255,255,255,0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #101419;
-            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+        .event-icon-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             filter: grayscale(1);
             transition: filter 0.3s ease;
         }
-        .event-list-item.live .event-icon-wrapper { filter: grayscale(0); }
+        .event-list-item.live .event-icon-wrapper img { filter: grayscale(0); }
         .event-icon-wrapper i { font-size: 1.5rem; }
 
         .event-details { flex-grow: 1; }
@@ -412,10 +416,33 @@ CHANGELOG
         .event-list-item.ended .time-status-label { color: #666; }
         
         /* Post Controls */
-        .post-controls { position: absolute; top: 0.5rem; right: 0.5rem; display: flex; gap: 0.5rem; }
-        .control-btn { background: rgba(13, 17, 23, 0.7); border: 1px solid rgba(255,255,255,0.1); color: #8b949e; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: all 0.2s ease; }
+        .post-controls {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .announcement-card:hover .post-controls, .event-list-item:hover .post-controls {
+            opacity: 1;
+        }
+        .control-btn {
+            background: rgba(13, 17, 23, 0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #8b949e;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+        }
         .control-btn:hover { color: #fff; background: rgba(30,30,30,0.8); }
-        .control-btn.delete-btn:hover { color: var(--color-highlight); }
+        .control-btn.delete-btn.confirm-delete { background-color: var(--color-highlight); color: #fff; }
 
     </style>
 </head>
@@ -1799,7 +1826,7 @@ CHANGELOG
             item.dataset.isRecurring = post.isRecurring || false;
             
             const visualHTML = post.thumbnailUrl 
-                ? `<div class="event-icon-wrapper" style="background-image: url(${post.thumbnailUrl})"></div>`
+                ? `<div class="event-icon-wrapper"><img src="${post.thumbnailUrl}" alt="${post.title}"></div>`
                 : `<div class="event-icon-wrapper"><i class="${style.icon}" style="color: ${style.color};"></i></div>`;
             
             let controlsHTML = '';
