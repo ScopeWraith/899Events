@@ -108,6 +108,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 37: Implemented full desaturation for upcoming events using `filter: grayscale(100%)`.
+- Prompt 37: Added a rule to counteract the grayscale filter on the event category label, ensuring it remains colorized for upcoming events.
+- Prompt 37: Removed all special glow and shadow effects from upcoming events to reserve them for live events, enhancing visual distinction.
 - Prompt 36: Implemented advanced event filtering and sorting. Events now only show if they are live or upcoming within 7 days. The list is sorted by: 1. Live events (ending soonest), 2. Upcoming events (starting soonest), 3. Alphabetical (if start times are identical).
 - Prompt 36: Enhanced the visual distinction for live events by adding a prominent `box-shadow` with the event's theme color, making them stand out more.
 - Prompt 36: Removed the grayscale filter from upcoming events to visually separate them from ended events.
@@ -334,7 +337,7 @@ CHANGELOG
             min-height: 130px;
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
         }
         .post-card:hover {
             transform: translateY(-4px);
@@ -385,6 +388,7 @@ CHANGELOG
             border-radius: 4px;
             margin-bottom: 0.25rem;
             align-self: flex-start;
+            transition: filter 0.3s ease;
         }
         .post-card-title {
             font-size: 1.2rem;
@@ -456,6 +460,23 @@ CHANGELOG
         }
         .event-card.live::before {
             opacity: 1;
+        }
+        .event-card.upcoming {
+            filter: grayscale(100%);
+        }
+        .event-card.upcoming .post-card-category {
+            filter: grayscale(0%);
+        }
+        .event-card.upcoming::before {
+            opacity: 0 !important;
+            animation: none !important;
+        }
+        .event-card.upcoming {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .post-card.event-card.upcoming:hover {
+             transform: translateY(-4px);
+             box-shadow: 0 8px 20px rgba(0,0,0,0.4);
         }
         .event-card.ended .post-card-thumbnail {
             filter: grayscale(80%);
