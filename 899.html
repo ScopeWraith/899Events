@@ -108,6 +108,7 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 33: Fixed the broken event status display by correcting the JavaScript selector in the `updateCountdowns` function to match the new card structure.
 - Prompt 32: Completely redesigned post cards into a narrow, three-column grid layout (Image, Content, Status) for improved information density and clarity.
 - Prompt 32: Increased the border-radius on cards for a softer, more modern look.
 - Prompt 32: Replaced the 'live' event glow with a new animated, color-coded gradient border for a more sophisticated effect.
@@ -331,13 +332,17 @@ CHANGELOG
         .post-card::before {
             content: '';
             position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(90deg, var(--glow-color), #30363d, var(--glow-color));
             background-size: 200% 200%;
-            z-index: -1;
-            border-radius: 14px;
+            z-index: 0;
+            border-radius: 12px;
             opacity: 0;
             transition: opacity 0.4s ease;
+            padding: 1px; /* The border width */
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
         }
         .event-card.live::before {
             opacity: 1;
@@ -356,6 +361,8 @@ CHANGELOG
             background-position: center;
             transition: filter 0.5s ease;
             flex-shrink: 0;
+            position: relative;
+            z-index: 1;
         }
         .event-card.upcoming .post-card-thumbnail,
         .event-card.ended .post-card-thumbnail {
@@ -366,6 +373,8 @@ CHANGELOG
             flex-direction: column;
             justify-content: center;
             height: 100%;
+            position: relative;
+            z-index: 1;
         }
         .post-card-category {
             background-color: var(--glow-color, var(--color-primary));
@@ -399,6 +408,8 @@ CHANGELOG
             text-align: right;
             padding-left: 1rem;
             flex-shrink: 0;
+            position: relative;
+            z-index: 1;
         }
         .post-card-status .status-label {
             font-size: 0.7rem;
@@ -424,6 +435,7 @@ CHANGELOG
             opacity: 0;
             transform: translateY(-5px);
             transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+            z-index: 2;
         }
         .post-card:hover .card-actions {
             opacity: 1;
