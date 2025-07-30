@@ -108,6 +108,13 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 40: Replaced `calculateNextDateTime` to always calculate a future date, fixing the root cause of new events appearing incorrectly as "live" or "ended".
+- Prompt 40: Overhauled `getEventStatus` to properly calculate countdowns for recurring events by finding the next active instance instead of showing a static label.
+- Prompt 40: Removed the special "recurring" case from `updateCountdowns` so that weekly events now show a dynamic "Starts in..." or "Ends in..." countdown.
+- Prompt 39: Restructured and rewrote the entire event status and date calculation logic to fix persistent bugs.
+- Prompt 39: Created a new centralized helper function `getEventStatus` to be the single source of truth for determining if an event is "live", "upcoming", or "ended".
+- Prompt 39: Rewrote the `calculateNextDateTime` function to be more robust and correctly handle days within the current week (past or future).
+- Prompt 39: Refactored `renderEvents` and `updateCountdowns` to use the new `getEventStatus` function, ensuring perfect consistency between sorting and display. This resolves the bug where upcoming events were incorrectly shown as live.
 - Prompt 38: Fixed a critical bug in the `updateCountdowns` function that incorrectly marked upcoming events as "live". The logic now correctly checks if the current time is between the start and end times.
 - Prompt 38: Reduced the vertical height of post cards (`.post-card`) for a more compact layout.
 - Prompt 38: Optimized typography within the cards by adjusting font sizes and line heights for better readability in the new compact design.
@@ -1164,45 +1171,71 @@ CHANGELOG
             return parts.slice(0, 2).join(' ') || '<1m';
         }
 
-        function updateCountdowns() {
+        /**
+         * NEW (FIXED): Centralized function to determine the status of an event.
+         * It now correctly calculates the status for recurring events to show proper countdowns.
+         * @param {object} event - The event post object from Firestore.
+         * @returns {object} An object containing the status ('live', 'upcoming', or 'ended') and time difference.
+         */
+        function getEventStatus(event) {
             const now = new Date();
-            document.querySelectorAll('.event-card').forEach(el => {
-                const startTimeAttr = el.dataset.startTime;
-                if (!startTimeAttr || startTimeAttr === 'undefined' || startTimeAttr === 'null') return;
+            let startTime = event.startTime?.toDate();
+            let endTime = event.endTime?.toDate();
 
-                const endTimeAttr = el.dataset.endTime;
-                const isRecurring = el.dataset.isRecurring === 'true';
-                
-                let startTime = new Date(startTimeAttr);
-                const endTime = (endTimeAttr && endTimeAttr !== 'null' && endTimeAttr !== 'undefined') ? new Date(endTimeAttr) : null;
+            if (!startTime || !endTime) {
+                return { status: 'ended' }; 
+            }
 
-                const statusEl = el.querySelector('.post-card-status');
-                if (!statusEl) {
-                    console.error("Could not find status element for card:", el);
-                    return;
+            // For recurring events, find the current or next active window.
+            if (event.isRecurring) {
+                // If the event window is completely in the past, advance it by weeks until it's in the future.
+                if (endTime < now) {
+                    const timeDiff = now.getTime() - endTime.getTime();
+                    const weeksToAdvance = Math.ceil(timeDiff / (7 * 24 * 60 * 60 * 1000));
+                    startTime.setDate(startTime.getDate() + weeksToAdvance * 7);
+                    endTime.setDate(endTime.getDate() + weeksToAdvance * 7);
                 }
+                // Now startTime and endTime represent the current or next cycle.
+            }
+
+            if (startTime > now) {
+                return { status: 'upcoming', timeDiff: startTime - now };
+            } else if (startTime <= now && endTime > now) {
+                return { status: 'live', timeDiff: endTime - now };
+            } else {
+                // If we got here, it's a non-recurring event that has ended.
+                return { status: 'ended', endedDate: endTime };
+            }
+        }
+
+
+        function updateCountdowns() {
+            document.querySelectorAll('.event-card').forEach(el => {
+                const postId = el.dataset.postId;
+                const post = allPosts.find(p => p.id === postId);
+                if (!post) return;
+
+                const statusInfo = getEventStatus(post);
+                const statusEl = el.querySelector('.post-card-status');
+                if (!statusEl) return;
 
                 el.classList.remove('live', 'ended', 'upcoming');
 
-                if (isRecurring) {
-                    statusEl.innerHTML = `<div class="status-label" style="color: var(--glow-color)">RECURRING</div><div class="status-time">Weekly Event</div>`;
-                     el.classList.add('live');
-                    return;
-                }
-
-                const diffToStart = startTime - now;
-                const diffToEnd = endTime ? (endTime - now) : null;
-
-                if (diffToStart > 0) { // Event is in the future
-                    el.classList.add('upcoming');
-                    statusEl.innerHTML = `<div class="status-label">STARTS IN</div><div class="status-time">${formatDuration(diffToStart)}</div>`;
-                } else if (diffToEnd !== null && diffToEnd > 0) { // Event is currently live
-                    el.classList.add('live');
-                    statusEl.innerHTML = `<div class="status-label">ENDS IN</div><div class="status-time">${formatDuration(diffToEnd)}</div>`;
-                } else { // Event has ended
-                    el.classList.add('ended');
-                    const endedDate = endTime || startTime;
-                    statusEl.innerHTML = `<div class="status-label">ENDED</div><div class="status-time">${endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
+                // NEW (FIXED): The 'recurring' case is removed, as getEventStatus now provides
+                // a dynamic status ('live' or 'upcoming') for recurring events.
+                switch(statusInfo.status) {
+                    case 'upcoming':
+                        el.classList.add('upcoming');
+                        statusEl.innerHTML = `<div class="status-label">STARTS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
+                        break;
+                    case 'live':
+                        el.classList.add('live');
+                        statusEl.innerHTML = `<div class="status-label">ENDS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
+                        break;
+                    case 'ended':
+                        el.classList.add('ended');
+                        statusEl.innerHTML = `<div class="status-label">ENDED</div><div class="status-time">${statusInfo.endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
+                        break;
                 }
             });
         }
@@ -1935,38 +1968,29 @@ CHANGELOG
             const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
             const displayableEvents = events.filter(event => {
-                const startTime = event.startTime?.toDate();
-                if (!startTime) return false;
-                const endTime = event.endTime?.toDate();
-                if (!endTime) return false;
+                const status = getEventStatus(event);
+                // For recurring events, getEventStatus advances the time, so we need a fresh check
+                const prospectiveStartTime = event.isRecurring ? getEventStatus(event).startTime : event.startTime?.toDate();
 
-                const isLive = startTime <= now && endTime > now;
-                const isUpcoming = startTime > now && startTime <= sevenDaysFromNow;
-                
-                return isLive || isUpcoming;
+                return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || event.startTime?.toDate()) <= sevenDaysFromNow);
             });
 
             displayableEvents.sort((a, b) => {
-                const startTimeA = a.startTime.toDate();
-                const endTimeA = a.endTime.toDate();
-                const startTimeB = b.startTime.toDate();
-                const endTimeB = b.endTime.toDate();
+                const statusA = getEventStatus(a);
+                const statusB = getEventStatus(b);
 
-                const aIsLive = startTimeA <= now && endTimeA > now;
-                const bIsLive = startTimeB <= now && endTimeB > now;
+                if (statusA.status === 'live' && statusB.status !== 'live') return -1;
+                if (statusA.status !== 'live' && statusB.status === 'live') return 1;
 
-                if (aIsLive && !bIsLive) return -1;
-                if (!aIsLive && bIsLive) return 1;
-
-                if (aIsLive && bIsLive) {
-                    return endTimeA.getTime() - endTimeB.getTime();
+                if (statusA.status === 'live' && statusB.status === 'live') {
+                    return statusA.timeDiff - statusB.timeDiff; // Sort by end time (soonest first)
                 }
 
-                if (!aIsLive && !bIsLive) {
-                    if (startTimeA.getTime() !== startTimeB.getTime()) {
-                        return startTimeA.getTime() - startTimeB.getTime();
+                if (statusA.status === 'upcoming' && statusB.status === 'upcoming') {
+                    if (statusA.timeDiff !== statusB.timeDiff) {
+                        return statusA.timeDiff - statusB.timeDiff; // Sort by start time (soonest first)
                     }
-                    return a.title.localeCompare(b.title);
+                    return a.title.localeCompare(b.title); // Alphabetical tie-breaker
                 }
                 
                 return 0;
@@ -2052,21 +2076,27 @@ CHANGELOG
             return card;
         }
 
-        // Helper to calculate the date for a given day of the week and hour within the current week's context.
+        /**
+         * REWRITTEN (FIXED): Calculates the next occurrence of a day and time, ensuring it's always in the future.
+         * This prevents new events from being created with a past date.
+         * @param {string} dayOfWeek - The target day of the week (0-6).
+         * @param {string} hour - The target hour of the day (0-23).
+         * @returns {Date} The calculated Date object, guaranteed to be in the future.
+         */
         function calculateNextDateTime(dayOfWeek, hour) {
-            const targetDay = parseInt(dayOfWeek, 10); // 0=Sun, 1=Mon, ...
+            const targetDay = parseInt(dayOfWeek, 10);
             const targetHour = parseInt(hour, 10);
+            const now = new Date();
             
-            let resultDate = new Date(); // Start with today's date and time
-            
-            const currentDay = resultDate.getDay();
-            const diff = targetDay - currentDay; // Calculate the difference in days
-            
-            // Adjust the date by the difference. JS handles negative values correctly.
-            resultDate.setDate(resultDate.getDate() + diff); 
-            
-            // Set the target hour, and reset minutes/seconds.
+            let resultDate = new Date();
+            // Calculate the next occurrence of the target day
+            resultDate.setDate(now.getDate() + (targetDay - now.getDay() + 7) % 7);
             resultDate.setHours(targetHour, 0, 0, 0);
+
+            // If the calculated time is still in the past (e.g., today but an earlier hour), add 7 days.
+            if (resultDate < now) {
+                resultDate.setDate(resultDate.getDate() + 7);
+            }
             
             return resultDate;
         }
