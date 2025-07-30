@@ -108,6 +108,7 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 35: Corrected the event date calculation logic in `calculateNextDateTime` to correctly place events within the current week instead of always scheduling them for the future.
 - Prompt 34: Executed a major graphical overhaul of event/announcement cards with a new "gamer" aesthetic, featuring angled `clip-path` elements, enhanced glow effects, and a more dynamic layout.
 - Prompt 34: Added explicit start date and time to event cards for better user planning, complementing the existing relative countdown timer.
 - Prompt 34: Updated the primary font to 'Exo 2' for a cleaner, more futuristic feel across the UI.
@@ -1989,25 +1990,22 @@ CHANGELOG
             return card;
         }
 
-        // Helper to calculate the next occurrence of a given day and hour
+        // Helper to calculate the date for a given day of the week and hour within the current week's context.
         function calculateNextDateTime(dayOfWeek, hour) {
-            const targetDay = parseInt(dayOfWeek, 10);
+            const targetDay = parseInt(dayOfWeek, 10); // 0=Sun, 1=Mon, ...
             const targetHour = parseInt(hour, 10);
-            let resultDate = new Date();
-            resultDate.setHours(targetHour, 0, 0, 0);
-
-            let currentDay = resultDate.getDay();
-            let diff = targetDay - currentDay;
-            if (diff < 0) {
-                diff += 7; // It's a past day of this week, so aim for next week
-            }
             
-            // If it's today, but the hour has passed, schedule for next week
-            if (diff === 0 && resultDate < new Date()) {
-                diff += 7;
-            }
-
-            resultDate.setDate(resultDate.getDate() + diff);
+            let resultDate = new Date(); // Start with today's date and time
+            
+            const currentDay = resultDate.getDay();
+            const diff = targetDay - currentDay; // Calculate the difference in days
+            
+            // Adjust the date by the difference. JS handles negative values correctly.
+            resultDate.setDate(resultDate.getDate() + diff); 
+            
+            // Set the target hour, and reset minutes/seconds.
+            resultDate.setHours(targetHour, 0, 0, 0);
+            
             return resultDate;
         }
 
