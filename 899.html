@@ -108,6 +108,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 41: Made event cards more vertically compact by reducing min-height and internal padding.
+- Prompt 41: Removed the author's name from the footer of all event and announcement cards.
+- Prompt 41: Relocated the Edit and Delete buttons to the bottom-right corner of the cards, integrating them into the footer.
 - Prompt 40: Replaced `calculateNextDateTime` to always calculate a future date, fixing the root cause of new events appearing incorrectly as "live" or "ended".
 - Prompt 40: Overhauled `getEventStatus` to properly calculate countdowns for recurring events by finding the next active instance instead of showing a static label.
 - Prompt 40: Removed the special "recurring" case from `updateCountdowns` so that weekly events now show a dynamic "Starts in..." or "Ends in..." countdown.
@@ -346,7 +349,7 @@ CHANGELOG
             overflow: visible;
             padding: 0;
             display: flex;
-            min-height: 120px; /* Reduced height */
+            min-height: 110px; /* Reduced height */
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
@@ -377,7 +380,7 @@ CHANGELOG
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 0.6rem 1rem; /* Reduced padding */
+            padding: 0.5rem 1rem; /* Reduced padding */
             flex-grow: 1;
             overflow: hidden;
         }
@@ -444,7 +447,7 @@ CHANGELOG
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 0.5rem; /* Reduced margin */
+            margin-top: 0.4rem; /* Reduced margin */
             font-size: 0.75rem; /* Smaller font */
             color: #8b949e;
         }
@@ -496,21 +499,6 @@ CHANGELOG
         }
         .event-card.ended {
             background: linear-gradient(145deg, #2a2f37, #1e2229);
-        }
-        .card-actions {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            display: flex;
-            gap: 0.25rem;
-            opacity: 0;
-            transform: translateY(-5px);
-            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-            z-index: 2;
-        }
-        .post-card:hover .card-actions {
-            opacity: 1;
-            transform: translateY(0);
         }
         .card-action-btn {
             background: rgba(22, 27, 34, 0.8);
@@ -1915,12 +1903,11 @@ CHANGELOG
 
             const postDate = post.createdAt?.toDate();
             const timestamp = postDate ? formatTimeAgo(postDate) : '...';
-            const authorName = allPlayers.find(p => p.uid === post.authorUid)?.username || post.authorUsername || 'System';
 
             let actionsHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
                 actionsHTML = `
-                    <div class="card-actions">
+                    <div class="flex gap-1">
                         <button class="card-action-btn edit-post-btn" data-post-id="${post.id}" title="Edit"><i class="fas fa-pen"></i></button>
                         <button class="card-action-btn delete-btn" data-post-id="${post.id}" title="Delete"><i class="fas fa-trash"></i></button>
                     </div>
@@ -1930,7 +1917,6 @@ CHANGELOG
             const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
 
             card.innerHTML = `
-                ${actionsHTML}
                 <div class="post-card-thumbnail-wrapper">
                     <div class="post-card-thumbnail" style="${headerStyle}"></div>
                 </div>
@@ -1951,9 +1937,7 @@ CHANGELOG
                             <i class="fas fa-bullhorn fa-fw"></i>
                             <span>${postDate ? formatEventDateTime(postDate) : ''}</span>
                         </div>
-                        <div class="post-card-author">
-                            by ${authorName}
-                        </div>
+                        ${actionsHTML}
                     </div>
                 </div>
             `;
@@ -2037,7 +2021,7 @@ CHANGELOG
             let actionsHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
                 actionsHTML = `
-                    <div class="card-actions">
+                    <div class="flex gap-1">
                         <button class="card-action-btn edit-post-btn" data-post-id="${post.id}" title="Edit"><i class="fas fa-pen"></i></button>
                         <button class="card-action-btn delete-btn" data-post-id="${post.id}" title="Delete"><i class="fas fa-trash"></i></button>
                     </div>
@@ -2045,10 +2029,8 @@ CHANGELOG
             }
 
             const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
-            const authorName = allPlayers.find(p => p.uid === post.authorUid)?.username || post.authorUsername || 'System';
 
             card.innerHTML = `
-                ${actionsHTML}
                 <div class="post-card-thumbnail-wrapper">
                     <div class="post-card-thumbnail" style="${headerStyle}"></div>
                 </div>
@@ -2067,9 +2049,7 @@ CHANGELOG
                             <i class="fas fa-calendar-alt fa-fw"></i>
                             <span>${formatEventDateTime(startTime)}</span>
                         </div>
-                        <div class="post-card-author">
-                            by ${authorName}
-                        </div>
+                        ${actionsHTML}
                     </div>
                 </div>
             `;
