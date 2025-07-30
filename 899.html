@@ -108,6 +108,10 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 34: Executed a major graphical overhaul of event/announcement cards with a new "gamer" aesthetic, featuring angled `clip-path` elements, enhanced glow effects, and a more dynamic layout.
+- Prompt 34: Added explicit start date and time to event cards for better user planning, complementing the existing relative countdown timer.
+- Prompt 34: Updated the primary font to 'Exo 2' for a cleaner, more futuristic feel across the UI.
+- Prompt 34: Refactored card HTML structure and JavaScript rendering functions (`createEventListItem`, `createAnnouncementCard`) to support the new design and information display.
 - Prompt 33: Fixed the broken event status display by correcting the JavaScript selector in the `updateCountdowns` function to match the new card structure.
 - Prompt 32: Completely redesigned post cards into a narrow, three-column grid layout (Image, Content, Status) for improved information density and clarity.
 - Prompt 32: Increased the border-radius on cards for a softer, more modern look.
@@ -219,7 +223,7 @@ CHANGELOG
     <title>Last War: Survival - 899 Dashboard</title>
     <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         :root {
@@ -241,12 +245,12 @@ CHANGELOG
             --post-color-vs: #FFA500;
         }
 
-        @keyframes pulse-border { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes pulse-border-horizontal { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes success-pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
         html { font-size: 80%; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--color-bg); color: #c9d1d9; overflow-x: hidden; }
+        body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); color: #c9d1d9; overflow-x: hidden; }
         #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at top left, rgba(0, 191, 255, 0.05), transparent 30%), radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.05), transparent 30%); }
         .glass-pane { background: linear-gradient(135deg, rgba(22, 27, 34, 0.6), rgba(22, 27, 34, 0.3)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
         .header-main { padding: 0.75rem 1.5rem; position: relative; z-index: 50; }
@@ -316,100 +320,88 @@ CHANGELOG
         
         /* --- NEW Gamer UI Card Styles --- */
         .post-card {
-            display: grid;
-            grid-template-columns: 100px 1fr auto; /* Image | Content | Status */
-            gap: 1rem;
-            align-items: center;
-            background-color: #161B22;
-            border-radius: 12px; /* Increased border radius */
-            padding: 1rem;
-            border: 1px solid #30363d;
+            background: linear-gradient(145deg, #212832, #161B22);
+            border: none;
+            border-radius: 8px;
             position: relative;
-            overflow: hidden; /* Important for the animated border */
-            transition: all 0.3s ease;
+            overflow: visible;
+            padding: 0;
+            display: flex;
+            min-height: 130px;
             animation: fadeIn 0.5s ease-out;
-        }
-        .post-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(90deg, var(--glow-color), #30363d, var(--glow-color));
-            background-size: 200% 200%;
-            z-index: 0;
-            border-radius: 12px;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            padding: 1px; /* The border width */
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-        }
-        .event-card.live::before {
-            opacity: 1;
-            animation: pulse-border 3s ease-in-out infinite;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
         }
         .post-card:hover {
-            border-color: var(--glow-color, var(--color-primary));
             transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .post-card-thumbnail-wrapper {
+            flex-shrink: 0;
+            width: 150px;
+            height: 100%;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+            position: relative;
+            border-radius: 8px 0 0 8px;
+            overflow: hidden;
         }
         .post-card-thumbnail {
-            width: 100px;
-            height: 100px;
-            border-radius: 8px;
+            width: 100%;
+            height: 100%;
             background-size: cover;
             background-position: center;
-            transition: filter 0.5s ease;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 1;
+            transition: transform 0.4s ease, filter 0.5s ease;
         }
-        .event-card.upcoming .post-card-thumbnail,
-        .event-card.ended .post-card-thumbnail {
-            filter: grayscale(80%);
+        .post-card:hover .post-card-thumbnail {
+            transform: scale(1.1);
         }
-        .post-card-content {
+        .post-card-main {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            height: 100%;
-            position: relative;
-            z-index: 1;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .post-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .post-card-title-section {
+            flex-grow: 1;
         }
         .post-card-category {
-            background-color: var(--glow-color, var(--color-primary));
             color: #0D1117;
             padding: 0.2rem 0.6rem;
             font-size: 0.7rem;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            align-self: flex-start;
             border-radius: 4px;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
+            align-self: flex-start;
         }
         .post-card-title {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: #fff;
             line-height: 1.3;
             margin: 0;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
         .post-card-details {
             font-size: 0.875rem;
             color: #a0a8b1;
-            margin-top: 0.25rem;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
         .post-card-status {
             text-align: right;
-            padding-left: 1rem;
             flex-shrink: 0;
-            position: relative;
-            z-index: 1;
+            min-width: 90px;
         }
         .post-card-status .status-label {
             font-size: 0.7rem;
@@ -425,6 +417,45 @@ CHANGELOG
         }
         .event-card.live .post-card-status .status-time {
             color: var(--glow-color);
+            text-shadow: 0 0 8px var(--glow-color);
+        }
+        .post-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+        .post-card-datetime {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .post-card-author {
+            font-style: italic;
+        }
+        .post-card::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(120deg, transparent, var(--glow-color), transparent);
+            background-size: 200% 100%;
+            z-index: -1;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            animation: pulse-border-horizontal 3s ease-in-out infinite;
+        }
+        .event-card.live::before {
+            opacity: 1;
+        }
+        .event-card.upcoming .post-card-thumbnail,
+        .event-card.ended .post-card-thumbnail {
+            filter: grayscale(80%);
+        }
+        .event-card.upcoming, .event-card.ended {
+            background: linear-gradient(145deg, #2a2f37, #1e2229);
         }
         .card-actions {
             position: absolute;
@@ -1077,6 +1108,13 @@ CHANGELOG
             if (interval > 1) return `${Math.floor(interval)}m ago`;
             return `${Math.floor(seconds)}s ago`;
         }
+        
+        function formatEventDateTime(date) {
+            if (!date || isNaN(date.getTime())) return 'N/A';
+            // Format: Jul 30 @ 7:30 AM
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' @ ' +
+                   date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
 
         function formatDuration(ms) {
             if (ms < 0) ms = 0;
@@ -1106,7 +1144,6 @@ CHANGELOG
                 const endTime = (endTimeAttr && endTimeAttr !== 'null' && endTimeAttr !== 'undefined') ? new Date(endTimeAttr) : null;
 
                 const statusEl = el.querySelector('.post-card-status');
-                // This is a crucial check. If the element doesn't exist, we can't proceed.
                 if (!statusEl) {
                     console.error("Could not find status element for card:", el);
                     return;
@@ -1809,9 +1846,10 @@ CHANGELOG
             card.className = 'post-card announcement-card';
             const color = style.color || 'var(--color-primary)';
             card.style.setProperty('--glow-color', color);
-            
+
             const postDate = post.createdAt?.toDate();
             const timestamp = postDate ? formatTimeAgo(postDate) : '...';
+            const authorName = allPlayers.find(p => p.uid === post.authorUid)?.username || post.authorUsername || 'System';
 
             let actionsHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
@@ -1822,20 +1860,35 @@ CHANGELOG
                     </div>
                 `;
             }
-            
+
             const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
 
             card.innerHTML = `
                 ${actionsHTML}
-                <div class="post-card-thumbnail" style="${headerStyle}"></div>
-                <div class="post-card-content">
-                    <span class="post-card-category">${post.subType.replace('_', ' ')}</span>
-                    <h3 class="post-card-title">${post.title}</h3>
-                    <p class="post-card-details">${post.details}</p>
+                <div class="post-card-thumbnail-wrapper">
+                    <div class="post-card-thumbnail" style="${headerStyle}"></div>
                 </div>
-                <div class="post-card-status">
-                    <div class="status-label" title="${postDate?.toLocaleString() || ''}">Posted</div>
-                    <div class="status-time">${timestamp}</div>
+                <div class="post-card-main">
+                    <div class="post-card-header">
+                        <div class="post-card-title-section">
+                            <span class="post-card-category" style="background-color: ${color};">${post.subType.replace('_', ' ')}</span>
+                            <h3 class="post-card-title">${post.title}</h3>
+                            <p class="post-card-details mt-1">${post.details}</p>
+                        </div>
+                        <div class="post-card-status">
+                            <div class="status-label" title="${postDate?.toLocaleString() || ''}">Posted</div>
+                            <div class="status-time">${timestamp}</div>
+                        </div>
+                    </div>
+                    <div class="post-card-footer">
+                        <div class="post-card-datetime">
+                            <i class="fas fa-bullhorn fa-fw"></i>
+                            <span>${postDate ? formatEventDateTime(postDate) : ''}</span>
+                        </div>
+                        <div class="post-card-author">
+                            by ${authorName}
+                        </div>
+                    </div>
                 </div>
             `;
             return card;
@@ -1887,9 +1940,11 @@ CHANGELOG
             const color = style.color || 'var(--color-primary)';
             card.style.setProperty('--glow-color', color);
 
+            const startTime = post.startTime?.toDate();
+            const endTime = post.endTime?.toDate();
             card.dataset.postId = post.id;
-            card.dataset.startTime = post.startTime?.toDate();
-            card.dataset.endTime = post.endTime?.toDate();
+            card.dataset.startTime = startTime;
+            card.dataset.endTime = endTime;
             card.dataset.isRecurring = post.isRecurring || false;
 
             let actionsHTML = '';
@@ -1903,17 +1958,32 @@ CHANGELOG
             }
 
             const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
+            const authorName = allPlayers.find(p => p.uid === post.authorUid)?.username || post.authorUsername || 'System';
 
             card.innerHTML = `
                 ${actionsHTML}
-                <div class="post-card-thumbnail" style="${headerStyle}"></div>
-                <div class="post-card-content">
-                    <span class="post-card-category">${eventTypeText}</span>
-                    <h3 class="post-card-title">${post.title}</h3>
-                    <p class="post-card-details">${post.details}</p>
+                <div class="post-card-thumbnail-wrapper">
+                    <div class="post-card-thumbnail" style="${headerStyle}"></div>
                 </div>
-                <div class="post-card-status">
-                    <!-- Status updated by JS -->
+                <div class="post-card-main">
+                    <div class="post-card-header">
+                        <div class="post-card-title-section">
+                            <span class="post-card-category" style="background-color: ${color};">${eventTypeText}</span>
+                            <h3 class="post-card-title">${post.title}</h3>
+                        </div>
+                        <div class="post-card-status">
+                            <!-- Status updated by JS -->
+                        </div>
+                    </div>
+                    <div class="post-card-footer">
+                        <div class="post-card-datetime">
+                            <i class="fas fa-calendar-alt fa-fw"></i>
+                            <span>${formatEventDateTime(startTime)}</span>
+                        </div>
+                        <div class="post-card-author">
+                            by ${authorName}
+                        </div>
+                    </div>
                 </div>
             `;
             return card;
