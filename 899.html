@@ -108,6 +108,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 31: Optimized post card information display for better legibility with larger fonts and spacing.
+- Prompt 31: Added visual state changes for events: upcoming/ended events are now desaturated.
+- Prompt 31: Implemented an animated, color-coded glow for 'live' events to make them stand out.
 - Prompt 30: Fixed image squishing on upload. Images are now resized to a max of 1024x1024 while maintaining their original aspect ratio.
 - Prompt 29: Changed card layout to a single-column, full-width design for a more focused view.
 - Prompt 29: Made cards more vertically compact by adjusting header height and internal padding.
@@ -233,7 +236,7 @@ CHANGELOG
             --post-color-vs: #FFA500;
         }
 
-        @keyframes pulse-live { 0%, 100% { box-shadow: 0 0 12px var(--glow-color); } 50% { box-shadow: 0 0 24px var(--glow-color); } }
+        @keyframes pulse-live { 0%, 100% { box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color); } 50% { box-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes success-pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
@@ -315,24 +318,28 @@ CHANGELOG
             animation: fadeIn 0.5s ease-out;
             border-radius: 4px;
             border: 1px solid #222933;
-            min-height: 120px;
+            min-height: 140px; /* Increased height */
         }
         .post-card:hover {
             transform: translateY(-5px) scale(1.01);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 20px var(--glow-color-transparent, rgba(0, 191, 255, 0.2));
             border-color: var(--glow-color, var(--color-primary));
         }
-        .post-card.ended {
-            opacity: 0.65;
-            filter: grayscale(60%);
+        .event-card.live {
+            animation: pulse-live 2s infinite ease-in-out;
         }
         .post-card-header {
-            width: 250px;
+            width: 400px; /* Increased width */
             flex-shrink: 0;
             background-size: cover;
             background-position: center;
             position: relative;
             clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+            transition: filter 0.5s ease;
+        }
+        .event-card.upcoming .post-card-header,
+        .event-card.ended .post-card-header {
+            filter: grayscale(80%);
         }
         .post-card-header::before {
             content: '';
@@ -344,24 +351,24 @@ CHANGELOG
             display: flex;
             flex-direction: column;
             flex-grow: 1;
-            padding: 1rem 1.25rem;
+            padding: 1.25rem 1.5rem; /* Increased padding */
         }
         .post-card-category {
             background-color: var(--glow-color, var(--color-primary));
             color: #0D1117;
-            padding: 0.25rem 0.75rem;
-            font-size: 1rem;
+            padding: 0.3rem 0.8rem; /* Increased padding */
+            font-size: 0.8rem; /* Increased font size */
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            align-self: flex-end;
+            align-self: flex-start;
         }
         .post-card-title {
-            font-size: 1.2rem;
-            font-weight: 700;
+            font-size: 1.5rem; /* Increased font size */
+            font-weight: 800; /* Bolder */
             color: #fff;
             line-height: 1.3;
-            margin: 0.5rem 0;
+            margin: 0.75rem 0; /* Adjusted margin */
             flex-grow: 1;
         }
         .post-card-footer {
@@ -374,14 +381,14 @@ CHANGELOG
             text-align: left;
         }
         .card-footer-status .status-label {
-            font-size: 0.65rem;
+            font-size: 0.75rem; /* Increased font size */
             font-weight: 700;
             text-transform: uppercase;
             color: #a0a8b1;
             letter-spacing: 0.5px;
         }
         .card-footer-status .status-time {
-            font-size: 1rem;
+            font-size: 1.25rem; /* Increased font size */
             font-weight: 700;
             color: #fff;
         }
@@ -403,7 +410,7 @@ CHANGELOG
         .card-action-btn:hover { color: #fff; background: #30363d; border-color: var(--glow-color, var(--color-primary)); }
         .card-action-btn.delete-btn:hover { background-color: var(--color-highlight); border-color: var(--color-highlight); }
         .announcement-card .post-card-header { width: 100px; clip-path: polygon(0 0, 100% 0, 75% 100%, 0% 100%); }
-        .announcement-card .post-card-title { font-size: 1.1rem; }
+        .announcement-card .post-card-title { font-size: 1.2rem; }
 
     </style>
 </head>
