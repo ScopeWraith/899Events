@@ -1106,11 +1106,17 @@ CHANGELOG
                 const endTime = (endTimeAttr && endTimeAttr !== 'null' && endTimeAttr !== 'undefined') ? new Date(endTimeAttr) : null;
 
                 const statusEl = el.querySelector('.post-card-status');
+                // This is a crucial check. If the element doesn't exist, we can't proceed.
+                if (!statusEl) {
+                    console.error("Could not find status element for card:", el);
+                    return;
+                }
+
                 el.classList.remove('live', 'ended', 'upcoming');
 
                 if (isRecurring) {
                     statusEl.innerHTML = `<div class="status-label" style="color: var(--glow-color)">RECURRING</div><div class="status-time">Weekly Event</div>`;
-                     el.classList.add('live'); // Make recurring always appear 'live' visually
+                     el.classList.add('live');
                     return;
                 }
 
