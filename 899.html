@@ -108,6 +108,9 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 36: Implemented advanced event filtering and sorting. Events now only show if they are live or upcoming within 7 days. The list is sorted by: 1. Live events (ending soonest), 2. Upcoming events (starting soonest), 3. Alphabetical (if start times are identical).
+- Prompt 36: Enhanced the visual distinction for live events by adding a prominent `box-shadow` with the event's theme color, making them stand out more.
+- Prompt 36: Removed the grayscale filter from upcoming events to visually separate them from ended events.
 - Prompt 35: Corrected the event date calculation logic in `calculateNextDateTime` to correctly place events within the current week instead of always scheduling them for the future.
 - Prompt 34: Executed a major graphical overhaul of event/announcement cards with a new "gamer" aesthetic, featuring angled `clip-path` elements, enhanced glow effects, and a more dynamic layout.
 - Prompt 34: Added explicit start date and time to event cards for better user planning, complementing the existing relative countdown timer.
@@ -331,7 +334,7 @@ CHANGELOG
             min-height: 130px;
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .post-card:hover {
             transform: translateY(-4px);
@@ -448,14 +451,16 @@ CHANGELOG
             transition: opacity 0.4s ease;
             animation: pulse-border-horizontal 3s ease-in-out infinite;
         }
+        .event-card.live {
+             box-shadow: 0 0 15px -3px var(--glow-color);
+        }
         .event-card.live::before {
             opacity: 1;
         }
-        .event-card.upcoming .post-card-thumbnail,
         .event-card.ended .post-card-thumbnail {
             filter: grayscale(80%);
         }
-        .event-card.upcoming, .event-card.ended {
+        .event-card.ended {
             background: linear-gradient(145deg, #2a2f37, #1e2229);
         }
         .card-actions {
@@ -1898,7 +1903,49 @@ CHANGELOG
 
         function renderEvents(events) {
             eventsSectionContainer.innerHTML = '';
-            if (events.length > 0) {
+            
+            const now = new Date();
+            const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+            const displayableEvents = events.filter(event => {
+                const startTime = event.startTime?.toDate();
+                if (!startTime) return false;
+                const endTime = event.endTime?.toDate();
+                if (!endTime) return false;
+
+                const isLive = startTime <= now && endTime > now;
+                const isUpcoming = startTime > now && startTime <= sevenDaysFromNow;
+                
+                return isLive || isUpcoming;
+            });
+
+            displayableEvents.sort((a, b) => {
+                const startTimeA = a.startTime.toDate();
+                const endTimeA = a.endTime.toDate();
+                const startTimeB = b.startTime.toDate();
+                const endTimeB = b.endTime.toDate();
+
+                const aIsLive = startTimeA <= now && endTimeA > now;
+                const bIsLive = startTimeB <= now && endTimeB > now;
+
+                if (aIsLive && !bIsLive) return -1;
+                if (!aIsLive && bIsLive) return 1;
+
+                if (aIsLive && bIsLive) {
+                    return endTimeA.getTime() - endTimeB.getTime();
+                }
+
+                if (!aIsLive && !bIsLive) {
+                    if (startTimeA.getTime() !== startTimeB.getTime()) {
+                        return startTimeA.getTime() - startTimeB.getTime();
+                    }
+                    return a.title.localeCompare(b.title);
+                }
+                
+                return 0;
+            });
+
+            if (displayableEvents.length > 0) {
                 if (announcementsContainer.innerHTML !== '') {
                     const divider = document.createElement('div');
                     divider.className = 'py-4';
@@ -1912,19 +1959,7 @@ CHANGELOG
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 gap-4';
 
-                events.sort((a, b) => {
-                    const now = new Date();
-                    const startTimeA = a.startTime?.toDate() || 0;
-                    const startTimeB = b.startTime?.toDate() || 0;
-                    const aIsLive = startTimeA < now && (a.endTime?.toDate() || new Date()) > now;
-                    const bIsLive = startTimeB < now && (b.endTime?.toDate() || new Date()) > now;
-
-                    if (aIsLive && !bIsLive) return -1;
-                    if (!aIsLive && bIsLive) return 1;
-                    
-                    return startTimeA - startTimeB;
-                });
-                events.forEach(post => {
+                displayableEvents.forEach(post => {
                     grid.appendChild(createEventListItem(post));
                 });
                 eventsSectionContainer.appendChild(grid);
