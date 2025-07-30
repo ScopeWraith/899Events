@@ -108,132 +108,23 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 45: Substantially increased font sizes for event category, title, and countdown time for a cleaner, more professional typography.
+- Prompt 45: Adjusted card layout (min-height, padding, margins) to perfectly fit the new larger text sizes.
+- Prompt 44: Made event cards significantly more narrow by reducing min-height, padding, and thumbnail width.
+- Prompt 44: Corrected the event tag color logic: live/ended events now have colorful tags, and upcoming events have grayscale tags to match the rest of the card.
+- Prompt 44: Increased font sizes for event title, status, and footer for better legibility.
+- Prompt 43: Fixed critical mobile/logged-out visibility bug by fetching public data on initial load before authentication state is known.
+- Prompt 43: Refactored data listeners to be independent of auth state, with re-rendering triggered on auth change.
+- Prompt 43: Made event cards significantly more compact by reducing min-height, padding, and margins.
+- Prompt 43: Added CSS to desaturate the category tags for 'live' and 'ended' events, leaving only 'upcoming' events colorized.
+- Prompt 42: Increased font sizes for all text elements within event and announcement cards for improved legibility.
+- Prompt 42: Adjusted card min-height to accommodate the larger text.
 - Prompt 41: Made event cards more vertically compact by reducing min-height and internal padding.
 - Prompt 41: Removed the author's name from the footer of all event and announcement cards.
 - Prompt 41: Relocated the Edit and Delete buttons to the bottom-right corner of the cards, integrating them into the footer.
 - Prompt 40: Replaced `calculateNextDateTime` to always calculate a future date, fixing the root cause of new events appearing incorrectly as "live" or "ended".
 - Prompt 40: Overhauled `getEventStatus` to properly calculate countdowns for recurring events by finding the next active instance instead of showing a static label.
 - Prompt 40: Removed the special "recurring" case from `updateCountdowns` so that weekly events now show a dynamic "Starts in..." or "Ends in..." countdown.
-- Prompt 39: Restructured and rewrote the entire event status and date calculation logic to fix persistent bugs.
-- Prompt 39: Created a new centralized helper function `getEventStatus` to be the single source of truth for determining if an event is "live", "upcoming", or "ended".
-- Prompt 39: Rewrote the `calculateNextDateTime` function to be more robust and correctly handle days within the current week (past or future).
-- Prompt 39: Refactored `renderEvents` and `updateCountdowns` to use the new `getEventStatus` function, ensuring perfect consistency between sorting and display. This resolves the bug where upcoming events were incorrectly shown as live.
-- Prompt 38: Fixed a critical bug in the `updateCountdowns` function that incorrectly marked upcoming events as "live". The logic now correctly checks if the current time is between the start and end times.
-- Prompt 38: Reduced the vertical height of post cards (`.post-card`) for a more compact layout.
-- Prompt 38: Optimized typography within the cards by adjusting font sizes and line heights for better readability in the new compact design.
-- Prompt 38: Added a subtle pulsing opacity animation to the glowing border of live events for a more dynamic effect.
-- Prompt 37: Implemented full desaturation for upcoming events using `filter: grayscale(100%)`.
-- Prompt 37: Added a rule to counteract the grayscale filter on the event category label, ensuring it remains colorized for upcoming events.
-- Prompt 37: Removed all special glow and shadow effects from upcoming events to reserve them for live events, enhancing visual distinction.
-- Prompt 36: Implemented advanced event filtering and sorting. Events now only show if they are live or upcoming within 7 days. The list is sorted by: 1. Live events (ending soonest), 2. Upcoming events (starting soonest), 3. Alphabetical (if start times are identical).
-- Prompt 36: Enhanced the visual distinction for live events by adding a prominent `box-shadow` with the event's theme color, making them stand out more.
-- Prompt 36: Removed the grayscale filter from upcoming events to visually separate them from ended events.
-- Prompt 35: Corrected the event date calculation logic in `calculateNextDateTime` to correctly place events within the current week instead of always scheduling them for the future.
-- Prompt 34: Executed a major graphical overhaul of event/announcement cards with a new "gamer" aesthetic, featuring angled `clip-path` elements, enhanced glow effects, and a more dynamic layout.
-- Prompt 34: Added explicit start date and time to event cards for better user planning, complementing the existing relative countdown timer.
-- Prompt 34: Updated the primary font to 'Exo 2' for a cleaner, more futuristic feel across the UI.
-- Prompt 34: Refactored card HTML structure and JavaScript rendering functions (`createEventListItem`, `createAnnouncementCard`) to support the new design and information display.
-- Prompt 33: Fixed the broken event status display by correcting the JavaScript selector in the `updateCountdowns` function to match the new card structure.
-- Prompt 32: Completely redesigned post cards into a narrow, three-column grid layout (Image, Content, Status) for improved information density and clarity.
-- Prompt 32: Increased the border-radius on cards for a softer, more modern look.
-- Prompt 32: Replaced the 'live' event glow with a new animated, color-coded gradient border for a more sophisticated effect.
-- Prompt 32: Relocated Edit/Delete buttons to the top-right corner of the card, appearing only on hover for a cleaner UI.
-- Prompt 31: Optimized post card information display for better legibility with larger fonts and spacing.
-- Prompt 31: Added visual state changes for events: upcoming/ended events are now desaturated.
-- Prompt 31: Implemented an animated, color-coded glow for 'live' events to make them stand out.
-- Prompt 30: Fixed image squishing on upload. Images are now resized to a max of 1024x1024 while maintaining their original aspect ratio.
-- Prompt 29: Changed card layout to a single-column, full-width design for a more focused view.
-- Prompt 29: Made cards more vertically compact by adjusting header height and internal padding.
-- Prompt 29: Fixed distorted header images by ensuring `background-size: cover` is applied correctly.
-- Prompt 29: Removed author information from the card footer to simplify the design.
-- Prompt 29: Relocated the event status/timestamp to the card footer for better information flow, placing it to the left of the action buttons.
-- Prompt 28: Executed a major visual optimization of the "gamer-style" cards, focusing on unique aesthetics.
-- Prompt 28: Implemented `clip-path` to create dynamic, angled shapes for card headers and category tags, enhancing the futuristic look.
-- Prompt 28: Refined typography, including font sizes, weights, and letter-spacing, to establish a clearer and more professional visual hierarchy.
-- Prompt 28: Optimized margins and padding within the cards for better balance and content readability.
-- Prompt 28: Enhanced hover effects for a more engaging and responsive user interaction.
-- Prompt 27: Completely redesigned event and announcement cards with a "gamer-like" aesthetic, featuring angled elements, glowing borders, and improved layout.
-- Prompt 27: Integrated Edit/Delete buttons seamlessly into the card footer for a cleaner look and better user experience, removing poorly-placed hover buttons.
-- Prompt 27: Fixed the bug where the edit modal would appear empty by correcting the form population logic in `populatePostFormForEdit`.
-- Prompt 27: Enhanced the edit modal flow to hide the stepper navigation and show a combined form for a more intuitive editing process.
-- Prompt 26: Redesigned event and announcement cards for a more appealing and engaging layout.
-- Prompt 26: Implemented a generic confirmation modal for post deletion to prevent accidental removal.
-- Prompt 26: Integrated edit functionality to reuse the creation modal, pre-filling it with the selected post's data for a seamless editing experience.
-- Prompt 25: Corrected Firebase rules syntax by removing invalid 'in' keyword and fixing logic in 'isAdmin' and 'isVerified'.
-- Prompt 25: Added a "LIVE" text overlay to event thumbnails for currently running events.
-- Prompt 25: Ensured event thumbnails use `object-fit: cover` within an `<img>` tag to prevent stretching.
-- Prompt 24: Implemented Edit/Delete functionality for posts, with permissions for admins and original authors.
-- Prompt 24: Refined announcement card padding and spacing for better visual balance.
-- Prompt 24: Added logic to desaturate event thumbnails for 'upcoming'/'ended' states and colorize them for 'live' events.
-- Prompt 24: Ensured event thumbnails use `object-fit: cover` to prevent stretching.
-- Prompt 23: Reinstated event thumbnails and removed event descriptions for a cleaner, title-focused layout.
-- Prompt 23: Removed event group headers in favor of a single, continuous list.
-- Prompt 23: Added explicit, color-coded event type labels (e.g., "SERVER EVENT") inside each event item.
-- Prompt 22: Reverted event items to a glass pane background for UI consistency.
-- Prompt 22: Added distinct, color-coded labels with icons to each event item for clear identification.
-- Prompt 22: Implemented subtle gradient and shadow effects on live/hovered events for a polished, glowing look.
-- Prompt 21: Overhauled Event display to a professional, color-coded list format inspired by user-provided reference.
-- Prompt 21: Implemented a "time ago" timestamp for announcements and prepended author names with their alliance tag.
-- Prompt 21: Refined "live" event styling for better visual prominence.
-- Prompt 20: Completely redesigned Event display into professional, multi-part cards for superior clarity and visual appeal.
-- Prompt 20: Implemented a responsive two-column grid layout for the event list on larger screens.
-- Prompt 20: Refined Announcement cards with more subtle styling and added a placeholder for future 'reaction' functionality.
-- Prompt 20: Enhanced event status indicators (Live, Upcoming, etc.) to be more prominent and visually integrated into the new card design.
-- Prompt 19: Graphically overhauled Announcement cards with a new layout featuring themed icons and accent colors.
-- Prompt 19: Reworked Event list items into a 'ticket' style layout for improved scannability and visual appeal.
-- Prompt 19: Enhanced status indicators for events to be more prominent and descriptive.
-- Prompt 18: Separated Events and Announcements into distinct, professionally styled sections.
-- Prompt 18: Created a new, visually appealing card layout for announcements.
-- Prompt 18: Overhauled the event list item design for better clarity, visual hierarchy, and interactivity.
-- Prompt 17: Completely overhauled event/announcement display to a more professional, grouped list format.
-- Prompt 17: Added dynamic status indicators (Live, Upcoming, Ended) with unique styling and animations for each state.
-- Prompt 17: Implemented themed group headers for better organization of the event list.
-- Prompt 16: Visually overhauled Event and Announcement cards with a more professional, multi-part layout.
-- Prompt 16: Added themed gradient borders and enhanced hover effects to all post cards.
-- Prompt 16: Redesigned meta-information display into stylish, pill-shaped badges.
-- Prompt 15: Fixed all custom dropdown menus by restoring and improving positioning logic in CSS.
-- Prompt 15: Refined dropdown visual alignment for a cleaner presentation.
-- Prompt 14: Widened main layout to fix header crowding and better utilize space.
-- Prompt 14: Completely redesigned and fixed the Event Schedule modal layout for clarity.
-- Prompt 14: Visually optimized event type selection buttons and section headers.
-- Prompt 14: Hid the main "Events & Announcements" title and divider as requested.
-- Prompt 14: Corrected and locked the Firebase storageBucket URL.
-- Prompt 13: Redesigned Event Schedule modal for clarity and better layout.
-- Prompt 13: Replaced plain dividers with themed, glowing gradient dividers.
-- Prompt 13: Enhanced interactivity of modal selection buttons with new hover effects.
-- Prompt 12: Implemented a robust modal scrolling solution with a new wrapper div.
-- Prompt 12: Executed a major visual overhaul, beautifying buttons, cards, modals, and forms with gradients, shadows, and refined styles.
-- Prompt 12: Enhanced the glass effect for a more vibrant and polished UI.
-- Prompt 12: Fixed a latent bug in the Firebase Storage configuration.
-- Prompt 11: Reduced overall website width and font sizes for a more compact UI.
-- Prompt 11: Overhauled all modals to ensure content fits better and scrolls correctly when overflowing.
-- Prompt 11: Adjusted multi-column layouts to better suit the new, narrower design.
-- Prompt 10: Overhauled event scheduling with intuitive Day of Week and Hour of Day dropdowns.
-- Prompt 10: Simplified event repetition to a "None" or "Weekly" choice, with an input for week count.
-- Prompt 10: Fixed mobile navigation menu being obscured by the modal backdrop.
-- Prompt 10: Stabilized custom dropdown menus to prevent unexpected closing.
-- Prompt 9: Overhauled event time selection with simplified, styled inputs for date, hour, and minute.
-- Prompt 9: Redesigned post cards to display thumbnails as a square on the left, with themed icons as a fallback.
-- Prompt 9: Heavily styled new components with CSS for a beautiful, integrated look.
-- Prompt 8: Overhauled event/announcement display with countdown timers, status indicators, and a filterable legend.
-- Prompt 8: Implemented a responsive slide-out filter menu for mobile devices.
-- Prompt 7: Redesigned the post creation modal into a more intuitive, guided, multi-step process based on user permissions.
-- Prompt 6: Implemented themed, scrolling content areas for all modals to prevent overflow on smaller screens.
-- Prompt 5: Refined event/announcement types with specific permissions and optimized the creation modal flow.
-- Prompt 5: Enhanced event creation with an option for weekly repetition over a specified number of weeks.
-- Prompt 5: Updated Firebase security rules to reflect the new, more granular post type permissions.
-- Prompt 4: Added thumbnail upload functionality to the post creation modal with a 300x300 preview.
-- Prompt 4: Themed the uploaded thumbnail into a stylish header banner on the event/announcement cards.
-- Prompt 4: Updated Firebase Storage security rules to accommodate post thumbnail uploads.
-- Prompt 3: Replaced default datetime-local inputs with a custom-styled, user-friendly date and time picker component.
-- Prompt 2: Overhauled the post creation modal for a more efficient, permission-based workflow.
-- Prompt 2: Completely redesigned the display of event and announcement cards with unique styles, icons, and colors for each type.
-- Prompt 2: Updated and refined the permission logic for both creating posts and managing player verification to match detailed requirements.
-- Prompt 1: Added robust Firebase Security Rules for Firestore and Storage.
-- Prompt 1: Fixed a critical bug where the "Change Avatar" button for existing users was non-functional.
-- Prompt 1: Resolved a race condition during user registration that prevented the avatar and profile from displaying correctly without a page refresh.
-- Prompt 1: Refactored authentication handling to use real-time listeners for the user's profile, ensuring instant UI updates.
-- Prompt 1: Replaced the blocking `confirm()` dialog for post deletion with a non-blocking, two-click confirmation button.
 -->
 
 <!DOCTYPE html>
@@ -340,16 +231,16 @@ CHANGELOG
         #mobile-nav-menu.open, #mobile-filter-panel.open { transform: translateX(0); }
         .section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--glow-color, var(--color-primary)), transparent) 1; }
         
-        /* --- NEW Gamer UI Card Styles --- */
+        /* --- Gamer UI Card Styles --- */
         .post-card {
             background: linear-gradient(145deg, #212832, #161B22);
             border: none;
             border-radius: 8px;
             position: relative;
-            overflow: visible;
+            overflow: hidden;
             padding: 0;
             display: flex;
-            min-height: 110px; /* Reduced height */
+            min-height: 95px; /* Compact height */
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
@@ -359,7 +250,7 @@ CHANGELOG
         }
         .post-card-thumbnail-wrapper {
             flex-shrink: 0;
-            width: 140px; /* Reduced width */
+            width: 100px; 
             height: 100%;
             clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
             position: relative;
@@ -380,7 +271,7 @@ CHANGELOG
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 0.5rem 1rem; /* Reduced padding */
+            padding: 0.5rem 1rem; 
             flex-grow: 1;
             overflow: hidden;
         }
@@ -395,32 +286,26 @@ CHANGELOG
         }
         .post-card-category {
             color: #0D1117;
-            padding: 0.15rem 0.5rem; /* Reduced padding */
-            font-size: 0.65rem; /* Smaller font */
+            padding: 0.1rem 0.6rem; 
+            font-size: 0.8rem; /* Larger */
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-radius: 4px;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem; 
             align-self: flex-start;
             transition: filter 0.3s ease;
         }
         .post-card-title {
-            font-size: 1.1rem; /* Smaller font */
-            font-weight: 700;
+            font-size: 1.4rem; /* Larger */
+            font-weight: 800;
             color: #fff;
-            line-height: 1.2; /* Tighter line height */
+            line-height: 1.1; /* Tighter */
             margin: 0;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
         .post-card-details {
-            font-size: 0.8rem; /* Smaller font */
-            color: #a0a8b1;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            line-height: 1.3;
+            display: none;
         }
         .post-card-status {
             text-align: right;
@@ -428,16 +313,17 @@ CHANGELOG
             min-width: 90px;
         }
         .post-card-status .status-label {
-            font-size: 0.65rem; /* Smaller font */
+            font-size: 0.7rem; /* Kept small */
             font-weight: 700;
             text-transform: uppercase;
             color: #a0a8b1;
             letter-spacing: 0.5px;
         }
         .post-card-status .status-time {
-            font-size: 1rem; /* Smaller font */
-            font-weight: 700;
+            font-size: 1.3rem; /* Larger */
+            font-weight: 800; /* Bolder */
             color: #fff;
+            line-height: 1;
         }
         .event-card.live .post-card-status .status-time {
             color: var(--glow-color);
@@ -447,17 +333,14 @@ CHANGELOG
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 0.4rem; /* Reduced margin */
-            font-size: 0.75rem; /* Smaller font */
+            margin-top: 0.2rem;
+            font-size: 0.8rem; /* Kept small */
             color: #8b949e;
         }
         .post-card-datetime {
             display: flex;
             align-items: center;
             gap: 0.35rem;
-        }
-        .post-card-author {
-            font-style: italic;
         }
         .post-card::before {
             content: '';
@@ -479,9 +362,6 @@ CHANGELOG
         }
         .event-card.upcoming {
             filter: grayscale(100%);
-        }
-        .event-card.upcoming .post-card-category {
-            filter: grayscale(0%);
         }
         .event-card.upcoming::before {
             opacity: 0 !important;
@@ -1159,12 +1039,6 @@ CHANGELOG
             return parts.slice(0, 2).join(' ') || '<1m';
         }
 
-        /**
-         * NEW (FIXED): Centralized function to determine the status of an event.
-         * It now correctly calculates the status for recurring events to show proper countdowns.
-         * @param {object} event - The event post object from Firestore.
-         * @returns {object} An object containing the status ('live', 'upcoming', or 'ended') and time difference.
-         */
         function getEventStatus(event) {
             const now = new Date();
             let startTime = event.startTime?.toDate();
@@ -1174,16 +1048,13 @@ CHANGELOG
                 return { status: 'ended' }; 
             }
 
-            // For recurring events, find the current or next active window.
             if (event.isRecurring) {
-                // If the event window is completely in the past, advance it by weeks until it's in the future.
                 if (endTime < now) {
                     const timeDiff = now.getTime() - endTime.getTime();
                     const weeksToAdvance = Math.ceil(timeDiff / (7 * 24 * 60 * 60 * 1000));
                     startTime.setDate(startTime.getDate() + weeksToAdvance * 7);
                     endTime.setDate(endTime.getDate() + weeksToAdvance * 7);
                 }
-                // Now startTime and endTime represent the current or next cycle.
             }
 
             if (startTime > now) {
@@ -1191,7 +1062,6 @@ CHANGELOG
             } else if (startTime <= now && endTime > now) {
                 return { status: 'live', timeDiff: endTime - now };
             } else {
-                // If we got here, it's a non-recurring event that has ended.
                 return { status: 'ended', endedDate: endTime };
             }
         }
@@ -1209,8 +1079,6 @@ CHANGELOG
 
                 el.classList.remove('live', 'ended', 'upcoming');
 
-                // NEW (FIXED): The 'recurring' case is removed, as getEventStatus now provides
-                // a dynamic status ('live' or 'upcoming') for recurring events.
                 switch(statusInfo.status) {
                     case 'upcoming':
                         el.classList.add('upcoming');
@@ -1230,8 +1098,6 @@ CHANGELOG
 
         // --- UNSUBSCRIBE FUNCTIONS FOR LISTENERS ---
         let userDocListener = null;
-        let usersListener = null;
-        let postsListener = null;
 
         // --- MODAL & FORM SWITCHING LOGIC ---
         function showModal(modal) {
@@ -1311,47 +1177,44 @@ CHANGELOG
         document.getElementById('show-register-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
         document.getElementById('show-login-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
 
-        // --- AUTHENTICATION STATE & LOGIC ---
+        // --- AUTHENTICATION & DATA LOGIC ---
+
+        // Listen for posts immediately on load
+        onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
+            allPosts = [];
+            querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
+            renderPosts(allPosts); // Initial render (will be for logged-out state)
+        }, (error) => console.error("Error with posts listener:", error));
+
+        // Listen for users immediately on load
+        onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
+            allPlayers = [];
+            querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
+            applyPlayerFilters(); // Initial render
+            updateTopAlliancesPodium(allPlayers);
+        }, (error) => console.error("Error with users listener:", error));
+
+        // Handle auth state changes to update UI accordingly
         onAuthStateChanged(auth, (user) => {
-            // Detach all listeners to prevent memory leaks on user change
-            if (userDocListener) userDocListener();
-            if (usersListener) usersListener();
-            if (postsListener) postsListener();
-            if (countdownInterval) clearInterval(countdownInterval);
+            if (userDocListener) userDocListener(); // Detach old listener
 
             if (user) {
-                // Attach a real-time listener to the logged-in user's document
                 userDocListener = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
                     if (userDoc.exists()) {
                         currentUserData = { uid: user.uid, ...userDoc.data() };
                         updateUIForLoggedInUser();
+                        renderPosts(allPosts); // Re-render posts with user permissions
+                        applyPlayerFilters(); // Re-render players
                     }
                 });
-
-                // Attach listeners for collections now that we are authenticated
-                usersListener = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
-                    allPlayers = [];
-                    querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
-                    applyPlayerFilters();
-                    updateTopAlliancesPodium(allPlayers);
-                }, (error) => console.error("Error with users listener:", error));
-
-                postsListener = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
-                    allPosts = [];
-                    querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
-                    renderPosts(allPosts);
-                }, (error) => console.error("Error with posts listener:", error));
-
                 hideAllModals();
-
             } else {
-                // User is signed out
                 currentUserData = null;
-                allPlayers = [];
-                allPosts = [];
                 updateUIForLoggedOutUser();
+                renderPosts(allPosts); // Re-render posts for logged-out state
+                applyPlayerFilters(); // Re-render players
             }
-            buildMobileNav(); // Rebuild mobile nav to show correct auth state
+            buildMobileNav();
         });
         
         function updateUIForLoggedInUser() {
@@ -1367,12 +1230,7 @@ CHANGELOG
                 return false;
             });
             
-            if (canCreateAnyPost) {
-                createPostBtn.classList.remove('hidden');
-            } else {
-                createPostBtn.classList.add('hidden');
-            }
-
+            createPostBtn.classList.toggle('hidden', !canCreateAnyPost);
             loginBtn.classList.add('hidden');
             userProfileContainer.classList.remove('hidden');
         }
@@ -1382,9 +1240,6 @@ CHANGELOG
             userProfileContainer.classList.add('hidden');
             userProfileContainer.classList.remove('open');
             createPostBtn.classList.add('hidden');
-            // Clear UI content
-            renderPosts([]);
-            renderPlayers([]);
         }
 
         document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -1582,7 +1437,6 @@ CHANGELOG
             document.getElementById('register-avatar-preview').src = URL.createObjectURL(resizedAvatarBlob);
         });
         
-        // Helper function to resize images while maintaining aspect ratio
         function resizeImage(file, options) {
             const { maxWidth, maxHeight } = options;
             return new Promise((resolve, reject) => {
@@ -1591,8 +1445,6 @@ CHANGELOG
                     const img = new Image();
                     img.onload = () => {
                         let { width, height } = img;
-
-                        // Maintain aspect ratio
                         if (width > height) {
                             if (width > maxWidth) {
                                 height = Math.round(height * (maxWidth / width));
@@ -1604,20 +1456,15 @@ CHANGELOG
                                 height = maxHeight;
                             }
                         }
-
                         const canvas = document.createElement('canvas');
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-
                         canvas.toBlob((blob) => {
-                            if (blob) {
-                                resolve(blob);
-                            } else {
-                                reject(new Error('Canvas to Blob conversion failed'));
-                            }
-                        }, 'image/jpeg', 0.9); // Use jpeg for smaller file sizes
+                            if (blob) { resolve(blob); } 
+                            else { reject(new Error('Canvas to Blob conversion failed')); }
+                        }, 'image/jpeg', 0.9);
                     };
                     img.onerror = (err) => reject(err);
                     img.src = event.target.result;
@@ -1717,7 +1564,6 @@ CHANGELOG
             const canCreateEvent = getAvailablePostTypes('event').length > 0;
 
             if (canCreateAnnouncement && canCreateEvent) {
-                // Show choice
                 container.innerHTML = `
                     <button type="button" data-main-type="announcement" class="main-type-btn type-selection-card w-full p-6 rounded-lg text-center">
                         <i class="fas fa-bullhorn fa-3x mb-3 text-gray-400"></i>
@@ -1741,11 +1587,11 @@ CHANGELOG
             } else if (canCreateAnnouncement) {
                 postCreationData.mainType = 'announcement';
                 populateSubTypeSelection();
-                showPostStep(2); // Skip to sub-type selection
+                showPostStep(2);
             } else if (canCreateEvent) {
                 postCreationData.mainType = 'event';
                 populateSubTypeSelection();
-                showPostStep(2); // Skip to sub-type selection
+                showPostStep(2);
             } else {
                 container.innerHTML = `<p class="text-center text-gray-400">You do not have permission to create any posts.</p>`;
             }
@@ -1793,7 +1639,7 @@ CHANGELOG
             postNextBtn.classList.toggle('hidden', stepIndex >= totalSteps);
             postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
             
-            if(stepIndex === 3) { // Content slide
+            if(stepIndex === 3) {
                 const header = document.getElementById('post-content-header');
                 header.textContent = editingPostId ? `Edit ${postCreationData.text}` : `New ${postCreationData.text}`;
                 const allianceGroup = document.getElementById('post-alliance-group');
@@ -1807,12 +1653,12 @@ CHANGELOG
 
         function validatePostStep(stepIndex) {
             createPostError.textContent = '';
-            if (stepIndex === 3) { // Content slide
+            if (stepIndex === 3) {
                  if (!document.getElementById('post-title').value || !document.getElementById('post-details').value) {
                     createPostError.textContent = 'Title and details are required.';
                     return false;
                 }
-            } else if (stepIndex === 4 && postCreationData.mainType === 'event') { // Timing slide
+            } else if (stepIndex === 4 && postCreationData.mainType === 'event') {
                 if (!document.getElementById('post-start-day').value || !document.getElementById('post-start-hour').value ||
                     !document.getElementById('post-end-day').value || !document.getElementById('post-end-hour').value) {
                     createPostError.textContent = 'Please select a start/end day and hour for the event.';
@@ -1857,7 +1703,11 @@ CHANGELOG
             eventsSectionContainer.innerHTML = '';
 
             const visiblePosts = posts.filter(post => {
-                if (!currentUserData) return false;
+                // Logged-out users see public posts
+                if (!currentUserData) {
+                    return post.visibility === 'public';
+                }
+                // Logged-in users see more
                 if (post.visibility === 'public') return true;
                 if (currentUserData.isAdmin) return true;
                 if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
@@ -1873,8 +1723,8 @@ CHANGELOG
             renderAnnouncements(announcements);
             renderEvents(events);
 
-            countdownInterval = setInterval(updateCountdowns, 1000 * 30); // Update every 30 seconds
-            updateCountdowns(); // Initial call
+            countdownInterval = setInterval(updateCountdowns, 1000 * 30);
+            updateCountdowns();
         }
 
         function renderAnnouncements(announcements) {
@@ -1953,30 +1803,24 @@ CHANGELOG
 
             const displayableEvents = events.filter(event => {
                 const status = getEventStatus(event);
-                // For recurring events, getEventStatus advances the time, so we need a fresh check
                 const prospectiveStartTime = event.isRecurring ? getEventStatus(event).startTime : event.startTime?.toDate();
-
                 return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || event.startTime?.toDate()) <= sevenDaysFromNow);
             });
 
             displayableEvents.sort((a, b) => {
                 const statusA = getEventStatus(a);
                 const statusB = getEventStatus(b);
-
                 if (statusA.status === 'live' && statusB.status !== 'live') return -1;
                 if (statusA.status !== 'live' && statusB.status === 'live') return 1;
-
                 if (statusA.status === 'live' && statusB.status === 'live') {
-                    return statusA.timeDiff - statusB.timeDiff; // Sort by end time (soonest first)
+                    return statusA.timeDiff - statusB.timeDiff;
                 }
-
                 if (statusA.status === 'upcoming' && statusB.status === 'upcoming') {
                     if (statusA.timeDiff !== statusB.timeDiff) {
-                        return statusA.timeDiff - statusB.timeDiff; // Sort by start time (soonest first)
+                        return statusA.timeDiff - statusB.timeDiff;
                     }
-                    return a.title.localeCompare(b.title); // Alphabetical tie-breaker
+                    return a.title.localeCompare(b.title);
                 }
-                
                 return 0;
             });
 
@@ -2012,12 +1856,8 @@ CHANGELOG
             card.style.setProperty('--glow-color', color);
 
             const startTime = post.startTime?.toDate();
-            const endTime = post.endTime?.toDate();
             card.dataset.postId = post.id;
-            card.dataset.startTime = startTime;
-            card.dataset.endTime = endTime;
-            card.dataset.isRecurring = post.isRecurring || false;
-
+            
             let actionsHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
                 actionsHTML = `
@@ -2056,24 +1896,15 @@ CHANGELOG
             return card;
         }
 
-        /**
-         * REWRITTEN (FIXED): Calculates the next occurrence of a day and time, ensuring it's always in the future.
-         * This prevents new events from being created with a past date.
-         * @param {string} dayOfWeek - The target day of the week (0-6).
-         * @param {string} hour - The target hour of the day (0-23).
-         * @returns {Date} The calculated Date object, guaranteed to be in the future.
-         */
         function calculateNextDateTime(dayOfWeek, hour) {
             const targetDay = parseInt(dayOfWeek, 10);
             const targetHour = parseInt(hour, 10);
             const now = new Date();
             
             let resultDate = new Date();
-            // Calculate the next occurrence of the target day
             resultDate.setDate(now.getDate() + (targetDay - now.getDay() + 7) % 7);
             resultDate.setHours(targetHour, 0, 0, 0);
 
-            // If the calculated time is still in the past (e.g., today but an earlier hour), add 7 days.
             if (resultDate < now) {
                 resultDate.setDate(resultDate.getDate() + 7);
             }
@@ -2093,25 +1924,21 @@ CHANGELOG
 
             document.getElementById('create-post-form').reset();
             
-            // Change modal title and button
             document.getElementById('post-content-header').textContent = `Edit ${postCreationData.text}`;
             const submitBtn = document.getElementById('post-submit-btn');
             submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
 
-            // Hide stepper nav and show the combined form
             document.getElementById('post-nav-container').style.display = 'none';
             document.querySelectorAll('.form-slide').forEach(s => s.classList.remove('active'));
-            document.querySelector('.form-slide[data-slide="3"]').classList.add('active'); // Content
+            document.querySelector('.form-slide[data-slide="3"]').classList.add('active');
             if (post.mainType === 'event') {
-                document.querySelector('.form-slide[data-slide="4"]').classList.add('active'); // Timing
+                document.querySelector('.form-slide[data-slide="4"]').classList.add('active');
             }
             
-            // Populate content fields
             document.getElementById('post-title').value = post.title;
             document.getElementById('post-details').value = post.details;
             document.getElementById('post-thumbnail-preview').src = post.thumbnailUrl || 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
             
-            // Populate timing fields if it's an event
             if (post.mainType === 'event' && post.startTime) {
                 const startDate = post.startTime.toDate();
                 const endDate = post.endTime.toDate();
@@ -2129,9 +1956,8 @@ CHANGELOG
                 }
             }
             
-            // Show the modal
             showModal(createPostModalContainer);
-            postSubmitBtn.classList.remove('hidden'); // Ensure submit is visible
+            postSubmitBtn.classList.remove('hidden');
         }
 
 
@@ -2181,7 +2007,7 @@ CHANGELOG
             }
             
             try {
-                if (editingPostId) { // UPDATE EXISTING POST
+                if (editingPostId) {
                     const postDocRef = doc(db, 'posts', editingPostId);
                     if (resizedThumbnailBlob) {
                         const thumbnailRef = ref(storage, `post_thumbnails/${editingPostId}`);
@@ -2189,7 +2015,7 @@ CHANGELOG
                         finalPostData.thumbnailUrl = await getDownloadURL(thumbnailRef);
                     }
                     await updateDoc(postDocRef, finalPostData);
-                } else { // CREATE NEW POST
+                } else {
                     finalPostData.createdAt = serverTimestamp();
                     const postDocRef = await addDoc(collection(db, 'posts'), finalPostData);
                     if (resizedThumbnailBlob) {
@@ -2205,7 +2031,6 @@ CHANGELOG
                 createPostError.textContent = 'Failed to save post.';
             } finally {
                 submitBtn.disabled = false;
-                // Text will be reset when modal is opened next
             }
         });
 
@@ -2590,7 +2415,6 @@ CHANGELOG
 
         // --- GLOBAL EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize all custom selects on the page
             document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
 
             const navItems = document.querySelectorAll('.nav-item');
@@ -2637,7 +2461,6 @@ CHANGELOG
                 });
             });
 
-            // Event delegation for post controls
             eventsMainContainer.addEventListener('click', e => {
                 const editBtn = e.target.closest('.edit-post-btn');
                 const deleteBtn = e.target.closest('.delete-btn');
