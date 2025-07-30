@@ -108,6 +108,10 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 38: Fixed a critical bug in the `updateCountdowns` function that incorrectly marked upcoming events as "live". The logic now correctly checks if the current time is between the start and end times.
+- Prompt 38: Reduced the vertical height of post cards (`.post-card`) for a more compact layout.
+- Prompt 38: Optimized typography within the cards by adjusting font sizes and line heights for better readability in the new compact design.
+- Prompt 38: Added a subtle pulsing opacity animation to the glowing border of live events for a more dynamic effect.
 - Prompt 37: Implemented full desaturation for upcoming events using `filter: grayscale(100%)`.
 - Prompt 37: Added a rule to counteract the grayscale filter on the event category label, ensuring it remains colorized for upcoming events.
 - Prompt 37: Removed all special glow and shadow effects from upcoming events to reserve them for live events, enhancing visual distinction.
@@ -253,6 +257,7 @@ CHANGELOG
         }
 
         @keyframes pulse-border-horizontal { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @keyframes pulse-opacity { 50% { opacity: 0.6; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes success-pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
@@ -334,7 +339,7 @@ CHANGELOG
             overflow: visible;
             padding: 0;
             display: flex;
-            min-height: 130px;
+            min-height: 120px; /* Reduced height */
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
@@ -344,7 +349,7 @@ CHANGELOG
         }
         .post-card-thumbnail-wrapper {
             flex-shrink: 0;
-            width: 150px;
+            width: 140px; /* Reduced width */
             height: 100%;
             clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
             position: relative;
@@ -365,7 +370,7 @@ CHANGELOG
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 0.75rem 1rem;
+            padding: 0.6rem 1rem; /* Reduced padding */
             flex-grow: 1;
             overflow: hidden;
         }
@@ -380,8 +385,8 @@ CHANGELOG
         }
         .post-card-category {
             color: #0D1117;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem; /* Reduced padding */
+            font-size: 0.65rem; /* Smaller font */
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -391,20 +396,21 @@ CHANGELOG
             transition: filter 0.3s ease;
         }
         .post-card-title {
-            font-size: 1.2rem;
+            font-size: 1.1rem; /* Smaller font */
             font-weight: 700;
             color: #fff;
-            line-height: 1.3;
+            line-height: 1.2; /* Tighter line height */
             margin: 0;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
         .post-card-details {
-            font-size: 0.875rem;
+            font-size: 0.8rem; /* Smaller font */
             color: #a0a8b1;
             display: -webkit-box;
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            line-height: 1.3;
         }
         .post-card-status {
             text-align: right;
@@ -412,14 +418,14 @@ CHANGELOG
             min-width: 90px;
         }
         .post-card-status .status-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem; /* Smaller font */
             font-weight: 700;
             text-transform: uppercase;
             color: #a0a8b1;
             letter-spacing: 0.5px;
         }
         .post-card-status .status-time {
-            font-size: 1.1rem;
+            font-size: 1rem; /* Smaller font */
             font-weight: 700;
             color: #fff;
         }
@@ -431,8 +437,8 @@ CHANGELOG
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 0.75rem;
-            font-size: 0.8rem;
+            margin-top: 0.5rem; /* Reduced margin */
+            font-size: 0.75rem; /* Smaller font */
             color: #8b949e;
         }
         .post-card-datetime {
@@ -453,7 +459,7 @@ CHANGELOG
             border-radius: 10px;
             opacity: 0;
             transition: opacity 0.4s ease;
-            animation: pulse-border-horizontal 3s ease-in-out infinite;
+            animation: pulse-border-horizontal 3s ease-in-out infinite, pulse-opacity 2s ease-in-out infinite;
         }
         .event-card.live {
              box-shadow: 0 0 15px -3px var(--glow-color);
@@ -1162,7 +1168,7 @@ CHANGELOG
             const now = new Date();
             document.querySelectorAll('.event-card').forEach(el => {
                 const startTimeAttr = el.dataset.startTime;
-                if (!startTimeAttr || startTimeAttr === 'undefined') return;
+                if (!startTimeAttr || startTimeAttr === 'undefined' || startTimeAttr === 'null') return;
 
                 const endTimeAttr = el.dataset.endTime;
                 const isRecurring = el.dataset.isRecurring === 'true';
@@ -1185,15 +1191,15 @@ CHANGELOG
                 }
 
                 const diffToStart = startTime - now;
-                const diffToEnd = endTime ? endTime - now : null;
+                const diffToEnd = endTime ? (endTime - now) : null;
 
-                if (diffToStart > 0) {
+                if (diffToStart > 0) { // Event is in the future
                     el.classList.add('upcoming');
                     statusEl.innerHTML = `<div class="status-label">STARTS IN</div><div class="status-time">${formatDuration(diffToStart)}</div>`;
-                } else if (diffToEnd !== null && diffToEnd > 0) {
+                } else if (diffToEnd !== null && diffToEnd > 0) { // Event is currently live
                     el.classList.add('live');
                     statusEl.innerHTML = `<div class="status-label">ENDS IN</div><div class="status-time">${formatDuration(diffToEnd)}</div>`;
-                } else {
+                } else { // Event has ended
                     el.classList.add('ended');
                     const endedDate = endTime || startTime;
                     statusEl.innerHTML = `<div class="status-label">ENDED</div><div class="status-time">${endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
