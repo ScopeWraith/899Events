@@ -147,14 +147,14 @@ CHANGELOG
             --color-dropdown-bg: rgba(18, 24, 33, 0.98);
             
             /* Post/Event Theme Colors */
-            --post-color-server: #FFD700;
+            --post-color-server: #ff00d0;
             --post-color-seasonal: #9370DB;
             --post-color-leadership: #C0C0C0;
             --post-color-alliance: #00BFFF;
             --post-color-hot_deals: #FF6347;
             --post-color-wanted_boss: #DC143C;
             --post-color-campaign: #32CD32;
-            --post-color-vs: #FFA500;
+            --post-color-vs: #0077ff;
         }
 
         @keyframes pulse-border-horizontal { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -240,7 +240,7 @@ CHANGELOG
             overflow: hidden;
             padding: 0;
             display: flex;
-            min-height: 65px; /* Compact height */
+            min-height: 25px; /* Compact height */
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
@@ -285,9 +285,9 @@ CHANGELOG
             flex-grow: 1;
         }
         .post-card-category {
-            color: #0D1117;
-            padding: 0.1rem 0.6rem; 
-            font-size: 1rem; /* Larger */
+            color: #000000;
+            padding: 0.3rem 0.6rem; 
+            font-size: .8rem; /* Larger */
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -298,11 +298,10 @@ CHANGELOG
         }
         .post-card-title {
             font-size: 2.2rem; /* Larger */
-            font-weight: 500;
+            font-weight: 700;
             color: #fff;
             line-height: 1.1; /* Tighter */
-            margin-top: 4px;
-            margin-bottom: 6px;
+            margin-top: 2px;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
         .post-card-details {
@@ -327,7 +326,6 @@ CHANGELOG
             line-height: 1;
         }
         .event-card.live .post-card-status .status-time {
-            color: var(--glow-color);
             text-shadow: 0 0 8px var(--glow-color);
         }
         .post-card-footer {
@@ -335,7 +333,7 @@ CHANGELOG
             justify-content: space-between;
             align-items: center;
             margin-top: 0.2rem;
-            font-size: 0.8rem; /* Kept small */
+            font-size: 1rem; /* Kept small */
             color: #8b949e;
         }
         .post-card-datetime {
@@ -363,6 +361,7 @@ CHANGELOG
         }
         .event-card.upcoming {
             filter: grayscale(100%);
+            opacity: .45;
         }
         .event-card.upcoming::before {
             opacity: 0 !important;
