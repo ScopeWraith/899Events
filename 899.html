@@ -246,7 +246,7 @@ CHANGELOG
             flex-wrap: wrap;
             gap: 0.5rem;
             justify-content: center;
-            margin-bottom: 2rem;
+            margin-bottom: .25rem;
         }
         .filter-btn {
             padding: 0.5rem 1rem;
@@ -1820,7 +1820,7 @@ CHANGELOG
         function renderAnnouncements(announcements) {
             let createBtnHTML = '';
             if (currentUserData && getAvailablePostTypes('announcement').length > 0) {
-                createBtnHTML = `<button id="create-announcement-btn" class="ml-4 primary-btn !p-0 w-8 h-8 rounded-full flex items-center justify-center text-xl" title="Create New Announcement"><i class="fas fa-plus"></i></button>`;
+                createBtnHTML = `<button id="create-announcement-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Announcement"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
             }
 
             const contentHTML = announcements.length > 0
@@ -1919,10 +1919,10 @@ CHANGELOG
             
             let createBtnHTML = '';
             if (currentUserData && getAvailablePostTypes('event').length > 0) {
-                createBtnHTML = `<button id="create-event-btn" class="ml-4 primary-btn !p-0 w-8 h-8 rounded-full flex items-center justify-center text-xl" title="Create New Event"><i class="fas fa-plus"></i></button>`;
+                createBtnHTML = `<button id="create-event-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Event"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
             }
 
-            const headerHTML = announcementsContainer.innerHTML.trim() === '' ? '' : '<div class="py-4"></div>';
+            const headerHTML = announcementsContainer.innerHTML.trim() === '' ? '' : '<div></div>';
             
             const contentHTML = displayableEvents.length > 0
                 ? `<div class="grid grid-cols-1 gap-4">${displayableEvents.map(createCard).join('')}</div>`
