@@ -108,6 +108,8 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 46: Added skeleton loaders for announcements and events to prevent content "flickering" on initial load.
+- Prompt 46: Implemented responsive design adjustments for post cards to improve layout and readability on mobile devices. Font sizes, spacing, and flex-direction are now adapted for smaller screens.
 - Prompt 45: Substantially increased font sizes for event category, title, and countdown time for a cleaner, more professional typography.
 - Prompt 45: Adjusted card layout (min-height, padding, margins) to perfectly fit the new larger text sizes.
 - Prompt 44: Made event cards significantly more narrow by reducing min-height, padding, and thumbnail width.
@@ -117,14 +119,6 @@ CHANGELOG
 - Prompt 43: Refactored data listeners to be independent of auth state, with re-rendering triggered on auth change.
 - Prompt 43: Made event cards significantly more compact by reducing min-height, padding, and margins.
 - Prompt 43: Added CSS to desaturate the category tags for 'live' and 'ended' events, leaving only 'upcoming' events colorized.
-- Prompt 42: Increased font sizes for all text elements within event and announcement cards for improved legibility.
-- Prompt 42: Adjusted card min-height to accommodate the larger text.
-- Prompt 41: Made event cards more vertically compact by reducing min-height and internal padding.
-- Prompt 41: Removed the author's name from the footer of all event and announcement cards.
-- Prompt 41: Relocated the Edit and Delete buttons to the bottom-right corner of the cards, integrating them into the footer.
-- Prompt 40: Replaced `calculateNextDateTime` to always calculate a future date, fixing the root cause of new events appearing incorrectly as "live" or "ended".
-- Prompt 40: Overhauled `getEventStatus` to properly calculate countdowns for recurring events by finding the next active instance instead of showing a static label.
-- Prompt 40: Removed the special "recurring" case from `updateCountdowns` so that weekly events now show a dynamic "Starts in..." or "Ends in..." countdown.
 -->
 
 <!DOCTYPE html>
@@ -161,6 +155,7 @@ CHANGELOG
         @keyframes pulse-opacity { 50% { opacity: 0.6; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes success-pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
 
         html { font-size: 80%; }
         body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); color: #c9d1d9; overflow-x: hidden; }
@@ -240,7 +235,7 @@ CHANGELOG
             overflow: hidden;
             padding: 0;
             display: flex;
-            min-height: 25px; /* Compact height */
+            min-height: 120px;
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
@@ -250,7 +245,7 @@ CHANGELOG
         }
         .post-card-thumbnail-wrapper {
             flex-shrink: 0;
-            width: 100px; 
+            width: 80px; /* Smaller on mobile */
             height: 100%;
             clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
             position: relative;
@@ -271,23 +266,25 @@ CHANGELOG
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 0.5rem 1rem; 
+            padding: 0.5rem 0.75rem; 
             flex-grow: 1;
             overflow: hidden;
         }
         .post-card-header {
             display: flex;
+            flex-direction: column; /* Stack on mobile */
             justify-content: space-between;
             align-items: flex-start;
-            gap: 0.5rem;
+            gap: 0.25rem;
         }
         .post-card-title-section {
             flex-grow: 1;
+            width: 100%;
         }
         .post-card-category {
             color: #000000;
-            padding: 0.3rem 0.6rem; 
-            font-size: .8rem; /* Larger */
+            padding: 0.2rem 0.5rem; 
+            font-size: .65rem;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -297,10 +294,10 @@ CHANGELOG
             transition: filter 0.3s ease;
         }
         .post-card-title {
-            font-size: 2.2rem; /* Larger */
+            font-size: 1.2rem; /* Adjusted for mobile */
             font-weight: 700;
             color: #fff;
-            line-height: 1.1; /* Tighter */
+            line-height: 1.2;
             margin-top: 2px;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
@@ -308,20 +305,19 @@ CHANGELOG
             display: none;
         }
         .post-card-status {
-            text-align: right;
-            flex-shrink: 0;
-            min-width: 120px;
+            text-align: left; /* Align left on mobile */
+            width: 100%;
         }
         .post-card-status .status-label {
-            font-size: 1rem; /* Kept small */
+            font-size: 0.7rem;
             font-weight: 100;
             text-transform: uppercase;
             color: #a0a8b1;
             letter-spacing: 0.5px;
         }
         .post-card-status .status-time {
-            font-size: 2.2rem; /* Larger */
-            font-weight: 500; /* Bolder */
+            font-size: 1.5rem; /* Adjusted for mobile */
+            font-weight: 500;
             color: #fff;
             line-height: 1;
         }
@@ -332,8 +328,8 @@ CHANGELOG
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 0.2rem;
-            font-size: 1rem; /* Kept small */
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
             color: #8b949e;
         }
         .post-card-datetime {
@@ -399,6 +395,55 @@ CHANGELOG
             background-color: var(--color-highlight);
             border-color: var(--color-highlight);
         }
+        
+        /* Skeleton Loader Styles */
+        .skeleton-loader {
+            background: linear-gradient(to right, #2c3440 0%, #38414e 20%, #2c3440 40%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite linear;
+            border-radius: 4px;
+        }
+        .skeleton-card .skeleton-loader {
+            opacity: 0.7;
+        }
+
+        /* Responsive adjustments for larger screens */
+        @media (min-width: 640px) {
+            .post-card {
+                min-height: 130px;
+            }
+            .post-card-thumbnail-wrapper {
+                width: 120px;
+            }
+            .post-card-main {
+                padding: 0.75rem 1.25rem;
+            }
+            .post-card-header {
+                flex-direction: row; /* Side-by-side on larger screens */
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .post-card-category {
+                font-size: .8rem;
+            }
+            .post-card-title {
+                font-size: 2.2rem;
+            }
+            .post-card-status {
+                text-align: right;
+                min-width: 120px;
+            }
+             .post-card-status .status-label {
+                font-size: 1rem;
+            }
+            .post-card-status .status-time {
+                font-size: 2.2rem;
+            }
+            .post-card-footer {
+                 font-size: 1rem;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -830,11 +875,11 @@ CHANGELOG
                         <div class="themed-divider hidden"></div>
 
                         <div id="announcements-container" class="space-y-4">
-                            <!-- New announcement cards will be rendered here -->
+                            <!-- Skeletons or announcement cards will be rendered here -->
                         </div>
 
                         <div id="events-section-container" class="space-y-4">
-                            <!-- Event group headers and lists will be rendered here -->
+                            <!-- Skeletons or event group headers and lists will be rendered here -->
                         </div>
 
                     </main>
@@ -998,7 +1043,7 @@ CHANGELOG
         let countdownInterval = null;
         let editingPostId = null;
         
-        // --- UTILITY FUNCTIONS ---
+        // --- UTILITY & SKELETON FUNCTIONS ---
         function formatTimeAgo(date) {
             if (!date) return '';
             const now = new Date();
@@ -1037,6 +1082,53 @@ CHANGELOG
             if (minutes > 0) parts.push(`${minutes}m`);
             
             return parts.slice(0, 2).join(' ') || '<1m';
+        }
+        
+        function createSkeletonCard() {
+            return `
+                <div class="post-card skeleton-card">
+                    <div class="post-card-thumbnail-wrapper">
+                        <div class="post-card-thumbnail skeleton-loader"></div>
+                    </div>
+                    <div class="post-card-main">
+                        <div class="post-card-header">
+                            <div class="post-card-title-section">
+                                <div class="skeleton-loader h-5 w-24 mb-2"></div>
+                                <div class="skeleton-loader h-8 w-4/5"></div>
+                            </div>
+                            <div class="post-card-status">
+                                <div class="skeleton-loader h-4 w-16 mb-2"></div>
+                                <div class="skeleton-loader h-7 w-24"></div>
+                            </div>
+                        </div>
+                        <div class="post-card-footer">
+                            <div class="skeleton-loader h-5 w-32"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSkeletons() {
+            announcementsContainer.innerHTML = `
+                <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
+                    <i class="fas fa-bullhorn"></i>Announcements
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    ${createSkeletonCard()}
+                </div>
+            `;
+            eventsSectionContainer.innerHTML = `
+                <div class="py-4"></div>
+                <div class="section-header text-xl font-bold mb-4">
+                    <i class="fas fa-calendar-alt"></i>Events
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    ${createSkeletonCard()}
+                    ${createSkeletonCard()}
+                    ${createSkeletonCard()}
+                </div>
+            `;
         }
 
         function getEventStatus(event) {
@@ -2415,6 +2507,7 @@ CHANGELOG
 
         // --- GLOBAL EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
+            renderSkeletons(); // Show placeholders on initial load
             document.querySelectorAll('.custom-select-container').forEach(setupCustomSelect);
 
             const navItems = document.querySelectorAll('.nav-item');
