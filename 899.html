@@ -108,6 +108,7 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 56: Removed global "Create" button and added context-specific "+" buttons next to "Announcements" and "Events" headers to streamline post creation.
 - Prompt 55: Removed the unused "Filter Posts" mobile panel from the HTML and JavaScript.
 - Prompt 54: Replaced Edit/Delete buttons with a gear icon overlay on the card thumbnail, which opens an actions modal.
 - Prompt 53: Updated date format to include day of the week and time (e.g., "Thu, Jul 31 @ 1:30 PM").
@@ -673,7 +674,7 @@ CHANGELOG
                 <div class="modal-content-scroll">
                     <form id="create-post-form">
                         <div id="post-creation-flow">
-                             <!-- Slide 1: Main Type (Event vs Announcement) -->
+                             <!-- Slide 1: Main Type (Event vs Announcement) - SKIPPED IN NEW FLOW -->
                             <div class="form-slide" data-slide="1">
                                 <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
                                 <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
@@ -892,14 +893,6 @@ CHANGELOG
                 <!-- Events Page -->
                 <div id="page-events" class="page-content">
                     <main id="events-main-container" class="space-y-6">
-                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                            <h2 class="text-3xl font-bold text-white hidden">Events & Announcements</h2>
-                            <div class="flex items-center gap-2 ml-auto">
-                                <button id="create-post-btn" class="primary-btn px-4 py-2 rounded-lg hidden flex items-center gap-2">
-                                    <i class="fas fa-plus-circle"></i> Create
-                                </button>
-                            </div>
-                        </div>
                         
                         <div id="filter-container" class="filter-btn-group">
                             <!-- Filter buttons will be dynamically inserted here -->
@@ -1055,7 +1048,6 @@ CHANGELOG
         const mobileNavLinksContainer = document.getElementById('mobile-nav-links');
         const playerSearchInput = document.getElementById('player-search-input');
         const allianceFilterInput = document.getElementById('alliance-filter');
-        const createPostBtn = document.getElementById('create-post-btn');
         const announcementsContainer = document.getElementById('announcements-container');
         const eventsSectionContainer = document.getElementById('events-section-container');
         const userAvatarButton = document.getElementById('user-avatar-button');
@@ -1142,7 +1134,8 @@ CHANGELOG
         function renderSkeletons() {
             announcementsContainer.innerHTML = `
                 <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
-                    <i class="fas fa-bullhorn"></i>Announcements
+                    <i class="fas fa-bullhorn"></i>
+                    <span class="flex-grow">Announcements</span>
                 </div>
                 <div class="grid grid-cols-1 gap-4">
                     ${createSkeletonCard()}
@@ -1150,7 +1143,8 @@ CHANGELOG
             `;
             eventsSectionContainer.innerHTML = `
                 <div class="section-header text-xl font-bold mb-4">
-                    <i class="fas fa-calendar-alt"></i>Events
+                     <i class="fas fa-calendar-alt"></i>
+                     <span class="flex-grow">Events</span>
                 </div>
                 <div class="grid grid-cols-1 gap-4">
                     ${createSkeletonCard()}
@@ -1248,12 +1242,12 @@ CHANGELOG
         function showEditProfileModal() { showModal(editProfileModalContainer); populateEditForm(); }
         function showPlayerSettingsModal(player) { activePlayerSettingsUID = player.uid; showModal(playerSettingsModalContainer); populatePlayerSettingsForm(player); }
         
-        function showCreatePostModal() { 
+        function showCreatePostModal(mainType) { 
             editingPostId = null;
             document.getElementById('create-post-form').reset();
             document.getElementById('post-nav-container').style.display = 'flex';
             showModal(createPostModalContainer); 
-            initializePostStepper();
+            initializePostStepper(mainType);
             document.getElementById('post-content-header').textContent = 'Create New Post';
             document.getElementById('post-submit-btn').innerHTML = '<i class="fas fa-check-circle mr-2"></i>Create Post';
         }
@@ -1299,8 +1293,6 @@ CHANGELOG
         document.getElementById('close-create-post-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('confirmation-cancel-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-post-actions-modal-btn').addEventListener('click', hideAllModals);
-
-        createPostBtn.addEventListener('click', showCreatePostModal);
 
         modalBackdrop.addEventListener('click', (e) => {
             if (e.target === modalBackdrop) {
@@ -1357,15 +1349,6 @@ CHANGELOG
             usernameDisplay.textContent = currentUserData.username;
             updateAvatarDisplay(currentUserData);
             updatePlayerCard(currentUserData);
-
-            const canCreateAnyPost = Object.values(POST_TYPES).some(type => {
-                if (type.isAdminOnly) return currentUserData.isAdmin;
-                if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
-                if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
-                return false;
-            });
-            
-            createPostBtn.classList.toggle('hidden', !canCreateAnyPost);
             loginBtn.classList.add('hidden');
             userProfileContainer.classList.remove('hidden');
         }
@@ -1374,7 +1357,6 @@ CHANGELOG
             loginBtn.classList.remove('hidden');
             userProfileContainer.classList.add('hidden');
             userProfileContainer.classList.remove('open');
-            createPostBtn.classList.add('hidden');
         }
 
         document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -1669,14 +1651,17 @@ CHANGELOG
         const postSubmitBtn = document.getElementById('post-submit-btn');
         const createPostError = document.getElementById('create-post-error');
 
-        function initializePostStepper() {
+        function initializePostStepper(mainType) {
             document.getElementById('create-post-form').reset();
             postCreationData = {};
             resizedThumbnailBlob = null;
             document.getElementById('post-thumbnail-preview').src = 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
-            currentPostStep = 1;
-            populateMainTypeSelection();
+            
+            postCreationData.mainType = mainType;
+            currentPostStep = 2; // Start at sub-type selection
+            populateSubTypeSelection();
             showPostStep(currentPostStep);
+            
             postBackBtn.classList.remove('hidden');
             postNextBtn.classList.remove('hidden');
         }
@@ -1684,52 +1669,12 @@ CHANGELOG
         function getAvailablePostTypes(mainType) {
             return Object.entries(POST_TYPES).filter(([key, type]) => {
                 if (type.mainType !== mainType) return false;
+                if (!currentUserData) return false;
                 if (type.isAdminOnly) return currentUserData.isAdmin;
                 if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
                 if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
                 return false;
             });
-        }
-
-        function populateMainTypeSelection() {
-            const container = document.getElementById('post-main-type-selection-container');
-            container.innerHTML = '';
-
-            const canCreateAnnouncement = getAvailablePostTypes('announcement').length > 0;
-            const canCreateEvent = getAvailablePostTypes('event').length > 0;
-
-            if (canCreateAnnouncement && canCreateEvent) {
-                container.innerHTML = `
-                    <button type="button" data-main-type="announcement" class="main-type-btn type-selection-card w-full p-6 rounded-lg text-center">
-                        <i class="fas fa-bullhorn fa-3x mb-3 text-gray-400"></i>
-                        <h3 class="font-bold text-lg text-white">Announcement</h3>
-                        <p class="text-sm text-gray-500">Share news with the server or your alliance.</p>
-                    </button>
-                    <button type="button" data-main-type="event" class="main-type-btn type-selection-card w-full p-6 rounded-lg text-center">
-                        <i class="fas fa-calendar-alt fa-3x mb-3 text-gray-400"></i>
-                        <h3 class="font-bold text-lg text-white">Event</h3>
-                        <p class="text-sm text-gray-500">Schedule a one-time or recurring event.</p>
-                    </button>
-                `;
-                container.querySelectorAll('.main-type-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        postCreationData.mainType = btn.dataset.mainType;
-                        currentPostStep++;
-                        populateSubTypeSelection();
-                        showPostStep(currentPostStep);
-                    });
-                });
-            } else if (canCreateAnnouncement) {
-                postCreationData.mainType = 'announcement';
-                populateSubTypeSelection();
-                showPostStep(2);
-            } else if (canCreateEvent) {
-                postCreationData.mainType = 'event';
-                populateSubTypeSelection();
-                showPostStep(2);
-            } else {
-                container.innerHTML = `<p class="text-center text-gray-400">You do not have permission to create any posts.</p>`;
-            }
         }
         
         function populateSubTypeSelection() {
@@ -1811,6 +1756,10 @@ CHANGELOG
         });
         
         postBackBtn.addEventListener('click', () => {
+            if (currentPostStep === 2) { // If on the first visible step, "Back" closes the modal
+                hideAllModals();
+                return;
+            }
             currentPostStep--;
             showPostStep(currentPostStep);
         });
@@ -1834,9 +1783,7 @@ CHANGELOG
         // --- EVENTS & ANNOUNCEMENTS LOGIC ---
         function renderPosts(postsToRender) {
             if (countdownInterval) clearInterval(countdownInterval);
-            announcementsContainer.innerHTML = '';
-            eventsSectionContainer.innerHTML = '';
-
+            
             let visiblePosts = postsToRender.filter(post => {
                 if (!currentUserData) return post.visibility === 'public';
                 if (post.visibility === 'public') return true;
@@ -1860,7 +1807,6 @@ CHANGELOG
             renderAnnouncements(announcements);
             renderEvents(events);
             
-            // Adjust spacing if announcements are empty
             if (announcements.length === 0 && events.length > 0) {
                 eventsSectionContainer.style.marginTop = '0';
             } else if (announcements.length > 0) {
@@ -1872,18 +1818,23 @@ CHANGELOG
         }
 
         function renderAnnouncements(announcements) {
-             if (announcements.length > 0) {
-                announcementsContainer.innerHTML = `
-                    <h3 class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
-                        <i class="fas fa-bullhorn"></i>Announcements
-                    </h3>
-                    <div class="grid grid-cols-1 gap-4">
-                        ${announcements.map(createCard).join('')}
-                    </div>
-                `;
-             } else {
-                announcementsContainer.innerHTML = ''; // Clear if no announcements
-             }
+            let createBtnHTML = '';
+            if (currentUserData && getAvailablePostTypes('announcement').length > 0) {
+                createBtnHTML = `<button id="create-announcement-btn" class="ml-4 primary-btn !p-0 w-8 h-8 rounded-full flex items-center justify-center text-xl" title="Create New Announcement"><i class="fas fa-plus"></i></button>`;
+            }
+
+            const contentHTML = announcements.length > 0
+                ? `<div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>`
+                : `<p class="text-center text-gray-500 py-4">No announcements to display.</p>`;
+
+            announcementsContainer.innerHTML = `
+                <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
+                    <i class="fas fa-bullhorn"></i>
+                    <span class="flex-grow">Announcements</span>
+                    ${createBtnHTML}
+                </div>
+                ${contentHTML}
+            `;
         }
         
         function createCard(post) {
@@ -1940,10 +1891,6 @@ CHANGELOG
         }
 
         function renderEvents(events) {
-            eventsSectionContainer.innerHTML = '';
-            
-            if (events.length === 0) return;
-
             const now = new Date();
             const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -1969,19 +1916,27 @@ CHANGELOG
                 }
                 return 0;
             });
-
-            if (displayableEvents.length > 0) {
-                const headerHTML = announcementsContainer.innerHTML.trim() === '' ? '' : '<div class="py-4"></div>';
-                eventsSectionContainer.innerHTML = `
-                    ${headerHTML}
-                    <h3 class="section-header text-xl font-bold mb-4">
-                        <i class="fas fa-calendar-alt"></i>Events
-                    </h3>
-                    <div class="grid grid-cols-1 gap-4">
-                        ${displayableEvents.map(createCard).join('')}
-                    </div>
-                `;
+            
+            let createBtnHTML = '';
+            if (currentUserData && getAvailablePostTypes('event').length > 0) {
+                createBtnHTML = `<button id="create-event-btn" class="ml-4 primary-btn !p-0 w-8 h-8 rounded-full flex items-center justify-center text-xl" title="Create New Event"><i class="fas fa-plus"></i></button>`;
             }
+
+            const headerHTML = announcementsContainer.innerHTML.trim() === '' ? '' : '<div class="py-4"></div>';
+            
+            const contentHTML = displayableEvents.length > 0
+                ? `<div class="grid grid-cols-1 gap-4">${displayableEvents.map(createCard).join('')}</div>`
+                : `<p class="text-center text-gray-500 py-4">No upcoming events in the next 7 days.</p>`;
+
+            eventsSectionContainer.innerHTML = `
+                ${headerHTML}
+                <div class="section-header text-xl font-bold mb-4">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="flex-grow">Events</span>
+                    ${createBtnHTML}
+                </div>
+                ${contentHTML}
+            `;
         }
 
         function calculateNextDateTime(dayOfWeek, hour) {
@@ -2591,6 +2546,15 @@ CHANGELOG
                 if (actionsBtn) {
                     const postId = actionsBtn.dataset.postId;
                     showPostActionsModal(postId);
+                }
+                const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
+                if (createAnnouncementBtn) {
+                    showCreatePostModal('announcement');
+                }
+
+                const createEventBtn = e.target.closest('#create-event-btn');
+                if (createEventBtn) {
+                    showCreatePostModal('event');
                 }
             });
 
