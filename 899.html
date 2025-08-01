@@ -3,7 +3,6 @@
 FIREBASE SECURITY RULES (FIRESTORE)
 ===============================================
 NOTE: The 'if' statements in these rules are the correct and required syntax for Firestore Security Rules (version 2) on 'allow' lines.
-The previous version contained invalid statements inside functions, which has now been fixed.
 
 rules_version = '2';
 
@@ -20,19 +19,28 @@ service cloud.firestore {
     }
 
     function getUserData(userId) {
+      // Caching user data reads can optimize rule execution.
       return get(/databases/$(database)/documents/users/$(userId)).data;
     }
 
-    function isAdmin(userId) {
-      return isSignedIn() && getUserData(userId).isAdmin == true;
+    function isAdmin() {
+      return isSignedIn() && getUserData(request.auth.uid).isAdmin == true;
     }
     
-    function isVerified(userId) {
-      return isSignedIn() && getUserData(userId).isVerified == true;
+    function isVerified() {
+      return isSignedIn() && getUserData(request.auth.uid).isVerified == true;
+    }
+    
+    function isLeader() {
+        let userRank = getUserData(request.auth.uid).allianceRank;
+        return isAdmin() || (isVerified() && (userRank == 'R5' || userRank == 'R4'));
     }
 
-    // --- COLLECTION RULES ---
+    function isMemberOf(allianceId) {
+        return isSignedIn() && getUserData(request.auth.uid).alliance == allianceId;
+    }
 
+    // --- USER DATA & FRIENDS ---
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isOwner(userId);
@@ -40,37 +48,74 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
     }
     
+    match /users/{userId}/friends/{friendId} {
+        allow read: if isOwner(userId);
+        allow write: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
+    }
+
     function canManageUser(targetUserId) {
+      let managerData = getUserData(request.auth.uid);
+      let targetData = getUserData(targetUserId);
       return isSignedIn() && (
-        isAdmin(request.auth.uid) ||
+        managerData.isAdmin == true ||
         (
-          getUserData(request.auth.uid).alliance == getUserData(targetUserId).alliance &&
+          managerData.alliance == targetData.alliance &&
           (
-            (getUserData(request.auth.uid).allianceRank == 'R5' && (getUserData(targetUserId).allianceRank == 'R4' || getUserData(targetUserId).allianceRank == 'R3' || getUserData(targetUserId).allianceRank == 'R2' || getUserData(targetUserId).allianceRank == 'R1')) ||
-            (getUserData(request.auth.uid).allianceRank == 'R4' && (getUserData(targetUserId).allianceRank == 'R3' || getUserData(targetUserId).allianceRank == 'R2' || getUserData(targetUserId).allianceRank == 'R1'))
+            (managerData.allianceRank == 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetData.allianceRank)) ||
+            (managerData.allianceRank == 'R4' && ['R3', 'R2', 'R1'].includes(targetData.allianceRank))
           )
         )
       );
     }
 
+    // --- POSTS (ANNOUNCEMENTS & EVENTS) ---
     match /posts/{postId} {
       allow read: if true;
       allow create: if canCreatePost(request.resource.data);
-      allow update, delete: if isOwner(resource.data.authorUid) || isAdmin(request.auth.uid);
+      allow update, delete: if isOwner(resource.data.authorUid) || isAdmin();
     }
     
     function canCreatePost(postData) {
+      let userRank = getUserData(request.auth.uid).allianceRank;
       return isOwner(postData.authorUid) && (
-        isAdmin(request.auth.uid) ||
+        isAdmin() ||
         (
           !(postData.subType == 'server' || postData.subType == 'seasonal' || postData.subType == 'hot_deals' || postData.subType == 'wanted_boss' || postData.subType == 'campaign' || postData.subType == 'vs') &&
-          !(!isVerified(request.auth.uid) && postData.subType == 'alliance' && postData.mainType == 'event') &&
+          !(!isVerified() && postData.subType == 'alliance' && postData.mainType == 'event') &&
           (
-            (postData.subType == 'alliance' && (getUserData(request.auth.uid).allianceRank == 'R5' || getUserData(request.auth.uid).allianceRank == 'R4')) ||
-            (postData.subType == 'leadership' && getUserData(request.auth.uid).allianceRank == 'R5')
+            (postData.subType == 'alliance' && (userRank == 'R5' || userRank == 'R4')) ||
+            (postData.subType == 'leadership' && userRank == 'R5')
           )
         )
       );
+    }
+    
+    // --- CHAT CHANNELS ---
+    match /world_chat/{messageId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid;
+        allow update, delete: if isAdmin();
+    }
+    
+    match /leadership_chat/{messageId} {
+        allow read, create: if isLeader();
+        allow update, delete: if isAdmin();
+    }
+    
+    match /alliance_chats/{allianceId}/messages/{messageId} {
+        allow read, create: if isMemberOf(allianceId);
+        allow update, delete: if (isLeader() && isMemberOf(allianceId));
+    }
+    
+    // --- ALLIANCE-SPECIFIC EVENTS & ANNOUNCEMENTS ---
+    match /alliance_chats/{allianceId}/announcements/{announcementId} {
+        allow read: if isMemberOf(allianceId);
+        allow create, update, delete: if isLeader() && isMemberOf(allianceId);
+    }
+    
+    match /alliance_chats/{allianceId}/events/{eventId} {
+        allow read: if isMemberOf(allianceId);
+        allow create, update, delete: if isLeader() && isMemberOf(allianceId);
     }
   }
 }
@@ -108,29 +153,17 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 58:
+    - Implemented full real-time chat functionality for World, Alliance, and Leadership channels.
+    - Added ability for Admins to delete any chat message and for R5s to delete messages in their own alliance chat.
+    - Simplified main navigation by removing "Alliances" and "Tools" links for a cleaner UI.
+- Prompt 57: Added foundation for a social network:
+    - New "Social" page with a tabbed interface for World Chat, Alliance Chat, Leadership Chat, and Friends.
+    - Designed UI for chat windows, message input, and friends list management.
+    - Updated Firestore security rules to support friends lists, public/private chat channels, and alliance-specific content.
 - Prompt 56: Removed global "Create" button and added context-specific "+" buttons next to "Announcements" and "Events" headers to streamline post creation.
 - Prompt 55: Removed the unused "Filter Posts" mobile panel from the HTML and JavaScript.
 - Prompt 54: Replaced Edit/Delete buttons with a gear icon overlay on the card thumbnail, which opens an actions modal.
-- Prompt 53: Updated date format to include day of the week and time (e.g., "Thu, Jul 31 @ 1:30 PM").
-- Prompt 52: Removed date from under the card description.
-- Prompt 52: Increased font size for card description.
-- Prompt 51: Made event cards more vertically compact by adjusting internal spacing and font sizes.
-- Prompt 51: Added the event's start date in small text below the main time status display.
-- Prompt 50: Centered the filter button group.
-- Prompt 50: Replaced hamburger icon with a styled "MENU" button.
-- Prompt 50: Enhanced the visual design of the slide-out mobile navigation menu.
-- Prompt 50: Adjusted main container spacing to ensure filters are positioned correctly when announcements are hidden.
-- Prompt 49: Added dynamic, stylized filter button group for events and announcements.
-- Prompt 49: Implemented filtering logic based on user permissions and button clicks.
-- Prompt 49: Adjusted container margins to ensure proper spacing when announcements are not present.
-- Prompt 48: Moved Edit/Delete buttons into the status block, above the time display.
-- Prompt 48: Increased font size of the event/announcement description text.
-- Prompt 47: Preserved two-column card layout on mobile.
-- Prompt 47: Made event description visible under the title.
-- Prompt 47: Moved Edit/Delete actions to the header and styled them as text links.
-- Prompt 47: Vertically centered the time status block on the right side of the card.
-- Prompt 46: Added skeleton loaders for announcements and events to prevent content "flickering" on initial load.
-- Prompt 46: Implemented responsive design adjustments for post cards to improve layout and readability on mobile devices.
 -->
 
 <!DOCTYPE html>
@@ -461,6 +494,96 @@ CHANGELOG
             border-radius: 4px;
         }
         .skeleton-card .skeleton-loader { opacity: 0.7; }
+
+        /* Social Page Styles */
+        .social-tabs {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .social-tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: #8b949e;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .social-tab-btn:hover {
+            color: #c9d1d9;
+        }
+        .social-tab-btn.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+        .social-content-pane {
+            display: none;
+            animation: fadeIn 0.4s;
+        }
+        .social-content-pane.active {
+            display: block;
+        }
+        .chat-window {
+            height: 60vh;
+            background-color: rgba(13, 17, 23, 0.5);
+            border-radius: 0.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .chat-message {
+            padding: 0.5rem 1rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            position: relative;
+        }
+        .chat-message:hover .delete-message-btn {
+            opacity: 1;
+        }
+        .chat-message.self {
+            flex-direction: row-reverse;
+        }
+        .chat-message-bubble {
+            max-width: 70%;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.75rem;
+            background-color: #21262d;
+            word-wrap: break-word;
+        }
+        .chat-message.self .chat-message-bubble {
+            background-color: var(--color-primary);
+            color: #0D1117;
+        }
+        .chat-message-author {
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+        .chat-message.self .chat-message-author {
+            color: #0D1117;
+        }
+        .delete-message-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(220, 20, 60, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-message:not(.self) .delete-message-btn {
+            right: -25px;
+        }
+        .chat-message.self .delete-message-btn {
+            left: -25px;
+        }
 
     </style>
 </head>
@@ -825,17 +948,15 @@ CHANGELOG
 
             <header class="glass-pane header-main flex justify-between items-center mb-6">
                 <div class="flex-shrink-0">
-                    <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white" style="text-shadow: 0 0 10px var(--color-primary-glow);">899<span class="font-bold" style="color: var(--color-primary);">EVENTS</span></h1>
-                    <p class="text-xs text-gray-400">Official Event Hub</p>
+                    <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white" style="text-shadow: 0 0 10px var(--color-primary-glow);">899<span class="font-bold" style="color: var(--color-primary);">HUB</span></h1>
+                    <p class="text-xs text-gray-400">Official Community Hub</p>
                 </div>
                 
                 <nav id="main-nav" class="hidden md:flex flex-grow justify-center items-center">
-                    <div class="nav-item"><div class="nav-link"><i class="fas fa-shield-alt"></i><span>Alliances</span></div><div class="dropdown-menu dropdown-pane glass-pane"><a class="dropdown-link" data-target="page-top-alliances">Top Alliances</a><a class="dropdown-link" data-target="page-alliance-list">Alliance List</a><a class="dropdown-link" data-target="page-recruitment">Recruitment</a></div></div>
-                    <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
                     <div class="nav-item"><div class="nav-link active" data-main-target="page-events"><i class="fas fa-calendar-alt"></i><span>Events</span></div></div>
+                    <div class="nav-item"><div class="nav-link" data-main-target="page-social"><i class="fas fa-comments"></i><span>Social</span></div></div>
+                    <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
                     <div class="nav-item"><div class="nav-link"><i class="fas fa-trophy"></i><span>Season</span></div><div class="dropdown-menu dropdown-pane glass-pane"><a class="dropdown-link" data-target="page-season-overview">Season Overview</a><a class="dropdown-link" data-target="page-season-rewards">Rewards</a><a class="dropdown-link" data-target="page-season-history">History</a></div></div>
-                    <div class="nav-item"><div class="nav-link"><i class="fas fa-tools"></i><span>Tools</span></div><div class="dropdown-menu dropdown-pane glass-pane"><a class="dropdown-link" data-target="page-calculators">Calculators</a><a class="dropdown-link" data-target="page-guides">Guides</a></div></div>
-                    <div class="nav-item"><div class="nav-link"><i class="fas fa-globe"></i><span>Language</span></div><div class="dropdown-menu dropdown-pane glass-pane"><a href="#" class="dropdown-link">English</a><a href="#" class="dropdown-link">Español</a><a href="#" class="dropdown-link">Deutsch</a></div></div>
                 </nav>
 
                 <div id="auth-container" class="hidden md:flex flex-shrink-0 relative">
@@ -860,6 +981,101 @@ CHANGELOG
 
             <!-- Page Content Container -->
             <div id="page-container">
+                <!-- Social Page -->
+                <div id="page-social" class="page-content" style="display: none;">
+                    <div class="glass-pane section-container">
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <!-- Main Content: Tabs and Panes -->
+                            <div class="flex-grow">
+                                <div class="social-tabs flex items-center mb-4">
+                                    <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World Chat</button>
+                                    <button class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
+                                    <button class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
+                                    <button class="social-tab-btn" data-tab="friends"><i class="fas fa-user-friends mr-2"></i>Friends</button>
+                                </div>
+
+                                <!-- World Chat Pane -->
+                                <div id="pane-world-chat" class="social-content-pane active">
+                                    <div class="flex flex-col h-full">
+                                        <div id="world-chat-window" class="chat-window p-4 flex-grow">
+                                            <!-- Messages will be injected here -->
+                                            <p class="text-center text-gray-500 m-auto">Welcome to World Chat!</p>
+                                        </div>
+                                        <form id="world-chat-form" class="mt-4 flex gap-2">
+                                            <input type="text" id="world-chat-input" class="form-input flex-grow" placeholder="Type a message in world chat..." required>
+                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Alliance Chat Pane -->
+                                <div id="pane-alliance-chat" class="social-content-pane">
+                                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        <div class="lg:col-span-2 flex flex-col h-full">
+                                            <div id="alliance-chat-window" class="chat-window p-4 flex-grow">
+                                               <p class="text-center text-gray-500 m-auto">Your private alliance chat.</p>
+                                            </div>
+                                            <form id="alliance-chat-form" class="mt-4 flex gap-2">
+                                                <input type="text" id="alliance-chat-input" class="form-input flex-grow" placeholder="Message your alliance..." required>
+                                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                            </form>
+                                        </div>
+                                        <div class="lg:col-span-1 space-y-4">
+                                            <div>
+                                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-bullhorn"></i>Alliance Announcements</h3>
+                                                <div id="alliance-announcements-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center">No announcements.</p>
+                                                </div>
+                                            </div>
+                                             <div>
+                                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-calendar-check"></i>Alliance Events</h3>
+                                                <div id="alliance-events-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center">No events.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Leadership Chat Pane -->
+                                <div id="pane-leadership-chat" class="social-content-pane">
+                                    <div class="flex flex-col h-full">
+                                        <div id="leadership-chat-window" class="chat-window p-4 flex-grow">
+                                            <p class="text-center text-gray-500 m-auto">Private chat for R4/R5 Leadership.</p>
+                                        </div>
+                                        <form id="leadership-chat-form" class="mt-4 flex gap-2">
+                                            <input type="text" id="leadership-chat-input" class="form-input flex-grow" placeholder="Message leadership..." required>
+                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <!-- Friends Pane -->
+                                <div id="pane-friends" class="social-content-pane">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-check"></i>Your Friends</h3>
+                                            <div id="friends-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-96 overflow-y-auto">
+                                                <p class="text-gray-400 text-center p-4">You haven't added any friends yet.</p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-plus"></i>Friend Requests</h3>
+                                            <div id="friend-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
+                                                <p class="text-gray-400 text-center p-4">No pending requests.</p>
+                                            </div>
+                                            <h3 class="section-header text-lg font-bold mb-2 mt-4"><i class="fas fa-paper-plane"></i>Sent Requests</h3>
+                                            <div id="sent-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
+                                                <p class="text-gray-400 text-center p-4">No sent requests.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Players Page -->
                 <div id="page-players" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
@@ -953,7 +1169,7 @@ CHANGELOG
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const firebaseConfig = {
@@ -1066,6 +1282,11 @@ CHANGELOG
         let editingPostId = null;
         let actionPostId = null; // For the post actions modal
         
+        // --- CHAT LISTENERS ---
+        let worldChatListener = null;
+        let allianceChatListener = null;
+        let leadershipChatListener = null;
+
         // --- UTILITY & SKELETON FUNCTIONS ---
         function formatTimeAgo(date) {
             if (!date) return '';
@@ -1324,6 +1545,7 @@ CHANGELOG
         // Handle auth state changes to update UI accordingly
         onAuthStateChanged(auth, (user) => {
             if (userDocListener) userDocListener(); // Detach old listener
+            detachChatListeners(); // Always detach old chat listeners on auth change
 
             if (user) {
                 userDocListener = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
@@ -1332,6 +1554,7 @@ CHANGELOG
                         updateUIForLoggedInUser();
                         renderPosts(allPosts);
                         applyPlayerFilters();
+                        setupChatListeners(); // Setup new chat listeners with user data
                     }
                 });
                 hideAllModals();
@@ -2491,6 +2714,172 @@ CHANGELOG
             });
              if (!activeSet) { const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]'); if (eventsLink) eventsLink.classList.add('active'); }
         }
+
+        // --- SOCIAL PAGE & CHAT LOGIC ---
+        const socialTabBtns = document.querySelectorAll('.social-tab-btn');
+        const socialContentPanes = document.querySelectorAll('.social-content-pane');
+
+        socialTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                socialTabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const targetPaneId = `pane-${btn.dataset.tab}`;
+                socialContentPanes.forEach(pane => {
+                    pane.classList.toggle('active', pane.id === targetPaneId);
+                });
+            });
+        });
+        
+        function isUserLeader(user) {
+            if (!user) return false;
+            return user.isAdmin || (user.isVerified && (user.allianceRank === 'R5' || user.allianceRank === 'R4'));
+        }
+
+        function setupChatListeners() {
+            if (!currentUserData) return;
+
+            // World Chat Listener
+            const worldChatQuery = query(collection(db, "world_chat"), orderBy("timestamp", "desc"), limit(50));
+            worldChatListener = onSnapshot(worldChatQuery, (snapshot) => {
+                const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderMessages(messages, document.getElementById('world-chat-window'), 'world_chat');
+            });
+
+            // Alliance Chat Listener
+            if (currentUserData.alliance) {
+                const allianceChatQuery = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
+                allianceChatListener = onSnapshot(allianceChatQuery, (snapshot) => {
+                    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderMessages(messages, document.getElementById('alliance-chat-window'), 'alliance_chat');
+                });
+            }
+
+            // Leadership Chat Listener
+            if (isUserLeader(currentUserData)) {
+                const leadershipChatQuery = query(collection(db, "leadership_chat"), orderBy("timestamp", "desc"), limit(50));
+                leadershipChatListener = onSnapshot(leadershipChatQuery, (snapshot) => {
+                    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderMessages(messages, document.getElementById('leadership-chat-window'), 'leadership_chat');
+                });
+            }
+        }
+
+        function detachChatListeners() {
+            if (worldChatListener) worldChatListener();
+            if (allianceChatListener) allianceChatListener();
+            if (leadershipChatListener) leadershipChatListener();
+            worldChatListener = null;
+            allianceChatListener = null;
+            leadershipChatListener = null;
+        }
+
+        function renderMessages(messages, container, chatType) {
+            container.innerHTML = ''; // Clear previous messages
+            if (messages.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
+                return;
+            }
+            messages.forEach(msg => {
+                const isSelf = msg.authorUid === currentUserData.uid;
+                const canDelete = currentUserData.isAdmin || (chatType === 'alliance_chat' && currentUserData.allianceRank === 'R5');
+                
+                const avatarUrl = msg.authorAvatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${msg.authorUsername.charAt(0).toUpperCase()}`;
+
+                const messageEl = document.createElement('div');
+                messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
+                messageEl.innerHTML = `
+                    <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0" alt="${msg.authorUsername}">
+                    <div class="chat-message-bubble">
+                        <p class="chat-message-author">${msg.authorUsername}</p>
+                        <p class="text-sm">${msg.text}</p>
+                    </div>
+                    ${canDelete ? `<button class="delete-message-btn" data-id="${msg.id}" data-type="${chatType}"><i class="fas fa-times"></i></button>` : ''}
+                `;
+                container.appendChild(messageEl);
+            });
+        }
+
+        async function handleSendMessage(e, chatType) {
+            e.preventDefault();
+            if (!currentUserData) return;
+
+            let input, collectionPath;
+            switch(chatType) {
+                case 'world_chat':
+                    input = document.getElementById('world-chat-input');
+                    collectionPath = 'world_chat';
+                    break;
+                case 'alliance_chat':
+                    input = document.getElementById('alliance-chat-input');
+                    if (!currentUserData.alliance) return;
+                    collectionPath = `alliance_chats/${currentUserData.alliance}/messages`;
+                    break;
+                case 'leadership_chat':
+                    input = document.getElementById('leadership-chat-input');
+                    collectionPath = 'leadership_chat';
+                    break;
+            }
+
+            const text = input.value.trim();
+            if (text === '') return;
+            input.value = '';
+
+            const messageData = {
+                text: text,
+                authorUid: currentUserData.uid,
+                authorUsername: currentUserData.username,
+                authorAvatarUrl: currentUserData.avatarUrl || null,
+                alliance: currentUserData.alliance,
+                timestamp: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, collectionPath), messageData);
+            } catch (error) {
+                console.error(`Error sending message to ${chatType}:`, error);
+                input.value = text; // Restore text on failure
+            }
+        }
+
+        document.getElementById('world-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
+        document.getElementById('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
+        document.getElementById('leadership-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
+        
+        async function handleDeleteMessage(e) {
+            const deleteBtn = e.target.closest('.delete-message-btn');
+            if (!deleteBtn) return;
+
+            const messageId = deleteBtn.dataset.id;
+            const chatType = deleteBtn.dataset.type;
+            
+            let docPath;
+             switch(chatType) {
+                case 'world_chat':
+                    docPath = `world_chat/${messageId}`;
+                    break;
+                case 'alliance_chat':
+                    if (!currentUserData.alliance) return;
+                    docPath = `alliance_chats/${currentUserData.alliance}/messages/${messageId}`;
+                    break;
+                case 'leadership_chat':
+                    docPath = `leadership_chat/${messageId}`;
+                    break;
+                default:
+                    return;
+            }
+
+            showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', async () => {
+                try {
+                    await deleteDoc(doc(db, docPath));
+                } catch (error) {
+                    console.error("Error deleting message:", error);
+                }
+            });
+        }
+
+        document.getElementById('page-social').addEventListener('click', handleDeleteMessage);
+
 
         // --- GLOBAL EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
