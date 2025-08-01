@@ -312,7 +312,7 @@ CHANGELOG
             overflow: hidden;
             padding: 0;
             display: flex;
-            min-height: 80px; /* Made more compact */
+            min-height: 70px; /* Made more compact */
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -322,8 +322,8 @@ CHANGELOG
         }
         .post-card-thumbnail-wrapper {
             flex-shrink: 0;
-            width: 110px; /* Slightly smaller */
-            clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+            width: 140px; /* Slightly smaller */
+            clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
             position: relative;
             border-radius: 8px 0 0 8px;
             overflow: hidden;
@@ -360,28 +360,26 @@ CHANGELOG
         }
         .post-card-category {
             color: #ffffff;
-            padding: 0.2rem 0.5rem; 
-            font-size: .6rem;
+            padding: 0.1rem 0.3rem; 
+            font-size: .7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-radius: 4px;
+            border-radius: 5px;
             align-self: flex-start;
         }
         .post-card-title {
-            font-size: 1.3rem; /* Adjusted size */
+            font-size: 1.4rem; /* Adjusted size */
             font-weight: 700;
             color: #fff;
-            line-height: 1.2;
-            margin-top: 0.1rem;
+            line-height: 1.35;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
         .post-card-details {
             display: block;
             font-size: 0.95rem; /* Increased size */
             color: #a0a8b1;
-            margin-top: 0.25rem;
-            line-height: 1.4;
+            line-height: 1.0;
             max-height: 2.8em; /* 2 lines */
             overflow: hidden;
             text-overflow: ellipsis;
@@ -395,22 +393,23 @@ CHANGELOG
             justify-content: center;
         }
         .post-card-status .status-label {
-            font-size: 0.75rem;
+            font-size: 1rem;
             font-weight: 100;
             text-transform: uppercase;
             color: #a0a8b1;
             letter-spacing: 0.5px;
+            margin-bottom: .05rem;
         }
         .post-card-status .status-time {
-            font-size: 1.5rem;
+            font-size: 1.7rem;
             font-weight: 500;
             color: #fff;
-            line-height: 1;
+            line-height: .7;
+            margin-bottom: .4rem;
         }
         .status-date {
-            font-size: 0.7rem;
+            font-size: 0.85rem;
             color: #8b949e;
-            margin-top: 0.1rem;
             font-weight: 600;
         }
         .event-card.live .post-card-status .status-time {
