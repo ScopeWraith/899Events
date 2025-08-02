@@ -37,10 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isInitialLoad = true;
 
     // --- 3. SESSION MANAGEMENT & AUTH LISTENER ---
-    // This now uses the corrected wrapper from auth.js
     auth.onAuthStateChanged(
         (userProfile) => {
-            // This callback now receives the full Firestore profile
             currentUserData = userProfile;
             ui.updateUIForLoggedInUser(userProfile);
             ui.updateSocialTabPermissions(userProfile);
@@ -111,22 +109,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (navLink) ui.showPage(navLink.dataset.mainTarget);
     });
     
+    /**
+     * --- FIX: Simplified Login Button Listener ---
+     * This now just calls the self-contained showAuthModal function from the UI module.
+     * It passes the actual login function from the auth module as a callback.
+     * This is much cleaner and prevents the crash.
+     */
     ui.DOMElements.loginBtn.addEventListener('click', () => {
-        ui.showAuthModal('login');
-        // Attach listeners for the newly created modal
-        document.getElementById('close-auth-modal-btn').addEventListener('click', () => ui.DOMElements.authModalContainer.innerHTML = '');
-        document.getElementById('show-register-link').addEventListener('click', (e) => { e.preventDefault(); ui.showAuthModal('register'); });
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            try {
-                await auth.handleLogin(email, password);
-                ui.DOMElements.authModalContainer.innerHTML = ''; // Close on success
-            } catch (error) {
-                document.getElementById('login-error').textContent = "Invalid credentials.";
-            }
-        });
+        ui.showAuthModal('login', auth.handleLogin, auth.handleRegistration);
     });
     
     ui.DOMElements.playerCardBtn.addEventListener('click', () => {
