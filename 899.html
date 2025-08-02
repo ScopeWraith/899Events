@@ -1,3 +1,139 @@
+<!-- 
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // --- HELPER FUNCTIONS ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getUserData(request.auth.uid).isAdmin == true;
+    }
+    
+    function isVerified() {
+      return isSignedIn() && getUserData(request.auth.uid).isVerified == true;
+    }
+    
+    function isLeader() {
+        let userRank = getUserData(request.auth.uid).allianceRank;
+        return isAdmin() || (isVerified() && (userRank == 'R5' || userRank == 'R4'));
+    }
+
+    function isMemberOf(allianceId) {
+        return isSignedIn() && getUserData(request.auth.uid).alliance == allianceId;
+    }
+
+    // --- USER DATA, FRIENDS & NOTIFICATIONS ---
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || canManageUser(userId);
+      allow delete: if isOwner(userId);
+    }
+    
+    match /users/{userId}/friends/{friendId} {
+        allow read: if isOwner(userId);
+        allow write: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
+    }
+
+    match /users/{userId}/notifications/{notificationId} {
+        allow read, write: if isOwner(userId);
+    }
+
+    function canManageUser(targetUserId) {
+      let managerData = getUserData(request.auth.uid);
+      let targetData = getUserData(targetUserId);
+      return isSignedIn() && (
+        managerData.isAdmin == true ||
+        (
+          managerData.alliance == targetData.alliance &&
+          (
+            (managerData.allianceRank == 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetData.allianceRank)) ||
+            (managerData.allianceRank == 'R4' && ['R3', 'R2', 'R1'].includes(targetData.allianceRank))
+          )
+        )
+      );
+    }
+
+    // --- POSTS (ANNOUNCEMENTS & EVENTS) ---
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if canCreatePost(request.resource.data);
+      allow update, delete: if isOwner(resource.data.authorUid) || isAdmin();
+    }
+    
+    function canCreatePost(postData) {
+      let userRank = getUserData(request.auth.uid).allianceRank;
+      return isOwner(postData.authorUid) && (
+        isAdmin() ||
+        (
+          !(postData.subType == 'server' || postData.subType == 'seasonal' || postData.subType == 'hot_deals' || postData.subType == 'wanted_boss' || postData.subType == 'campaign' || postData.subType == 'vs') &&
+          !(!isVerified() && postData.subType == 'alliance' && postData.mainType == 'event') &&
+          (
+            (postData.subType == 'alliance' && (userRank == 'R5' || userRank == 'R4')) ||
+            (postData.subType == 'leadership' && userRank == 'R5')
+          )
+        )
+      );
+    }
+    
+    // --- CHAT CHANNELS ---
+    match /world_chat/{messageId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid;
+        allow update: if isOwner(resource.data.authorUid) || isAdmin(); // Allow owner to update (for reactions)
+        allow delete: if isOwner(resource.data.authorUid) || isAdmin();
+    }
+    
+    match /leaders_chat/{messageId} {
+        allow read, create: if isLeader();
+        allow update: if isLeader();
+        allow delete: if isAdmin();
+    }
+    
+    match /alliance_chats/{allianceId}/messages/{messageId} {
+        allow read, create: if isVerified() && isMemberOf(allianceId);
+        allow update: if isVerified() && isMemberOf(allianceId);
+        allow delete: if isLeader() && isMemberOf(allianceId);
+    }
+
+    match /leadership_chats/{allianceId}/messages/{messageId} {
+       allow read, create: if isLeader() && isMemberOf(allianceId);
+       allow update: if isLeader() && isMemberOf(allianceId);
+       allow delete: if isLeader() && isMemberOf(allianceId);
+    }
+
+    // --- PRIVATE & GROUP CHATS ---
+    match /private_chats/{chatId} {
+        allow read, write: if isSignedIn() && request.auth.uid in resource.data.members;
+    }
+     match /private_chats/{chatId}/messages/{messageId} {
+        allow read, write: if isSignedIn() && get(/databases/$(database)/documents/private_chats/$(chatId)).data.members.hasAny([request.auth.uid]);
+    }
+
+    match /group_chats/{groupId} {
+        allow read: if isSignedIn() && request.auth.uid in resource.data.members;
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
+        allow update: if isSignedIn() && request.auth.uid == resource.data.ownerId; // Only owner can edit group info
+    }
+
+    match /group_chats/{groupId}/messages/{messageId} {
+        allow read, write: if isSignedIn() && get(/databases/$(database)/documents/group_chats/$(groupId)).data.members.hasAny([request.auth.uid]);
+    }
+  }
+}
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,6 +162,14 @@
             --post-color-wanted_boss: #DC143C;
             --post-color-campaign: #32CD32;
             --post-color-vs: #0077ff;
+
+            /* Rank Colors */
+            --rank-color-admin: #ff00d0;
+            --rank-color-r5: #FFD700;
+            --rank-color-r4: #9370DB;
+            --rank-color-r3: #00BFFF;
+            --rank-color-r2: #c9d1d9;
+            --rank-color-r1: #8b949e;
         }
 
         @keyframes pulse-border-horizontal { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -50,11 +194,12 @@
         .nav-item.open .dropdown-menu { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0s; }
         .dropdown-link { display: block; padding: 0.6rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; color: #c9d1d9; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
         .dropdown-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
-        .auth-button { padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem; color: #c9d1d9; background-color: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
+        .auth-button { padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem; color: #c9d1d9; background-color: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 2px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
         .auth-button:hover { color: #fff; background-color: rgba(0, 191, 255, 0.1); border-color: var(--color-primary); }
         .section-container { padding: 1.25rem; }
         .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 1000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
         .modal-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); z-index: 1001; width: 90%; max-width: 450px; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
+        #edit-profile-modal-container { max-width: 650px; }
         .modal-backdrop.visible, .modal-container.visible { opacity: 1; pointer-events: auto; }
         .modal-container.visible { transform: translate(-50%, -50%) scale(1); }
         .auth-form { display: none; animation: fadeIn 0.5s forwards; }
@@ -330,19 +475,24 @@
         }
         .skeleton-card .skeleton-loader { opacity: 0.7; }
 
-        /* Social Page Styles */
+        /* --- Social Page Styles --- */
         .social-tabs {
             border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-around; /* Evenly space tabs */
         }
         .social-tab-btn {
-            padding: 0.75rem 1.5rem;
+            padding: 0.75rem 1rem; /* Adjusted padding */
             font-weight: 600;
             color: #8b949e;
             border-bottom: 3px solid transparent;
             transition: all 0.2s ease;
+            flex-grow: 1; /* Allow tabs to grow */
+            text-align: center;
         }
         .social-tab-btn:hover {
             color: #c9d1d9;
+            background-color: rgba(255,255,255,0.05);
         }
         .social-tab-btn.active {
             color: var(--color-primary);
@@ -361,44 +511,91 @@
             border-radius: 0.5rem;
             overflow-y: auto;
             display: flex;
-            flex-direction: column-reverse;
+            flex-direction: column-reverse; /* Newest messages at the bottom */
         }
         .chat-message {
             padding: 0.5rem 1rem;
             display: flex;
             gap: 0.75rem;
-            align-items: flex-start;
+            align-items: flex-end; /* Align to bottom */
             position: relative;
         }
-        .chat-message:hover .delete-message-btn {
+        .chat-message:hover .message-actions {
             opacity: 1;
         }
         .chat-message.self {
             flex-direction: row-reverse;
         }
-        .chat-message-bubble {
+        .chat-message-content {
+            display: flex;
+            flex-direction: column;
             max-width: 70%;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.75rem;
-            background-color: #21262d;
+        }
+        .chat-message.self .chat-message-content {
+            align-items: flex-end;
+        }
+        .chat-message-bubble {
+            padding: 0.5rem 0.85rem;
+            border-radius: 1rem;
+            background-color: #21262d; /* Dark gray for others */
             word-wrap: break-word;
+            border: 2px solid transparent;
+            position: relative;
         }
         .chat-message.self .chat-message-bubble {
-            background-color: var(--color-primary);
-            color: #0D1117;
+            background-color: #30363d; /* Lighter gray for self */
+            color: #c9d1d9;
+        }
+        .chat-message-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
         }
         .chat-message-author {
             font-weight: 700;
             font-size: 0.8rem;
-            margin-bottom: 0.25rem;
         }
-        .chat-message.self .chat-message-author {
-            color: #0D1117;
+        .chat-message-timestamp {
+            font-size: 0.65rem;
+            color: #8b949e;
+        }
+        .message-actions {
+            position: absolute;
+            top: -12px;
+            background-color: #161B22;
+            border-radius: 1rem;
+            padding: 2px 4px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .chat-message:not(.self) .message-actions { right: -10px; }
+        .chat-message.self .message-actions { left: -10px; }
+        .reaction-btn {
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+        }
+        .reaction-btn:hover { transform: scale(1.2); }
+        .message-reactions {
+            display: flex;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+        .reaction-pill {
+            background-color: rgba(0, 191, 255, 0.1);
+            border: 1px solid var(--color-primary);
+            border-radius: 1rem;
+            padding: 1px 6px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .delete-message-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
             background: rgba(220, 20, 60, 0.7);
             color: white;
             border: none;
@@ -407,17 +604,11 @@
             height: 20px;
             font-size: 10px;
             cursor: pointer;
-            opacity: 0;
             transition: opacity 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        .chat-message:not(.self) .delete-message-btn {
-            right: -25px;
-        }
-        .chat-message.self .delete-message-btn {
-            left: -25px;
+            margin-left: 8px; /* Space from bubble */
         }
         
         #alliance-announcements-list .list-item,
@@ -454,7 +645,56 @@
         .friend-action-btn.accept:hover { background-color: #2ea043; }
         .friend-action-btn.decline { background-color: #da3633; color: white; }
         .friend-action-btn.decline:hover { background-color: #f85149; }
-
+        .emoji-picker {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background-color: var(--color-dropdown-bg);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: none; /* Initially hidden */
+        }
+        .emoji-picker.visible { display: grid; }
+        .emoji-picker span { cursor: pointer; font-size: 1.25rem; text-align: center; }
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 1rem;
+            height: 1rem;
+            background-color: var(--color-highlight);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.65rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--color-bg);
+        }
+        #notifications-dropdown {
+            min-width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .notification-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .notification-item:hover {
+            background-color: rgba(0, 191, 255, 0.1);
+        }
+        .notification-item.unread {
+            background-color: rgba(0, 191, 255, 0.05);
+        }
 
     </style>
 </head>
@@ -567,14 +807,28 @@
     
     <div id="edit-profile-modal-container" class="modal-container">
          <div class="glass-pane">
-            <div class="modal-content-wrapper">
+            <div class="modal-content-wrapper !p-0">
                 <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                     <i class="fas fa-times fa-lg"></i>
                 </button>
-                <div class="modal-content-scroll">
-                    <h2 class="text-2xl font-bold text-white text-center mb-6">Edit Your Profile</h2>
+                <div class="p-6 bg-black/20 rounded-t-2xl">
+                    <div class="flex items-center gap-4">
+                        <div class="relative group">
+                            <img id="edit-avatar-preview" src="https://placehold.co/96x96/161B22/FFFFFF?text=?" class="w-24 h-24 rounded-full object-cover border-4 border-gray-700">
+                             <button id="modal-upload-avatar-btn" class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-camera fa-2x"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <h2 id="edit-username-header" class="text-2xl font-bold text-white">Username</h2>
+                            <p id="edit-email-display" class="text-sm text-gray-400">email@example.com</p>
+                            <p id="edit-joined-display" class="text-xs text-gray-500 mt-1">Joined: Jan 1, 2024</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-content-scroll p-6">
                     <form id="edit-profile-form">
-                         <div class="space-y-4">
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
                             <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
                                 <div class="custom-select-container w-full" data-type="alliance">
@@ -586,7 +840,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="input-group"><i class="fas fa-star input-icon"></i>
+                            <div class="input-group md:col-span-2"><i class="fas fa-star input-icon"></i>
                                  <div class="custom-select-container w-full" data-type="rank">
                                     <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
                                     <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
@@ -595,13 +849,17 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
+                             <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
                             <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
                             <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input" required></div>
                             <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
                         </div>
                         <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                        <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
+                        <p id="edit-profile-info" class="text-yellow-400 text-center text-sm mt-4 form-error"></p>
+                        <div class="flex gap-4 mt-6">
+                            <button type="button" id="modal-logout-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-sign-out-alt mr-2"></i>Logout</button>
+                            <button type="submit" id="edit-profile-submit-btn" class="w-full p-3 rounded-lg primary-btn">Save Changes</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -814,6 +1072,17 @@
                     <div class="nav-item"><div class="nav-link" data-main-target="page-social"><i class="fas fa-comments"></i><span>Social</span></div></div>
                     <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
                     <div class="nav-item"><div class="nav-link"><i class="fas fa-trophy"></i><span>Season</span></div><div class="dropdown-menu dropdown-pane glass-pane"><a class="dropdown-link" data-target="page-season-overview">Season Overview</a><a class="dropdown-link" data-target="page-season-rewards">Rewards</a><a class="dropdown-link" data-target="page-season-history">History</a></div></div>
+                    <div class="nav-item" id="notifications-nav-item">
+                        <div class="nav-link">
+                            <i class="fas fa-bell"></i><span>Alerts</span>
+                            <span id="notification-badge" class="notification-badge hidden"></span>
+                        </div>
+                        <div id="notifications-dropdown" class="dropdown-menu dropdown-pane glass-pane">
+                            <div id="notifications-list" class="p-2 space-y-1">
+                                <p class="text-center text-gray-500 p-4">No new notifications.</p>
+                            </div>
+                        </div>
+                    </div>
                 </nav>
 
                 <div id="auth-container" class="hidden md:flex flex-shrink-0 relative">
@@ -822,15 +1091,8 @@
                         <button id="player-card-btn" class="auth-button">
                              <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
                             <span id="username-display"></span>
-                            <i class="fas fa-caret-down ml-2"></i>
                         </button>
-                        <div id="player-card-dropdown" class="dropdown-pane glass-pane">
-                            <div id="player-card-info" class="p-2 mb-2 border-b border-white/10"></div>
-                            <button id="upload-avatar-btn" class="dropdown-link"><i class="fas fa-camera w-6 text-center mr-2"></i>Change Avatar</button>
-                            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
-                            <button id="edit-profile-btn" class="dropdown-link"><i class="fas fa-edit w-6 text-center mr-2"></i>Edit Profile</button>
-                            <button id="logout-btn" class="dropdown-link"><i class="fas fa-sign-out-alt w-6 text-center mr-2"></i>Logout</button>
-                        </div>
+                        <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
                     </div>
                 </div>
                 <button id="open-mobile-menu-btn" class="md:hidden auth-button !px-4"><span class="font-bold tracking-wider">MENU</span></button>
@@ -841,85 +1103,21 @@
                     <div class="glass-pane section-container">
                         <div class="flex flex-col md:flex-row gap-4">
                             <div class="flex-grow">
-                                <div class="social-tabs flex items-center mb-4">
-                                    <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World Chat</button>
-                                    <button class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
-                                    <button class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
-                                    <button class="social-tab-btn" data-tab="friends"><i class="fas fa-user-friends mr-2"></i>Friends</button>
+                                <div id="social-tabs-container" class="social-tabs flex items-center mb-4">
+                                    <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World</button>
+                                    <button id="alliance-tab-btn" class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
+                                    <button id="leadership-tab-btn" class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
+                                    <button id="leaders-tab-btn" class="social-tab-btn" data-tab="leaders-chat"><i class="fas fa-users-cog mr-2"></i>Leaders</button>
+                                    <button id="private-tab-btn" class="social-tab-btn" data-tab="private-chat"><i class="fas fa-envelope mr-2"></i>Private</button>
+                                    <button id="groups-tab-btn" class="social-tab-btn" data-tab="group-chat"><i class="fas fa-users mr-2"></i>Groups</button>
                                 </div>
 
-                                <div id="pane-world-chat" class="social-content-pane active">
-                                    <div class="flex flex-col h-full">
-                                        <div id="world-chat-window" class="chat-window p-4 flex-grow">
-                                            <p class="text-center text-gray-500 m-auto">Welcome to World Chat!</p>
-                                        </div>
-                                        <form id="world-chat-form" class="mt-4 flex gap-2">
-                                            <input type="text" id="world-chat-input" class="form-input flex-grow" placeholder="Type a message in world chat..." required>
-                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                        </form>
-                                    </div>
-                                </div>
-
-                                <div id="pane-alliance-chat" class="social-content-pane">
-                                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                        <div class="lg:col-span-2 flex flex-col h-full">
-                                            <div id="alliance-chat-window" class="chat-window p-4 flex-grow">
-                                               <p class="text-center text-gray-500 m-auto">Your private alliance chat.</p>
-                                            </div>
-                                            <form id="alliance-chat-form" class="mt-4 flex gap-2">
-                                                <input type="text" id="alliance-chat-input" class="form-input flex-grow" placeholder="Message your alliance..." required>
-                                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                            </form>
-                                        </div>
-                                        <div class="lg:col-span-1 space-y-4">
-                                            <div>
-                                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-bullhorn"></i>Alliance Announcements</h3>
-                                                <div id="alliance-announcements-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
-                                                    <p class="text-gray-400 text-center">No announcements.</p>
-                                                </div>
-                                            </div>
-                                             <div>
-                                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-calendar-check"></i>Alliance Events</h3>
-                                                <div id="alliance-events-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
-                                                    <p class="text-gray-400 text-center">No events.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div id="pane-leadership-chat" class="social-content-pane">
-                                    <div class="flex flex-col h-full">
-                                        <div id="leadership-chat-window" class="chat-window p-4 flex-grow">
-                                            <p class="text-center text-gray-500 m-auto">Private chat for R4/R5 Leadership.</p>
-                                        </div>
-                                        <form id="leadership-chat-form" class="mt-4 flex gap-2">
-                                            <input type="text" id="leadership-chat-input" class="form-input flex-grow" placeholder="Message leadership..." required>
-                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                        </form>
-                                    </div>
-                                </div>
-                                
-                                <div id="pane-friends" class="social-content-pane">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-check"></i>Your Friends</h3>
-                                            <div id="friends-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-96 overflow-y-auto">
-                                                <p class="text-gray-400 text-center p-4">You haven't added any friends yet.</p>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-plus"></i>Friend Requests</h3>
-                                            <div id="friend-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
-                                                <p class="text-gray-400 text-center p-4">No pending requests.</p>
-                                            </div>
-                                            <h3 class="section-header text-lg font-bold mb-2 mt-4"><i class="fas fa-paper-plane"></i>Sent Requests</h3>
-                                            <div id="sent-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
-                                                <p class="text-gray-400 text-center p-4">No sent requests.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div id="pane-world-chat" class="social-content-pane active"></div>
+                                <div id="pane-alliance-chat" class="social-content-pane"></div>
+                                <div id="pane-leadership-chat" class="social-content-pane"></div>
+                                <div id="pane-leaders-chat" class="social-content-pane"></div>
+                                <div id="pane-private-chat" class="social-content-pane"></div>
+                                <div id="pane-group-chat" class="social-content-pane"></div>
                             </div>
                         </div>
                     </div>
@@ -1003,7 +1201,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit, writeBatch, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const firebaseConfig = {
@@ -1090,10 +1288,7 @@
         const usernameDisplay = document.getElementById('username-display');
         const playerListContainer = document.getElementById('player-list-container');
         const playerCardBtn = document.getElementById('player-card-btn');
-        const playerCardDropdown = document.getElementById('player-card-dropdown');
-        const playerCardInfo = document.getElementById('player-card-info');
         const editProfileBtn = document.getElementById('edit-profile-btn');
-        const logoutBtn = document.getElementById('logout-btn');
         const mobileNavMenu = document.getElementById('mobile-nav-menu');
         const mobileNavLinksContainer = document.getElementById('mobile-nav-links');
         const playerSearchInput = document.getElementById('player-search-input');
@@ -1101,7 +1296,6 @@
         const announcementsContainer = document.getElementById('announcements-container');
         const eventsSectionContainer = document.getElementById('events-section-container');
         const userAvatarButton = document.getElementById('user-avatar-button');
-        const uploadAvatarBtn = document.getElementById('upload-avatar-btn');
         const avatarUploadInput = document.getElementById('avatar-upload-input');
         const verificationToggleContainer = document.getElementById('verification-toggle-container');
         const eventsMainContainer = document.getElementById('events-main-container');
@@ -1125,9 +1319,22 @@
         let worldChatListener = null;
         let allianceChatListener = null;
         let leadershipChatListener = null;
+        let leadersChatListener = null;
         let friendsListener = null;
 
         // --- UTILITY & SKELETON FUNCTIONS ---
+        function getRankColor(rank, isAdmin) {
+            if (isAdmin) return 'var(--rank-color-admin)';
+            switch(rank) {
+                case 'R5': return 'var(--rank-color-r5)';
+                case 'R4': return 'var(--rank-color-r4)';
+                case 'R3': return 'var(--rank-color-r3)';
+                case 'R2': return 'var(--rank-color-r2)';
+                case 'R1': return 'var(--rank-color-r1)';
+                default: return 'transparent';
+            }
+        }
+
         function formatTimeAgo(date) {
             if (!date) return '';
             const now = new Date();
@@ -1416,7 +1623,11 @@
             if (!currentUserData) return;
             usernameDisplay.textContent = currentUserData.username;
             updateAvatarDisplay(currentUserData);
-            updatePlayerCard(currentUserData);
+            
+            const rankColor = getRankColor(currentUserData.allianceRank, currentUserData.isAdmin);
+            playerCardBtn.style.borderColor = rankColor;
+            playerCardBtn.style.boxShadow = `0 0 8px -2px ${rankColor}`;
+
             loginBtn.classList.add('hidden');
             userProfileContainer.classList.remove('hidden');
         }
@@ -1424,7 +1635,8 @@
         function updateUIForLoggedOutUser() {
             loginBtn.classList.remove('hidden');
             userProfileContainer.classList.add('hidden');
-            userProfileContainer.classList.remove('open');
+            playerCardBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            playerCardBtn.style.boxShadow = 'none';
         }
 
         document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -1448,10 +1660,6 @@
             });
         });
 
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth).catch(error => console.error("Logout error:", error));
-        });
-
         document.getElementById('forgot-password-link').addEventListener('click', (e) => {
             e.preventDefault();
             const email = prompt("Please enter your email address to receive a password reset link:");
@@ -1465,15 +1673,13 @@
         // --- PLAYER CARD, AVATAR & EDIT PROFILE ---
         playerCardBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            userProfileContainer.classList.toggle('open');
-        });
-        
-        editProfileBtn.addEventListener('click', () => {
-            userProfileContainer.classList.remove('open');
             showEditProfileModal();
         });
-
-        uploadAvatarBtn.addEventListener('click', () => avatarUploadInput.click());
+        
+        document.getElementById('modal-upload-avatar-btn').addEventListener('click', () => avatarUploadInput.click());
+        document.getElementById('modal-logout-btn').addEventListener('click', () => {
+             signOut(auth).catch(error => console.error("Logout error:", error));
+        });
 
         avatarUploadInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -1498,18 +1704,19 @@
         function updateAvatarDisplay(data) {
             const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
             userAvatarButton.src = avatarUrl;
+            document.getElementById('edit-avatar-preview').src = avatarUrl;
         }
 
-        function updatePlayerCard(data) {
-             playerCardInfo.innerHTML = `
-                <p class="text-sm text-gray-400">Alliance: <strong class="text-white">[${data.alliance}] ${data.allianceRank}</strong></p>
-                <p class="text-sm text-gray-400">Power: <strong class="text-white">${(data.power || 0).toLocaleString()}</strong></p>
-             `;
-        }
-        
         function populateEditForm() {
             if (!currentUserData) return;
+            document.getElementById('edit-profile-error').textContent = '';
+            document.getElementById('edit-profile-info').textContent = '';
             document.getElementById('edit-username').value = currentUserData.username;
+            document.getElementById('edit-username-header').textContent = currentUserData.username;
+            document.getElementById('edit-email-display').textContent = currentUserData.email;
+            const joinDate = new Date(currentUserData.registrationTimestampUTC).toLocaleDateString();
+            document.getElementById('edit-joined-display').textContent = `Joined: ${joinDate}`;
+
             
             const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
             const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
@@ -1530,7 +1737,11 @@
             if (!user) return;
             
             const errorElement = document.getElementById('edit-profile-error');
+            const infoElement = document.getElementById('edit-profile-info');
+            const submitBtn = document.getElementById('edit-profile-submit-btn');
             errorElement.textContent = '';
+            infoElement.textContent = '';
+            submitBtn.disabled = true;
             
             const parsePower = (str) => parseInt(String(str).replace(/,/g, ''), 10) || 0;
 
@@ -1544,16 +1755,26 @@
                 missilePower: parsePower(document.getElementById('edit-missile-power').value),
             };
 
+            let allianceChanged = false;
             if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
                 updatedData.isVerified = false;
+                allianceChanged = true;
+                infoElement.textContent = 'Alliance change requires leadership verification.';
             }
 
             try {
                 await updateDoc(doc(db, "users", user.uid), updatedData);
-                hideAllModals();
+                if (allianceChanged) {
+                    // Keep modal open briefly to show the info message
+                    setTimeout(hideAllModals, 2500);
+                } else {
+                    hideAllModals();
+                }
             } catch (error) {
                 console.error("Update profile error:", error);
                 errorElement.textContent = "Failed to update profile.";
+            } finally {
+                submitBtn.disabled = false;
             }
         });
 
@@ -2605,7 +2826,7 @@
             });
 
             // Alliance Chat Listener & Side Lists
-            if (currentUserData.alliance) {
+            if (currentUserData.alliance && currentUserData.isVerified) {
                 const allianceChatQuery = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
                 allianceChatListener = onSnapshot(allianceChatQuery, (snapshot) => {
                     const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -2616,11 +2837,22 @@
 
             // Leadership Chat Listener
             if (isUserLeader(currentUserData)) {
-                const leadershipChatQuery = query(collection(db, "leadership_chat"), orderBy("timestamp", "desc"), limit(50));
+                const leadershipChatQuery = query(collection(db, `leadership_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
                 leadershipChatListener = onSnapshot(leadershipChatQuery, (snapshot) => {
                     const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderMessages(messages, document.getElementById('leadership-chat-window'), 'leadership_chat');
                 });
+            }
+             // Leaders Chat Listener
+            if (isUserLeader(currentUserData) || currentUserData.isAdmin) {
+                document.getElementById('leaders-tab-btn').classList.remove('hidden');
+                const leadersChatQuery = query(collection(db, "leaders_chat"), orderBy("timestamp", "desc"), limit(50));
+                leadersChatListener = onSnapshot(leadersChatQuery, (snapshot) => {
+                    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderMessages(messages, document.getElementById('leaders-chat-window'), 'leaders_chat');
+                });
+            } else {
+                 document.getElementById('leaders-tab-btn').classList.add('hidden');
             }
             
             // Friends Listener
@@ -2633,8 +2865,9 @@
             if (worldChatListener) worldChatListener();
             if (allianceChatListener) allianceChatListener();
             if (leadershipChatListener) leadershipChatListener();
+            if (leadersChatListener) leadersChatListener();
             if (friendsListener) friendsListener();
-            worldChatListener = allianceChatListener = leadershipChatListener = friendsListener = null;
+            worldChatListener = allianceChatListener = leadershipChatListener = leadersChatListener = friendsListener = null;
         }
 
         function renderMessages(messages, container, chatType) {
@@ -2645,17 +2878,30 @@
             }
             messages.forEach(msg => {
                 const isSelf = msg.authorUid === currentUserData.uid;
-                const canDelete = currentUserData.isAdmin || (chatType === 'alliance_chat' && isUserLeader(currentUserData) && currentUserData.alliance === msg.alliance);
+                const canDelete = currentUserData.isAdmin || (isUserLeader(currentUserData) && (chatType === 'alliance_chat' || chatType === 'leadership_chat'));
                 
+                const author = allPlayers.find(p => p.uid === msg.authorUid);
+                const rankColor = author ? getRankColor(author.allianceRank, author.isAdmin) : 'transparent';
                 const avatarUrl = msg.authorAvatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(msg.authorUsername || '?').charAt(0).toUpperCase()}`;
+                const timestamp = msg.timestamp?.toDate().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit'}) || '';
 
                 const messageEl = document.createElement('div');
                 messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
                 messageEl.innerHTML = `
                     <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0 object-cover" alt="${msg.authorUsername}">
-                    <div class="chat-message-bubble">
-                        <p class="chat-message-author">${msg.authorUsername}</p>
-                        <p class="text-sm">${msg.text}</p>
+                    <div class="chat-message-content">
+                        <div class="chat-message-bubble" style="border-color: ${rankColor};">
+                             <div class="message-actions">
+                                <span class="reaction-btn" data-reaction="❤️">❤️</span>
+                                <span class="reaction-btn" data-reaction="😂">😂</span>
+                                <span class="reaction-btn" data-reaction="👍">👍</span>
+                            </div>
+                            <div class="chat-message-header">
+                                <span class="chat-message-author">${msg.authorUsername}</span>
+                                <span class="chat-message-timestamp">${timestamp}</span>
+                            </div>
+                            <p class="text-sm">${msg.text}</p>
+                        </div>
                     </div>
                     ${canDelete ? `<button class="delete-message-btn" data-id="${msg.id}" data-type="${chatType}"><i class="fas fa-times"></i></button>` : ''}
                 `;
@@ -2701,7 +2947,11 @@
                     break;
                 case 'leadership_chat':
                     input = document.getElementById('leadership-chat-input');
-                    collectionPath = 'leadership_chat';
+                    collectionPath = `leadership_chats/${currentUserData.alliance}/messages`;
+                    break;
+                case 'leaders_chat':
+                    input = document.getElementById('leaders-chat-input');
+                    collectionPath = 'leaders_chat';
                     break;
             }
 
@@ -2715,7 +2965,8 @@
                 authorUsername: currentUserData.username,
                 authorAvatarUrl: currentUserData.avatarUrl || null,
                 alliance: currentUserData.alliance || null,
-                timestamp: serverTimestamp()
+                timestamp: serverTimestamp(),
+                reactions: {}
             };
 
             try {
@@ -2727,8 +2978,8 @@
         }
 
         document.getElementById('world-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
-        document.getElementById('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
-        document.getElementById('leadership-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
+        // document.getElementById('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
+        // document.getElementById('leadership-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
         
         async function handleDeleteMessage(e) {
             const deleteBtn = e.target.closest('.delete-message-btn');
@@ -2747,7 +2998,12 @@
                     docPath = `alliance_chats/${currentUserData.alliance}/messages/${messageId}`;
                     break;
                 case 'leadership_chat':
-                    docPath = `leadership_chat/${messageId}`;
+                    if (!currentUserData.alliance) return;
+                    docPath = `leadership_chats/${currentUserData.alliance}/messages/${messageId}`;
+                    break;
+                case 'leaders_chat':
+                     if (!currentUserData.isAdmin) return;
+                    docPath = `leaders_chat/${messageId}`;
                     break;
                 default:
                     return;
@@ -2904,9 +3160,6 @@
             window.addEventListener('click', (e) => { 
                 if (!e.target.closest('.nav-item')) {
                     document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));
-                }
-                if (!e.target.closest('#user-profile-container')) {
-                    userProfileContainer.classList.remove('open');
                 }
                 if (!e.target.closest('.custom-select-container')) {
                     document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
