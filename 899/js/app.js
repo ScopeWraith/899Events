@@ -6,7 +6,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 import { firebaseConfig } from './firebase-config.js';
-import { DOMElements, initParticles, renderSkeletons, showPage, renderPosts, updateUIForLoggedInUser, updateUIForLoggedOutUser, renderPlayers, renderMessages, renderFriendsLists } from './ui.js';
+import { DOMElements, initParticles, renderSkeletons, showPage, renderPosts, updateUIForLoggedInUser, updateUIForLoggedOutUser, renderPlayers, renderMessages, renderFriendsLists, updateSocialTabPermissions } from './ui.js';
 import { initApi, listenToPosts, listenToUsers, listenToChat, listenToFriends, sendMessage, deleteMessage, sendFriendRequest, acceptFriendRequest, removeOrDeclineFriend } from './api.js';
 import { initAuth, onAuthStateChanged, handleLogout } from './auth.js';
 import { isUserLeader } from './utils.js';
@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (user) => {
             currentUserData = user;
             updateUIForLoggedInUser(user);
+            updateSocialTabPermissions(user); // FIX: Update UI permissions
             renderPosts(allPosts, currentUserData);
             renderPlayers(allPlayers, currentUserData);
             setupSocialListeners();
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         () => {
             currentUserData = null;
             updateUIForLoggedOutUser();
+            updateSocialTabPermissions(null); // FIX: Update UI permissions for logged-out state
             renderPosts(allPosts, null);
             renderPlayers(allPlayers, null);
             detachSocialListeners();
@@ -62,13 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
     listenToUsers((players) => {
         allPlayers = players;
         renderPlayers(allPlayers, currentUserData);
-        renderFriendsLists(friendsData, allPlayers); // Re-render friends with updated player info
+        renderFriendsLists(friendsData, allPlayers);
     });
 
     function setupSocialListeners() {
         detachSocialListeners();
         
-        // World chat is public, so we can always listen if the user is logged in.
         if (currentUserData) {
             const worldChatListener = listenToChat('world-chat', null, (messages) => {
                 renderMessages(messages, document.getElementById('world-chat-window'), 'world-chat', allPlayers, currentUserData);
@@ -76,12 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
             socialListeners.push(worldChatListener);
         }
 
-        /**
-         * --- FIX ---
-         * Added checks to ensure currentUserData exists and has the necessary properties
-         * (like being in an alliance or being a leader) before attempting to attach listeners
-         * to private chat channels. This prevents permission errors on load.
-         */
         if (currentUserData && currentUserData.alliance && currentUserData.isVerified) {
             const allianceChatListener = listenToChat('alliance-chat', currentUserData.alliance, (messages) => {
                 renderMessages(messages, document.getElementById('alliance-chat-window'), 'alliance-chat', allPlayers, currentUserData);
@@ -124,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     DOMElements.logoutBtn.addEventListener('click', handleLogout);
     
-    // Player Page Listeners
     DOMElements.playersPage.addEventListener('input', (e) => {
         if (e.target.matches('#player-search-input, #alliance-filter')) {
             const searchTerm = document.getElementById('player-search-input').value.toLowerCase();
@@ -146,18 +140,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Social Page Listeners
     DOMElements.socialPage.addEventListener('click', (e) => {
-        // Tab switching
         const tabBtn = e.target.closest('.social-tab-btn');
         if (tabBtn) {
+            if (tabBtn.disabled) return; // Prevent clicking disabled tabs
             DOMElements.socialPage.querySelectorAll('.social-tab-btn').forEach(b => b.classList.remove('active'));
             tabBtn.classList.add('active');
             DOMElements.socialPage.querySelectorAll('.social-content-pane').forEach(p => p.classList.remove('active'));
             document.getElementById(`pane-${tabBtn.dataset.tab}`).classList.add('active');
         }
 
-        // Friend actions
         const friendActionBtn = e.target.closest('.friend-action-btn');
         if (friendActionBtn && currentUserData) {
             const targetUid = friendActionBtn.dataset.uid;
@@ -166,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action === 'decline' || action === 'cancel' || action === 'remove') removeOrDeclineFriend(currentUserData.uid, targetUid);
         }
 
-        // Delete message
         const deleteBtn = e.target.closest('.delete-message-btn');
         if (deleteBtn && currentUserData) {
             deleteMessage(deleteBtn.dataset.type, currentUserData.alliance, deleteBtn.dataset.id);
@@ -194,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.value = '';
     });
 
-
     // --- 6. INITIAL PAGE LOAD ---
     showPage('page-events');
+    updateSocialTabPermissions(null); // Set initial disabled state for tabs
 });
