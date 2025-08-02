@@ -9,6 +9,7 @@ import { firebaseConfig } from './firebase-config.js';
 import { DOMElements, initParticles, renderSkeletons, showPage, renderPosts, updateUIForLoggedInUser, updateUIForLoggedOutUser, renderPlayers, renderMessages, renderFriendsLists } from './ui.js';
 import { initApi, listenToPosts, listenToUsers, listenToChat, listenToFriends, sendMessage, deleteMessage, sendFriendRequest, acceptFriendRequest, removeOrDeclineFriend } from './api.js';
 import { initAuth, onAuthStateChanged, handleLogout } from './auth.js';
+import { isUserLeader } from './utils.js';
 
 /**
  * Main application entry point.
@@ -66,28 +67,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupSocialListeners() {
         detachSocialListeners();
-        if (!currentUserData) return;
+        
+        // World chat is public, so we can always listen if the user is logged in.
+        if (currentUserData) {
+            const worldChatListener = listenToChat('world-chat', null, (messages) => {
+                renderMessages(messages, document.getElementById('world-chat-window'), 'world-chat', allPlayers, currentUserData);
+            });
+            socialListeners.push(worldChatListener);
+        }
 
-        const worldChatListener = listenToChat('world-chat', null, (messages) => {
-            renderMessages(messages, document.getElementById('world-chat-window'), 'world-chat', allPlayers, currentUserData);
-        });
-        socialListeners.push(worldChatListener);
-
-        if (currentUserData.alliance) {
+        /**
+         * --- FIX ---
+         * Added checks to ensure currentUserData exists and has the necessary properties
+         * (like being in an alliance or being a leader) before attempting to attach listeners
+         * to private chat channels. This prevents permission errors on load.
+         */
+        if (currentUserData && currentUserData.alliance && currentUserData.isVerified) {
             const allianceChatListener = listenToChat('alliance-chat', currentUserData.alliance, (messages) => {
                 renderMessages(messages, document.getElementById('alliance-chat-window'), 'alliance-chat', allPlayers, currentUserData);
             });
+            socialListeners.push(allianceChatListener);
+        }
+
+        if (currentUserData && currentUserData.alliance && isUserLeader(currentUserData)) {
             const leadershipChatListener = listenToChat('leadership-chat', currentUserData.alliance, (messages) => {
                 renderMessages(messages, document.getElementById('leadership-chat-window'), 'leadership-chat', allPlayers, currentUserData);
             });
-            socialListeners.push(allianceChatListener, leadershipChatListener);
+            socialListeners.push(leadershipChatListener);
         }
         
-        const friendsListener = listenToFriends(currentUserData.uid, (data) => {
-            friendsData = data;
-            renderFriendsLists(friendsData, allPlayers);
-        });
-        socialListeners.push(friendsListener);
+        if (currentUserData) {
+            const friendsListener = listenToFriends(currentUserData.uid, (data) => {
+                friendsData = data;
+                renderFriendsLists(friendsData, allPlayers);
+            });
+            socialListeners.push(friendsListener);
+        }
     }
 
     function detachSocialListeners() {
@@ -173,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
             authorUid: currentUserData.uid,
             authorUsername: currentUserData.username,
             authorAvatarUrl: currentUserData.avatarUrl || null,
-            timestamp: new Date() // Using client-side timestamp for simplicity, serverTimestamp is better
         };
         
         sendMessage(chatType, currentUserData.alliance, messageData);
