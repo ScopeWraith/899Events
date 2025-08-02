@@ -1288,7 +1288,6 @@ service cloud.firestore {
         const usernameDisplay = document.getElementById('username-display');
         const playerListContainer = document.getElementById('player-list-container');
         const playerCardBtn = document.getElementById('player-card-btn');
-        const editProfileBtn = document.getElementById('edit-profile-btn');
         const mobileNavMenu = document.getElementById('mobile-nav-menu');
         const mobileNavLinksContainer = document.getElementById('mobile-nav-links');
         const playerSearchInput = document.getElementById('player-search-input');
@@ -3175,7 +3174,7 @@ service cloud.firestore {
                 });
             });
 
-            eventsMainContainer.addEventListener('click', e => {
+            document.getElementById('page-container').addEventListener('click', e => {
                 const trigger = e.target.closest('.post-card-actions-trigger, #create-announcement-btn, #create-event-btn');
                 if (!trigger) return;
                 
@@ -3232,17 +3231,20 @@ service cloud.firestore {
                 }
             });
 
-            document.getElementById('pane-friends').addEventListener('click', e => {
-                 const actionBtn = e.target.closest('.friend-action-btn');
-                 if (!actionBtn) return;
-                 const uid = actionBtn.dataset.uid;
-                 const action = actionBtn.dataset.action;
+            const privateChatPane = document.getElementById('pane-private-chat');
+            if(privateChatPane) {
+                privateChatPane.addEventListener('click', e => {
+                    const actionBtn = e.target.closest('.friend-action-btn');
+                    if (!actionBtn) return;
+                    const uid = actionBtn.dataset.uid;
+                    const action = actionBtn.dataset.action;
 
-                 if (action === 'accept') acceptFriendRequest(uid);
-                 else if (action === 'decline' || action === 'cancel' || action === 'remove') {
-                    declineOrCancelRequest(uid);
-                 }
-            });
+                    if (action === 'accept') acceptFriendRequest(uid);
+                    else if (action === 'decline' || action === 'cancel' || action === 'remove') {
+                        declineOrCancelRequest(uid);
+                    }
+                });
+            }
 
             showPage('page-events'); 
             document.querySelectorAll('.power-input').forEach(input => {
