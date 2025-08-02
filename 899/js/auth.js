@@ -1,10 +1,11 @@
 // js/auth.js
-import { initApi, uploadFileAndGetURL } from './api.js';
-import { resizeImage } from './utils.js';
+
+import { onAuthStateChanged as firebaseOnAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { uploadFileAndGetURL } from './api.js';
 
 /**
- * This file handles all user authentication logic, including registration,
- * login, logout, and managing the user's session state.
+ * This file handles all user authentication logic.
  */
 
 let auth, db;
@@ -24,24 +25,18 @@ export function initAuth(firebaseServices) {
  * @param {function} onLogout - Callback function when a user logs out.
  */
 export function onAuthStateChanged(onLogin, onLogout) {
-    const { onAuthStateChanged } = window.firebase.auth;
-    const { doc, onSnapshot } = window.firebase.firestore;
-
-    onAuthStateChanged(auth, (user) => {
+    firebaseOnAuthStateChanged(auth, (user) => {
         if (user) {
-            // User is signed in. Listen for their profile changes.
             const userDocRef = doc(db, "users", user.uid);
             onSnapshot(userDocRef, (userDoc) => {
                 if (userDoc.exists()) {
                     const currentUserData = { uid: user.uid, ...userDoc.data() };
                     onLogin(currentUserData);
                 } else {
-                    // This case might happen if the user record is deleted but auth state persists.
                     onLogout();
                 }
             });
         } else {
-            // User is signed out.
             onLogout();
         }
     });
@@ -54,7 +49,6 @@ export function onAuthStateChanged(onLogin, onLogout) {
  * @returns {Promise<void>}
  */
 export async function handleLogin(email, password) {
-    const { signInWithEmailAndPassword } = window.firebase.auth;
     await signInWithEmailAndPassword(auth, email, password);
 }
 
@@ -62,7 +56,6 @@ export async function handleLogin(email, password) {
  * Handles user logout.
  */
 export function handleLogout() {
-    const { signOut } = window.firebase.auth;
     signOut(auth).catch(error => console.error("Logout error:", error));
 }
 
@@ -72,22 +65,16 @@ export function handleLogout() {
  * @returns {Promise<void>}
  */
 export async function handleRegistration(formData) {
-    const { createUserWithEmailAndPassword } = window.firebase.auth;
-    const { setDoc, doc } = window.firebase.firestore;
-
     const { email, password, username, alliance, allianceRank, power, tankPower, airPower, missilePower, avatarBlob } = formData;
 
-    // 1. Create the user in Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // 2. Upload avatar if it exists
     let avatarUrl = null;
     if (avatarBlob) {
         avatarUrl = await uploadFileAndGetURL(`avatars/${user.uid}`, avatarBlob);
     }
 
-    // 3. Create the user profile document in Firestore
     const userProfile = {
         username, email, alliance, allianceRank, 
         power: parseInt(String(power).replace(/,/g, ''), 10) || 0,
@@ -98,7 +85,7 @@ export async function handleRegistration(formData) {
         allianceRole: '', 
         isVerified: false, 
         avatarUrl,
-        isAdmin: email === 'mikestancato@gmail.com', // Example admin check
+        isAdmin: email === 'mikestancato@gmail.com',
         registrationTimestampUTC: new Date().toISOString(),
     };
     if (userProfile.isAdmin) {
@@ -113,7 +100,6 @@ export async function handleRegistration(formData) {
  * @param {string} email - The user's email address.
  */
 export function handleForgotPassword(email) {
-    const { sendPasswordResetEmail } = window.firebase.auth;
     sendPasswordResetEmail(auth, email)
         .then(() => alert('Password reset email sent! Please check your inbox.'))
         .catch((error) => alert(error.message));

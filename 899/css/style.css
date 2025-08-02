@@ -186,4 +186,3 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .friend-action-btn.accept:hover { background-color: #2ea043; }
 .friend-action-btn.decline { background-color: #da3633; color: white; }
 .friend-action-btn.decline:hover { background-color: #f85149; }
-
