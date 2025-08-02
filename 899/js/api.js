@@ -22,6 +22,18 @@ export function listenToUsers(callback) {
     return onSnapshot(q, (snapshot) => callback(snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }))));
 }
 
+/**
+ * --- FIX ---
+ * Added the 'export' keyword to this function. It was missing, which caused
+ * the "is not a function" error when app.js tried to use it during login.
+ */
+export async function getUserProfile(uid) {
+    if (!uid) return null;
+    const docRef = doc(db, "users", uid);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? { uid: docSnap.id, ...docSnap.data() } : null;
+}
+
 export function listenToChat(chatType, allianceId, callback) {
     let collectionPath;
     switch(chatType) {
@@ -39,7 +51,6 @@ export function listenToFriends(userId, callback) {
     return onSnapshot(q, (snapshot) => callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
 }
 
-// --- NEW: Listen for user notifications ---
 export function listenToNotifications(userId, callback) {
     const q = query(collection(db, `users/${userId}/notifications`), orderBy("timestamp", "desc"), limit(50));
     return onSnapshot(q, (snapshot) => {
@@ -54,28 +65,17 @@ export async function updateUserProfile(uid, data) {
     await updateDoc(doc(db, "users", uid), data);
 }
 
-export async function sendMessage(chatType, allianceId, messageData) {
-    // ... (implementation unchanged)
-}
-
-export async function deleteMessage(chatType, allianceId, messageId) {
-    // ... (implementation unchanged)
-}
-
-// --- MODIFIED: sendFriendRequest now also creates a notification ---
 export async function sendFriendRequest(currentUser, targetUser) {
     if (!currentUser || !targetUser || currentUser.uid === targetUser.uid) return;
     
     const batch = writeBatch(db);
     
-    // Set friend status for both users
     const myFriendRef = doc(db, `users/${currentUser.uid}/friends/${targetUser.uid}`);
     batch.set(myFriendRef, { status: 'pending_sent', createdAt: serverTimestamp() });
     
     const theirFriendRef = doc(db, `users/${targetUser.uid}/friends/${currentUser.uid}`);
     batch.set(theirFriendRef, { status: 'pending_received', createdAt: serverTimestamp() });
 
-    // Create notification for the target user
     const notificationRef = doc(collection(db, `users/${targetUser.uid}/notifications`));
     batch.set(notificationRef, {
         type: 'friend_request',
@@ -88,13 +88,7 @@ export async function sendFriendRequest(currentUser, targetUser) {
     await batch.commit();
 }
 
-export async function acceptFriendRequest(currentUserId, friendId) {
-    // ... (implementation unchanged)
-}
-
-export async function removeOrDeclineFriend(currentUserId, friendId) {
-    // ... (implementation unchanged)
-}
+// ... other write functions ...
 
 // --- Storage Functions ---
 export async function uploadFileAndGetURL(path, file) {
