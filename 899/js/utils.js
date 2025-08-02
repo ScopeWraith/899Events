@@ -6,6 +6,24 @@
  */
 
 /**
+ * --- FIX ---
+ * Added the getRankColor function and exported it.
+ * This function was missing, causing an import error in ui.js.
+ */
+export function getRankColor(rank, isAdmin) {
+    if (isAdmin) return 'var(--rank-color-admin)';
+    switch(rank) {
+        case 'R5': return 'var(--rank-color-r5)';
+        case 'R4': return 'var(--rank-color-r4)';
+        case 'R3': return 'var(--rank-color-r3)';
+        case 'R2': return 'var(--rank-color-r2)';
+        case 'R1': return 'var(--rank-color-r1)';
+        default: return 'transparent';
+    }
+}
+
+
+/**
  * Formats a date object into a "time ago" string (e.g., "5m ago").
  * @param {Date} date - The date to format.
  * @returns {string} The formatted time ago string.
