@@ -114,14 +114,11 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module" src="js/firebase-config.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js"></script>
-
-    <!-- Main Application Script -->
+    <!-- 
+      This is the critical fix for the script errors.
+      By loading ONLY app.js with type="module", we let it handle all
+      other imports, which resolves the "Cannot use import statement" errors.
+    -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>
