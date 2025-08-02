@@ -55,10 +55,15 @@ export const DOMElements = {
 };
 
 // --- State Variables ---
-let activePlayerSettingsUID = null;
-let editingPostId = null;
-let actionPostId = null;
-let countdownInterval = null;
+export let state = {
+    activePlayerSettingsUID: null,
+    editingPostId: null,
+    actionPostId: null,
+    countdownInterval: null,
+    postCreationData: {},
+    resizedThumbnailBlob: null,
+    activeFilter: 'all',
+};
 
 // --- Modal Management ---
 export function showModal(modal) {
@@ -75,20 +80,16 @@ export function hideAllModals() {
         DOMElements.confirmationModalContainer, DOMElements.postActionsModalContainer
     ].forEach(modal => modal.classList.remove('visible'));
     
-    activePlayerSettingsUID = null;
-    editingPostId = null;
-    actionPostId = null;
+    state.activePlayerSettingsUID = null;
+    state.editingPostId = null;
+    state.actionPostId = null;
 }
-
-// ... Add functions to show specific modals, e.g., showAuthModal, showEditProfileModal ...
-// These functions will often fetch HTML templates, populate them, and then call showModal.
 
 // --- Page Navigation ---
 export function showPage(targetId) {
     document.querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';
     });
-    // Update active state on nav links
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.classList.toggle('active', link.dataset.mainTarget === targetId);
     });
@@ -96,9 +97,6 @@ export function showPage(targetId) {
 
 // --- Rendering Functions ---
 
-/**
- * Renders skeleton loaders for posts and events while data is loading.
- */
 export function renderSkeletons() {
     const skeletonHTML = `
         <div class="post-card skeleton-card">
@@ -116,27 +114,21 @@ export function renderSkeletons() {
             </div>
         </div>`;
     
-    if (DOMElements.announcementsContainer) {
-        DOMElements.announcementsContainer.innerHTML = `
-            <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);"><i class="fas fa-bullhorn"></i><span>Announcements</span></div>
-            <div class="grid grid-cols-1 gap-4">${skeletonHTML}</div>`;
-    }
-    if (DOMElements.eventsSectionContainer) {
-        DOMElements.eventsSectionContainer.innerHTML = `
-            <div class="section-header text-xl font-bold mb-4"><i class="fas fa-calendar-alt"></i><span>Events</span></div>
-            <div class="grid grid-cols-1 gap-4">${skeletonHTML.repeat(2)}</div>`;
-    }
+    DOMElements.eventsPage.innerHTML = `
+        <main id="events-main-container" class="space-y-6">
+            <div id="filter-container" class="filter-btn-group"></div>
+            <div id="announcements-container" class="space-y-4">
+                 <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);"><i class="fas fa-bullhorn"></i><span>Announcements</span></div>
+                <div class="grid grid-cols-1 gap-4">${skeletonHTML}</div>
+            </div>
+            <div id="events-section-container" class="space-y-4">
+                <div class="section-header text-xl font-bold mb-4"><i class="fas fa-calendar-alt"></i><span>Events</span></div>
+                <div class="grid grid-cols-1 gap-4">${skeletonHTML.repeat(2)}</div>
+            </div>
+        </main>
+    `;
 }
 
-// ... Add other rendering functions like renderPosts, renderPlayers, renderMessages etc.
-// These will take data as input and generate the necessary HTML.
-
-/**
- * Creates the HTML for a single post or event card.
- * @param {object} post - The post data object.
- * @param {object} currentUserData - The currently logged-in user's data.
- * @returns {string} The HTML string for the card.
- */
 export function createCard(post, currentUserData) {
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
@@ -145,7 +137,7 @@ export function createCard(post, currentUserData) {
     const postDate = post.createdAt?.toDate();
     const timestamp = postDate ? formatTimeAgo(postDate) : '...';
     
-    const postTypeText = POST_TYPES[`${post.subType}_${post.mainType}`]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
+    const postTypeText = POST_TYPES[`${post.mainType}_${post.subType}`]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
 
     let actionsTriggerHTML = '';
     if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
@@ -172,6 +164,102 @@ export function createCard(post, currentUserData) {
             </div>
         </div>`;
 }
+
+export function renderPosts(allPosts, currentUserData) {
+    if (state.countdownInterval) clearInterval(state.countdownInterval);
+
+    const announcementsContainer = document.getElementById('announcements-container');
+    const eventsSectionContainer = document.getElementById('events-section-container');
+    
+    let visiblePosts = allPosts.filter(post => {
+        if (!currentUserData) return post.visibility === 'public';
+        if (post.visibility === 'public') return true;
+        if (currentUserData.isAdmin) return true;
+        if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
+        return false;
+    });
+
+    if (state.activeFilter !== 'all') {
+        visiblePosts = visiblePosts.filter(p => p.subType === state.activeFilter);
+    }
+
+    const announcements = visiblePosts.filter(p => p.mainType === 'announcement').sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+    const events = visiblePosts.filter(p => p.mainType === 'event');
+    
+    announcementsContainer.innerHTML = `<div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);"><i class="fas fa-bullhorn"></i><span>Announcements</span></div>` + 
+        (announcements.length > 0 ? `<div class="grid grid-cols-1 gap-4">${announcements.map(p => createCard(p, currentUserData)).join('')}</div>` : `<p class="text-center text-gray-500 py-4">No announcements to display.</p>`);
+
+    const displayableEvents = events.filter(event => {
+        const status = getEventStatus(event);
+        return status.status === 'live' || status.status === 'upcoming';
+    }).sort((a, b) => {
+        const statusA = getEventStatus(a);
+        const statusB = getEventStatus(b);
+        if (statusA.status === 'live' && statusB.status !== 'live') return -1;
+        if (statusA.status !== 'live' && statusB.status === 'live') return 1;
+        return (statusA.timeDiff || 0) - (statusB.timeDiff || 0);
+    });
+
+    eventsSectionContainer.innerHTML = `<div class="section-header text-xl font-bold mb-4"><i class="fas fa-calendar-alt"></i><span>Events</span></div>` +
+        (displayableEvents.length > 0 ? `<div class="grid grid-cols-1 gap-4">${displayableEvents.map(p => createCard(p, currentUserData)).join('')}</div>` : `<p class="text-center text-gray-500 py-4">No upcoming events.</p>`);
+
+    state.countdownInterval = setInterval(() => updateCountdowns(allPosts), 1000 * 30);
+    updateCountdowns(allPosts);
+}
+
+export function updateCountdowns(allPosts) {
+    document.querySelectorAll('.event-card').forEach(el => {
+        const postId = el.dataset.postId;
+        const post = allPosts.find(p => p.id === postId);
+        if (!post) return;
+
+        const statusInfo = getEventStatus(post);
+        const statusEl = el.querySelector('.status-content-wrapper');
+        const dateEl = el.querySelector('.status-date'); 
+
+        if (!statusEl || !dateEl) return;
+
+        el.classList.remove('live', 'ended', 'upcoming');
+        
+        const originalStartTime = post.startTime?.toDate();
+        if (originalStartTime) {
+            dateEl.textContent = formatEventDateTime(originalStartTime);
+        }
+
+        switch(statusInfo.status) {
+            case 'upcoming':
+                el.classList.add('upcoming');
+                statusEl.innerHTML = `<div class="status-label">STARTS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
+                break;
+            case 'live':
+                el.classList.add('live');
+                statusEl.innerHTML = `<div class="status-label">ENDS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
+                break;
+            case 'ended':
+                el.classList.add('ended');
+                statusEl.innerHTML = `<div class="status-label">ENDED</div><div class="status-time">${statusInfo.endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
+                break;
+        }
+    });
+}
+
+export function updateUIForLoggedInUser(user) {
+    DOMElements.loginBtn.classList.add('hidden');
+    DOMElements.userProfileContainer.classList.remove('hidden');
+    DOMElements.usernameDisplay.textContent = user.username;
+    const avatarUrl = user.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${user.username.charAt(0).toUpperCase()}`;
+    DOMElements.userAvatarButton.src = avatarUrl;
+    DOMElements.playerCardInfo.innerHTML = `
+        <p class="text-sm text-gray-400">Alliance: <strong class="text-white">[${user.alliance}] ${user.allianceRank}</strong></p>
+        <p class="text-sm text-gray-400">Power: <strong class="text-white">${(user.power || 0).toLocaleString()}</strong></p>
+    `;
+}
+
+export function updateUIForLoggedOutUser() {
+    DOMElements.loginBtn.classList.remove('hidden');
+    DOMElements.userProfileContainer.classList.add('hidden');
+}
+
 
 // --- Particle Animation ---
 export function initParticles() {
