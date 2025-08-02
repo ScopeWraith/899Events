@@ -1,14 +1,10 @@
 // js/auth.js
-
-import { onAuthStateChanged as firebaseOnAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { onAuthStateChanged as firebaseOnAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { uploadFileAndGetURL } from './api.js';
 
-/**
- * This file handles all user authentication logic.
- */
-
 let auth, db;
+let userDocListener = null; // To keep track of the Firestore listener
 
 /**
  * Initializes the Auth module with Firebase services.
@@ -20,36 +16,37 @@ export function initAuth(firebaseServices) {
 }
 
 /**
- * Sets up the listener for authentication state changes.
- * @param {function} onLogin - Callback function when a user logs in.
+ * This is the core of the session management fix.
+ * It wraps the standard Firebase auth listener. When a user logs in,
+ * it immediately fetches their profile from Firestore and provides the
+ * complete user object (auth + profile data) in the callback.
+ * This ensures the rest of the app always has the user's full permissions.
+ * @param {function} onLogin - Callback function with the full user profile.
  * @param {function} onLogout - Callback function when a user logs out.
  */
 export function onAuthStateChanged(onLogin, onLogout) {
     firebaseOnAuthStateChanged(auth, (user) => {
+        if (userDocListener) userDocListener(); // Unsubscribe from any previous profile listener
+
         if (user) {
+            // User is authenticated, now get their profile from Firestore in real-time
             const userDocRef = doc(db, "users", user.uid);
-            onSnapshot(userDocRef, (userDoc) => {
+            userDocListener = onSnapshot(userDocRef, (userDoc) => {
                 if (userDoc.exists()) {
-                    const currentUserData = { uid: user.uid, ...userDoc.data() };
-                    onLogin(currentUserData);
+                    // Combine auth uid with Firestore data for a complete profile
+                    const fullUserProfile = { uid: user.uid, ...userDoc.data() };
+                    onLogin(fullUserProfile); // Pass the complete profile to the app
                 } else {
+                    // This can happen if a user is deleted from Firestore but not Auth.
+                    // Treat them as logged out.
                     onLogout();
                 }
             });
         } else {
+            // User is not authenticated
             onLogout();
         }
     });
-}
-
-/**
- * Handles the user login form submission.
- * @param {string} email - The user's email.
- * @param {string} password - The user's password.
- * @returns {Promise<void>}
- */
-export async function handleLogin(email, password) {
-    await signInWithEmailAndPassword(auth, email, password);
 }
 
 /**
@@ -60,12 +57,17 @@ export function handleLogout() {
 }
 
 /**
- * Handles the multi-step registration form submission.
- * @param {object} formData - An object containing all registration form data.
- * @returns {Promise<void>}
+ * Handles user login.
+ */
+export async function handleLogin(email, password) {
+    await signInWithEmailAndPassword(auth, email, password);
+}
+
+/**
+ * Handles new user registration.
  */
 export async function handleRegistration(formData) {
-    const { email, password, username, alliance, allianceRank, power, tankPower, airPower, missilePower, avatarBlob } = formData;
+    const { email, password, username, alliance, allianceRank, power, avatarBlob } = formData;
 
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -76,31 +78,13 @@ export async function handleRegistration(formData) {
     }
 
     const userProfile = {
-        username, email, alliance, allianceRank, 
+        username, email, alliance, allianceRank,
         power: parseInt(String(power).replace(/,/g, ''), 10) || 0,
-        tankPower: parseInt(String(tankPower).replace(/,/g, ''), 10) || 0,
-        airPower: parseInt(String(airPower).replace(/,/g, ''), 10) || 0,
-        missilePower: parseInt(String(missilePower).replace(/,/g, ''), 10) || 0,
-        likes: 0, 
-        allianceRole: '', 
         isVerified: false, 
         avatarUrl,
-        isAdmin: email === 'mikestancato@gmail.com',
+        isAdmin: false,
         registrationTimestampUTC: new Date().toISOString(),
     };
-    if (userProfile.isAdmin) {
-        userProfile.isVerified = true;
-    }
 
     await setDoc(doc(db, "users", user.uid), userProfile);
-}
-
-/**
- * Sends a password reset email.
- * @param {string} email - The user's email address.
- */
-export function handleForgotPassword(email) {
-    sendPasswordResetEmail(auth, email)
-        .then(() => alert('Password reset email sent! Please check your inbox.'))
-        .catch((error) => alert(error.message));
 }

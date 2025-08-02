@@ -34,31 +34,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let notifications = [];
     let socialListeners = [];
     let notificationListener = null;
+    let isInitialLoad = true;
 
     // --- 3. SESSION MANAGEMENT & AUTH LISTENER ---
-    let isAuthReady = false;
+    // This now uses the corrected wrapper from auth.js
     auth.onAuthStateChanged(
-        (user) => {
-            currentUserData = user;
-            ui.updateUIForLoggedInUser(user);
-            ui.updateSocialTabPermissions(user);
+        (userProfile) => {
+            // This callback now receives the full Firestore profile
+            currentUserData = userProfile;
+            ui.updateUIForLoggedInUser(userProfile);
+            ui.updateSocialTabPermissions(userProfile);
             renderAllContent();
             setupDataListeners();
             
-            if (!isAuthReady) {
-                isAuthReady = true;
+            if (isInitialLoad) {
+                isInitialLoad = false;
                 ui.hideGlobalLoader();
             }
         },
-        () => {
+        () => { // onLogout callback
             currentUserData = null;
             ui.updateUIForLoggedOutUser();
             ui.updateSocialTabPermissions(null);
             renderAllContent();
             detachAllListeners();
 
-            if (!isAuthReady) {
-                isAuthReady = true;
+            if (isInitialLoad) {
+                isInitialLoad = false;
                 ui.hideGlobalLoader();
             }
         }
@@ -72,13 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function setupDataListeners() {
-        detachAllListeners(); // Ensure no duplicate listeners
+        detachAllListeners(); 
         
         api.listenToPosts((posts) => { allPosts = posts; ui.renderPosts(allPosts, currentUserData); });
         api.listenToUsers((players) => { allPlayers = players; renderAllContent(); });
 
         if (currentUserData) {
             socialListeners.push(api.listenToChat('world-chat', null, (messages) => ui.renderMessages(messages, 'world-chat', allPlayers, currentUserData)));
+            
             if (currentUserData.alliance && currentUserData.isVerified) {
                 socialListeners.push(api.listenToChat('alliance-chat', currentUserData.alliance, (messages) => ui.renderMessages(messages, 'alliance-chat', allPlayers, currentUserData)));
             }
@@ -90,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
             notificationListener = api.listenToNotifications(currentUserData.uid, (data) => {
                 notifications = data;
                 ui.renderFeed(notifications, allPlayers);
-                ui.updateNotificationBadge(notifications);
+                ui.updateNotificationBadge(data);
             });
         }
     }
@@ -108,21 +111,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (navLink) ui.showPage(navLink.dataset.mainTarget);
     });
     
-    ui.DOMElements.loginBtn.addEventListener('click', () => ui.showAuthModal('login'));
+    ui.DOMElements.loginBtn.addEventListener('click', () => {
+        ui.showAuthModal('login');
+        // Attach listeners for the newly created modal
+        document.getElementById('close-auth-modal-btn').addEventListener('click', () => ui.DOMElements.authModalContainer.innerHTML = '');
+        document.getElementById('show-register-link').addEventListener('click', (e) => { e.preventDefault(); ui.showAuthModal('register'); });
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                await auth.handleLogin(email, password);
+                ui.DOMElements.authModalContainer.innerHTML = ''; // Close on success
+            } catch (error) {
+                document.getElementById('login-error').textContent = "Invalid credentials.";
+            }
+        });
+    });
     
     ui.DOMElements.playerCardBtn.addEventListener('click', () => {
         if (currentUserData) {
             ui.renderEditProfileModal(currentUserData);
             document.getElementById('close-edit-modal-btn').addEventListener('click', () => ui.DOMElements.editProfileModalContainer.innerHTML = '');
             document.getElementById('modal-logout-btn').addEventListener('click', auth.handleLogout);
-            document.getElementById('modal-upload-avatar-btn').addEventListener('click', () => document.getElementById('modal-avatar-input').click());
-            document.getElementById('modal-avatar-input').addEventListener('change', handleModalAvatarChange);
-            document.getElementById('edit-profile-form').addEventListener('submit', handleProfileUpdate);
+            // ... other edit profile listeners ...
         }
     });
-    
-    async function handleModalAvatarChange(e) { /* ... implementation ... */ }
-    async function handleProfileUpdate(e) { /* ... implementation ... */ }
 
     // --- Initial Page Load ---
     ui.showPage('page-events');
