@@ -312,7 +312,7 @@ CHANGELOG
             overflow: hidden;
             padding: 0;
             display: flex;
-            min-height: 70px; /* Made more compact */
+            min-height: 80px; /* Made more compact */
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -323,7 +323,6 @@ CHANGELOG
         .post-card-thumbnail-wrapper {
             flex-shrink: 0;
             width: 140px; /* Slightly smaller */
-            clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
             position: relative;
             border-radius: 8px 0 0 8px;
             overflow: hidden;
@@ -334,7 +333,9 @@ CHANGELOG
             background-size: cover;
             background-position: center;
             transition: transform 0.4s ease;
-        }
+            -webkit-mask-image: linear-gradient(to right, black 0%, transparent 100%);
+            mask-image: linear-gradient(to right, black 0%, transparent 100%);
+        }   
         .post-card:hover .post-card-thumbnail {
             transform: scale(1.1);
         }
@@ -359,30 +360,31 @@ CHANGELOG
             width: 100%;
         }
         .post-card-category {
-            color: #ffffff;
-            padding: 0.1rem 0.3rem; 
-            font-size: .7rem;
+            color: #191919;
+            padding: 0.1rem 0.2rem; 
+            font-size: .60rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-radius: 5px;
+            border-radius: 4px;
             align-self: flex-start;
         }
         .post-card-title {
-            font-size: 1.4rem; /* Adjusted size */
-            font-weight: 700;
+            font-size: 1.5rem; /* Adjusted size */
+            font-weight: 500;
             color: #fff;
             line-height: 1.35;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
         .post-card-details {
             display: block;
-            font-size: 0.95rem; /* Increased size */
+            font-size: 0.72rem; /* Increased size */
             color: #a0a8b1;
-            line-height: 1.0;
-            max-height: 2.8em; /* 2 lines */
+            line-height: 1.5;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 160px;
         }
         .post-card-status {
             text-align: right;
@@ -393,24 +395,24 @@ CHANGELOG
             justify-content: center;
         }
         .post-card-status .status-label {
-            font-size: 1rem;
+            font-size: .8rem;
             font-weight: 100;
             text-transform: uppercase;
             color: #a0a8b1;
             letter-spacing: 0.5px;
-            margin-bottom: .05rem;
+            margin-bottom: .3rem;
         }
         .post-card-status .status-time {
-            font-size: 1.7rem;
+            font-size: 1.4rem;
             font-weight: 500;
             color: #fff;
             line-height: .7;
-            margin-bottom: .4rem;
+            margin-bottom: .45rem;
         }
         .status-date {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #8b949e;
-            font-weight: 600;
+            font-weight: 500;
         }
         .event-card.live .post-card-status .status-time {
             text-shadow: 0 0 8px var(--glow-color);
