@@ -1,9 +1,14 @@
 <!-- 
+===============================================
+FIREBASE SECURITY RULES (FIRESTORE)
+===============================================
+NOTE: The 'if' statements in these rules are the correct and required syntax for Firestore Security Rules (version 2) on 'allow' lines.
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
+    
     // --- HELPER FUNCTIONS ---
     function isSignedIn() {
       return request.auth != null;
@@ -14,6 +19,7 @@ service cloud.firestore {
     }
 
     function getUserData(userId) {
+      // Caching user data reads can optimize rule execution.
       return get(/databases/$(database)/documents/users/$(userId)).data;
     }
 
@@ -34,7 +40,7 @@ service cloud.firestore {
         return isSignedIn() && getUserData(request.auth.uid).alliance == allianceId;
     }
 
-    // --- USER DATA, FRIENDS & NOTIFICATIONS ---
+    // --- USER DATA & FRIENDS ---
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isOwner(userId);
@@ -45,10 +51,6 @@ service cloud.firestore {
     match /users/{userId}/friends/{friendId} {
         allow read: if isOwner(userId);
         allow write: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
-    }
-
-    match /users/{userId}/notifications/{notificationId} {
-        allow read, write: if isOwner(userId);
     }
 
     function canManageUser(targetUserId) {
@@ -92,48 +94,78 @@ service cloud.firestore {
     match /world_chat/{messageId} {
         allow read: if isSignedIn();
         allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid;
-        allow update: if isOwner(resource.data.authorUid) || isAdmin(); // Allow owner to update (for reactions)
-        allow delete: if isOwner(resource.data.authorUid) || isAdmin();
+        allow update, delete: if isAdmin();
     }
     
-    match /leaders_chat/{messageId} {
+    match /leadership_chat/{messageId} {
         allow read, create: if isLeader();
-        allow update: if isLeader();
-        allow delete: if isAdmin();
+        allow update, delete: if isAdmin();
     }
     
     match /alliance_chats/{allianceId}/messages/{messageId} {
-        allow read, create: if isVerified() && isMemberOf(allianceId);
-        allow update: if isVerified() && isMemberOf(allianceId);
-        allow delete: if isLeader() && isMemberOf(allianceId);
+        allow read, create: if isMemberOf(allianceId);
+        allow update, delete: if (isLeader() && isMemberOf(allianceId));
     }
-
-    match /leadership_chats/{allianceId}/messages/{messageId} {
-       allow read, create: if isLeader() && isMemberOf(allianceId);
-       allow update: if isLeader() && isMemberOf(allianceId);
-       allow delete: if isLeader() && isMemberOf(allianceId);
+    
+    // --- ALLIANCE-SPECIFIC EVENTS & ANNOUNCEMENTS ---
+    match /alliance_chats/{allianceId}/announcements/{announcementId} {
+        allow read: if isMemberOf(allianceId);
+        allow create, update, delete: if isLeader() && isMemberOf(allianceId);
     }
-
-    // --- PRIVATE & GROUP CHATS ---
-    match /private_chats/{chatId} {
-        allow read, write: if isSignedIn() && request.auth.uid in resource.data.members;
-    }
-     match /private_chats/{chatId}/messages/{messageId} {
-        allow read, write: if isSignedIn() && get(/databases/$(database)/documents/private_chats/$(chatId)).data.members.hasAny([request.auth.uid]);
-    }
-
-    match /group_chats/{groupId} {
-        allow read: if isSignedIn() && request.auth.uid in resource.data.members;
-        allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
-        allow update: if isSignedIn() && request.auth.uid == resource.data.ownerId; // Only owner can edit group info
-    }
-
-    match /group_chats/{groupId}/messages/{messageId} {
-        allow read, write: if isSignedIn() && get(/databases/$(database)/documents/group_chats/$(groupId)).data.members.hasAny([request.auth.uid]);
+    
+    match /alliance_chats/{allianceId}/events/{eventId} {
+        allow read: if isMemberOf(allianceId);
+        allow create, update, delete: if isLeader() && isMemberOf(allianceId);
     }
   }
 }
 -->
+
+<!-- 
+===============================================
+FIREBASE SECURITY RULES (STORAGE)
+===============================================
+These rules should be deployed to your Firebase project's Storage settings.
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /avatars/{userId} {
+      allow read;
+      allow write: if request.auth != null 
+                   && request.auth.uid == userId
+                   && request.resource.size < 2 * 1024 * 1024 // Max 2MB for larger images
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    match /post_thumbnails/{postId} {
+        allow read;
+        allow write: if request.auth != null
+                     && request.resource.size < 2 * 1024 * 1024 // Max 2MB for larger images
+                     && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
+-->
+
+<!--
+===============================================
+CHANGELOG
+===============================================
+- Prompt 58:
+    - Implemented full real-time chat functionality for World, Alliance, and Leadership channels.
+    - Added ability for Admins to delete any chat message and for R5s to delete messages in their own alliance chat.
+    - Simplified main navigation by removing "Alliances" and "Tools" links for a cleaner UI.
+- Prompt 57: Added foundation for a social network:
+    - New "Social" page with a tabbed interface for World Chat, Alliance Chat, Leadership Chat, and Friends.
+    - Designed UI for chat windows, message input, and friends list management.
+    - Updated Firestore security rules to support friends lists, public/private chat channels, and alliance-specific content.
+- Prompt 56: Removed global "Create" button and added context-specific "+" buttons next to "Announcements" and "Events" headers to streamline post creation.
+- Prompt 55: Removed the unused "Filter Posts" mobile panel from the HTML and JavaScript.
+- Prompt 54: Replaced Edit/Delete buttons with a gear icon overlay on the card thumbnail, which opens an actions modal.
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -162,14 +194,6 @@ service cloud.firestore {
             --post-color-wanted_boss: #DC143C;
             --post-color-campaign: #32CD32;
             --post-color-vs: #0077ff;
-
-            /* Rank Colors */
-            --rank-color-admin: #ff00d0;
-            --rank-color-r5: #FFD700;
-            --rank-color-r4: #9370DB;
-            --rank-color-r3: #00BFFF;
-            --rank-color-r2: #c9d1d9;
-            --rank-color-r1: #8b949e;
         }
 
         @keyframes pulse-border-horizontal { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -194,12 +218,11 @@ service cloud.firestore {
         .nav-item.open .dropdown-menu { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0s; }
         .dropdown-link { display: block; padding: 0.6rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; color: #c9d1d9; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
         .dropdown-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
-        .auth-button { padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem; color: #c9d1d9; background-color: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 2px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
+        .auth-button { padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem; color: #c9d1d9; background-color: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
         .auth-button:hover { color: #fff; background-color: rgba(0, 191, 255, 0.1); border-color: var(--color-primary); }
         .section-container { padding: 1.25rem; }
         .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 1000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
         .modal-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); z-index: 1001; width: 90%; max-width: 450px; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
-        #edit-profile-modal-container { max-width: 650px; }
         .modal-backdrop.visible, .modal-container.visible { opacity: 1; pointer-events: auto; }
         .modal-container.visible { transform: translate(-50%, -50%) scale(1); }
         .auth-form { display: none; animation: fadeIn 0.5s forwards; }
@@ -289,7 +312,7 @@ service cloud.firestore {
             overflow: hidden;
             padding: 0;
             display: flex;
-            min-height: 80px; /* Made more compact */
+            min-height: 70px; /* Made more compact */
             animation: fadeIn 0.5s ease-out;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -300,6 +323,7 @@ service cloud.firestore {
         .post-card-thumbnail-wrapper {
             flex-shrink: 0;
             width: 140px; /* Slightly smaller */
+            clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
             position: relative;
             border-radius: 8px 0 0 8px;
             overflow: hidden;
@@ -307,13 +331,10 @@ service cloud.firestore {
         .post-card-thumbnail {
             width: 100%;
             height: 100%;
-            opacity: 20%;
             background-size: cover;
             background-position: center;
             transition: transform 0.4s ease;
-            -webkit-mask-image: linear-gradient(to right, black 0%, transparent 100%);
-            mask-image: linear-gradient(to right, black 0%, transparent 100%);
-        }   
+        }
         .post-card:hover .post-card-thumbnail {
             transform: scale(1.1);
         }
@@ -324,7 +345,6 @@ service cloud.firestore {
             align-items: center;
             padding: 0.0rem 1rem; /* Reduced padding */
             gap: 0.75rem;
-            margin-left: -140px;
         }
         .post-card-content {
             display: flex;
@@ -339,31 +359,30 @@ service cloud.firestore {
             width: 100%;
         }
         .post-card-category {
-            color: #191919;
-            padding: 0.1rem 0.2rem; 
-            font-size: .60rem;
+            color: #ffffff;
+            padding: 0.1rem 0.3rem; 
+            font-size: .7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-radius: 4px;
+            border-radius: 5px;
             align-self: flex-start;
         }
         .post-card-title {
-            font-size: 1.5rem; /* Adjusted size */
-            font-weight: 500;
+            font-size: 1.4rem; /* Adjusted size */
+            font-weight: 700;
             color: #fff;
             line-height: 1.35;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
         .post-card-details {
             display: block;
-            font-size: 0.72rem; /* Increased size */
+            font-size: 0.95rem; /* Increased size */
             color: #a0a8b1;
-            line-height: 1.5;
+            line-height: 1.0;
+            max-height: 2.8em; /* 2 lines */
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
-            min-width: 160px;
         }
         .post-card-status {
             text-align: right;
@@ -374,24 +393,24 @@ service cloud.firestore {
             justify-content: center;
         }
         .post-card-status .status-label {
-            font-size: .8rem;
+            font-size: 1rem;
             font-weight: 100;
             text-transform: uppercase;
             color: #a0a8b1;
             letter-spacing: 0.5px;
-            margin-bottom: .3rem;
+            margin-bottom: .05rem;
         }
         .post-card-status .status-time {
-            font-size: 1.4rem;
+            font-size: 1.7rem;
             font-weight: 500;
             color: #fff;
             line-height: .7;
-            margin-bottom: .45rem;
+            margin-bottom: .4rem;
         }
         .status-date {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: #8b949e;
-            font-weight: 500;
+            font-weight: 600;
         }
         .event-card.live .post-card-status .status-time {
             text-shadow: 0 0 8px var(--glow-color);
@@ -475,24 +494,19 @@ service cloud.firestore {
         }
         .skeleton-card .skeleton-loader { opacity: 0.7; }
 
-        /* --- Social Page Styles --- */
+        /* Social Page Styles */
         .social-tabs {
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            justify-content: space-around; /* Evenly space tabs */
         }
         .social-tab-btn {
-            padding: 0.75rem 1rem; /* Adjusted padding */
+            padding: 0.75rem 1.5rem;
             font-weight: 600;
             color: #8b949e;
             border-bottom: 3px solid transparent;
             transition: all 0.2s ease;
-            flex-grow: 1; /* Allow tabs to grow */
-            text-align: center;
         }
         .social-tab-btn:hover {
             color: #c9d1d9;
-            background-color: rgba(255,255,255,0.05);
         }
         .social-tab-btn.active {
             color: var(--color-primary);
@@ -511,91 +525,44 @@ service cloud.firestore {
             border-radius: 0.5rem;
             overflow-y: auto;
             display: flex;
-            flex-direction: column-reverse; /* Newest messages at the bottom */
+            flex-direction: column-reverse;
         }
         .chat-message {
             padding: 0.5rem 1rem;
             display: flex;
             gap: 0.75rem;
-            align-items: flex-end; /* Align to bottom */
+            align-items: flex-start;
             position: relative;
         }
-        .chat-message:hover .message-actions {
+        .chat-message:hover .delete-message-btn {
             opacity: 1;
         }
         .chat-message.self {
             flex-direction: row-reverse;
         }
-        .chat-message-content {
-            display: flex;
-            flex-direction: column;
-            max-width: 70%;
-        }
-        .chat-message.self .chat-message-content {
-            align-items: flex-end;
-        }
         .chat-message-bubble {
-            padding: 0.5rem 0.85rem;
-            border-radius: 1rem;
-            background-color: #21262d; /* Dark gray for others */
+            max-width: 70%;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.75rem;
+            background-color: #21262d;
             word-wrap: break-word;
-            border: 2px solid transparent;
-            position: relative;
         }
         .chat-message.self .chat-message-bubble {
-            background-color: #30363d; /* Lighter gray for self */
-            color: #c9d1d9;
-        }
-        .chat-message-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.25rem;
+            background-color: var(--color-primary);
+            color: #0D1117;
         }
         .chat-message-author {
             font-weight: 700;
             font-size: 0.8rem;
+            margin-bottom: 0.25rem;
         }
-        .chat-message-timestamp {
-            font-size: 0.65rem;
-            color: #8b949e;
-        }
-        .message-actions {
-            position: absolute;
-            top: -12px;
-            background-color: #161B22;
-            border-radius: 1rem;
-            padding: 2px 4px;
-            display: flex;
-            gap: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        .chat-message:not(.self) .message-actions { right: -10px; }
-        .chat-message.self .message-actions { left: -10px; }
-        .reaction-btn {
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: transform 0.2s;
-        }
-        .reaction-btn:hover { transform: scale(1.2); }
-        .message-reactions {
-            display: flex;
-            gap: 0.25rem;
-            margin-top: 0.25rem;
-        }
-        .reaction-pill {
-            background-color: rgba(0, 191, 255, 0.1);
-            border: 1px solid var(--color-primary);
-            border-radius: 1rem;
-            padding: 1px 6px;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .chat-message.self .chat-message-author {
+            color: #0D1117;
         }
         .delete-message-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
             background: rgba(220, 20, 60, 0.7);
             color: white;
             border: none;
@@ -604,96 +571,17 @@ service cloud.firestore {
             height: 20px;
             font-size: 10px;
             cursor: pointer;
+            opacity: 0;
             transition: opacity 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-left: 8px; /* Space from bubble */
         }
-        
-        #alliance-announcements-list .list-item,
-        #alliance-events-list .list-item {
-            background-color: rgba(0,0,0,0.2);
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.375rem;
-            border-left: 3px solid var(--color-alliance);
-            cursor: pointer;
-            transition: background-color 0.2s;
+        .chat-message:not(.self) .delete-message-btn {
+            right: -25px;
         }
-        #alliance-announcements-list .list-item:hover,
-        #alliance-events-list .list-item:hover {
-            background-color: rgba(0,0,0,0.4);
-        }
-        .friend-list-item {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem;
-            border-radius: 6px;
-            transition: background-color 0.2s ease;
-        }
-        .friend-list-item:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-        .friend-action-btn {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .friend-action-btn.accept { background-color: #238636; color: white; }
-        .friend-action-btn.accept:hover { background-color: #2ea043; }
-        .friend-action-btn.decline { background-color: #da3633; color: white; }
-        .friend-action-btn.decline:hover { background-color: #f85149; }
-        .emoji-picker {
-            position: absolute;
-            bottom: 100%;
-            right: 0;
-            background-color: var(--color-dropdown-bg);
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 0.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            display: none; /* Initially hidden */
-        }
-        .emoji-picker.visible { display: grid; }
-        .emoji-picker span { cursor: pointer; font-size: 1.25rem; text-align: center; }
-        .notification-badge {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 1rem;
-            height: 1rem;
-            background-color: var(--color-highlight);
-            color: white;
-            border-radius: 50%;
-            font-size: 0.65rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--color-bg);
-        }
-        #notifications-dropdown {
-            min-width: 320px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .notification-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.6rem 1rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.2s;
-        }
-        .notification-item:hover {
-            background-color: rgba(0, 191, 255, 0.1);
-        }
-        .notification-item.unread {
-            background-color: rgba(0, 191, 255, 0.05);
+        .chat-message.self .delete-message-btn {
+            left: -25px;
         }
 
     </style>
@@ -701,6 +589,7 @@ service cloud.firestore {
 <body>
     <canvas id="particle-canvas"></canvas>
 
+    <!-- Mobile Nav Menu -->
     <div id="mobile-nav-menu" class="glass-pane !rounded-l-lg !rounded-r-none">
         <div class="p-4 flex justify-between items-center border-b border-white/10">
             <h3 class="text-xl font-bold text-white">Menu</h3>
@@ -709,6 +598,7 @@ service cloud.firestore {
         <nav id="mobile-nav-links" class="flex flex-col p-2"></nav>
     </div>
 
+    <!-- Auth & Edit Modals -->
     <div id="modal-backdrop" class="modal-backdrop"></div>
     <div id="auth-modal-container" class="modal-container">
         <div class="glass-pane">
@@ -717,6 +607,7 @@ service cloud.firestore {
                     <i class="fas fa-times fa-lg"></i>
                 </button>
                 <div class="modal-content-scroll">
+                    <!-- Login Form -->
                     <div id="login-form-container" class="auth-form">
                         <h2 class="text-2xl font-bold text-white text-center mb-4">Login</h2>
                         <p class="text-center text-gray-400 mb-6">Welcome back to the 899 Hub.</p>
@@ -735,6 +626,7 @@ service cloud.firestore {
                             </p>
                         </form>
                     </div>
+                    <!-- Registration Form -->
                     <div id="register-form-container" class="auth-form">
                         <div id="registration-flow">
                             <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
@@ -807,28 +699,14 @@ service cloud.firestore {
     
     <div id="edit-profile-modal-container" class="modal-container">
          <div class="glass-pane">
-            <div class="modal-content-wrapper !p-0">
+            <div class="modal-content-wrapper">
                 <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                     <i class="fas fa-times fa-lg"></i>
                 </button>
-                <div class="p-6 bg-black/20 rounded-t-2xl">
-                    <div class="flex items-center gap-4">
-                        <div class="relative group">
-                            <img id="edit-avatar-preview" src="https://placehold.co/96x96/161B22/FFFFFF?text=?" class="w-24 h-24 rounded-full object-cover border-4 border-gray-700">
-                             <button id="modal-upload-avatar-btn" class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i class="fas fa-camera fa-2x"></i>
-                            </button>
-                        </div>
-                        <div>
-                            <h2 id="edit-username-header" class="text-2xl font-bold text-white">Username</h2>
-                            <p id="edit-email-display" class="text-sm text-gray-400">email@example.com</p>
-                            <p id="edit-joined-display" class="text-xs text-gray-500 mt-1">Joined: Jan 1, 2024</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-content-scroll p-6">
+                <div class="modal-content-scroll">
+                    <h2 class="text-2xl font-bold text-white text-center mb-6">Edit Your Profile</h2>
                     <form id="edit-profile-form">
-                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div class="space-y-4">
                             <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
                             <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
                                 <div class="custom-select-container w-full" data-type="alliance">
@@ -840,7 +718,7 @@ service cloud.firestore {
                                     </div>
                                 </div>
                             </div>
-                            <div class="input-group md:col-span-2"><i class="fas fa-star input-icon"></i>
+                            <div class="input-group"><i class="fas fa-star input-icon"></i>
                                  <div class="custom-select-container w-full" data-type="rank">
                                     <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
                                     <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
@@ -849,23 +727,20 @@ service cloud.firestore {
                                     </div>
                                 </div>
                             </div>
-                             <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
+                            <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
                             <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
                             <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input" required></div>
                             <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
                         </div>
                         <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                        <p id="edit-profile-info" class="text-yellow-400 text-center text-sm mt-4 form-error"></p>
-                        <div class="flex gap-4 mt-6">
-                            <button type="button" id="modal-logout-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-sign-out-alt mr-2"></i>Logout</button>
-                            <button type="submit" id="edit-profile-submit-btn" class="w-full p-3 rounded-lg primary-btn">Save Changes</button>
-                        </div>
+                        <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Player Settings Modal -->
     <div id="player-settings-modal-container" class="modal-container">
          <div class="glass-pane">
             <div class="modal-content-wrapper">
@@ -911,6 +786,7 @@ service cloud.firestore {
         </div>
     </div>
 
+    <!-- Create/Edit Post Modal -->
     <div id="create-post-modal-container" class="modal-container">
          <div class="glass-pane">
             <div class="modal-content-wrapper">
@@ -920,18 +796,23 @@ service cloud.firestore {
                 <div class="modal-content-scroll">
                     <form id="create-post-form">
                         <div id="post-creation-flow">
-                             <div class="form-slide" data-slide="1">
+                             <!-- Slide 1: Main Type (Event vs Announcement) - SKIPPED IN NEW FLOW -->
+                            <div class="form-slide" data-slide="1">
                                 <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
                                 <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
                                 <div id="post-main-type-selection-container" class="space-y-4">
-                                   </div>
+                                   <!-- Dynamically inserted buttons for Event/Announcement -->
+                                </div>
                             </div>
+                            <!-- Slide 2: Sub-Type Selection -->
                             <div class="form-slide" data-slide="2">
                                 <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
                                 <p class="text-center text-gray-400 mb-6">Select a category.</p>
                                 <div id="post-subtype-selection-container" class="space-y-3">
-                                   </div>
+                                   <!-- Dynamically inserted sub-type buttons -->
+                                </div>
                             </div>
+                            <!-- Slide 3: Content -->
                             <div class="form-slide" data-slide="3">
                                 <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
                                 <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
@@ -960,7 +841,8 @@ service cloud.firestore {
                                     </div>
                                 </div>
                             </div>
-                             <div class="form-slide" data-slide="4">
+                             <!-- Slide 4: Timing (for events) -->
+                            <div class="form-slide" data-slide="4">
                                 <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
                                 <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
                                 <div id="post-timing-group" class="space-y-4">
@@ -1025,6 +907,7 @@ service cloud.firestore {
         </div>
     </div>
 
+    <!-- Confirmation Modal -->
     <div id="confirmation-modal-container" class="modal-container">
         <div class="glass-pane">
             <div class="modal-content-wrapper p-6 text-center">
@@ -1038,6 +921,7 @@ service cloud.firestore {
         </div>
     </div>
 
+    <!-- Post Actions Modal -->
     <div id="post-actions-modal-container" class="modal-container" style="max-width: 300px;">
         <div class="glass-pane">
             <div class="modal-content-wrapper p-4">
@@ -1072,17 +956,6 @@ service cloud.firestore {
                     <div class="nav-item"><div class="nav-link" data-main-target="page-social"><i class="fas fa-comments"></i><span>Social</span></div></div>
                     <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
                     <div class="nav-item"><div class="nav-link"><i class="fas fa-trophy"></i><span>Season</span></div><div class="dropdown-menu dropdown-pane glass-pane"><a class="dropdown-link" data-target="page-season-overview">Season Overview</a><a class="dropdown-link" data-target="page-season-rewards">Rewards</a><a class="dropdown-link" data-target="page-season-history">History</a></div></div>
-                    <div class="nav-item" id="notifications-nav-item">
-                        <div class="nav-link">
-                            <i class="fas fa-bell"></i><span>Alerts</span>
-                            <span id="notification-badge" class="notification-badge hidden"></span>
-                        </div>
-                        <div id="notifications-dropdown" class="dropdown-menu dropdown-pane glass-pane">
-                            <div id="notifications-list" class="p-2 space-y-1">
-                                <p class="text-center text-gray-500 p-4">No new notifications.</p>
-                            </div>
-                        </div>
-                    </div>
                 </nav>
 
                 <div id="auth-container" class="hidden md:flex flex-shrink-0 relative">
@@ -1091,38 +964,118 @@ service cloud.firestore {
                         <button id="player-card-btn" class="auth-button">
                              <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
                             <span id="username-display"></span>
+                            <i class="fas fa-caret-down ml-2"></i>
                         </button>
-                        <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+                        <div id="player-card-dropdown" class="dropdown-pane glass-pane">
+                            <div id="player-card-info" class="p-2 mb-2 border-b border-white/10"></div>
+                            <button id="upload-avatar-btn" class="dropdown-link"><i class="fas fa-camera w-6 text-center mr-2"></i>Change Avatar</button>
+                            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+                            <button id="edit-profile-btn" class="dropdown-link"><i class="fas fa-edit w-6 text-center mr-2"></i>Edit Profile</button>
+                            <button id="logout-btn" class="dropdown-link"><i class="fas fa-sign-out-alt w-6 text-center mr-2"></i>Logout</button>
+                        </div>
                     </div>
                 </div>
                 <button id="open-mobile-menu-btn" class="md:hidden auth-button !px-4"><span class="font-bold tracking-wider">MENU</span></button>
             </header>
 
+            <!-- Page Content Container -->
             <div id="page-container">
+                <!-- Social Page -->
                 <div id="page-social" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
                         <div class="flex flex-col md:flex-row gap-4">
+                            <!-- Main Content: Tabs and Panes -->
                             <div class="flex-grow">
-                                <div id="social-tabs-container" class="social-tabs flex items-center mb-4">
-                                    <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World</button>
-                                    <button id="alliance-tab-btn" class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
-                                    <button id="leadership-tab-btn" class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
-                                    <button id="leaders-tab-btn" class="social-tab-btn" data-tab="leaders-chat"><i class="fas fa-users-cog mr-2"></i>Leaders</button>
-                                    <button id="private-tab-btn" class="social-tab-btn" data-tab="private-chat"><i class="fas fa-envelope mr-2"></i>Private</button>
-                                    <button id="groups-tab-btn" class="social-tab-btn" data-tab="group-chat"><i class="fas fa-users mr-2"></i>Groups</button>
+                                <div class="social-tabs flex items-center mb-4">
+                                    <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World Chat</button>
+                                    <button class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
+                                    <button class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
+                                    <button class="social-tab-btn" data-tab="friends"><i class="fas fa-user-friends mr-2"></i>Friends</button>
                                 </div>
 
-                                <div id="pane-world-chat" class="social-content-pane active"></div>
-                                <div id="pane-alliance-chat" class="social-content-pane"></div>
-                                <div id="pane-leadership-chat" class="social-content-pane"></div>
-                                <div id="pane-leaders-chat" class="social-content-pane"></div>
-                                <div id="pane-private-chat" class="social-content-pane"></div>
-                                <div id="pane-group-chat" class="social-content-pane"></div>
+                                <!-- World Chat Pane -->
+                                <div id="pane-world-chat" class="social-content-pane active">
+                                    <div class="flex flex-col h-full">
+                                        <div id="world-chat-window" class="chat-window p-4 flex-grow">
+                                            <!-- Messages will be injected here -->
+                                            <p class="text-center text-gray-500 m-auto">Welcome to World Chat!</p>
+                                        </div>
+                                        <form id="world-chat-form" class="mt-4 flex gap-2">
+                                            <input type="text" id="world-chat-input" class="form-input flex-grow" placeholder="Type a message in world chat..." required>
+                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Alliance Chat Pane -->
+                                <div id="pane-alliance-chat" class="social-content-pane">
+                                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        <div class="lg:col-span-2 flex flex-col h-full">
+                                            <div id="alliance-chat-window" class="chat-window p-4 flex-grow">
+                                               <p class="text-center text-gray-500 m-auto">Your private alliance chat.</p>
+                                            </div>
+                                            <form id="alliance-chat-form" class="mt-4 flex gap-2">
+                                                <input type="text" id="alliance-chat-input" class="form-input flex-grow" placeholder="Message your alliance..." required>
+                                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                            </form>
+                                        </div>
+                                        <div class="lg:col-span-1 space-y-4">
+                                            <div>
+                                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-bullhorn"></i>Alliance Announcements</h3>
+                                                <div id="alliance-announcements-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center">No announcements.</p>
+                                                </div>
+                                            </div>
+                                             <div>
+                                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-calendar-check"></i>Alliance Events</h3>
+                                                <div id="alliance-events-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center">No events.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Leadership Chat Pane -->
+                                <div id="pane-leadership-chat" class="social-content-pane">
+                                    <div class="flex flex-col h-full">
+                                        <div id="leadership-chat-window" class="chat-window p-4 flex-grow">
+                                            <p class="text-center text-gray-500 m-auto">Private chat for R4/R5 Leadership.</p>
+                                        </div>
+                                        <form id="leadership-chat-form" class="mt-4 flex gap-2">
+                                            <input type="text" id="leadership-chat-input" class="form-input flex-grow" placeholder="Message leadership..." required>
+                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <!-- Friends Pane -->
+                                <div id="pane-friends" class="social-content-pane">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-check"></i>Your Friends</h3>
+                                            <div id="friends-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-96 overflow-y-auto">
+                                                <p class="text-gray-400 text-center p-4">You haven't added any friends yet.</p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-plus"></i>Friend Requests</h3>
+                                            <div id="friend-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
+                                                <p class="text-gray-400 text-center p-4">No pending requests.</p>
+                                            </div>
+                                            <h3 class="section-header text-lg font-bold mb-2 mt-4"><i class="fas fa-paper-plane"></i>Sent Requests</h3>
+                                            <div id="sent-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
+                                                <p class="text-gray-400 text-center p-4">No sent requests.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Players Page -->
                 <div id="page-players" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
                         <div class="text-center mb-8">
@@ -1148,42 +1101,55 @@ service cloud.firestore {
                         </div>
 
                         <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                             </div>
+                             <!-- Player cards will be inserted here -->
+                        </div>
                     </div>
                 </div>
+                <!-- Events Page -->
                 <div id="page-events" class="page-content">
                     <main id="events-main-container" class="space-y-6">
                         
                         <div id="filter-container" class="filter-btn-group">
-                            </div>
+                            <!-- Filter buttons will be dynamically inserted here -->
+                        </div>
 
                         <div id="announcements-container" class="space-y-4">
-                            </div>
+                            <!-- Skeletons or announcement cards will be rendered here -->
+                        </div>
 
                         <div id="events-section-container" class="space-y-4">
-                            </div>
+                            <!-- Skeletons or event group headers and lists will be rendered here -->
+                        </div>
 
                     </main>
                 </div>
+                <!-- Top Alliances Page -->
                 <div id="page-top-alliances" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
                         <h2 class="text-3xl font-bold text-white text-center mb-8">Top Alliances</h2>
                         <div id="podium-container" class="flex flex-col md:flex-row items-end justify-center gap-4">
+                            <!-- 2nd Place -->
                             <div class="w-full md:w-1/4 order-2 md:order-1">
                                 <div id="silver-podium" class="glass-pane podium-card podium-silver h-full">
-                                    </div>
+                                    <!-- Silver/2nd place content will be populated here -->
+                                </div>
                             </div>
+                            <!-- 1st Place -->
                             <div class="w-full md:w-1/3 order-1 md:order-2">
                                 <div id="gold-podium" class="glass-pane podium-card podium-gold h-full">
-                                    </div>
+                                    <!-- Gold/1st place content will be populated here -->
+                                </div>
                             </div>
+                            <!-- 3rd Place -->
                             <div class="w-full md:w-1/4 order-3 md:order-3">
                                 <div id="bronze-podium" class="glass-pane podium-card podium-bronze h-full">
-                                    </div>
+                                    <!-- Bronze/3rd place content will be populated here -->
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <!-- Other Pages -->
                 <div id="page-alliance-list" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Alliance List</h2></div></div>
                 <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
                 <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
@@ -1198,10 +1164,11 @@ service cloud.firestore {
         </div>
     </div>
 
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit, writeBatch, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const firebaseConfig = {
@@ -1288,7 +1255,10 @@ service cloud.firestore {
         const usernameDisplay = document.getElementById('username-display');
         const playerListContainer = document.getElementById('player-list-container');
         const playerCardBtn = document.getElementById('player-card-btn');
+        const playerCardDropdown = document.getElementById('player-card-dropdown');
+        const playerCardInfo = document.getElementById('player-card-info');
         const editProfileBtn = document.getElementById('edit-profile-btn');
+        const logoutBtn = document.getElementById('logout-btn');
         const mobileNavMenu = document.getElementById('mobile-nav-menu');
         const mobileNavLinksContainer = document.getElementById('mobile-nav-links');
         const playerSearchInput = document.getElementById('player-search-input');
@@ -1296,15 +1266,11 @@ service cloud.firestore {
         const announcementsContainer = document.getElementById('announcements-container');
         const eventsSectionContainer = document.getElementById('events-section-container');
         const userAvatarButton = document.getElementById('user-avatar-button');
+        const uploadAvatarBtn = document.getElementById('upload-avatar-btn');
         const avatarUploadInput = document.getElementById('avatar-upload-input');
         const verificationToggleContainer = document.getElementById('verification-toggle-container');
         const eventsMainContainer = document.getElementById('events-main-container');
         const filterContainer = document.getElementById('filter-container');
-        const allianceAnnouncementsList = document.getElementById('alliance-announcements-list');
-        const allianceEventsList = document.getElementById('alliance-events-list');
-        const friendsList = document.getElementById('friends-list');
-        const friendRequestsList = document.getElementById('friend-requests-list');
-        const sentRequestsList = document.getElementById('sent-requests-list');
 
 
         let activePlayerSettingsUID = null;
@@ -1315,26 +1281,12 @@ service cloud.firestore {
         let editingPostId = null;
         let actionPostId = null; // For the post actions modal
         
-        // --- CHAT & SOCIAL LISTENERS ---
+        // --- CHAT LISTENERS ---
         let worldChatListener = null;
         let allianceChatListener = null;
         let leadershipChatListener = null;
-        let leadersChatListener = null;
-        let friendsListener = null;
 
         // --- UTILITY & SKELETON FUNCTIONS ---
-        function getRankColor(rank, isAdmin) {
-            if (isAdmin) return 'var(--rank-color-admin)';
-            switch(rank) {
-                case 'R5': return 'var(--rank-color-r5)';
-                case 'R4': return 'var(--rank-color-r4)';
-                case 'R3': return 'var(--rank-color-r3)';
-                case 'R2': return 'var(--rank-color-r2)';
-                case 'R1': return 'var(--rank-color-r1)';
-                default: return 'transparent';
-            }
-        }
-
         function formatTimeAgo(date) {
             if (!date) return '';
             const now = new Date();
@@ -1511,12 +1463,9 @@ service cloud.firestore {
         function showPlayerSettingsModal(player) { activePlayerSettingsUID = player.uid; showModal(playerSettingsModalContainer); populatePlayerSettingsForm(player); }
         
         function showCreatePostModal(mainType) { 
-            editingPostId = null; // Ensure we are in "create" mode
+            editingPostId = null;
             document.getElementById('create-post-form').reset();
-            postNavContainer.style.display = 'flex';
-            postNavContainer.querySelector('#post-submit-btn').classList.add('hidden');
-            postNavContainer.querySelector('#post-next-btn').classList.remove('hidden');
-
+            document.getElementById('post-nav-container').style.display = 'flex';
             showModal(createPostModalContainer); 
             initializePostStepper(mainType);
             document.getElementById('post-content-header').textContent = 'Create New Post';
@@ -1557,7 +1506,6 @@ service cloud.firestore {
             actionPostId = null;
         }
         
-        const postNavContainer = document.getElementById('post-nav-container');
         loginBtn.addEventListener('click', () => showAuthModal('login'));
         document.getElementById('close-auth-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-edit-modal-btn').addEventListener('click', hideAllModals);
@@ -1579,11 +1527,10 @@ service cloud.firestore {
         // --- AUTHENTICATION & DATA LOGIC ---
 
         // Listen for posts immediately on load
-        onSnapshot(query(collection(db, 'posts'), orderBy("createdAt", "desc")), (querySnapshot) => {
+        onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
             allPosts = [];
             querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
             renderPosts(allPosts);
-            renderAllianceSideLists();
         }, (error) => console.error("Error with posts listener:", error));
 
         // Listen for users immediately on load
@@ -1597,7 +1544,7 @@ service cloud.firestore {
         // Handle auth state changes to update UI accordingly
         onAuthStateChanged(auth, (user) => {
             if (userDocListener) userDocListener(); // Detach old listener
-            detachSocialListeners(); // Always detach old social listeners on auth change
+            detachChatListeners(); // Always detach old chat listeners on auth change
 
             if (user) {
                 userDocListener = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
@@ -1606,7 +1553,7 @@ service cloud.firestore {
                         updateUIForLoggedInUser();
                         renderPosts(allPosts);
                         applyPlayerFilters();
-                        setupSocialListeners(); // Setup new listeners with user data
+                        setupChatListeners(); // Setup new chat listeners with user data
                     }
                 });
                 hideAllModals();
@@ -1623,11 +1570,7 @@ service cloud.firestore {
             if (!currentUserData) return;
             usernameDisplay.textContent = currentUserData.username;
             updateAvatarDisplay(currentUserData);
-            
-            const rankColor = getRankColor(currentUserData.allianceRank, currentUserData.isAdmin);
-            playerCardBtn.style.borderColor = rankColor;
-            playerCardBtn.style.boxShadow = `0 0 8px -2px ${rankColor}`;
-
+            updatePlayerCard(currentUserData);
             loginBtn.classList.add('hidden');
             userProfileContainer.classList.remove('hidden');
         }
@@ -1635,8 +1578,7 @@ service cloud.firestore {
         function updateUIForLoggedOutUser() {
             loginBtn.classList.remove('hidden');
             userProfileContainer.classList.add('hidden');
-            playerCardBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            playerCardBtn.style.boxShadow = 'none';
+            userProfileContainer.classList.remove('open');
         }
 
         document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -1660,6 +1602,10 @@ service cloud.firestore {
             });
         });
 
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).catch(error => console.error("Logout error:", error));
+        });
+
         document.getElementById('forgot-password-link').addEventListener('click', (e) => {
             e.preventDefault();
             const email = prompt("Please enter your email address to receive a password reset link:");
@@ -1673,13 +1619,15 @@ service cloud.firestore {
         // --- PLAYER CARD, AVATAR & EDIT PROFILE ---
         playerCardBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            showEditProfileModal();
+            userProfileContainer.classList.toggle('open');
         });
         
-        document.getElementById('modal-upload-avatar-btn').addEventListener('click', () => avatarUploadInput.click());
-        document.getElementById('modal-logout-btn').addEventListener('click', () => {
-             signOut(auth).catch(error => console.error("Logout error:", error));
+        editProfileBtn.addEventListener('click', () => {
+            userProfileContainer.classList.remove('open');
+            showEditProfileModal();
         });
+
+        uploadAvatarBtn.addEventListener('click', () => avatarUploadInput.click());
 
         avatarUploadInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -1704,19 +1652,18 @@ service cloud.firestore {
         function updateAvatarDisplay(data) {
             const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
             userAvatarButton.src = avatarUrl;
-            document.getElementById('edit-avatar-preview').src = avatarUrl;
         }
 
+        function updatePlayerCard(data) {
+             playerCardInfo.innerHTML = `
+                <p class="text-sm text-gray-400">Alliance: <strong class="text-white">[${data.alliance}] ${data.allianceRank}</strong></p>
+                <p class="text-sm text-gray-400">Power: <strong class="text-white">${(data.power || 0).toLocaleString()}</strong></p>
+             `;
+        }
+        
         function populateEditForm() {
             if (!currentUserData) return;
-            document.getElementById('edit-profile-error').textContent = '';
-            document.getElementById('edit-profile-info').textContent = '';
             document.getElementById('edit-username').value = currentUserData.username;
-            document.getElementById('edit-username-header').textContent = currentUserData.username;
-            document.getElementById('edit-email-display').textContent = currentUserData.email;
-            const joinDate = new Date(currentUserData.registrationTimestampUTC).toLocaleDateString();
-            document.getElementById('edit-joined-display').textContent = `Joined: ${joinDate}`;
-
             
             const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
             const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
@@ -1737,11 +1684,7 @@ service cloud.firestore {
             if (!user) return;
             
             const errorElement = document.getElementById('edit-profile-error');
-            const infoElement = document.getElementById('edit-profile-info');
-            const submitBtn = document.getElementById('edit-profile-submit-btn');
             errorElement.textContent = '';
-            infoElement.textContent = '';
-            submitBtn.disabled = true;
             
             const parsePower = (str) => parseInt(String(str).replace(/,/g, ''), 10) || 0;
 
@@ -1755,26 +1698,16 @@ service cloud.firestore {
                 missilePower: parsePower(document.getElementById('edit-missile-power').value),
             };
 
-            let allianceChanged = false;
             if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
                 updatedData.isVerified = false;
-                allianceChanged = true;
-                infoElement.textContent = 'Alliance change requires leadership verification.';
             }
 
             try {
                 await updateDoc(doc(db, "users", user.uid), updatedData);
-                if (allianceChanged) {
-                    // Keep modal open briefly to show the info message
-                    setTimeout(hideAllModals, 2500);
-                } else {
-                    hideAllModals();
-                }
+                hideAllModals();
             } catch (error) {
                 console.error("Update profile error:", error);
                 errorElement.textContent = "Failed to update profile.";
-            } finally {
-                submitBtn.disabled = false;
             }
         });
 
@@ -2004,7 +1937,7 @@ service cloud.firestore {
             const isEvent = postCreationData.mainType === 'event';
             const totalSteps = isEvent ? 4 : 3;
 
-            postBackBtn.style.visibility = stepIndex === 2 ? 'hidden' : 'visible'; // On first step of creation, back is hidden
+            postBackBtn.style.visibility = stepIndex === 1 ? 'hidden' : 'visible';
             postNextBtn.classList.toggle('hidden', stepIndex >= totalSteps);
             postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
             
@@ -2045,6 +1978,10 @@ service cloud.firestore {
         });
         
         postBackBtn.addEventListener('click', () => {
+            if (currentPostStep === 2) { // If on the first visible step, "Back" closes the modal
+                hideAllModals();
+                return;
+            }
             currentPostStep--;
             showPostStep(currentPostStep);
         });
@@ -2074,7 +2011,6 @@ service cloud.firestore {
                 if (post.visibility === 'public') return true;
                 if (currentUserData.isAdmin) return true;
                 if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
-                if (post.visibility === 'leadership' && post.alliance === currentUserData.alliance && isUserLeader(currentUserData)) return true;
                 return false;
             });
             
@@ -2130,10 +2066,7 @@ service cloud.firestore {
             const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
             const postDate = post.createdAt?.toDate();
             const timestamp = postDate ? formatTimeAgo(postDate) : '...';
-            
-            const postTypeLookupKey = `${post.subType}_${post.mainType}`;
-            const postTypeText = POST_TYPES[postTypeLookupKey]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
-
+            const postTypeText = POST_TYPES[`${post.subType}_${post.mainType}`]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
 
             let actionsTriggerHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
@@ -2153,7 +2086,7 @@ service cloud.firestore {
                         <div class="status-label" title="${postDate?.toLocaleString() || ''}">Posted</div>
                         <div class="status-time">${timestamp}</div>
                     </div>
-                    <div class="status-date">${postDate ? postDate.toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}</div>
+                    <div class="status-date">${postDate ? formatEventDateTime(postDate) : ''}</div>
                 `;
             }
 
@@ -2252,28 +2185,20 @@ service cloud.firestore {
             }
 
             editingPostId = postId;
-            const postTypeLookupKey = `${post.subType}_${post.mainType}`;
-            postCreationData = { ...POST_TYPES[postTypeLookupKey] };
+            postCreationData = { ...POST_TYPES[`${post.subType}_${post.mainType}`] };
 
-            showModal(createPostModalContainer);
             document.getElementById('create-post-form').reset();
             
             document.getElementById('post-content-header').textContent = `Edit ${postCreationData.text}`;
             const submitBtn = document.getElementById('post-submit-btn');
             submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
 
-            // Hide nav buttons, show only submit button for editing
-            postNavContainer.style.display = 'flex'; 
-            postNavContainer.querySelector('#post-back-btn').style.visibility = 'hidden';
-            postNavContainer.querySelector('#post-next-btn').classList.add('hidden');
-            postNavContainer.querySelector('#post-submit-btn').classList.remove('hidden');
-
-            // Show appropriate form slides
+            document.getElementById('post-nav-container').style.display = 'none';
             document.querySelectorAll('.form-slide').forEach(s => s.classList.remove('active'));
-            document.querySelector('.form-slide[data-slide="3"]').classList.add('active'); // Content slide
-             if (post.mainType === 'event') {
-                 document.querySelector('.form-slide[data-slide="4"]').classList.add('active'); // Timing slide
-             }
+            document.querySelector('.form-slide[data-slide="3"]').classList.add('active');
+            if (post.mainType === 'event') {
+                document.querySelector('.form-slide[data-slide="4"]').classList.add('active');
+            }
             
             document.getElementById('post-title').value = post.title;
             document.getElementById('post-details').value = post.details;
@@ -2289,13 +2214,15 @@ service cloud.firestore {
                 setCustomSelectValue(document.querySelector('#post-end-hour').closest('.custom-select-container'), endDate.getHours().toString(), HOURS_OF_DAY[endDate.getHours()].text);
                 
                 const repeatType = post.isRecurring ? 'weekly' : 'none';
-                const repeatTypeData = REPEAT_TYPES.find(rt => rt.value === repeatType);
-                setCustomSelectValue(document.querySelector('#post-repeat-type').closest('.custom-select-container'), repeatType, repeatTypeData ? repeatTypeData.text : 'None');
+                setCustomSelectValue(document.querySelector('#post-repeat-type').closest('.custom-select-container'), repeatType, REPEAT_TYPES.find(rt => rt.value === repeatType).text);
                 document.getElementById('post-repeat-weeks-container').classList.toggle('hidden', !post.isRecurring);
                 if (post.isRecurring) {
                     document.getElementById('post-repeat-weeks').value = post.repeatWeeks || 1;
                 }
             }
+            
+            showModal(createPostModalContainer);
+            postSubmitBtn.classList.remove('hidden');
         }
 
 
@@ -2325,63 +2252,50 @@ service cloud.firestore {
                 visibility: postCreationData.visibility,
                 isRecurring: document.getElementById('post-repeat-type').value === 'weekly',
             };
-            
-            if (editingPostId) {
-                // When editing, don't update the author or creation date
-                delete finalPostData.authorUid;
-                delete finalPostData.authorUsername;
-            } else {
-                 finalPostData.createdAt = serverTimestamp();
-            }
 
             if (postCreationData.mainType === 'event') {
                 const startDay = document.getElementById('post-start-day').value;
                 const startHour = document.getElementById('post-start-hour').value;
                 const endDay = document.getElementById('post-end-day').value;
                 const endHour = document.getElementById('post-end-hour').value;
-                
-                if(startDay && startHour && endDay && endHour) {
-                    finalPostData.startTime = calculateNextDateTime(startDay, startHour);
-                    finalPostData.endTime = calculateNextDateTime(endDay, endHour);
 
-                    if (finalPostData.endTime < finalPostData.startTime) {
-                        finalPostData.endTime.setDate(finalPostData.endTime.getDate() + 7);
-                    }
-                    
-                    if (finalPostData.isRecurring) {
-                        finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
-                    }
+                finalPostData.startTime = calculateNextDateTime(startDay, startHour);
+                finalPostData.endTime = calculateNextDateTime(endDay, endHour);
+
+                if (finalPostData.endTime < finalPostData.startTime) {
+                    finalPostData.endTime.setDate(finalPostData.endTime.getDate() + 7);
+                }
+                
+                if (finalPostData.isRecurring) {
+                    finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
                 }
             }
             
             try {
-                const docId = editingPostId || (await addDoc(collection(db, 'posts'), {})).id;
-                const postDocRef = doc(db, 'posts', docId);
-
-                if (resizedThumbnailBlob) {
-                    const thumbnailRef = ref(storage, `post_thumbnails/${docId}`);
-                    await uploadBytes(thumbnailRef, resizedThumbnailBlob);
-                    finalPostData.thumbnailUrl = await getDownloadURL(thumbnailRef);
-                }
-                
                 if (editingPostId) {
+                    const postDocRef = doc(db, 'posts', editingPostId);
+                    if (resizedThumbnailBlob) {
+                        const thumbnailRef = ref(storage, `post_thumbnails/${editingPostId}`);
+                        await uploadBytes(thumbnailRef, resizedThumbnailBlob);
+                        finalPostData.thumbnailUrl = await getDownloadURL(thumbnailRef);
+                    }
                     await updateDoc(postDocRef, finalPostData);
                 } else {
-                    await setDoc(postDocRef, finalPostData); // Use setDoc for new posts to ensure all data is written
+                    finalPostData.createdAt = serverTimestamp();
+                    const postDocRef = await addDoc(collection(db, 'posts'), finalPostData);
+                    if (resizedThumbnailBlob) {
+                        const thumbnailRef = ref(storage, `post_thumbnails/${postDocRef.id}`);
+                        await uploadBytes(thumbnailRef, resizedThumbnailBlob);
+                        const downloadURL = await getDownloadURL(thumbnailRef);
+                        await updateDoc(postDocRef, { thumbnailUrl: downloadURL });
+                    }
                 }
-
                 hideAllModals();
             } catch (error) {
                 console.error("Error saving post: ", error);
                 createPostError.textContent = 'Failed to save post.';
             } finally {
                 submitBtn.disabled = false;
-                // Reset button text in a timeout to allow modal to close
-                setTimeout(() => {
-                    postSubmitBtn.innerHTML = editingPostId 
-                        ? '<i class="fas fa-save mr-2"></i>Save Changes'
-                        : '<i class="fas fa-check-circle mr-2"></i>Create Post';
-                }, 300);
             }
         });
 
@@ -2430,7 +2344,7 @@ service cloud.firestore {
                 const nameMatch = player.username.toLowerCase().includes(searchTerm);
                 const allianceMatch = !allianceFilter || player.alliance === allianceFilter;
                 return nameMatch && allianceMatch;
-            }).sort((a,b) => b.power - a.power);
+            });
             renderPlayers(filteredPlayers);
         }
 
@@ -2447,7 +2361,6 @@ service cloud.firestore {
                 const card = document.createElement('div');
                 card.className = 'player-card glass-pane p-4 flex flex-col relative';
                 card.dataset.rank = player.allianceRank;
-                card.dataset.uid = player.uid;
 
                 let gearIconHTML = '';
                 if (currentUserData && currentUserData.uid !== player.uid) {
@@ -2487,11 +2400,18 @@ service cloud.firestore {
                         </div>
                     </div>
                     <div class="flex justify-around items-center pt-3 border-t border-white/10">
-                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player" data-action="message"><i class="fas fa-comment-dots"></i></button>
-                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend" data-action="add-friend"><i class="fas fa-user-plus"></i></button>
-                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile" data-action="like"><i class="fas fa-thumbs-up"></i></button>
+                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
+                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
                     </div>
                 `;
+                const settingsBtn = card.querySelector('.player-settings-btn');
+                if (settingsBtn) {
+                    settingsBtn.addEventListener('click', () => {
+                        const targetPlayer = allPlayers.find(p => p.uid === settingsBtn.dataset.uid);
+                        if(targetPlayer) showPlayerSettingsModal(targetPlayer)
+                    });
+                }
                 playerListContainer.appendChild(card);
             });
         }
@@ -2815,7 +2735,7 @@ service cloud.firestore {
             return user.isAdmin || (user.isVerified && (user.allianceRank === 'R5' || user.allianceRank === 'R4'));
         }
 
-        function setupSocialListeners() {
+        function setupChatListeners() {
             if (!currentUserData) return;
 
             // World Chat Listener
@@ -2825,49 +2745,32 @@ service cloud.firestore {
                 renderMessages(messages, document.getElementById('world-chat-window'), 'world_chat');
             });
 
-            // Alliance Chat Listener & Side Lists
-            if (currentUserData.alliance && currentUserData.isVerified) {
+            // Alliance Chat Listener
+            if (currentUserData.alliance) {
                 const allianceChatQuery = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
                 allianceChatListener = onSnapshot(allianceChatQuery, (snapshot) => {
                     const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderMessages(messages, document.getElementById('alliance-chat-window'), 'alliance_chat');
                 });
-                renderAllianceSideLists();
             }
 
             // Leadership Chat Listener
             if (isUserLeader(currentUserData)) {
-                const leadershipChatQuery = query(collection(db, `leadership_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
+                const leadershipChatQuery = query(collection(db, "leadership_chat"), orderBy("timestamp", "desc"), limit(50));
                 leadershipChatListener = onSnapshot(leadershipChatQuery, (snapshot) => {
                     const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderMessages(messages, document.getElementById('leadership-chat-window'), 'leadership_chat');
                 });
             }
-             // Leaders Chat Listener
-            if (isUserLeader(currentUserData) || currentUserData.isAdmin) {
-                document.getElementById('leaders-tab-btn').classList.remove('hidden');
-                const leadersChatQuery = query(collection(db, "leaders_chat"), orderBy("timestamp", "desc"), limit(50));
-                leadersChatListener = onSnapshot(leadersChatQuery, (snapshot) => {
-                    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderMessages(messages, document.getElementById('leaders-chat-window'), 'leaders_chat');
-                });
-            } else {
-                 document.getElementById('leaders-tab-btn').classList.add('hidden');
-            }
-            
-            // Friends Listener
-            const friendsQuery = query(collection(db, `users/${currentUserData.uid}/friends`));
-            friendsListener = onSnapshot(friendsQuery, renderFriendsLists);
-
         }
 
-        function detachSocialListeners() {
+        function detachChatListeners() {
             if (worldChatListener) worldChatListener();
             if (allianceChatListener) allianceChatListener();
             if (leadershipChatListener) leadershipChatListener();
-            if (leadersChatListener) leadersChatListener();
-            if (friendsListener) friendsListener();
-            worldChatListener = allianceChatListener = leadershipChatListener = leadersChatListener = friendsListener = null;
+            worldChatListener = null;
+            allianceChatListener = null;
+            leadershipChatListener = null;
         }
 
         function renderMessages(messages, container, chatType) {
@@ -2878,57 +2781,23 @@ service cloud.firestore {
             }
             messages.forEach(msg => {
                 const isSelf = msg.authorUid === currentUserData.uid;
-                const canDelete = currentUserData.isAdmin || (isUserLeader(currentUserData) && (chatType === 'alliance_chat' || chatType === 'leadership_chat'));
+                const canDelete = currentUserData.isAdmin || (chatType === 'alliance_chat' && currentUserData.allianceRank === 'R5');
                 
-                const author = allPlayers.find(p => p.uid === msg.authorUid);
-                const rankColor = author ? getRankColor(author.allianceRank, author.isAdmin) : 'transparent';
-                const avatarUrl = msg.authorAvatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(msg.authorUsername || '?').charAt(0).toUpperCase()}`;
-                const timestamp = msg.timestamp?.toDate().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit'}) || '';
+                const avatarUrl = msg.authorAvatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${msg.authorUsername.charAt(0).toUpperCase()}`;
 
                 const messageEl = document.createElement('div');
                 messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
                 messageEl.innerHTML = `
-                    <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0 object-cover" alt="${msg.authorUsername}">
-                    <div class="chat-message-content">
-                        <div class="chat-message-bubble" style="border-color: ${rankColor};">
-                             <div class="message-actions">
-                                <span class="reaction-btn" data-reaction="❤️">❤️</span>
-                                <span class="reaction-btn" data-reaction="😂">😂</span>
-                                <span class="reaction-btn" data-reaction="👍">👍</span>
-                            </div>
-                            <div class="chat-message-header">
-                                <span class="chat-message-author">${msg.authorUsername}</span>
-                                <span class="chat-message-timestamp">${timestamp}</span>
-                            </div>
-                            <p class="text-sm">${msg.text}</p>
-                        </div>
+                    <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0" alt="${msg.authorUsername}">
+                    <div class="chat-message-bubble">
+                        <p class="chat-message-author">${msg.authorUsername}</p>
+                        <p class="text-sm">${msg.text}</p>
                     </div>
                     ${canDelete ? `<button class="delete-message-btn" data-id="${msg.id}" data-type="${chatType}"><i class="fas fa-times"></i></button>` : ''}
                 `;
                 container.appendChild(messageEl);
             });
         }
-        
-        function renderAllianceSideLists() {
-            if (!currentUserData || !currentUserData.alliance) {
-                allianceAnnouncementsList.innerHTML = `<p class="text-gray-400 text-center">Join an alliance to see announcements.</p>`;
-                allianceEventsList.innerHTML = `<p class="text-gray-400 text-center">Join an alliance to see events.</p>`;
-                return;
-            }
-
-            const alliancePosts = allPosts.filter(p => p.alliance === currentUserData.alliance);
-            const announcements = alliancePosts.filter(p => p.mainType === 'announcement').slice(0, 5);
-            const events = alliancePosts.filter(p => p.mainType === 'event').slice(0, 5);
-
-            allianceAnnouncementsList.innerHTML = announcements.length > 0 
-                ? announcements.map(p => `<div class="list-item" data-id="${p.id}"><p class="font-bold truncate">${p.title}</p><p class="text-xs text-gray-400">${p.createdAt?.toDate().toLocaleDateString()}</p></div>`).join('')
-                : `<p class="text-gray-400 text-center">No announcements.</p>`;
-
-            allianceEventsList.innerHTML = events.length > 0 
-                ? events.map(p => `<div class="list-item" data-id="${p.id}"><p class="font-bold truncate">${p.title}</p><p class="text-xs text-gray-400">${p.startTime?.toDate().toLocaleDateString()}</p></div>`).join('')
-                : `<p class="text-gray-400 text-center">No events.</p>`;
-        }
-
 
         async function handleSendMessage(e, chatType) {
             e.preventDefault();
@@ -2947,11 +2816,7 @@ service cloud.firestore {
                     break;
                 case 'leadership_chat':
                     input = document.getElementById('leadership-chat-input');
-                    collectionPath = `leadership_chats/${currentUserData.alliance}/messages`;
-                    break;
-                case 'leaders_chat':
-                    input = document.getElementById('leaders-chat-input');
-                    collectionPath = 'leaders_chat';
+                    collectionPath = 'leadership_chat';
                     break;
             }
 
@@ -2964,9 +2829,8 @@ service cloud.firestore {
                 authorUid: currentUserData.uid,
                 authorUsername: currentUserData.username,
                 authorAvatarUrl: currentUserData.avatarUrl || null,
-                alliance: currentUserData.alliance || null,
-                timestamp: serverTimestamp(),
-                reactions: {}
+                alliance: currentUserData.alliance,
+                timestamp: serverTimestamp()
             };
 
             try {
@@ -2978,8 +2842,8 @@ service cloud.firestore {
         }
 
         document.getElementById('world-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
-        // document.getElementById('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
-        // document.getElementById('leadership-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
+        document.getElementById('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
+        document.getElementById('leadership-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
         
         async function handleDeleteMessage(e) {
             const deleteBtn = e.target.closest('.delete-message-btn');
@@ -2998,12 +2862,7 @@ service cloud.firestore {
                     docPath = `alliance_chats/${currentUserData.alliance}/messages/${messageId}`;
                     break;
                 case 'leadership_chat':
-                    if (!currentUserData.alliance) return;
-                    docPath = `leadership_chats/${currentUserData.alliance}/messages/${messageId}`;
-                    break;
-                case 'leaders_chat':
-                     if (!currentUserData.isAdmin) return;
-                    docPath = `leaders_chat/${messageId}`;
+                    docPath = `leadership_chat/${messageId}`;
                     break;
                 default:
                     return;
@@ -3019,114 +2878,6 @@ service cloud.firestore {
         }
 
         document.getElementById('page-social').addEventListener('click', handleDeleteMessage);
-
-        // --- FRIENDS LIST LOGIC ---
-        function renderFriendsLists(snapshot) {
-            const friends = [];
-            const requestsReceived = [];
-            const requestsSent = [];
-
-            snapshot.forEach(doc => {
-                const friendData = { id: doc.id, ...doc.data() };
-                if (friendData.status === 'accepted') friends.push(friendData);
-                else if (friendData.status === 'pending_received') requestsReceived.push(friendData);
-                else if (friendData.status === 'pending_sent') requestsSent.push(friendData);
-            });
-            
-            renderFriendList(friends, friendsList, 'You have no friends yet.');
-            renderRequestsList(requestsReceived, friendRequestsList, 'No pending requests.');
-            renderSentList(requestsSent, sentRequestsList, 'No sent requests.');
-        }
-
-        function createFriendHTML(playerData, type) {
-            if (!playerData) return '';
-            const avatarUrl = playerData.avatarUrl || `https://placehold.co/40x40/0D1117/FFFFFF?text=${(playerData.username || '?').charAt(0).toUpperCase()}`;
-            
-            let actionsHTML = '';
-            if (type === 'friend') {
-                actionsHTML = `<button class="friend-action-btn decline" data-action="remove" data-uid="${playerData.uid}">Remove</button>`;
-            } else if (type === 'request') {
-                actionsHTML = `
-                    <button class="friend-action-btn accept" data-action="accept" data-uid="${playerData.uid}">Accept</button>
-                    <button class="friend-action-btn decline" data-action="decline" data-uid="${playerData.uid}">Decline</button>
-                `;
-            } else if (type === 'sent') {
-                actionsHTML = `<button class="friend-action-btn decline" data-action="cancel" data-uid="${playerData.uid}">Cancel</button>`;
-            }
-
-            return `
-                <div class="friend-list-item" data-uid="${playerData.uid}">
-                    <img src="${avatarUrl}" class="w-8 h-8 rounded-full mr-3 object-cover" alt="${playerData.username}">
-                    <div class="flex-grow">
-                        <p class="font-semibold text-white">${playerData.username}</p>
-                        <p class="text-xs text-gray-400">[${playerData.alliance}]</p>
-                    </div>
-                    <div class="flex items-center gap-2">${actionsHTML}</div>
-                </div>`;
-        }
-        
-        function renderFriendList(list, container, emptyMessage) {
-            if (list.length === 0) {
-                container.innerHTML = `<p class="text-gray-400 text-center p-4">${emptyMessage}</p>`;
-                return;
-            }
-            container.innerHTML = list.map(item => {
-                const playerData = allPlayers.find(p => p.uid === item.id);
-                return createFriendHTML(playerData, 'friend');
-            }).join('');
-        }
-        
-        function renderRequestsList(list, container, emptyMessage) {
-            if (list.length === 0) {
-                container.innerHTML = `<p class="text-gray-400 text-center p-4">${emptyMessage}</p>`;
-                return;
-            }
-            container.innerHTML = list.map(item => {
-                const playerData = allPlayers.find(p => p.uid === item.id);
-                return createFriendHTML(playerData, 'request');
-            }).join('');
-        }
-        
-        function renderSentList(list, container, emptyMessage) {
-             if (list.length === 0) {
-                container.innerHTML = `<p class="text-gray-400 text-center p-4">${emptyMessage}</p>`;
-                return;
-            }
-            container.innerHTML = list.map(item => {
-                const playerData = allPlayers.find(p => p.uid === item.id);
-                return createFriendHTML(playerData, 'sent');
-            }).join('');
-        }
-
-        async function sendFriendRequest(targetUserId) {
-            if (!currentUserData || targetUserId === currentUserData.uid) return;
-            const batch = writeBatch(db);
-            const myFriendRef = doc(db, `users/${currentUserData.uid}/friends/${targetUserId}`);
-            const theirFriendRef = doc(db, `users/${targetUserId}/friends/${currentUserData.uid}`);
-            batch.set(myFriendRef, { status: 'pending_sent', createdAt: serverTimestamp() });
-            batch.set(theirFriendRef, { status: 'pending_received', createdAt: serverTimestamp() });
-            await batch.commit();
-        }
-
-        async function acceptFriendRequest(friendId) {
-             if (!currentUserData) return;
-             const batch = writeBatch(db);
-             const myFriendRef = doc(db, `users/${currentUserData.uid}/friends/${friendId}`);
-             const theirFriendRef = doc(db, `users/${friendId}/friends/${currentUserData.uid}`);
-             batch.update(myFriendRef, { status: 'accepted' });
-             batch.update(theirFriendRef, { status: 'accepted' });
-             await batch.commit();
-        }
-
-        async function declineOrCancelRequest(friendId) {
-             if (!currentUserData) return;
-             const batch = writeBatch(db);
-             const myFriendRef = doc(db, `users/${currentUserData.uid}/friends/${friendId}`);
-             const theirFriendRef = doc(db, `users/${friendId}/friends/${currentUserData.uid}`);
-             batch.delete(myFriendRef);
-             batch.delete(theirFriendRef);
-             await batch.commit();
-        }
 
 
         // --- GLOBAL EVENT LISTENERS ---
@@ -3161,6 +2912,9 @@ service cloud.firestore {
                 if (!e.target.closest('.nav-item')) {
                     document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));
                 }
+                if (!e.target.closest('#user-profile-container')) {
+                    userProfileContainer.classList.remove('open');
+                }
                 if (!e.target.closest('.custom-select-container')) {
                     document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
                 }
@@ -3176,72 +2930,38 @@ service cloud.firestore {
             });
 
             eventsMainContainer.addEventListener('click', e => {
-                const trigger = e.target.closest('.post-card-actions-trigger, #create-announcement-btn, #create-event-btn');
-                if (!trigger) return;
-                
-                if (trigger.id === 'create-announcement-btn') {
-                    showCreatePostModal('announcement');
-                } else if (trigger.id === 'create-event-btn') {
-                    showCreatePostModal('event');
-                } else if (trigger.classList.contains('post-card-actions-trigger')) {
-                    const postId = trigger.dataset.postId;
+                const actionsBtn = e.target.closest('.post-card-actions-trigger');
+                if (actionsBtn) {
+                    const postId = actionsBtn.dataset.postId;
                     showPostActionsModal(postId);
+                }
+                const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
+                if (createAnnouncementBtn) {
+                    showCreatePostModal('announcement');
+                }
+
+                const createEventBtn = e.target.closest('#create-event-btn');
+                if (createEventBtn) {
+                    showCreatePostModal('event');
                 }
             });
 
             document.getElementById('modal-edit-post-btn').addEventListener('click', () => {
                 if (actionPostId) {
-                    const postIdToEdit = actionPostId;
-                    hideAllModals(); // Hide first to prevent layout shifts
-                    populatePostFormForEdit(postIdToEdit);
+                    hideAllModals();
+                    populatePostFormForEdit(actionPostId);
                 }
             });
 
             document.getElementById('modal-delete-post-btn').addEventListener('click', () => {
                 if (actionPostId) {
                     const postToDelete = allPosts.find(p => p.id === actionPostId);
-                    const postId = actionPostId; // Capture before hiding modal clears it
                     hideAllModals();
                     showConfirmationModal('Delete Post?', `Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`, () => {
-                        deleteDoc(doc(db, 'posts', postId))
+                        deleteDoc(doc(db, 'posts', actionPostId))
                             .catch(err => console.error("Error deleting post: ", err));
                     });
                 }
-            });
-            
-            playerListContainer.addEventListener('click', e => {
-                const card = e.target.closest('.player-card');
-                if (!card) return;
-                const targetUid = card.dataset.uid;
-                
-                const settingsBtn = e.target.closest('.player-settings-btn');
-                if (settingsBtn) {
-                     const targetPlayer = allPlayers.find(p => p.uid === targetUid);
-                     if(targetPlayer) showPlayerSettingsModal(targetPlayer);
-                     return;
-                }
-
-                const actionBtn = e.target.closest('button[data-action]');
-                if(actionBtn) {
-                    const action = actionBtn.dataset.action;
-                    if (action === 'add-friend') {
-                        sendFriendRequest(targetUid);
-                        actionBtn.innerHTML = '<i class="fas fa-user-clock"></i>'; // Change icon to pending
-                        actionBtn.disabled = true;
-                    }
-                }
-            });
-
-            document.getElementById('pane-friends').addEventListener('click', e => {
-                 const actionBtn = e.target.closest('.friend-action-btn');
-                 if (!actionBtn) return;
-                 const uid = actionBtn.dataset.uid;
-                 const action = actionBtn.dataset.action;
-
-                 if (action === 'accept') acceptFriendRequest(uid);
-                 else if (action === 'decline' || action === 'cancel' || action === 'remove') {
-                    declineOrCancelRequest(uid);
-                 }
             });
 
             showPage('page-events'); 
