@@ -4,8 +4,6 @@ service cloud.firestore {
   match /databases/{database}/documents {
   
     // --- HELPER FUNCTIONS ---
-    // These functions make the rules below easier to read and maintain.
-    
     function isSignedIn() {
       return request.auth != null;
     }
@@ -37,13 +35,15 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
-    // Users can read all profiles, but only write to their own.
     match /users/{userId} {
       allow read, list: if true;
       allow write: if isOwner(userId);
     }
+    
+    match /users/{userId}/notifications/{notificationId} {
+        allow read, list, write, delete: if isOwner(userId);
+    }
 
-    // Rules for posts (events and announcements)
     match /posts/{postId} {
       allow list: if true; 
       allow read: if resource.data.visibility == 'public' ||
@@ -53,15 +53,10 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && (isOwner(resource.data.authorUid) || isAdmin());
     }
 
-    // World chat is readable by logged-in users.
     match /world_chat/{messageId} {
       allow read, list, create: if isSignedIn();
       allow delete: if isSignedIn() && (isOwner(resource.data.authorUid) || isAdmin());
     }
-
-    // --- FIX: Corrected Alliance and Leadership Chat Rules ---
-    // These rules now correctly check the user's document in the database
-    // instead of checking for special login tokens.
     
     match /alliance_chats/{allianceId}/messages/{messageId} {
         allow read, list, create: if isVerified() && isMemberOf(allianceId);
@@ -73,9 +68,17 @@ service cloud.firestore {
        allow delete: if isLeader() && isMemberOf(allianceId);
     }
 
-    // Users can only manage their own friends list.
+    /**
+     * --- FIX ---
+     * The rule for the friends subcollection has been updated.
+     * It now allows a signed-in user to write to another user's friends list,
+     * but ONLY if the friend document ID they are writing matches their own UID.
+     * This allows for sending/accepting/declining requests securely.
+     */
     match /users/{userId}/friends/{friendId} {
-      allow read, list, write, delete: if isOwner(userId);
+      allow read, list: if isOwner(userId);
+      allow write: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
+      allow delete: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
     }
   }
 }
