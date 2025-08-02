@@ -1,6 +1,11 @@
 // js/api.js
 
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, addDoc, serverTimestamp, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+/**
+ * --- FIX ---
+ * Imported the 'limit' function from the Firestore SDK.
+ * This was causing a ReferenceError in the listenToChat function.
+ */
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, addDoc, serverTimestamp, deleteDoc, writeBatch, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 /**
@@ -71,7 +76,7 @@ export async function sendMessage(chatType, allianceId, messageData) {
         case 'leadership-chat': collectionPath = `leadership_chats/${allianceId}/messages`; break;
         default: throw new Error("Invalid chat type for sending message.");
     }
-    await addDoc(collection(db, collectionPath), messageData);
+    await addDoc(collection(db, collectionPath), { ...messageData, timestamp: serverTimestamp() });
 }
 
 export async function deleteMessage(chatType, allianceId, messageId) {
