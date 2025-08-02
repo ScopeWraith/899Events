@@ -1,73 +1,66 @@
 // js/auth.js
-import { onAuthStateChanged as firebaseOnAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { onAuthStateChanged as firebaseOnAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { uploadFileAndGetURL } from './api.js';
 
 let auth, db;
-let userDocListener = null; // To keep track of the Firestore listener
 
-/**
- * Initializes the Auth module with Firebase services.
- * @param {object} firebaseServices - An object containing initialized auth and db.
- */
 export function initAuth(firebaseServices) {
     auth = firebaseServices.auth;
     db = firebaseServices.db;
+    // --- FIX: Ensure user stays logged in across sessions ---
+    setPersistence(auth, browserLocalPersistence);
 }
 
 /**
- * This is the core of the session management fix.
- * It wraps the standard Firebase auth listener. When a user logs in,
- * it immediately fetches their profile from Firestore and provides the
- * complete user object (auth + profile data) in the callback.
- * This ensures the rest of the app always has the user's full permissions.
- * @param {function} onLogin - Callback function with the full user profile.
- * @param {function} onLogout - Callback function when a user logs out.
+ * --- OVERHAUL: Robust Session Management ---
+ * This function is now the single source of truth for the user's session.
+ * It returns a Promise that resolves only when the initial auth check is complete.
+ * This prevents the app from running any user-specific logic too early.
  */
-export function onAuthStateChanged(onLogin, onLogout) {
-    firebaseOnAuthStateChanged(auth, (user) => {
-        if (userDocListener) userDocListener(); // Unsubscribe from any previous profile listener
-
-        if (user) {
-            // User is authenticated, now get their profile from Firestore in real-time
-            const userDocRef = doc(db, "users", user.uid);
-            userDocListener = onSnapshot(userDocRef, (userDoc) => {
+export function handleAuthStateChange() {
+    return new Promise((resolve) => {
+        const unsubscribe = firebaseOnAuthStateChanged(auth, async (user) => {
+            unsubscribe(); // We only need the first result to start the app
+            if (user) {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
                 if (userDoc.exists()) {
-                    // Combine auth uid with Firestore data for a complete profile
                     const fullUserProfile = { uid: user.uid, ...userDoc.data() };
-                    onLogin(fullUserProfile); // Pass the complete profile to the app
+                    resolve(fullUserProfile); // Resolve with the complete user profile
                 } else {
-                    // This can happen if a user is deleted from Firestore but not Auth.
-                    // Treat them as logged out.
-                    onLogout();
+                    resolve(null); // User exists in Auth, but not Firestore
                 }
-            });
-        } else {
-            // User is not authenticated
-            onLogout();
-        }
+            } else {
+                resolve(null); // No user is logged in
+            }
+        });
     });
 }
 
 /**
- * Handles user logout.
+ * A separate listener for real-time profile updates AFTER the initial load.
  */
+export function listenForProfileUpdates(uid, callback) {
+    const userDocRef = doc(db, "users", uid);
+    return onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+            callback({ uid, ...doc.data() });
+        }
+    });
+}
+
+
 export function handleLogout() {
     signOut(auth).catch(error => console.error("Logout error:", error));
 }
 
-/**
- * Handles user login.
- */
 export async function handleLogin(email, password) {
     await signInWithEmailAndPassword(auth, email, password);
 }
 
-/**
- * Handles new user registration.
- */
 export async function handleRegistration(formData) {
-    const { email, password, username, alliance, allianceRank, power, avatarBlob } = formData;
+    const { email, password, username, alliance, allianceRank, power, tankPower, airPower, missilePower, avatarBlob } = formData;
 
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -80,11 +73,15 @@ export async function handleRegistration(formData) {
     const userProfile = {
         username, email, alliance, allianceRank,
         power: parseInt(String(power).replace(/,/g, ''), 10) || 0,
+        tankPower: parseInt(String(tankPower).replace(/,/g, ''), 10) || 0,
+        airPower: parseInt(String(airPower).replace(/,/g, ''), 10) || 0,
+        missilePower: parseInt(String(missilePower).replace(/,/g, ''), 10) || 0,
         isVerified: false, 
         avatarUrl,
-        isAdmin: false,
+        isAdmin: email === 'mikestancato@gmail.com', // Example admin check
         registrationTimestampUTC: new Date().toISOString(),
     };
+    if (userProfile.isAdmin) userProfile.isVerified = true;
 
     await setDoc(doc(db, "users", user.uid), userProfile);
 }
