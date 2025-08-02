@@ -1,171 +1,3 @@
-<!-- 
-===============================================
-FIREBASE SECURITY RULES (FIRESTORE)
-===============================================
-NOTE: The 'if' statements in these rules are the correct and required syntax for Firestore Security Rules (version 2) on 'allow' lines.
-
-rules_version = '2';
-
-service cloud.firestore {
-  match /databases/{database}/documents {
-    
-    // --- HELPER FUNCTIONS ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-    
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function getUserData(userId) {
-      // Caching user data reads can optimize rule execution.
-      return get(/databases/$(database)/documents/users/$(userId)).data;
-    }
-
-    function isAdmin() {
-      return isSignedIn() && getUserData(request.auth.uid).isAdmin == true;
-    }
-    
-    function isVerified() {
-      return isSignedIn() && getUserData(request.auth.uid).isVerified == true;
-    }
-    
-    function isLeader() {
-        let userRank = getUserData(request.auth.uid).allianceRank;
-        return isAdmin() || (isVerified() && (userRank == 'R5' || userRank == 'R4'));
-    }
-
-    function isMemberOf(allianceId) {
-        return isSignedIn() && getUserData(request.auth.uid).alliance == allianceId;
-    }
-
-    // --- USER DATA & FRIENDS ---
-    match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || canManageUser(userId);
-      allow delete: if isOwner(userId);
-    }
-    
-    match /users/{userId}/friends/{friendId} {
-        allow read: if isOwner(userId);
-        allow write: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
-    }
-
-    function canManageUser(targetUserId) {
-      let managerData = getUserData(request.auth.uid);
-      let targetData = getUserData(targetUserId);
-      return isSignedIn() && (
-        managerData.isAdmin == true ||
-        (
-          managerData.alliance == targetData.alliance &&
-          (
-            (managerData.allianceRank == 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetData.allianceRank)) ||
-            (managerData.allianceRank == 'R4' && ['R3', 'R2', 'R1'].includes(targetData.allianceRank))
-          )
-        )
-      );
-    }
-
-    // --- POSTS (ANNOUNCEMENTS & EVENTS) ---
-    match /posts/{postId} {
-      allow read: if true;
-      allow create: if canCreatePost(request.resource.data);
-      allow update, delete: if isOwner(resource.data.authorUid) || isAdmin();
-    }
-    
-    function canCreatePost(postData) {
-      let userRank = getUserData(request.auth.uid).allianceRank;
-      return isOwner(postData.authorUid) && (
-        isAdmin() ||
-        (
-          !(postData.subType == 'server' || postData.subType == 'seasonal' || postData.subType == 'hot_deals' || postData.subType == 'wanted_boss' || postData.subType == 'campaign' || postData.subType == 'vs') &&
-          !(!isVerified() && postData.subType == 'alliance' && postData.mainType == 'event') &&
-          (
-            (postData.subType == 'alliance' && (userRank == 'R5' || userRank == 'R4')) ||
-            (postData.subType == 'leadership' && userRank == 'R5')
-          )
-        )
-      );
-    }
-    
-    // --- CHAT CHANNELS ---
-    match /world_chat/{messageId} {
-        allow read: if isSignedIn();
-        allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid;
-        allow update, delete: if isAdmin();
-    }
-    
-    match /leadership_chat/{messageId} {
-        allow read, create: if isLeader();
-        allow update, delete: if isAdmin();
-    }
-    
-    match /alliance_chats/{allianceId}/messages/{messageId} {
-        allow read, create: if isMemberOf(allianceId);
-        allow update, delete: if (isLeader() && isMemberOf(allianceId));
-    }
-    
-    // --- ALLIANCE-SPECIFIC EVENTS & ANNOUNCEMENTS ---
-    match /alliance_chats/{allianceId}/announcements/{announcementId} {
-        allow read: if isMemberOf(allianceId);
-        allow create, update, delete: if isLeader() && isMemberOf(allianceId);
-    }
-    
-    match /alliance_chats/{allianceId}/events/{eventId} {
-        allow read: if isMemberOf(allianceId);
-        allow create, update, delete: if isLeader() && isMemberOf(allianceId);
-    }
-  }
-}
--->
-
-<!-- 
-===============================================
-FIREBASE SECURITY RULES (STORAGE)
-===============================================
-These rules should be deployed to your Firebase project's Storage settings.
-
-rules_version = '2';
-
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /avatars/{userId} {
-      allow read;
-      allow write: if request.auth != null 
-                   && request.auth.uid == userId
-                   && request.resource.size < 2 * 1024 * 1024 // Max 2MB for larger images
-                   && request.resource.contentType.matches('image/.*');
-    }
-
-    match /post_thumbnails/{postId} {
-        allow read;
-        allow write: if request.auth != null
-                     && request.resource.size < 2 * 1024 * 1024 // Max 2MB for larger images
-                     && request.resource.contentType.matches('image/.*');
-    }
-  }
-}
--->
-
-<!--
-===============================================
-CHANGELOG
-===============================================
-- Prompt 58:
-    - Implemented full real-time chat functionality for World, Alliance, and Leadership channels.
-    - Added ability for Admins to delete any chat message and for R5s to delete messages in their own alliance chat.
-    - Simplified main navigation by removing "Alliances" and "Tools" links for a cleaner UI.
-- Prompt 57: Added foundation for a social network:
-    - New "Social" page with a tabbed interface for World Chat, Alliance Chat, Leadership Chat, and Friends.
-    - Designed UI for chat windows, message input, and friends list management.
-    - Updated Firestore security rules to support friends lists, public/private chat channels, and alliance-specific content.
-- Prompt 56: Removed global "Create" button and added context-specific "+" buttons next to "Announcements" and "Events" headers to streamline post creation.
-- Prompt 55: Removed the unused "Filter Posts" mobile panel from the HTML and JavaScript.
-- Prompt 54: Replaced Edit/Delete buttons with a gear icon overlay on the card thumbnail, which opens an actions modal.
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -587,13 +419,48 @@ CHANGELOG
         .chat-message.self .delete-message-btn {
             left: -25px;
         }
+        
+        #alliance-announcements-list .list-item,
+        #alliance-events-list .list-item {
+            background-color: rgba(0,0,0,0.2);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            border-left: 3px solid var(--color-alliance);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #alliance-announcements-list .list-item:hover,
+        #alliance-events-list .list-item:hover {
+            background-color: rgba(0,0,0,0.4);
+        }
+        .friend-list-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+        .friend-list-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .friend-action-btn {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .friend-action-btn.accept { background-color: #238636; color: white; }
+        .friend-action-btn.accept:hover { background-color: #2ea043; }
+        .friend-action-btn.decline { background-color: #da3633; color: white; }
+        .friend-action-btn.decline:hover { background-color: #f85149; }
+
 
     </style>
 </head>
 <body>
     <canvas id="particle-canvas"></canvas>
 
-    <!-- Mobile Nav Menu -->
     <div id="mobile-nav-menu" class="glass-pane !rounded-l-lg !rounded-r-none">
         <div class="p-4 flex justify-between items-center border-b border-white/10">
             <h3 class="text-xl font-bold text-white">Menu</h3>
@@ -602,7 +469,6 @@ CHANGELOG
         <nav id="mobile-nav-links" class="flex flex-col p-2"></nav>
     </div>
 
-    <!-- Auth & Edit Modals -->
     <div id="modal-backdrop" class="modal-backdrop"></div>
     <div id="auth-modal-container" class="modal-container">
         <div class="glass-pane">
@@ -611,7 +477,6 @@ CHANGELOG
                     <i class="fas fa-times fa-lg"></i>
                 </button>
                 <div class="modal-content-scroll">
-                    <!-- Login Form -->
                     <div id="login-form-container" class="auth-form">
                         <h2 class="text-2xl font-bold text-white text-center mb-4">Login</h2>
                         <p class="text-center text-gray-400 mb-6">Welcome back to the 899 Hub.</p>
@@ -630,7 +495,6 @@ CHANGELOG
                             </p>
                         </form>
                     </div>
-                    <!-- Registration Form -->
                     <div id="register-form-container" class="auth-form">
                         <div id="registration-flow">
                             <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
@@ -744,7 +608,6 @@ CHANGELOG
         </div>
     </div>
 
-    <!-- Player Settings Modal -->
     <div id="player-settings-modal-container" class="modal-container">
          <div class="glass-pane">
             <div class="modal-content-wrapper">
@@ -790,7 +653,6 @@ CHANGELOG
         </div>
     </div>
 
-    <!-- Create/Edit Post Modal -->
     <div id="create-post-modal-container" class="modal-container">
          <div class="glass-pane">
             <div class="modal-content-wrapper">
@@ -800,23 +662,18 @@ CHANGELOG
                 <div class="modal-content-scroll">
                     <form id="create-post-form">
                         <div id="post-creation-flow">
-                             <!-- Slide 1: Main Type (Event vs Announcement) - SKIPPED IN NEW FLOW -->
-                            <div class="form-slide" data-slide="1">
+                             <div class="form-slide" data-slide="1">
                                 <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
                                 <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
                                 <div id="post-main-type-selection-container" class="space-y-4">
-                                   <!-- Dynamically inserted buttons for Event/Announcement -->
-                                </div>
+                                   </div>
                             </div>
-                            <!-- Slide 2: Sub-Type Selection -->
                             <div class="form-slide" data-slide="2">
                                 <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
                                 <p class="text-center text-gray-400 mb-6">Select a category.</p>
                                 <div id="post-subtype-selection-container" class="space-y-3">
-                                   <!-- Dynamically inserted sub-type buttons -->
-                                </div>
+                                   </div>
                             </div>
-                            <!-- Slide 3: Content -->
                             <div class="form-slide" data-slide="3">
                                 <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
                                 <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
@@ -845,8 +702,7 @@ CHANGELOG
                                     </div>
                                 </div>
                             </div>
-                             <!-- Slide 4: Timing (for events) -->
-                            <div class="form-slide" data-slide="4">
+                             <div class="form-slide" data-slide="4">
                                 <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
                                 <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
                                 <div id="post-timing-group" class="space-y-4">
@@ -911,7 +767,6 @@ CHANGELOG
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
     <div id="confirmation-modal-container" class="modal-container">
         <div class="glass-pane">
             <div class="modal-content-wrapper p-6 text-center">
@@ -925,7 +780,6 @@ CHANGELOG
         </div>
     </div>
 
-    <!-- Post Actions Modal -->
     <div id="post-actions-modal-container" class="modal-container" style="max-width: 300px;">
         <div class="glass-pane">
             <div class="modal-content-wrapper p-4">
@@ -982,13 +836,10 @@ CHANGELOG
                 <button id="open-mobile-menu-btn" class="md:hidden auth-button !px-4"><span class="font-bold tracking-wider">MENU</span></button>
             </header>
 
-            <!-- Page Content Container -->
             <div id="page-container">
-                <!-- Social Page -->
                 <div id="page-social" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
                         <div class="flex flex-col md:flex-row gap-4">
-                            <!-- Main Content: Tabs and Panes -->
                             <div class="flex-grow">
                                 <div class="social-tabs flex items-center mb-4">
                                     <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World Chat</button>
@@ -997,11 +848,9 @@ CHANGELOG
                                     <button class="social-tab-btn" data-tab="friends"><i class="fas fa-user-friends mr-2"></i>Friends</button>
                                 </div>
 
-                                <!-- World Chat Pane -->
                                 <div id="pane-world-chat" class="social-content-pane active">
                                     <div class="flex flex-col h-full">
                                         <div id="world-chat-window" class="chat-window p-4 flex-grow">
-                                            <!-- Messages will be injected here -->
                                             <p class="text-center text-gray-500 m-auto">Welcome to World Chat!</p>
                                         </div>
                                         <form id="world-chat-form" class="mt-4 flex gap-2">
@@ -1011,7 +860,6 @@ CHANGELOG
                                     </div>
                                 </div>
 
-                                <!-- Alliance Chat Pane -->
                                 <div id="pane-alliance-chat" class="social-content-pane">
                                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                         <div class="lg:col-span-2 flex flex-col h-full">
@@ -1040,7 +888,6 @@ CHANGELOG
                                     </div>
                                 </div>
 
-                                <!-- Leadership Chat Pane -->
                                 <div id="pane-leadership-chat" class="social-content-pane">
                                     <div class="flex flex-col h-full">
                                         <div id="leadership-chat-window" class="chat-window p-4 flex-grow">
@@ -1053,7 +900,6 @@ CHANGELOG
                                     </div>
                                 </div>
                                 
-                                <!-- Friends Pane -->
                                 <div id="pane-friends" class="social-content-pane">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
@@ -1079,7 +925,6 @@ CHANGELOG
                     </div>
                 </div>
 
-                <!-- Players Page -->
                 <div id="page-players" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
                         <div class="text-center mb-8">
@@ -1105,55 +950,42 @@ CHANGELOG
                         </div>
 
                         <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                             <!-- Player cards will be inserted here -->
-                        </div>
+                             </div>
                     </div>
                 </div>
-                <!-- Events Page -->
                 <div id="page-events" class="page-content">
                     <main id="events-main-container" class="space-y-6">
                         
                         <div id="filter-container" class="filter-btn-group">
-                            <!-- Filter buttons will be dynamically inserted here -->
-                        </div>
+                            </div>
 
                         <div id="announcements-container" class="space-y-4">
-                            <!-- Skeletons or announcement cards will be rendered here -->
-                        </div>
+                            </div>
 
                         <div id="events-section-container" class="space-y-4">
-                            <!-- Skeletons or event group headers and lists will be rendered here -->
-                        </div>
+                            </div>
 
                     </main>
                 </div>
-                <!-- Top Alliances Page -->
                 <div id="page-top-alliances" class="page-content" style="display: none;">
                     <div class="glass-pane section-container">
                         <h2 class="text-3xl font-bold text-white text-center mb-8">Top Alliances</h2>
                         <div id="podium-container" class="flex flex-col md:flex-row items-end justify-center gap-4">
-                            <!-- 2nd Place -->
                             <div class="w-full md:w-1/4 order-2 md:order-1">
                                 <div id="silver-podium" class="glass-pane podium-card podium-silver h-full">
-                                    <!-- Silver/2nd place content will be populated here -->
-                                </div>
+                                    </div>
                             </div>
-                            <!-- 1st Place -->
                             <div class="w-full md:w-1/3 order-1 md:order-2">
                                 <div id="gold-podium" class="glass-pane podium-card podium-gold h-full">
-                                    <!-- Gold/1st place content will be populated here -->
-                                </div>
+                                    </div>
                             </div>
-                            <!-- 3rd Place -->
                             <div class="w-full md:w-1/4 order-3 md:order-3">
                                 <div id="bronze-podium" class="glass-pane podium-card podium-bronze h-full">
-                                    <!-- Bronze/3rd place content will be populated here -->
-                                </div>
+                                    </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- Other Pages -->
                 <div id="page-alliance-list" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Alliance List</h2></div></div>
                 <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
                 <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
@@ -1168,11 +1000,10 @@ CHANGELOG
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const firebaseConfig = {
@@ -1275,6 +1106,11 @@ CHANGELOG
         const verificationToggleContainer = document.getElementById('verification-toggle-container');
         const eventsMainContainer = document.getElementById('events-main-container');
         const filterContainer = document.getElementById('filter-container');
+        const allianceAnnouncementsList = document.getElementById('alliance-announcements-list');
+        const allianceEventsList = document.getElementById('alliance-events-list');
+        const friendsList = document.getElementById('friends-list');
+        const friendRequestsList = document.getElementById('friend-requests-list');
+        const sentRequestsList = document.getElementById('sent-requests-list');
 
 
         let activePlayerSettingsUID = null;
@@ -1285,10 +1121,11 @@ CHANGELOG
         let editingPostId = null;
         let actionPostId = null; // For the post actions modal
         
-        // --- CHAT LISTENERS ---
+        // --- CHAT & SOCIAL LISTENERS ---
         let worldChatListener = null;
         let allianceChatListener = null;
         let leadershipChatListener = null;
+        let friendsListener = null;
 
         // --- UTILITY & SKELETON FUNCTIONS ---
         function formatTimeAgo(date) {
@@ -1467,9 +1304,12 @@ CHANGELOG
         function showPlayerSettingsModal(player) { activePlayerSettingsUID = player.uid; showModal(playerSettingsModalContainer); populatePlayerSettingsForm(player); }
         
         function showCreatePostModal(mainType) { 
-            editingPostId = null;
+            editingPostId = null; // Ensure we are in "create" mode
             document.getElementById('create-post-form').reset();
-            document.getElementById('post-nav-container').style.display = 'flex';
+            postNavContainer.style.display = 'flex';
+            postNavContainer.querySelector('#post-submit-btn').classList.add('hidden');
+            postNavContainer.querySelector('#post-next-btn').classList.remove('hidden');
+
             showModal(createPostModalContainer); 
             initializePostStepper(mainType);
             document.getElementById('post-content-header').textContent = 'Create New Post';
@@ -1510,6 +1350,7 @@ CHANGELOG
             actionPostId = null;
         }
         
+        const postNavContainer = document.getElementById('post-nav-container');
         loginBtn.addEventListener('click', () => showAuthModal('login'));
         document.getElementById('close-auth-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-edit-modal-btn').addEventListener('click', hideAllModals);
@@ -1531,10 +1372,11 @@ CHANGELOG
         // --- AUTHENTICATION & DATA LOGIC ---
 
         // Listen for posts immediately on load
-        onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
+        onSnapshot(query(collection(db, 'posts'), orderBy("createdAt", "desc")), (querySnapshot) => {
             allPosts = [];
             querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
             renderPosts(allPosts);
+            renderAllianceSideLists();
         }, (error) => console.error("Error with posts listener:", error));
 
         // Listen for users immediately on load
@@ -1548,7 +1390,7 @@ CHANGELOG
         // Handle auth state changes to update UI accordingly
         onAuthStateChanged(auth, (user) => {
             if (userDocListener) userDocListener(); // Detach old listener
-            detachChatListeners(); // Always detach old chat listeners on auth change
+            detachSocialListeners(); // Always detach old social listeners on auth change
 
             if (user) {
                 userDocListener = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
@@ -1557,7 +1399,7 @@ CHANGELOG
                         updateUIForLoggedInUser();
                         renderPosts(allPosts);
                         applyPlayerFilters();
-                        setupChatListeners(); // Setup new chat listeners with user data
+                        setupSocialListeners(); // Setup new listeners with user data
                     }
                 });
                 hideAllModals();
@@ -1941,7 +1783,7 @@ CHANGELOG
             const isEvent = postCreationData.mainType === 'event';
             const totalSteps = isEvent ? 4 : 3;
 
-            postBackBtn.style.visibility = stepIndex === 1 ? 'hidden' : 'visible';
+            postBackBtn.style.visibility = stepIndex === 2 ? 'hidden' : 'visible'; // On first step of creation, back is hidden
             postNextBtn.classList.toggle('hidden', stepIndex >= totalSteps);
             postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
             
@@ -1982,10 +1824,6 @@ CHANGELOG
         });
         
         postBackBtn.addEventListener('click', () => {
-            if (currentPostStep === 2) { // If on the first visible step, "Back" closes the modal
-                hideAllModals();
-                return;
-            }
             currentPostStep--;
             showPostStep(currentPostStep);
         });
@@ -2015,6 +1853,7 @@ CHANGELOG
                 if (post.visibility === 'public') return true;
                 if (currentUserData.isAdmin) return true;
                 if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
+                if (post.visibility === 'leadership' && post.alliance === currentUserData.alliance && isUserLeader(currentUserData)) return true;
                 return false;
             });
             
@@ -2070,7 +1909,10 @@ CHANGELOG
             const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
             const postDate = post.createdAt?.toDate();
             const timestamp = postDate ? formatTimeAgo(postDate) : '...';
-            const postTypeText = POST_TYPES[`${post.subType}_${post.mainType}`]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
+            
+            const postTypeLookupKey = `${post.subType}_${post.mainType}`;
+            const postTypeText = POST_TYPES[postTypeLookupKey]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
+
 
             let actionsTriggerHTML = '';
             if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
@@ -2090,7 +1932,7 @@ CHANGELOG
                         <div class="status-label" title="${postDate?.toLocaleString() || ''}">Posted</div>
                         <div class="status-time">${timestamp}</div>
                     </div>
-                    <div class="status-date">${postDate ? formatEventDateTime(postDate) : ''}</div>
+                    <div class="status-date">${postDate ? postDate.toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}</div>
                 `;
             }
 
@@ -2189,20 +2031,28 @@ CHANGELOG
             }
 
             editingPostId = postId;
-            postCreationData = { ...POST_TYPES[`${post.subType}_${post.mainType}`] };
+            const postTypeLookupKey = `${post.subType}_${post.mainType}`;
+            postCreationData = { ...POST_TYPES[postTypeLookupKey] };
 
+            showModal(createPostModalContainer);
             document.getElementById('create-post-form').reset();
             
             document.getElementById('post-content-header').textContent = `Edit ${postCreationData.text}`;
             const submitBtn = document.getElementById('post-submit-btn');
             submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
 
-            document.getElementById('post-nav-container').style.display = 'none';
+            // Hide nav buttons, show only submit button for editing
+            postNavContainer.style.display = 'flex'; 
+            postNavContainer.querySelector('#post-back-btn').style.visibility = 'hidden';
+            postNavContainer.querySelector('#post-next-btn').classList.add('hidden');
+            postNavContainer.querySelector('#post-submit-btn').classList.remove('hidden');
+
+            // Show appropriate form slides
             document.querySelectorAll('.form-slide').forEach(s => s.classList.remove('active'));
-            document.querySelector('.form-slide[data-slide="3"]').classList.add('active');
-            if (post.mainType === 'event') {
-                document.querySelector('.form-slide[data-slide="4"]').classList.add('active');
-            }
+            document.querySelector('.form-slide[data-slide="3"]').classList.add('active'); // Content slide
+             if (post.mainType === 'event') {
+                 document.querySelector('.form-slide[data-slide="4"]').classList.add('active'); // Timing slide
+             }
             
             document.getElementById('post-title').value = post.title;
             document.getElementById('post-details').value = post.details;
@@ -2218,15 +2068,13 @@ CHANGELOG
                 setCustomSelectValue(document.querySelector('#post-end-hour').closest('.custom-select-container'), endDate.getHours().toString(), HOURS_OF_DAY[endDate.getHours()].text);
                 
                 const repeatType = post.isRecurring ? 'weekly' : 'none';
-                setCustomSelectValue(document.querySelector('#post-repeat-type').closest('.custom-select-container'), repeatType, REPEAT_TYPES.find(rt => rt.value === repeatType).text);
+                const repeatTypeData = REPEAT_TYPES.find(rt => rt.value === repeatType);
+                setCustomSelectValue(document.querySelector('#post-repeat-type').closest('.custom-select-container'), repeatType, repeatTypeData ? repeatTypeData.text : 'None');
                 document.getElementById('post-repeat-weeks-container').classList.toggle('hidden', !post.isRecurring);
                 if (post.isRecurring) {
                     document.getElementById('post-repeat-weeks').value = post.repeatWeeks || 1;
                 }
             }
-            
-            showModal(createPostModalContainer);
-            postSubmitBtn.classList.remove('hidden');
         }
 
 
@@ -2256,50 +2104,63 @@ CHANGELOG
                 visibility: postCreationData.visibility,
                 isRecurring: document.getElementById('post-repeat-type').value === 'weekly',
             };
+            
+            if (editingPostId) {
+                // When editing, don't update the author or creation date
+                delete finalPostData.authorUid;
+                delete finalPostData.authorUsername;
+            } else {
+                 finalPostData.createdAt = serverTimestamp();
+            }
 
             if (postCreationData.mainType === 'event') {
                 const startDay = document.getElementById('post-start-day').value;
                 const startHour = document.getElementById('post-start-hour').value;
                 const endDay = document.getElementById('post-end-day').value;
                 const endHour = document.getElementById('post-end-hour').value;
-
-                finalPostData.startTime = calculateNextDateTime(startDay, startHour);
-                finalPostData.endTime = calculateNextDateTime(endDay, endHour);
-
-                if (finalPostData.endTime < finalPostData.startTime) {
-                    finalPostData.endTime.setDate(finalPostData.endTime.getDate() + 7);
-                }
                 
-                if (finalPostData.isRecurring) {
-                    finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
+                if(startDay && startHour && endDay && endHour) {
+                    finalPostData.startTime = calculateNextDateTime(startDay, startHour);
+                    finalPostData.endTime = calculateNextDateTime(endDay, endHour);
+
+                    if (finalPostData.endTime < finalPostData.startTime) {
+                        finalPostData.endTime.setDate(finalPostData.endTime.getDate() + 7);
+                    }
+                    
+                    if (finalPostData.isRecurring) {
+                        finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
+                    }
                 }
             }
             
             try {
+                const docId = editingPostId || (await addDoc(collection(db, 'posts'), {})).id;
+                const postDocRef = doc(db, 'posts', docId);
+
+                if (resizedThumbnailBlob) {
+                    const thumbnailRef = ref(storage, `post_thumbnails/${docId}`);
+                    await uploadBytes(thumbnailRef, resizedThumbnailBlob);
+                    finalPostData.thumbnailUrl = await getDownloadURL(thumbnailRef);
+                }
+                
                 if (editingPostId) {
-                    const postDocRef = doc(db, 'posts', editingPostId);
-                    if (resizedThumbnailBlob) {
-                        const thumbnailRef = ref(storage, `post_thumbnails/${editingPostId}`);
-                        await uploadBytes(thumbnailRef, resizedThumbnailBlob);
-                        finalPostData.thumbnailUrl = await getDownloadURL(thumbnailRef);
-                    }
                     await updateDoc(postDocRef, finalPostData);
                 } else {
-                    finalPostData.createdAt = serverTimestamp();
-                    const postDocRef = await addDoc(collection(db, 'posts'), finalPostData);
-                    if (resizedThumbnailBlob) {
-                        const thumbnailRef = ref(storage, `post_thumbnails/${postDocRef.id}`);
-                        await uploadBytes(thumbnailRef, resizedThumbnailBlob);
-                        const downloadURL = await getDownloadURL(thumbnailRef);
-                        await updateDoc(postDocRef, { thumbnailUrl: downloadURL });
-                    }
+                    await setDoc(postDocRef, finalPostData); // Use setDoc for new posts to ensure all data is written
                 }
+
                 hideAllModals();
             } catch (error) {
                 console.error("Error saving post: ", error);
                 createPostError.textContent = 'Failed to save post.';
             } finally {
                 submitBtn.disabled = false;
+                // Reset button text in a timeout to allow modal to close
+                setTimeout(() => {
+                    postSubmitBtn.innerHTML = editingPostId 
+                        ? '<i class="fas fa-save mr-2"></i>Save Changes'
+                        : '<i class="fas fa-check-circle mr-2"></i>Create Post';
+                }, 300);
             }
         });
 
@@ -2348,7 +2209,7 @@ CHANGELOG
                 const nameMatch = player.username.toLowerCase().includes(searchTerm);
                 const allianceMatch = !allianceFilter || player.alliance === allianceFilter;
                 return nameMatch && allianceMatch;
-            });
+            }).sort((a,b) => b.power - a.power);
             renderPlayers(filteredPlayers);
         }
 
@@ -2365,6 +2226,7 @@ CHANGELOG
                 const card = document.createElement('div');
                 card.className = 'player-card glass-pane p-4 flex flex-col relative';
                 card.dataset.rank = player.allianceRank;
+                card.dataset.uid = player.uid;
 
                 let gearIconHTML = '';
                 if (currentUserData && currentUserData.uid !== player.uid) {
@@ -2404,18 +2266,11 @@ CHANGELOG
                         </div>
                     </div>
                     <div class="flex justify-around items-center pt-3 border-t border-white/10">
-                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
-                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
-                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
+                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player" data-action="message"><i class="fas fa-comment-dots"></i></button>
+                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend" data-action="add-friend"><i class="fas fa-user-plus"></i></button>
+                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile" data-action="like"><i class="fas fa-thumbs-up"></i></button>
                     </div>
                 `;
-                const settingsBtn = card.querySelector('.player-settings-btn');
-                if (settingsBtn) {
-                    settingsBtn.addEventListener('click', () => {
-                        const targetPlayer = allPlayers.find(p => p.uid === settingsBtn.dataset.uid);
-                        if(targetPlayer) showPlayerSettingsModal(targetPlayer)
-                    });
-                }
                 playerListContainer.appendChild(card);
             });
         }
@@ -2739,7 +2594,7 @@ CHANGELOG
             return user.isAdmin || (user.isVerified && (user.allianceRank === 'R5' || user.allianceRank === 'R4'));
         }
 
-        function setupChatListeners() {
+        function setupSocialListeners() {
             if (!currentUserData) return;
 
             // World Chat Listener
@@ -2749,13 +2604,14 @@ CHANGELOG
                 renderMessages(messages, document.getElementById('world-chat-window'), 'world_chat');
             });
 
-            // Alliance Chat Listener
+            // Alliance Chat Listener & Side Lists
             if (currentUserData.alliance) {
                 const allianceChatQuery = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
                 allianceChatListener = onSnapshot(allianceChatQuery, (snapshot) => {
                     const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderMessages(messages, document.getElementById('alliance-chat-window'), 'alliance_chat');
                 });
+                renderAllianceSideLists();
             }
 
             // Leadership Chat Listener
@@ -2766,15 +2622,19 @@ CHANGELOG
                     renderMessages(messages, document.getElementById('leadership-chat-window'), 'leadership_chat');
                 });
             }
+            
+            // Friends Listener
+            const friendsQuery = query(collection(db, `users/${currentUserData.uid}/friends`));
+            friendsListener = onSnapshot(friendsQuery, renderFriendsLists);
+
         }
 
-        function detachChatListeners() {
+        function detachSocialListeners() {
             if (worldChatListener) worldChatListener();
             if (allianceChatListener) allianceChatListener();
             if (leadershipChatListener) leadershipChatListener();
-            worldChatListener = null;
-            allianceChatListener = null;
-            leadershipChatListener = null;
+            if (friendsListener) friendsListener();
+            worldChatListener = allianceChatListener = leadershipChatListener = friendsListener = null;
         }
 
         function renderMessages(messages, container, chatType) {
@@ -2785,14 +2645,14 @@ CHANGELOG
             }
             messages.forEach(msg => {
                 const isSelf = msg.authorUid === currentUserData.uid;
-                const canDelete = currentUserData.isAdmin || (chatType === 'alliance_chat' && currentUserData.allianceRank === 'R5');
+                const canDelete = currentUserData.isAdmin || (chatType === 'alliance_chat' && isUserLeader(currentUserData) && currentUserData.alliance === msg.alliance);
                 
-                const avatarUrl = msg.authorAvatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${msg.authorUsername.charAt(0).toUpperCase()}`;
+                const avatarUrl = msg.authorAvatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(msg.authorUsername || '?').charAt(0).toUpperCase()}`;
 
                 const messageEl = document.createElement('div');
                 messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
                 messageEl.innerHTML = `
-                    <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0" alt="${msg.authorUsername}">
+                    <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0 object-cover" alt="${msg.authorUsername}">
                     <div class="chat-message-bubble">
                         <p class="chat-message-author">${msg.authorUsername}</p>
                         <p class="text-sm">${msg.text}</p>
@@ -2802,6 +2662,27 @@ CHANGELOG
                 container.appendChild(messageEl);
             });
         }
+        
+        function renderAllianceSideLists() {
+            if (!currentUserData || !currentUserData.alliance) {
+                allianceAnnouncementsList.innerHTML = `<p class="text-gray-400 text-center">Join an alliance to see announcements.</p>`;
+                allianceEventsList.innerHTML = `<p class="text-gray-400 text-center">Join an alliance to see events.</p>`;
+                return;
+            }
+
+            const alliancePosts = allPosts.filter(p => p.alliance === currentUserData.alliance);
+            const announcements = alliancePosts.filter(p => p.mainType === 'announcement').slice(0, 5);
+            const events = alliancePosts.filter(p => p.mainType === 'event').slice(0, 5);
+
+            allianceAnnouncementsList.innerHTML = announcements.length > 0 
+                ? announcements.map(p => `<div class="list-item" data-id="${p.id}"><p class="font-bold truncate">${p.title}</p><p class="text-xs text-gray-400">${p.createdAt?.toDate().toLocaleDateString()}</p></div>`).join('')
+                : `<p class="text-gray-400 text-center">No announcements.</p>`;
+
+            allianceEventsList.innerHTML = events.length > 0 
+                ? events.map(p => `<div class="list-item" data-id="${p.id}"><p class="font-bold truncate">${p.title}</p><p class="text-xs text-gray-400">${p.startTime?.toDate().toLocaleDateString()}</p></div>`).join('')
+                : `<p class="text-gray-400 text-center">No events.</p>`;
+        }
+
 
         async function handleSendMessage(e, chatType) {
             e.preventDefault();
@@ -2833,7 +2714,7 @@ CHANGELOG
                 authorUid: currentUserData.uid,
                 authorUsername: currentUserData.username,
                 authorAvatarUrl: currentUserData.avatarUrl || null,
-                alliance: currentUserData.alliance,
+                alliance: currentUserData.alliance || null,
                 timestamp: serverTimestamp()
             };
 
@@ -2882,6 +2763,114 @@ CHANGELOG
         }
 
         document.getElementById('page-social').addEventListener('click', handleDeleteMessage);
+
+        // --- FRIENDS LIST LOGIC ---
+        function renderFriendsLists(snapshot) {
+            const friends = [];
+            const requestsReceived = [];
+            const requestsSent = [];
+
+            snapshot.forEach(doc => {
+                const friendData = { id: doc.id, ...doc.data() };
+                if (friendData.status === 'accepted') friends.push(friendData);
+                else if (friendData.status === 'pending_received') requestsReceived.push(friendData);
+                else if (friendData.status === 'pending_sent') requestsSent.push(friendData);
+            });
+            
+            renderFriendList(friends, friendsList, 'You have no friends yet.');
+            renderRequestsList(requestsReceived, friendRequestsList, 'No pending requests.');
+            renderSentList(requestsSent, sentRequestsList, 'No sent requests.');
+        }
+
+        function createFriendHTML(playerData, type) {
+            if (!playerData) return '';
+            const avatarUrl = playerData.avatarUrl || `https://placehold.co/40x40/0D1117/FFFFFF?text=${(playerData.username || '?').charAt(0).toUpperCase()}`;
+            
+            let actionsHTML = '';
+            if (type === 'friend') {
+                actionsHTML = `<button class="friend-action-btn decline" data-action="remove" data-uid="${playerData.uid}">Remove</button>`;
+            } else if (type === 'request') {
+                actionsHTML = `
+                    <button class="friend-action-btn accept" data-action="accept" data-uid="${playerData.uid}">Accept</button>
+                    <button class="friend-action-btn decline" data-action="decline" data-uid="${playerData.uid}">Decline</button>
+                `;
+            } else if (type === 'sent') {
+                actionsHTML = `<button class="friend-action-btn decline" data-action="cancel" data-uid="${playerData.uid}">Cancel</button>`;
+            }
+
+            return `
+                <div class="friend-list-item" data-uid="${playerData.uid}">
+                    <img src="${avatarUrl}" class="w-8 h-8 rounded-full mr-3 object-cover" alt="${playerData.username}">
+                    <div class="flex-grow">
+                        <p class="font-semibold text-white">${playerData.username}</p>
+                        <p class="text-xs text-gray-400">[${playerData.alliance}]</p>
+                    </div>
+                    <div class="flex items-center gap-2">${actionsHTML}</div>
+                </div>`;
+        }
+        
+        function renderFriendList(list, container, emptyMessage) {
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-center p-4">${emptyMessage}</p>`;
+                return;
+            }
+            container.innerHTML = list.map(item => {
+                const playerData = allPlayers.find(p => p.uid === item.id);
+                return createFriendHTML(playerData, 'friend');
+            }).join('');
+        }
+        
+        function renderRequestsList(list, container, emptyMessage) {
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-center p-4">${emptyMessage}</p>`;
+                return;
+            }
+            container.innerHTML = list.map(item => {
+                const playerData = allPlayers.find(p => p.uid === item.id);
+                return createFriendHTML(playerData, 'request');
+            }).join('');
+        }
+        
+        function renderSentList(list, container, emptyMessage) {
+             if (list.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-center p-4">${emptyMessage}</p>`;
+                return;
+            }
+            container.innerHTML = list.map(item => {
+                const playerData = allPlayers.find(p => p.uid === item.id);
+                return createFriendHTML(playerData, 'sent');
+            }).join('');
+        }
+
+        async function sendFriendRequest(targetUserId) {
+            if (!currentUserData || targetUserId === currentUserData.uid) return;
+            const batch = writeBatch(db);
+            const myFriendRef = doc(db, `users/${currentUserData.uid}/friends/${targetUserId}`);
+            const theirFriendRef = doc(db, `users/${targetUserId}/friends/${currentUserData.uid}`);
+            batch.set(myFriendRef, { status: 'pending_sent', createdAt: serverTimestamp() });
+            batch.set(theirFriendRef, { status: 'pending_received', createdAt: serverTimestamp() });
+            await batch.commit();
+        }
+
+        async function acceptFriendRequest(friendId) {
+             if (!currentUserData) return;
+             const batch = writeBatch(db);
+             const myFriendRef = doc(db, `users/${currentUserData.uid}/friends/${friendId}`);
+             const theirFriendRef = doc(db, `users/${friendId}/friends/${currentUserData.uid}`);
+             batch.update(myFriendRef, { status: 'accepted' });
+             batch.update(theirFriendRef, { status: 'accepted' });
+             await batch.commit();
+        }
+
+        async function declineOrCancelRequest(friendId) {
+             if (!currentUserData) return;
+             const batch = writeBatch(db);
+             const myFriendRef = doc(db, `users/${currentUserData.uid}/friends/${friendId}`);
+             const theirFriendRef = doc(db, `users/${friendId}/friends/${currentUserData.uid}`);
+             batch.delete(myFriendRef);
+             batch.delete(theirFriendRef);
+             await batch.commit();
+        }
 
 
         // --- GLOBAL EVENT LISTENERS ---
@@ -2934,38 +2923,72 @@ CHANGELOG
             });
 
             eventsMainContainer.addEventListener('click', e => {
-                const actionsBtn = e.target.closest('.post-card-actions-trigger');
-                if (actionsBtn) {
-                    const postId = actionsBtn.dataset.postId;
-                    showPostActionsModal(postId);
-                }
-                const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
-                if (createAnnouncementBtn) {
+                const trigger = e.target.closest('.post-card-actions-trigger, #create-announcement-btn, #create-event-btn');
+                if (!trigger) return;
+                
+                if (trigger.id === 'create-announcement-btn') {
                     showCreatePostModal('announcement');
-                }
-
-                const createEventBtn = e.target.closest('#create-event-btn');
-                if (createEventBtn) {
+                } else if (trigger.id === 'create-event-btn') {
                     showCreatePostModal('event');
+                } else if (trigger.classList.contains('post-card-actions-trigger')) {
+                    const postId = trigger.dataset.postId;
+                    showPostActionsModal(postId);
                 }
             });
 
             document.getElementById('modal-edit-post-btn').addEventListener('click', () => {
                 if (actionPostId) {
-                    hideAllModals();
-                    populatePostFormForEdit(actionPostId);
+                    const postIdToEdit = actionPostId;
+                    hideAllModals(); // Hide first to prevent layout shifts
+                    populatePostFormForEdit(postIdToEdit);
                 }
             });
 
             document.getElementById('modal-delete-post-btn').addEventListener('click', () => {
                 if (actionPostId) {
                     const postToDelete = allPosts.find(p => p.id === actionPostId);
+                    const postId = actionPostId; // Capture before hiding modal clears it
                     hideAllModals();
                     showConfirmationModal('Delete Post?', `Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`, () => {
-                        deleteDoc(doc(db, 'posts', actionPostId))
+                        deleteDoc(doc(db, 'posts', postId))
                             .catch(err => console.error("Error deleting post: ", err));
                     });
                 }
+            });
+            
+            playerListContainer.addEventListener('click', e => {
+                const card = e.target.closest('.player-card');
+                if (!card) return;
+                const targetUid = card.dataset.uid;
+                
+                const settingsBtn = e.target.closest('.player-settings-btn');
+                if (settingsBtn) {
+                     const targetPlayer = allPlayers.find(p => p.uid === targetUid);
+                     if(targetPlayer) showPlayerSettingsModal(targetPlayer);
+                     return;
+                }
+
+                const actionBtn = e.target.closest('button[data-action]');
+                if(actionBtn) {
+                    const action = actionBtn.dataset.action;
+                    if (action === 'add-friend') {
+                        sendFriendRequest(targetUid);
+                        actionBtn.innerHTML = '<i class="fas fa-user-clock"></i>'; // Change icon to pending
+                        actionBtn.disabled = true;
+                    }
+                }
+            });
+
+            document.getElementById('pane-friends').addEventListener('click', e => {
+                 const actionBtn = e.target.closest('.friend-action-btn');
+                 if (!actionBtn) return;
+                 const uid = actionBtn.dataset.uid;
+                 const action = actionBtn.dataset.action;
+
+                 if (action === 'accept') acceptFriendRequest(uid);
+                 else if (action === 'decline' || action === 'cancel' || action === 'remove') {
+                    declineOrCancelRequest(uid);
+                 }
             });
 
             showPage('page-events'); 
