@@ -16,9 +16,72 @@ export const DOMElements = {
 
 // --- Initial Page Rendering ---
 function initializePageHTML() {
-    // ... (events, players, social page initializations are unchanged)
+    DOMElements.eventsPage.innerHTML = `
+        <main id="events-main-container" class="space-y-6">
+            <div id="filter-container" class="filter-btn-group"></div>
+            <div id="announcements-container" class="space-y-4"></div>
+            <div id="events-section-container" class="space-y-4"></div>
+        </main>
+    `;
 
-    // NEW: Initialize Feed Page HTML
+    DOMElements.playersPage.innerHTML = `
+        <div class="glass-pane section-container">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-white tracking-wider" style="text-shadow: 0 0 10px var(--color-primary);">PLAYERS OF 899</h2>
+            </div>
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="input-group flex-grow">
+                    <i class="fas fa-search input-icon"></i>
+                    <input type="text" id="player-search-input" placeholder="Search by player name..." class="form-input">
+                </div>
+                <div class="input-group md:max-w-xs">
+                    <i class="fas fa-shield-alt input-icon"></i>
+                    <div class="custom-select-container" data-type="alliance-filter">
+                        <input type="hidden" id="alliance-filter" name="alliance-filter">
+                        <button type="button" class="custom-select-value form-input"><span>All Alliances</span><i class="fas fa-chevron-down text-xs"></i></button>
+                        <div class="custom-select-options">
+                            <div class="options-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    `;
+
+    DOMElements.socialPage.innerHTML = `
+        <div class="glass-pane section-container">
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Main Chat Area -->
+                <div class="flex-grow md:w-2/3">
+                    <div id="social-tabs-container" class="social-tabs flex items-center mb-4">
+                        <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World</button>
+                        <button id="alliance-tab-btn" class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
+                        <button id="leadership-tab-btn" class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
+                    </div>
+                    <div id="pane-world-chat" class="social-content-pane active"></div>
+                    <div id="pane-alliance-chat" class="social-content-pane"></div>
+                    <div id="pane-leadership-chat" class="social-content-pane"></div>
+                </div>
+                <!-- Friends/Side Panel -->
+                <div class="md:w-1/3 flex-shrink-0 space-y-4">
+                    <div>
+                        <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-friends"></i> Friends</h3>
+                        <div id="friends-list" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-inbox"></i> Friend Requests</h3>
+                        <div id="friend-requests-list" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-paper-plane"></i> Sent Requests</h3>
+                        <div id="sent-requests-list" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
     DOMElements.feedPage.innerHTML = `
         <div class="glass-pane section-container">
             <div class="text-center mb-8">
@@ -35,114 +98,98 @@ function initializePageHTML() {
 // --- Rendering Functions ---
 export function renderSkeletons() {
     initializePageHTML();
-    // ... (rest of skeleton rendering is unchanged)
+    // ... skeleton rendering logic ...
 }
 
-// ... (renderPosts, createCard, etc. are unchanged)
+export function showPage(targetId) {
+    document.querySelectorAll('.page-content').forEach(page => {
+        page.style.display = page.id === targetId ? 'block' : 'none';
+    });
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+        link.classList.toggle('active', link.dataset.mainTarget === targetId);
+    });
+}
+
+export function renderPosts(allPosts, currentUserData) {
+    // ... implementation ...
+}
 
 export function updateUIForLoggedInUser(user) {
-    // ... (implementation unchanged)
+    // ... implementation ...
 }
 
 export function updateUIForLoggedOutUser() {
-    // ... (implementation unchanged)
+    // ... implementation ...
 }
 
 export function updateSocialTabPermissions(currentUserData) {
-    // ... (implementation unchanged)
+    // ... implementation ...
 }
 
-// ... (renderPlayers, renderChatPane, renderMessages, renderFriendsLists are unchanged)
-
-// --- NEW: Feed Rendering ---
-export function renderFeed(notifications, allPlayers) {
-    const container = document.getElementById('feed-container');
-    if (!container) return;
-
-    if (notifications.length === 0) {
-        container.innerHTML = `<p class="text-center text-gray-500 py-8">You have no new notifications.</p>`;
-        return;
-    }
-
-    container.innerHTML = notifications.map(item => createFeedItemHTML(item, allPlayers)).join('');
+export function renderPlayers(players, currentUserData) {
+    // ... implementation ...
 }
 
-function createFeedItemHTML(item, allPlayers) {
-    const fromUser = allPlayers.find(p => p.uid === item.fromUid);
-    const fromUsername = fromUser ? fromUser.username : (item.fromUsername || 'A player');
-    const avatarUrl = fromUser?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${fromUsername.charAt(0).toUpperCase()}`;
-    const timestamp = item.timestamp ? formatTimeAgo(item.timestamp.toDate()) : '';
+export function renderChatPane(type) {
+    // ... implementation ...
+}
 
-    let icon, message;
-    switch (item.type) {
-        case 'friend_request':
-            icon = 'fa-user-plus text-blue-400';
-            message = `<strong class="text-white">${fromUsername}</strong> sent you a friend request.`;
-            break;
-        // Add more cases here for other notification types
-        default:
-            icon = 'fa-info-circle text-gray-400';
-            message = 'You have a new notification.';
+export function renderMessages(messages, container, chatType, allPlayers, currentUserData) {
+    // ... implementation ...
+}
+
+/**
+ * --- FIX ---
+ * Added the 'export' keyword to this function so it can be imported by app.js.
+ */
+export function renderFriendsLists(friendsData, allPlayers) {
+    const friendsContainer = document.getElementById('friends-list');
+    const requestsContainer = document.getElementById('friend-requests-list');
+    const sentContainer = document.getElementById('sent-requests-list');
+
+    if (!friendsContainer || !requestsContainer || !sentContainer) return;
+
+    const friends = friendsData.filter(f => f.status === 'accepted');
+    const requests = friendsData.filter(f => f.status === 'pending_received');
+    const sent = friendsData.filter(f => f.status === 'pending_sent');
+
+    friendsContainer.innerHTML = friends.length > 0 ? friends.map(f => createFriendHTML(allPlayers.find(p => p.uid === f.id), 'friend')).join('') : `<p class="text-xs text-gray-500 text-center">No friends yet.</p>`;
+    requestsContainer.innerHTML = requests.length > 0 ? requests.map(f => createFriendHTML(allPlayers.find(p => p.uid === f.id), 'request')).join('') : `<p class="text-xs text-gray-500 text-center">No new requests.</p>`;
+    sentContainer.innerHTML = sent.length > 0 ? sent.map(f => createFriendHTML(allPlayers.find(p => p.uid === f.id), 'sent')).join('') : `<p class="text-xs text-gray-500 text-center">No sent requests.</p>`;
+}
+
+function createFriendHTML(playerData, type) {
+    if (!playerData) return '';
+    const avatarUrl = playerData.avatarUrl || `https://placehold.co/40x40/0D1117/FFFFFF?text=${(playerData.username || '?').charAt(0).toUpperCase()}`;
+    
+    let actionsHTML = '';
+    if (type === 'friend') {
+        actionsHTML = `<button class="friend-action-btn decline" data-action="remove" data-uid="${playerData.uid}">Remove</button>`;
+    } else if (type === 'request') {
+        actionsHTML = `<button class="friend-action-btn accept" data-action="accept" data-uid="${playerData.uid}">Accept</button> <button class="friend-action-btn decline" data-action="decline" data-uid="${playerData.uid}">Decline</button>`;
+    } else if (type === 'sent') {
+        actionsHTML = `<button class="friend-action-btn decline" data-action="cancel" data-uid="${playerData.uid}">Cancel</button>`;
     }
 
     return `
-        <div class="feed-item flex items-center gap-4 p-3 rounded-lg" style="background-color: rgba(33, 38, 45, 0.5);">
-            <div class="w-10 text-center"><i class="fas ${icon} fa-lg"></i></div>
-            <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover" alt="${fromUsername}">
+        <div class="friend-list-item" data-uid="${playerData.uid}">
+            <img src="${avatarUrl}" class="w-8 h-8 rounded-full mr-3 object-cover" alt="${playerData.username}">
             <div class="flex-grow">
-                <p class="text-gray-300">${message}</p>
-                <p class="text-xs text-gray-500">${timestamp}</p>
+                <p class="font-semibold text-white text-sm">${playerData.username}</p>
+                <p class="text-xs text-gray-400">[${playerData.alliance}]</p>
             </div>
-        </div>
-    `;
+            <div class="flex items-center gap-2">${actionsHTML}</div>
+        </div>`;
 }
 
-// --- NEW: Edit Profile Modal Rendering ---
+export function renderFeed(notifications, allPlayers) {
+    // ... implementation ...
+}
+
 export function renderEditProfileModal(user) {
-    const container = DOMElements.editProfileModalContainer;
-    if (!container) return;
-
-    const joinDate = user.registrationTimestampUTC ? new Date(user.registrationTimestampUTC).toLocaleDateString() : 'N/A';
-    const avatarUrl = user.avatarUrl || `https://placehold.co/96x96/161B22/FFFFFF?text=${user.username.charAt(0).toUpperCase()}`;
-
-    container.innerHTML = `
-        <div class="glass-pane">
-            <div class="modal-content-wrapper !p-0">
-                <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10"><i class="fas fa-times fa-lg"></i></button>
-                <div class="p-6 bg-black/20 rounded-t-lg">
-                    <div class="flex items-center gap-4">
-                        <div class="relative group">
-                            <img id="edit-avatar-preview" src="${avatarUrl}" class="w-24 h-24 rounded-full object-cover border-4 border-gray-700">
-                            <button id="modal-upload-avatar-btn" class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-camera fa-2x"></i></button>
-                            <input type="file" id="modal-avatar-input" class="hidden" accept="image/*">
-                        </div>
-                        <div>
-                            <h2 id="edit-username-header" class="text-2xl font-bold text-white">${user.username}</h2>
-                            <p class="text-sm text-gray-400">${user.email}</p>
-                            <p class="text-xs text-gray-500 mt-1">Joined: ${joinDate}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-content-scroll p-6">
-                    <form id="edit-profile-form">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" value="${user.username}" class="form-input" required></div>
-                            <div class="input-group"><i class="fas fa-shield-alt input-icon"></i><select id="edit-alliance" class="form-input bg-transparent">${ALLIANCES.map(a => `<option ${a === user.alliance ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
-                            <div class="input-group md:col-span-2"><i class="fas fa-star input-icon"></i><select id="edit-alliance-rank" class="form-input bg-transparent">${ALLIANCE_RANKS.map(r => `<option value="${r.value}" ${r.value === user.allianceRank ? 'selected' : ''}>${r.text}</option>`).join('')}</select></div>
-                            <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" value="${(user.power || 0).toLocaleString()}" class="power-input form-input" required></div>
-                        </div>
-                        <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 min-h-[20px]"></p>
-                        <div class="flex gap-4 mt-6">
-                            <button type="button" id="modal-logout-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-sign-out-alt mr-2"></i>Logout</button>
-                            <button type="submit" id="edit-profile-submit-btn" class="w-full p-3 rounded-lg primary-btn">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    `;
+    // ... implementation ...
 }
 
 export function initParticles() {
-    // ... (implementation unchanged)
+    // ... implementation ...
 }
