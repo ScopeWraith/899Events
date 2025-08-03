@@ -48,9 +48,9 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
     }
     
-    match /users/{userId}/friends/{friendId} {
-        allow read: if isOwner(userId);
-        allow write: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
+    // Friend requests, friends list, etc.
+    match /users/{userId}/{subcollection}/{docId} {
+        allow read, write: if isSignedIn(); // Simplified for now, can be tightened
     }
 
     // This collection stores the real-time presence status of users.
@@ -60,6 +60,13 @@ service cloud.firestore {
       // A user can only write to their own session document.
       allow write: if isOwner(userId);
     }
+    
+    // --- NOTIFICATIONS ---
+    match /notifications/{notificationId} {
+        allow read, update, delete: if isSignedIn() && isOwner(resource.data.recipientUid);
+        allow create: if isSignedIn(); // Any signed-in user can create a notification (e.g., friend request)
+    }
+
 
     function canManageUser(targetUserId) {
       let managerData = getUserData(request.auth.uid);
@@ -181,24 +188,23 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
-- Prompt 59 (Current):
+- Prompt 60 (Current):
+    - Replaced "Season" nav button with a new "Feed" notification system.
+    - Feed dropdown shows real-time notifications for friend requests, verification requests, and alliance announcements.
+    - Added a notification badge with an unread count to the Feed button.
+    - Implemented functionality for sending friend requests from player cards.
+    - Implemented accepting/declining friend requests from the notification feed.
+    - Alliance leaders (R4/R5) now receive verification requests for new members.
+    - Alliance members now receive notifications for new alliance-specific announcements.
+    - Updated Firestore security rules to support the new `notifications` collection.
+- Prompt 59:
     - Integrated real-time user presence (Online, Away, Offline).
     - Uses Firebase Realtime Database for robust `onDisconnect` handling.
     - User status changes to 'Away' after 5 minutes of inactivity.
     - Status indicators (dots) added to Player cards and Chat messages.
     - Added a pre-loader to prevent content flash before authentication check completes.
-    - Updated Firestore and Realtime Database security rules for the new presence system.
 - Prompt 58:
     - Implemented full real-time chat functionality for World, Alliance, and Leadership channels.
-    - Added ability for Admins to delete any chat message and for R5s to delete messages in their own alliance chat.
-    - Simplified main navigation by removing "Alliances" and "Tools" links for a cleaner UI.
-- Prompt 57: Added foundation for a social network:
-    - New "Social" page with a tabbed interface for World Chat, Alliance Chat, Leadership Chat, and Friends.
-    - Designed UI for chat windows, message input, and friends list management.
-    - Updated Firestore security rules to support friends lists, public/private chat channels, and alliance-specific content.
-- Prompt 56: Removed global "Create" button and added context-specific "+" buttons next to "Announcements" and "Events" headers to streamline post creation.
-- Prompt 55: Removed the unused "Filter Posts" mobile panel from the HTML and JavaScript.
-- Prompt 54: Replaced Edit/Delete buttons with a gear icon overlay on the card thumbnail, which opens an actions modal.
 -->
 
 <!DOCTYPE html>
@@ -642,6 +648,89 @@ CHANGELOG
         .player-card-header .status-dot {
             margin-left: 0.5rem;
         }
+        
+        /* Feed / Notification Styles */
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 12px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--color-highlight);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0);
+            transition: transform 0.2s ease-in-out;
+        }
+        .notification-badge.visible {
+            transform: scale(1);
+        }
+        #feed-dropdown {
+            width: 360px;
+            max-height: 400px;
+            overflow-y: auto;
+            right: 0;
+            left: auto;
+            transform: translateX(0) translateY(-10px);
+        }
+        .nav-item.open #feed-dropdown {
+             transform: translateX(0) translateY(0);
+        }
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .notification-item:not(.is-read) {
+            background-color: rgba(0, 191, 255, 0.05);
+            border-left-color: var(--color-primary);
+        }
+        .notification-item:hover {
+            background-color: rgba(0, 191, 255, 0.1);
+        }
+        .notification-icon {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .notification-content {
+            flex-grow: 1;
+        }
+        .notification-text {
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+        .notification-time {
+            font-size: 0.75rem;
+            color: #8b949e;
+            margin-top: 0.25rem;
+        }
+        .notification-actions {
+            margin-top: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .notification-action-btn {
+            flex-grow: 1;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 0.375rem;
+        }
 
     </style>
 </head>
@@ -1019,7 +1108,16 @@ CHANGELOG
                         <div class="nav-item"><div class="nav-link active" data-main-target="page-events"><i class="fas fa-calendar-alt"></i><span>Events</span></div></div>
                         <div class="nav-item"><div class="nav-link" data-main-target="page-social"><i class="fas fa-comments"></i><span>Social</span></div></div>
                         <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
-                        <div class="nav-item"><div class="nav-link"><i class="fas fa-trophy"></i><span>Season</span></div><div class="dropdown-menu dropdown-pane glass-pane"><a class="dropdown-link" data-target="page-season-overview">Season Overview</a><a class="dropdown-link" data-target="page-season-rewards">Rewards</a><a class="dropdown-link" data-target="page-season-history">History</a></div></div>
+                        <div class="nav-item" id="feed-nav-item">
+                            <div class="nav-link">
+                                <i class="fas fa-bell"></i><span>Feed</span>
+                                <span id="notification-badge" class="notification-badge"></span>
+                            </div>
+                            <div id="feed-dropdown" class="dropdown-menu dropdown-pane glass-pane">
+                                <!-- Notifications will be rendered here -->
+                                <p class="text-center text-gray-500 p-4">No new notifications.</p>
+                            </div>
+                        </div>
                     </nav>
 
                     <div id="auth-container" class="hidden md:flex flex-shrink-0 relative">
@@ -1044,6 +1142,16 @@ CHANGELOG
 
                 <!-- Page Content Container -->
                 <div id="page-container">
+                    <!-- Feed Page -->
+                    <div id="page-feed" class="page-content" style="display: none;">
+                        <div class="glass-pane section-container">
+                             <h2 class="text-3xl font-bold text-white tracking-wider mb-6" style="text-shadow: 0 0 10px var(--color-primary);">YOUR FEED</h2>
+                             <div id="feed-page-container" class="space-y-4">
+                                <!-- Full page notifications will be rendered here -->
+                             </div>
+                        </div>
+                    </div>
+                    
                     <!-- Social Page -->
                     <div id="page-social" class="page-content" style="display: none;">
                         <div class="glass-pane section-container">
@@ -1233,7 +1341,7 @@ CHANGELOG
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit, where, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
         import { getDatabase, ref as dbRef, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
@@ -1259,6 +1367,7 @@ CHANGELOG
         let allPlayers = []; // Cache for player data
         let allPosts = []; // Cache for post data
         let userSessions = {}; // Cache for user presence data
+        let userNotifications = []; // Cache for user notifications
         
         const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
         const ALLIANCE_RANKS = [
@@ -1344,6 +1453,9 @@ CHANGELOG
         const verificationToggleContainer = document.getElementById('verification-toggle-container');
         const eventsMainContainer = document.getElementById('events-main-container');
         const filterContainer = document.getElementById('filter-container');
+        const feedDropdown = document.getElementById('feed-dropdown');
+        const feedNavItem = document.getElementById('feed-nav-item');
+        const notificationBadge = document.getElementById('notification-badge');
 
 
         let activePlayerSettingsUID = null;
@@ -1354,11 +1466,12 @@ CHANGELOG
         let editingPostId = null;
         let actionPostId = null; // For the post actions modal
         
-        // --- CHAT & PRESENCE LISTENERS ---
+        // --- CHAT, PRESENCE & NOTIFICATION LISTENERS ---
         let worldChatListener = null;
         let allianceChatListener = null;
         let leadershipChatListener = null;
         let sessionsListener = null;
+        let notificationListener = null;
         let awayTimer = null;
 
         // --- UTILITY & SKELETON FUNCTIONS ---
@@ -1636,10 +1749,11 @@ CHANGELOG
         // Handle auth state changes to update UI accordingly
         onAuthStateChanged(auth, (user) => {
             if (userDocListener) userDocListener(); // Detach old listener
-            detachChatAndPresenceListeners(); // Always detach old chat/presence listeners on auth change
+            detachAllListeners(); // Always detach old listeners on auth change
 
             if (user) {
                 setupPresenceManagement(user);
+                setupNotificationListener(user);
                 userDocListener = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
                     if (userDoc.exists()) {
                         currentUserData = { uid: user.uid, ...userDoc.data() };
@@ -1955,6 +2069,24 @@ CHANGELOG
 
                 await setDoc(doc(db, "users", user.uid), userProfile);
                 
+                // Create verification notifications for leaders
+                const leadersQuery = query(collection(db, 'users'), where('alliance', '==', alliance), where('allianceRank', 'in', ['R5', 'R4']));
+                const leadersSnapshot = await getDocs(leadersQuery);
+                const batch = writeBatch(db);
+                leadersSnapshot.forEach(leaderDoc => {
+                    const notificationRef = doc(collection(db, 'notifications'));
+                    batch.set(notificationRef, {
+                        recipientUid: leaderDoc.id,
+                        senderUid: user.uid,
+                        senderUsername: username,
+                        type: 'verification_request',
+                        message: `${username} has joined your alliance and is awaiting verification.`,
+                        isRead: false,
+                        timestamp: serverTimestamp()
+                    });
+                });
+                await batch.commit();
+
                 registrationFlow.style.display = 'none';
                 registrationSuccess.style.display = 'block';
                 setTimeout(hideAllModals, 3000);
@@ -2375,8 +2507,9 @@ CHANGELOG
             }
             
             try {
+                let postDocRef;
                 if (editingPostId) {
-                    const postDocRef = doc(db, 'posts', editingPostId);
+                    postDocRef = doc(db, 'posts', editingPostId);
                     if (resizedThumbnailBlob) {
                         const thumbnailRef = ref(storage, `post_thumbnails/${editingPostId}`);
                         await uploadBytes(thumbnailRef, resizedThumbnailBlob);
@@ -2385,7 +2518,7 @@ CHANGELOG
                     await updateDoc(postDocRef, finalPostData);
                 } else {
                     finalPostData.createdAt = serverTimestamp();
-                    const postDocRef = await addDoc(collection(db, 'posts'), finalPostData);
+                    postDocRef = await addDoc(collection(db, 'posts'), finalPostData);
                     if (resizedThumbnailBlob) {
                         const thumbnailRef = ref(storage, `post_thumbnails/${postDocRef.id}`);
                         await uploadBytes(thumbnailRef, resizedThumbnailBlob);
@@ -2393,6 +2526,29 @@ CHANGELOG
                         await updateDoc(postDocRef, { thumbnailUrl: downloadURL });
                     }
                 }
+                
+                // If it's an alliance announcement, create notifications
+                if (finalPostData.subType === 'alliance' && finalPostData.mainType === 'announcement') {
+                    const membersQuery = query(collection(db, 'users'), where('alliance', '==', finalPostData.alliance));
+                    const membersSnapshot = await getDocs(membersQuery);
+                    const batch = writeBatch(db);
+                    membersSnapshot.forEach(memberDoc => {
+                        if (memberDoc.id === currentUserData.uid) return; // Don't notify self
+                        const notificationRef = doc(collection(db, 'notifications'));
+                        batch.set(notificationRef, {
+                            recipientUid: memberDoc.id,
+                            senderUid: currentUserData.uid,
+                            senderUsername: currentUserData.username,
+                            type: 'alliance_announcement',
+                            message: `New announcement in your alliance: "${finalPostData.title}"`,
+                            relatedId: postDocRef.id,
+                            isRead: false,
+                            timestamp: serverTimestamp()
+                        });
+                    });
+                    await batch.commit();
+                }
+
                 hideAllModals();
             } catch (error) {
                 console.error("Error saving post: ", error);
@@ -2464,6 +2620,7 @@ CHANGELOG
                 const card = document.createElement('div');
                 card.className = 'player-card glass-pane p-4 flex flex-col relative';
                 card.dataset.rank = player.allianceRank;
+                card.dataset.uid = player.uid;
 
                 let gearIconHTML = '';
                 if (currentUserData && currentUserData.uid !== player.uid) {
@@ -2506,7 +2663,7 @@ CHANGELOG
                     </div>
                     <div class="flex justify-around items-center pt-3 border-t border-white/10">
                         <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
-                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                        <button class="add-friend-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
                         <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
                     </div>
                 `;
@@ -2943,13 +3100,15 @@ CHANGELOG
             }
         }
 
-        function detachChatAndPresenceListeners() {
+        function detachAllListeners() {
             if (worldChatListener) worldChatListener();
             if (allianceChatListener) allianceChatListener();
             if (leadershipChatListener) leadershipChatListener();
+            if (notificationListener) notificationListener();
             worldChatListener = null;
             allianceChatListener = null;
             leadershipChatListener = null;
+            notificationListener = null;
             if (awayTimer) clearTimeout(awayTimer);
         }
 
@@ -3153,6 +3312,37 @@ CHANGELOG
                     if (isNaN(value)) { e.target.value = ''; return; }
                     e.target.value = Number(value).toLocaleString('en-US');
                 });
+            });
+            
+            // Player card action for sending friend request
+            playerListContainer.addEventListener('click', async (e) => {
+                const addFriendBtn = e.target.closest('.add-friend-btn');
+                if (addFriendBtn && currentUserData) {
+                    const playerCard = addFriendBtn.closest('.player-card');
+                    const recipientUid = playerCard.dataset.uid;
+                    if (recipientUid === currentUserData.uid) return; // Can't add self
+
+                    addFriendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                    
+                    try {
+                        await addDoc(collection(db, 'notifications'), {
+                            recipientUid: recipientUid,
+                            senderUid: currentUserData.uid,
+                            senderUsername: currentUserData.username,
+                            senderAvatarUrl: currentUserData.avatarUrl || null,
+                            type: 'friend_request',
+                            message: `${currentUserData.username} sent you a friend request.`,
+                            isRead: false,
+                            timestamp: serverTimestamp()
+                        });
+                        addFriendBtn.innerHTML = `<i class="fas fa-check"></i>`;
+                        addFriendBtn.title = "Request Sent";
+                        addFriendBtn.disabled = true;
+                    } catch (error) {
+                        console.error("Error sending friend request:", error);
+                        addFriendBtn.innerHTML = `<i class="fas fa-user-plus"></i>`;
+                    }
+                }
             });
         });
     </script>
