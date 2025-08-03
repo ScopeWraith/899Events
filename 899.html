@@ -3214,6 +3214,119 @@ CHANGELOG
         }
 
         document.getElementById('page-social').addEventListener('click', handleDeleteMessage);
+        
+        // --- NOTIFICATION / FEED LOGIC ---
+        function setupNotificationListener(user) {
+            const q = query(collection(db, "notifications"), where("recipientUid", "==", user.uid), orderBy("timestamp", "desc"));
+            notificationListener = onSnapshot(q, (snapshot) => {
+                userNotifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderNotifications(userNotifications);
+            });
+        }
+
+        function renderNotifications(notifications) {
+            const unreadCount = notifications.filter(n => !n.isRead).length;
+            
+            if (unreadCount > 0) {
+                notificationBadge.textContent = unreadCount;
+                notificationBadge.classList.add('visible');
+            } else {
+                notificationBadge.classList.remove('visible');
+            }
+
+            if (notifications.length === 0) {
+                feedDropdown.innerHTML = '<p class="text-center text-gray-500 p-4">No new notifications.</p>';
+                feedPageContainer.innerHTML = '<p class="text-center text-gray-500 p-8">Your feed is empty.</p>';
+                return;
+            }
+
+            feedDropdown.innerHTML = notifications.slice(0, 5).map(n => createNotificationHTML(n, 'dropdown')).join('');
+            feedPageContainer.innerHTML = notifications.map(n => createNotificationHTML(n, 'page')).join('');
+        }
+
+        function createNotificationHTML(notification, context) {
+            const timeAgo = notification.timestamp ? formatTimeAgo(notification.timestamp.toDate()) : '';
+            const isReadClass = notification.isRead ? '' : 'is-read';
+            
+            let iconHTML = '';
+            let actionsHTML = '';
+
+            switch(notification.type) {
+                case 'friend_request':
+                    iconHTML = `<div class="notification-icon bg-blue-500/20 text-blue-400"><i class="fas fa-user-plus"></i></div>`;
+                    actionsHTML = `
+                        <div class="notification-actions">
+                            <button class="notification-action-btn primary-btn" data-action="accept-friend" data-sender-uid="${notification.senderUid}">Accept</button>
+                            <button class="notification-action-btn secondary-btn" data-action="decline-friend">Decline</button>
+                        </div>
+                    `;
+                    break;
+                case 'verification_request':
+                     iconHTML = `<div class="notification-icon bg-yellow-500/20 text-yellow-400"><i class="fas fa-user-check"></i></div>`;
+                     actionsHTML = `
+                        <div class="notification-actions">
+                             <button class="notification-action-btn primary-btn" data-action="verify-user" data-target-uid="${notification.senderUid}">Verify User</button>
+                        </div>
+                     `;
+                    break;
+                case 'alliance_announcement':
+                    iconHTML = `<div class="notification-icon bg-red-500/20 text-red-400"><i class="fas fa-bullhorn"></i></div>`;
+                    break;
+                default:
+                    iconHTML = `<div class="notification-icon bg-gray-500/20 text-gray-400"><i class="fas fa-bell"></i></div>`;
+            }
+
+            return `
+                <div class="notification-item ${isReadClass}" data-id="${notification.id}" data-type="${notification.type}" data-sender-uid="${notification.senderUid}">
+                    ${iconHTML}
+                    <div class="notification-content">
+                        <p class="notification-text">${notification.message}</p>
+                        <p class="notification-time">${timeAgo}</p>
+                        ${notification.isRead ? '' : actionsHTML}
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function handleNotificationClick(e) {
+            const item = e.target.closest('.notification-item');
+            if (!item) return;
+
+            const notificationId = item.dataset.id;
+            const notification = userNotifications.find(n => n.id === notificationId);
+            if (!notification) return;
+
+            const actionBtn = e.target.closest('.notification-action-btn');
+            
+            if (actionBtn) {
+                const action = actionBtn.dataset.action;
+                const senderUid = notification.senderUid;
+
+                if (action === 'accept-friend') {
+                    const batch = writeBatch(db);
+                    // Add to both users' friends subcollection
+                    batch.set(doc(db, `users/${currentUserData.uid}/friends/${senderUid}`), { since: serverTimestamp() });
+                    batch.set(doc(db, `users/${senderUid}/friends/${currentUserData.uid}`), { since: serverTimestamp() });
+                    // Delete the notification
+                    batch.delete(doc(db, 'notifications', notificationId));
+                    await batch.commit();
+                } else if (action === 'decline-friend') {
+                    await deleteDoc(doc(db, 'notifications', notificationId));
+                } else if (action === 'verify-user') {
+                    const targetUid = actionBtn.dataset.targetUid;
+                    await updateDoc(doc(db, 'users', targetUid), { isVerified: true });
+                    await deleteDoc(doc(db, 'notifications', notificationId));
+                }
+            } else {
+                // If not clicking an action button, mark as read
+                if (!notification.isRead) {
+                    await updateDoc(doc(db, 'notifications', notificationId), { isRead: true });
+                }
+            }
+        }
+
+        feedDropdown.addEventListener('click', handleNotificationClick);
+        feedPageContainer.addEventListener('click', handleNotificationClick);
 
 
         // --- GLOBAL EVENT LISTENERS ---
