@@ -50,7 +50,7 @@ service cloud.firestore {
     
     // Friend requests, friends list, etc.
     match /users/{userId}/{subcollection}/{docId} {
-        allow read, write: if isSignedIn(); // Simplified for now, can be tightened
+        allow read, write: if isSignedIn() && (isOwner(userId) || request.auth.uid == docId);
     }
 
     // This collection stores the real-time presence status of users.
@@ -1109,7 +1109,7 @@ CHANGELOG
                         <div class="nav-item"><div class="nav-link" data-main-target="page-social"><i class="fas fa-comments"></i><span>Social</span></div></div>
                         <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
                         <div class="nav-item" id="feed-nav-item">
-                            <div class="nav-link">
+                            <div class="nav-link" data-main-target="page-feed">
                                 <i class="fas fa-bell"></i><span>Feed</span>
                                 <span id="notification-badge" class="notification-badge"></span>
                             </div>
@@ -1456,6 +1456,7 @@ CHANGELOG
         const feedDropdown = document.getElementById('feed-dropdown');
         const feedNavItem = document.getElementById('feed-nav-item');
         const notificationBadge = document.getElementById('notification-badge');
+        const feedPageContainer = document.getElementById('feed-page-container');
 
 
         let activePlayerSettingsUID = null;
@@ -2964,16 +2965,10 @@ CHANGELOG
         const pages = document.querySelectorAll('.page-content');
         function showPage(targetId) {
             pages.forEach(page => { page.style.display = page.id === targetId ? 'block' : 'none'; });
-            let activeSet = false;
             document.querySelectorAll('#main-nav .nav-link').forEach(link => {
                 const mainTarget = link.dataset.mainTarget;
-                const parentItem = link.closest('.nav-item');
-                const dropdowns = parentItem.querySelectorAll('.dropdown-link');
-                let isParentOfActive = false;
-                dropdowns.forEach(ddLink => { if (ddLink.dataset.target === targetId) { isParentOfActive = true; } });
-                if (mainTarget === targetId || isParentOfActive) { link.classList.add('active'); activeSet = true; } else { link.classList.remove('active'); }
+                link.classList.toggle('active', mainTarget === targetId);
             });
-             if (!activeSet) { const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]'); if (eventsLink) eventsLink.classList.add('active'); }
         }
 
         // --- PRESENCE MANAGEMENT ---
