@@ -199,7 +199,11 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
-- Prompt 61 (Current):
+- Prompt 62 (Current):
+    - Fixed "Cannot read properties of null (reading 'addEventListener')" error that occurred on page load.
+    - The error was caused by the mobile navigation builder trying to add dropdown logic to nav items that didn't have dropdowns.
+    - The code now correctly checks if a dropdown menu exists before attempting to add event listeners to its links.
+- Prompt 61:
     - Implemented a new player profile dropdown menu in the main navigation.
     - Menu includes: Total Power, Friend Requests, Private Messages, Edit Profile, and Logout.
     - "Friend Requests" and "Private Messages" buttons show notification counts and are disabled if there are no new items.
@@ -207,15 +211,6 @@ CHANGELOG
     - Implemented a basic private messaging system accessible from player cards.
     - Fixed a bug where the edit/delete modal for events and announcements was not functioning correctly. The form is now properly populated and submittable.
     - Updated Firestore security rules for private chat and refined friend management rules.
-- Prompt 60:
-    - Replaced "Season" nav button with a new "Feed" notification system.
-    - Feed dropdown shows real-time notifications for friend requests, verification requests, and alliance announcements.
-    - Added a notification badge with an unread count to the Feed button.
-    - Implemented functionality for sending friend requests from player cards.
-    - Implemented accepting/declining friend requests from the notification feed.
-    - Alliance leaders (R4/R5) now receive verification requests for new members.
-    - Alliance members now receive notifications for new alliance-specific announcements.
-    - Updated Firestore security rules to support the new `notifications` collection.
 -->
 
 <!DOCTYPE html>
@@ -2940,27 +2935,32 @@ CHANGELOG
                     newLink.addEventListener('click', (e) => {
                         e.preventDefault();
                         const subMenu = newLink.nextElementSibling;
-                        subMenu.style.display = subMenu.style.display === 'block' ? 'none' : 'block';
+                        if (subMenu) {
+                            subMenu.style.display = subMenu.style.display === 'block' ? 'none' : 'block';
+                        }
                     });
                     mobileNavLinksContainer.appendChild(newLink);
 
                     const subMenuContainer = document.createElement('div');
                     subMenuContainer.style.display = 'none';
                     subMenuContainer.className = 'ml-8';
-                    dropdown.querySelectorAll('.dropdown-link').forEach(ddLink => {
-                        const newDdLink = document.createElement('a');
-                        newDdLink.href = '#';
-                        newDdLink.className = 'mobile-nav-link !py-2 !text-base';
-                        newDdLink.textContent = ddLink.textContent;
-                        newDdLink.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            showPage(ddLink.dataset.target);
-                            mobileNavMenu.classList.remove('open');
-                            modalBackdrop.classList.remove('visible');
+                    const dropdownLinks = dropdown.querySelectorAll('.dropdown-link');
+                    if (dropdownLinks.length > 0) {
+                        dropdownLinks.forEach(ddLink => {
+                            const newDdLink = document.createElement('a');
+                            newDdLink.href = '#';
+                            newDdLink.className = 'mobile-nav-link !py-2 !text-base';
+                            newDdLink.textContent = ddLink.textContent;
+                            newDdLink.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                showPage(ddLink.dataset.target);
+                                mobileNavMenu.classList.remove('open');
+                                modalBackdrop.classList.remove('visible');
+                            });
+                            subMenuContainer.appendChild(newDdLink);
                         });
-                        subMenuContainer.appendChild(newDdLink);
-                    });
-                    mobileNavLinksContainer.appendChild(subMenuContainer);
+                        mobileNavLinksContainer.appendChild(subMenuContainer);
+                    }
 
                 } else {
                      newLink.addEventListener('click', (e) => {
