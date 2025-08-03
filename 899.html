@@ -40,7 +40,7 @@ service cloud.firestore {
         return isSignedIn() && getUserData(request.auth.uid).alliance == allianceId;
     }
 
-    // --- USER DATA & FRIENDS ---
+    // --- USER DATA, FRIENDS & PRESENCE ---
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isOwner(userId);
@@ -51,6 +51,14 @@ service cloud.firestore {
     match /users/{userId}/friends/{friendId} {
         allow read: if isOwner(userId);
         allow write: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
+    }
+
+    // This collection stores the real-time presence status of users.
+    match /sessions/{userId} {
+      // Everyone can read presence information to see who is online.
+      allow read: if true; 
+      // A user can only write to their own session document.
+      allow write: if isOwner(userId);
     }
 
     function canManageUser(targetUserId) {
@@ -119,6 +127,26 @@ service cloud.firestore {
     }
   }
 }
+
+/*
+===============================================
+FIREBASE REALTIME DATABASE RULES
+===============================================
+These rules are for managing user presence via the Realtime Database,
+which provides superior `onDisconnect` handling.
+
+{
+  "rules": {
+    "status": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}
+
+*/
 -->
 
 <!-- 
@@ -153,6 +181,13 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
+- Prompt 59 (Current):
+    - Integrated real-time user presence (Online, Away, Offline).
+    - Uses Firebase Realtime Database for robust `onDisconnect` handling.
+    - User status changes to 'Away' after 5 minutes of inactivity.
+    - Status indicators (dots) added to Player cards and Chat messages.
+    - Added a pre-loader to prevent content flash before authentication check completes.
+    - Updated Firestore and Realtime Database security rules for the new presence system.
 - Prompt 58:
     - Implemented full real-time chat functionality for World, Alliance, and Leadership channels.
     - Added ability for Admins to delete any chat message and for R5s to delete messages in their own alliance chat.
@@ -199,11 +234,15 @@ CHANGELOG
         @keyframes pulse-border-horizontal { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes pulse-opacity { 50% { opacity: 0.6; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes success-pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes success-pop { 0% { transform: scale(0.7); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
         @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         html { font-size: 90%; }
         body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); color: #c9d1d9; overflow-x: hidden; }
+        #app-preloader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--color-bg); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        #app-container { display: none; } /* Initially hidden */
         #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at top left, rgba(0, 191, 255, 0.05), transparent 30%), radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.05), transparent 30%); }
         .glass-pane { background: linear-gradient(135deg, rgba(22, 27, 34, 0.6), rgba(22, 27, 34, 0.3)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
         .header-main { padding: 0.75rem 1.5rem; position: relative; z-index: 50; }
@@ -495,7 +534,7 @@ CHANGELOG
         }
         .skeleton-card .skeleton-loader { opacity: 0.7; }
 
-        /* Social Page Styles */
+        /* Social Page & Presence Styles */
         .social-tabs {
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
@@ -556,6 +595,9 @@ CHANGELOG
             font-weight: 700;
             font-size: 0.8rem;
             margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         .chat-message.self .chat-message-author {
             color: #0D1117;
@@ -584,584 +626,606 @@ CHANGELOG
         .chat-message.self .delete-message-btn {
             left: -25px;
         }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #6e7681; /* Offline */
+        }
+        .status-dot.online {
+            background-color: #238636; /* Online */
+            box-shadow: 0 0 5px #238636;
+        }
+        .status-dot.away {
+            background-color: #d29922; /* Away */
+        }
+        .player-card-header .status-dot {
+            margin-left: 0.5rem;
+        }
 
     </style>
 </head>
 <body>
-    <canvas id="particle-canvas"></canvas>
-
-    <!-- Mobile Nav Menu -->
-    <div id="mobile-nav-menu" class="glass-pane !rounded-l-lg !rounded-r-none">
-        <div class="p-4 flex justify-between items-center border-b border-white/10">
-            <h3 class="text-xl font-bold text-white">Menu</h3>
-            <button id="close-mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-times fa-lg"></i></button>
-        </div>
-        <nav id="mobile-nav-links" class="flex flex-col p-2"></nav>
+    <div id="app-preloader">
+        <div class="spinner"></div>
     </div>
 
-    <!-- Auth & Edit Modals -->
-    <div id="modal-backdrop" class="modal-backdrop"></div>
-    <div id="auth-modal-container" class="modal-container">
-        <div class="glass-pane">
-            <div class="modal-content-wrapper">
-                <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                    <i class="fas fa-times fa-lg"></i>
-                </button>
-                <div class="modal-content-scroll">
-                    <!-- Login Form -->
-                    <div id="login-form-container" class="auth-form">
-                        <h2 class="text-2xl font-bold text-white text-center mb-4">Login</h2>
-                        <p class="text-center text-gray-400 mb-6">Welcome back to the 899 Hub.</p>
-                        <form id="login-form">
-                            <div class="space-y-4">
-                                <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="login-email" placeholder="Email" class="form-input" required></div>
-                                <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="login-password" placeholder="Password" class="form-input" required></div>
-                            </div>
-                            <p id="login-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                            <button type="submit" id="login-submit-btn" class="w-full p-3 rounded-lg primary-btn mt-2">Login</button>
-                            <div class="text-center text-sm text-gray-400 mt-6">
-                                <a href="#" id="forgot-password-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Forgot Password?</a>
-                            </div>
-                            <p class="text-center text-sm text-gray-400 mt-4">
-                                Don't have an account? <a href="#" id="show-register-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Register here</a>
-                            </p>
-                        </form>
-                    </div>
-                    <!-- Registration Form -->
-                    <div id="register-form-container" class="auth-form">
-                        <div id="registration-flow">
-                            <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
-                            <div class="progress-bar" id="register-progress-bar">
-                                <div class="line"></div>
-                                <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
-                                <div class="progress-step" data-step="2"><i class="fas fa-shield-alt"></i></div>
-                                <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
-                                <div class="progress-step" data-step="4"><i class="fas fa-camera"></i></div>
-                            </div>
-                            <form id="register-form">
-                                <div class="form-slide active" data-slide="1"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
-                                    <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password (min. 6 characters)" class="form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
-                                </div></div>
-                                <div class="form-slide" data-slide="2"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
-                                     <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                                        <div class="custom-select-container" data-type="alliance">
-                                            <input type="hidden" id="register-alliance" name="alliance" required>
-                                            <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                            <div class="custom-select-options">
-                                                <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                                <div class="options-list"></div>
-                                            </div>
-                                        </div>
-                                     </div>
-                                    <div class="input-group"><i class="fas fa-star input-icon"></i>
-                                        <div class="custom-select-container" data-type="rank">
-                                            <input type="hidden" id="register-alliance-rank" name="alliance-rank" required>
-                                            <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                            <div class="custom-select-options">
-                                                <div class="options-list"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div></div>
-                                <div class="form-slide" data-slide="3"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
-                                    <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power" class="power-input form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
-                                </div></div>
-                                <div class="form-slide" data-slide="4">
-                                    <p class="text-center text-gray-400 mb-6">Step 4: Upload an Avatar (Optional)</p>
-                                    <div class="flex flex-col items-center gap-4">
-                                        <img id="register-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover border-2 border-white/20">
-                                        <button type="button" id="register-avatar-btn" class="w-full p-3 rounded-lg secondary-btn">
-                                            <i class="fas fa-upload mr-2"></i> Choose Image
-                                        </button>
-                                        <input type="file" id="register-avatar-input" class="hidden" accept="image/*">
-                                    </div>
+    <div id="app-container">
+        <canvas id="particle-canvas"></canvas>
+
+        <!-- Mobile Nav Menu -->
+        <div id="mobile-nav-menu" class="glass-pane !rounded-l-lg !rounded-r-none">
+            <div class="p-4 flex justify-between items-center border-b border-white/10">
+                <h3 class="text-xl font-bold text-white">Menu</h3>
+                <button id="close-mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-times fa-lg"></i></button>
+            </div>
+            <nav id="mobile-nav-links" class="flex flex-col p-2"></nav>
+        </div>
+
+        <!-- Auth & Edit Modals -->
+        <div id="modal-backdrop" class="modal-backdrop"></div>
+        <div id="auth-modal-container" class="modal-container">
+            <div class="glass-pane">
+                <div class="modal-content-wrapper">
+                    <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                        <i class="fas fa-times fa-lg"></i>
+                    </button>
+                    <div class="modal-content-scroll">
+                        <!-- Login Form -->
+                        <div id="login-form-container" class="auth-form">
+                            <h2 class="text-2xl font-bold text-white text-center mb-4">Login</h2>
+                            <p class="text-center text-gray-400 mb-6">Welcome back to the 899 Hub.</p>
+                            <form id="login-form">
+                                <div class="space-y-4">
+                                    <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="login-email" placeholder="Email" class="form-input" required></div>
+                                    <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="login-password" placeholder="Password" class="form-input" required></div>
                                 </div>
-                                <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                                <div id="register-nav-container" class="flex items-center mt-6"><button type="button" id="register-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button><div class="flex-grow flex justify-center"><button type="button" id="register-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button><button type="submit" id="register-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Register</button></div></div>
-                                <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
+                                <p id="login-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                                <button type="submit" id="login-submit-btn" class="w-full p-3 rounded-lg primary-btn mt-2">Login</button>
+                                <div class="text-center text-sm text-gray-400 mt-6">
+                                    <a href="#" id="forgot-password-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Forgot Password?</a>
+                                </div>
+                                <p class="text-center text-sm text-gray-400 mt-4">
+                                    Don't have an account? <a href="#" id="show-register-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Register here</a>
+                                </p>
                             </form>
                         </div>
-                        <div id="registration-success">
-                            <i class="fas fa-check-circle success-icon"></i>
-                            <h2 class="text-2xl font-bold text-white mt-4">Registration Complete!</h2>
-                            <p class="text-gray-400 mt-2">Welcome to the 899 Hub. You will be logged in shortly.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="edit-profile-modal-container" class="modal-container">
-         <div class="glass-pane">
-            <div class="modal-content-wrapper">
-                <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                    <i class="fas fa-times fa-lg"></i>
-                </button>
-                <div class="modal-content-scroll">
-                    <h2 class="text-2xl font-bold text-white text-center mb-6">Edit Your Profile</h2>
-                    <form id="edit-profile-form">
-                         <div class="space-y-4">
-                            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
-                            <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                                <div class="custom-select-container w-full" data-type="alliance">
-                                    <input type="hidden" id="edit-alliance" name="alliance" required>
-                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options dropdown-pane glass-pane">
-                                        <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                        <div class="options-list"></div>
-                                    </div>
+                        <!-- Registration Form -->
+                        <div id="register-form-container" class="auth-form">
+                            <div id="registration-flow">
+                                <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
+                                <div class="progress-bar" id="register-progress-bar">
+                                    <div class="line"></div>
+                                    <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
+                                    <div class="progress-step" data-step="2"><i class="fas fa-shield-alt"></i></div>
+                                    <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
+                                    <div class="progress-step" data-step="4"><i class="fas fa-camera"></i></div>
                                 </div>
-                            </div>
-                            <div class="input-group"><i class="fas fa-star input-icon"></i>
-                                 <div class="custom-select-container w-full" data-type="rank">
-                                    <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
-                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options dropdown-pane glass-pane">
-                                        <div class="options-list"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
-                            <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
-                            <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input" required></div>
-                            <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
-                        </div>
-                        <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                        <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Player Settings Modal -->
-    <div id="player-settings-modal-container" class="modal-container">
-         <div class="glass-pane">
-            <div class="modal-content-wrapper">
-                <button id="close-player-settings-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                    <i class="fas fa-times fa-lg"></i>
-                </button>
-                <div class="modal-content-scroll">
-                    <h2 class="text-2xl font-bold text-white text-center mb-2">Player Settings</h2>
-                    <p id="player-settings-username" class="text-center text-gray-400 mb-6"></p>
-                    <form id="player-settings-form">
-                         <div class="space-y-4">
-                            <div class="input-group"><i class="fas fa-star input-icon"></i>
-                                 <div class="custom-select-container w-full" data-type="rank">
-                                    <input type="hidden" id="setting-alliance-rank" name="alliance-rank" required>
-                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options">
-                                        <div class="options-list"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="input-group"><i class="fas fa-user-tag input-icon"></i>
-                                 <div class="custom-select-container w-full" data-type="role">
-                                    <input type="hidden" id="setting-alliance-role" name="alliance-role">
-                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance Role</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options">
-                                        <div class="options-list"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="verification-toggle-container" class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
-                                <label for="setting-verified" class="font-semibold text-white">Verified Status</label>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="setting-verified">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <p id="player-settings-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                        <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Settings</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create/Edit Post Modal -->
-    <div id="create-post-modal-container" class="modal-container">
-         <div class="glass-pane">
-            <div class="modal-content-wrapper">
-                <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                    <i class="fas fa-times fa-lg"></i>
-                </button>
-                <div class="modal-content-scroll">
-                    <form id="create-post-form">
-                        <div id="post-creation-flow">
-                             <!-- Slide 1: Main Type (Event vs Announcement) - SKIPPED IN NEW FLOW -->
-                            <div class="form-slide" data-slide="1">
-                                <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
-                                <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
-                                <div id="post-main-type-selection-container" class="space-y-4">
-                                   <!-- Dynamically inserted buttons for Event/Announcement -->
-                                </div>
-                            </div>
-                            <!-- Slide 2: Sub-Type Selection -->
-                            <div class="form-slide" data-slide="2">
-                                <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
-                                <p class="text-center text-gray-400 mb-6">Select a category.</p>
-                                <div id="post-subtype-selection-container" class="space-y-3">
-                                   <!-- Dynamically inserted sub-type buttons -->
-                                </div>
-                            </div>
-                            <!-- Slide 3: Content -->
-                            <div class="form-slide" data-slide="3">
-                                <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
-                                <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
-                                <div class="space-y-4">
-                                    <div id="post-alliance-group" class="input-group hidden"><i class="fas fa-shield-alt input-icon"></i>
-                                         <div class="custom-select-container w-full" data-type="alliance">
-                                            <input type="hidden" id="post-alliance" name="post-alliance">
-                                            <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                            <div class="custom-select-options">
-                                                <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                                <div class="options-list"></div>
+                                <form id="register-form">
+                                    <div class="form-slide active" data-slide="1"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
+                                        <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
+                                        <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
+                                        <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password (min. 6 characters)" class="form-input" required></div>
+                                        <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
+                                    </div></div>
+                                    <div class="form-slide" data-slide="2"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
+                                         <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
+                                            <div class="custom-select-container" data-type="alliance">
+                                                <input type="hidden" id="register-alliance" name="alliance" required>
+                                                <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                                <div class="custom-select-options">
+                                                    <input type="text" class="custom-select-search" placeholder="Search alliances...">
+                                                    <div class="options-list"></div>
+                                                </div>
+                                            </div>
+                                         </div>
+                                        <div class="input-group"><i class="fas fa-star input-icon"></i>
+                                            <div class="custom-select-container" data-type="rank">
+                                                <input type="hidden" id="register-alliance-rank" name="alliance-rank" required>
+                                                <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                                <div class="custom-select-options">
+                                                    <div class="options-list"></div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="input-group"><i class="fas fa-heading input-icon"></i><input type="text" id="post-title" placeholder="Title" class="form-input" required></div>
-                                    <div class="input-group !items-start"><i class="fas fa-align-left input-icon pt-3"></i><textarea id="post-details" placeholder="Details..." class="form-textarea" required></textarea></div>
-                                    <div>
-                                        <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
-                                        <div class="flex items-center gap-4">
-                                            <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=PREVIEW" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
-                                            <button type="button" id="post-thumbnail-btn" class="flex-grow p-3 rounded-lg secondary-btn">
+                                    </div></div>
+                                    <div class="form-slide" data-slide="3"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
+                                        <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
+                                        <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
+                                        <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power" class="power-input form-input" required></div>
+                                        <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
+                                    </div></div>
+                                    <div class="form-slide" data-slide="4">
+                                        <p class="text-center text-gray-400 mb-6">Step 4: Upload an Avatar (Optional)</p>
+                                        <div class="flex flex-col items-center gap-4">
+                                            <img id="register-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover border-2 border-white/20">
+                                            <button type="button" id="register-avatar-btn" class="w-full p-3 rounded-lg secondary-btn">
                                                 <i class="fas fa-upload mr-2"></i> Choose Image
                                             </button>
-                                            <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
+                                            <input type="file" id="register-avatar-input" class="hidden" accept="image/*">
                                         </div>
                                     </div>
-                                </div>
+                                    <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                                    <div id="register-nav-container" class="flex items-center mt-6"><button type="button" id="register-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button><div class="flex-grow flex justify-center"><button type="button" id="register-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button><button type="submit" id="register-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Register</button></div></div>
+                                    <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
+                                </form>
                             </div>
-                             <!-- Slide 4: Timing (for events) -->
-                            <div class="form-slide" data-slide="4">
-                                <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
-                                <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
-                                <div id="post-timing-group" class="space-y-4">
-                                     <div>
-                                        <label class="text-sm font-semibold text-gray-400 mb-1 block">Start Time</label>
-                                        <div class="flex gap-2">
-                                            <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
-                                                <div class="custom-select-container" data-type="day-of-week">
-                                                    <input type="hidden" id="post-start-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                </div>
-                                            </div>
-                                            <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
-                                                <div class="custom-select-container" data-type="hour-of-day">
-                                                    <input type="hidden" id="post-start-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="text-sm font-semibold text-gray-400 mb-1 block">End Time</label>
-                                        <div class="flex gap-2">
-                                             <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
-                                                <div class="custom-select-container" data-type="day-of-week">
-                                                    <input type="hidden" id="post-end-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                </div>
-                                            </div>
-                                            <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
-                                                <div class="custom-select-container" data-type="hour-of-day">
-                                                    <input type="hidden" id="post-end-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                     <div>
-                                        <label class="text-sm font-semibold text-gray-400 mb-1 block">Repetition</label>
-                                        <div class="flex gap-2">
-                                             <div class="input-group w-1/2"><i class="fas fa-redo-alt input-icon"></i>
-                                                <div class="custom-select-container" data-type="repeat-type">
-                                                    <input type="hidden" id="post-repeat-type" value="none" required><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                </div>
-                                            </div>
-                                            <div id="post-repeat-weeks-container" class="input-group w-1/2 hidden"><i class="fas fa-hashtag input-icon"></i>
-                                                <input type="number" id="post-repeat-weeks" class="form-input" min="1" value="1" placeholder="Weeks">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <p class="text-xs text-center text-gray-400">Times are based on your local timezone.</p>
-                                </div>
+                            <div id="registration-success">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <h2 class="text-2xl font-bold text-white mt-4">Registration Complete!</h2>
+                                <p class="text-gray-400 mt-2">Welcome to the 899 Hub. You will be logged in shortly.</p>
                             </div>
-                        </div>
-                        <p id="create-post-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                         <div id="post-nav-container" class="flex items-center mt-6">
-                            <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
-                            <div class="flex-grow flex justify-center">
-                                <button type="button" id="post-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button>
-                                <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Confirmation Modal -->
-    <div id="confirmation-modal-container" class="modal-container">
-        <div class="glass-pane">
-            <div class="modal-content-wrapper p-6 text-center">
-                <h2 id="confirmation-title" class="text-2xl font-bold text-white mb-4">Confirm Action</h2>
-                <p id="confirmation-message" class="text-gray-300 mb-6">Are you sure?</p>
-                <div class="flex justify-center gap-4">
-                    <button id="confirmation-cancel-btn" class="w-full p-3 rounded-lg secondary-btn">Cancel</button>
-                    <button id="confirmation-confirm-btn" class="w-full p-3 rounded-lg primary-btn bg-red-600 hover:bg-red-700 !shadow-red-500/30">Confirm</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Post Actions Modal -->
-    <div id="post-actions-modal-container" class="modal-container" style="max-width: 300px;">
-        <div class="glass-pane">
-            <div class="modal-content-wrapper p-4">
-                <h3 class="text-lg font-bold text-white text-center mb-4">Post Options</h3>
-                <div class="space-y-2">
-                    <button id="modal-edit-post-btn" class="actions-modal-btn edit">
-                        <i class="fas fa-edit fa-fw"></i>
-                        <span>Edit Post</span>
-                    </button>
-                    <button id="modal-delete-post-btn" class="actions-modal-btn delete">
-                        <i class="fas fa-trash-alt fa-fw"></i>
-                        <span>Delete Post</span>
-                    </button>
-                </div>
-                 <button id="close-post-actions-modal-btn" class="w-full p-2 rounded-lg secondary-btn mt-4">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-
-    <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
-        <div class="max-w-6xl mx-auto">
-
-            <header class="glass-pane header-main flex justify-between items-center mb-6">
-                <div class="flex-shrink-0">
-                    <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white" style="text-shadow: 0 0 10px var(--color-primary-glow);">899<span class="font-bold" style="color: var(--color-primary);">HUB</span></h1>
-                    <p class="text-xs text-gray-400">Official Community Hub</p>
-                </div>
-                
-                <nav id="main-nav" class="hidden md:flex flex-grow justify-center items-center">
-                    <div class="nav-item"><div class="nav-link active" data-main-target="page-events"><i class="fas fa-calendar-alt"></i><span>Events</span></div></div>
-                    <div class="nav-item"><div class="nav-link" data-main-target="page-social"><i class="fas fa-comments"></i><span>Social</span></div></div>
-                    <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
-                    <div class="nav-item"><div class="nav-link"><i class="fas fa-trophy"></i><span>Season</span></div><div class="dropdown-menu dropdown-pane glass-pane"><a class="dropdown-link" data-target="page-season-overview">Season Overview</a><a class="dropdown-link" data-target="page-season-rewards">Rewards</a><a class="dropdown-link" data-target="page-season-history">History</a></div></div>
-                </nav>
-
-                <div id="auth-container" class="hidden md:flex flex-shrink-0 relative">
-                    <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
-                    <div id="user-profile-container" class="hidden">
-                        <button id="player-card-btn" class="auth-button">
-                             <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
-                            <span id="username-display"></span>
-                            <i class="fas fa-caret-down ml-2"></i>
-                        </button>
-                        <div id="player-card-dropdown" class="dropdown-pane glass-pane">
-                            <div id="player-card-info" class="p-2 mb-2 border-b border-white/10"></div>
-                            <button id="upload-avatar-btn" class="dropdown-link"><i class="fas fa-camera w-6 text-center mr-2"></i>Change Avatar</button>
-                            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
-                            <button id="edit-profile-btn" class="dropdown-link"><i class="fas fa-edit w-6 text-center mr-2"></i>Edit Profile</button>
-                            <button id="logout-btn" class="dropdown-link"><i class="fas fa-sign-out-alt w-6 text-center mr-2"></i>Logout</button>
                         </div>
                     </div>
                 </div>
-                <button id="open-mobile-menu-btn" class="md:hidden auth-button !px-4"><span class="font-bold tracking-wider">MENU</span></button>
-            </header>
-
-            <!-- Page Content Container -->
-            <div id="page-container">
-                <!-- Social Page -->
-                <div id="page-social" class="page-content" style="display: none;">
-                    <div class="glass-pane section-container">
-                        <div class="flex flex-col md:flex-row gap-4">
-                            <!-- Main Content: Tabs and Panes -->
-                            <div class="flex-grow">
-                                <div class="social-tabs flex items-center mb-4">
-                                    <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World Chat</button>
-                                    <button class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
-                                    <button class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
-                                    <button class="social-tab-btn" data-tab="friends"><i class="fas fa-user-friends mr-2"></i>Friends</button>
-                                </div>
-
-                                <!-- World Chat Pane -->
-                                <div id="pane-world-chat" class="social-content-pane active">
-                                    <div class="flex flex-col h-full">
-                                        <div id="world-chat-window" class="chat-window p-4 flex-grow">
-                                            <!-- Messages will be injected here -->
-                                            <p class="text-center text-gray-500 m-auto">Welcome to World Chat!</p>
+            </div>
+        </div>
+        
+        <div id="edit-profile-modal-container" class="modal-container">
+             <div class="glass-pane">
+                <div class="modal-content-wrapper">
+                    <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                        <i class="fas fa-times fa-lg"></i>
+                    </button>
+                    <div class="modal-content-scroll">
+                        <h2 class="text-2xl font-bold text-white text-center mb-6">Edit Your Profile</h2>
+                        <form id="edit-profile-form">
+                             <div class="space-y-4">
+                                <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
+                                <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
+                                    <div class="custom-select-container w-full" data-type="alliance">
+                                        <input type="hidden" id="edit-alliance" name="alliance" required>
+                                        <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                        <div class="custom-select-options dropdown-pane glass-pane">
+                                            <input type="text" class="custom-select-search" placeholder="Search alliances...">
+                                            <div class="options-list"></div>
                                         </div>
-                                        <form id="world-chat-form" class="mt-4 flex gap-2">
-                                            <input type="text" id="world-chat-input" class="form-input flex-grow" placeholder="Type a message in world chat..." required>
-                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                        </form>
                                     </div>
                                 </div>
+                                <div class="input-group"><i class="fas fa-star input-icon"></i>
+                                     <div class="custom-select-container w-full" data-type="rank">
+                                        <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
+                                        <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                        <div class="custom-select-options dropdown-pane glass-pane">
+                                            <div class="options-list"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
+                                <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
+                                <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input" required></div>
+                                <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
+                            </div>
+                            <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                            <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                                <!-- Alliance Chat Pane -->
-                                <div id="pane-alliance-chat" class="social-content-pane">
-                                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                        <div class="lg:col-span-2 flex flex-col h-full">
-                                            <div id="alliance-chat-window" class="chat-window p-4 flex-grow">
-                                               <p class="text-center text-gray-500 m-auto">Your private alliance chat.</p>
+        <!-- Player Settings Modal -->
+        <div id="player-settings-modal-container" class="modal-container">
+             <div class="glass-pane">
+                <div class="modal-content-wrapper">
+                    <button id="close-player-settings-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                        <i class="fas fa-times fa-lg"></i>
+                    </button>
+                    <div class="modal-content-scroll">
+                        <h2 class="text-2xl font-bold text-white text-center mb-2">Player Settings</h2>
+                        <p id="player-settings-username" class="text-center text-gray-400 mb-6"></p>
+                        <form id="player-settings-form">
+                             <div class="space-y-4">
+                                <div class="input-group"><i class="fas fa-star input-icon"></i>
+                                     <div class="custom-select-container w-full" data-type="rank">
+                                        <input type="hidden" id="setting-alliance-rank" name="alliance-rank" required>
+                                        <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                        <div class="custom-select-options">
+                                            <div class="options-list"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="input-group"><i class="fas fa-user-tag input-icon"></i>
+                                     <div class="custom-select-container w-full" data-type="role">
+                                        <input type="hidden" id="setting-alliance-role" name="alliance-role">
+                                        <button type="button" class="custom-select-value form-input"><span>Select Alliance Role</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                        <div class="custom-select-options">
+                                            <div class="options-list"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="verification-toggle-container" class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
+                                    <label for="setting-verified" class="font-semibold text-white">Verified Status</label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="setting-verified">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <p id="player-settings-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                            <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create/Edit Post Modal -->
+        <div id="create-post-modal-container" class="modal-container">
+             <div class="glass-pane">
+                <div class="modal-content-wrapper">
+                    <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                        <i class="fas fa-times fa-lg"></i>
+                    </button>
+                    <div class="modal-content-scroll">
+                        <form id="create-post-form">
+                            <div id="post-creation-flow">
+                                 <!-- Slide 1: Main Type (Event vs Announcement) - SKIPPED IN NEW FLOW -->
+                                <div class="form-slide" data-slide="1">
+                                    <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
+                                    <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
+                                    <div id="post-main-type-selection-container" class="space-y-4">
+                                       <!-- Dynamically inserted buttons for Event/Announcement -->
+                                    </div>
+                                </div>
+                                <!-- Slide 2: Sub-Type Selection -->
+                                <div class="form-slide" data-slide="2">
+                                    <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
+                                    <p class="text-center text-gray-400 mb-6">Select a category.</p>
+                                    <div id="post-subtype-selection-container" class="space-y-3">
+                                       <!-- Dynamically inserted sub-type buttons -->
+                                    </div>
+                                </div>
+                                <!-- Slide 3: Content -->
+                                <div class="form-slide" data-slide="3">
+                                    <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
+                                    <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
+                                    <div class="space-y-4">
+                                        <div id="post-alliance-group" class="input-group hidden"><i class="fas fa-shield-alt input-icon"></i>
+                                             <div class="custom-select-container w-full" data-type="alliance">
+                                                <input type="hidden" id="post-alliance" name="post-alliance">
+                                                <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                                <div class="custom-select-options">
+                                                    <input type="text" class="custom-select-search" placeholder="Search alliances...">
+                                                    <div class="options-list"></div>
+                                                </div>
                                             </div>
-                                            <form id="alliance-chat-form" class="mt-4 flex gap-2">
-                                                <input type="text" id="alliance-chat-input" class="form-input flex-grow" placeholder="Message your alliance..." required>
+                                        </div>
+                                        <div class="input-group"><i class="fas fa-heading input-icon"></i><input type="text" id="post-title" placeholder="Title" class="form-input" required></div>
+                                        <div class="input-group !items-start"><i class="fas fa-align-left input-icon pt-3"></i><textarea id="post-details" placeholder="Details..." class="form-textarea" required></textarea></div>
+                                        <div>
+                                            <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
+                                            <div class="flex items-center gap-4">
+                                                <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=PREVIEW" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
+                                                <button type="button" id="post-thumbnail-btn" class="flex-grow p-3 rounded-lg secondary-btn">
+                                                    <i class="fas fa-upload mr-2"></i> Choose Image
+                                                </button>
+                                                <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                 <!-- Slide 4: Timing (for events) -->
+                                <div class="form-slide" data-slide="4">
+                                    <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
+                                    <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
+                                    <div id="post-timing-group" class="space-y-4">
+                                         <div>
+                                            <label class="text-sm font-semibold text-gray-400 mb-1 block">Start Time</label>
+                                            <div class="flex gap-2">
+                                                <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
+                                                    <div class="custom-select-container" data-type="day-of-week">
+                                                        <input type="hidden" id="post-start-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                    </div>
+                                                </div>
+                                                <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
+                                                    <div class="custom-select-container" data-type="hour-of-day">
+                                                        <input type="hidden" id="post-start-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="text-sm font-semibold text-gray-400 mb-1 block">End Time</label>
+                                            <div class="flex gap-2">
+                                                 <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
+                                                    <div class="custom-select-container" data-type="day-of-week">
+                                                        <input type="hidden" id="post-end-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                    </div>
+                                                </div>
+                                                <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
+                                                    <div class="custom-select-container" data-type="hour-of-day">
+                                                        <input type="hidden" id="post-end-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                         <div>
+                                            <label class="text-sm font-semibold text-gray-400 mb-1 block">Repetition</label>
+                                            <div class="flex gap-2">
+                                                 <div class="input-group w-1/2"><i class="fas fa-redo-alt input-icon"></i>
+                                                    <div class="custom-select-container" data-type="repeat-type">
+                                                        <input type="hidden" id="post-repeat-type" value="none" required><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                    </div>
+                                                </div>
+                                                <div id="post-repeat-weeks-container" class="input-group w-1/2 hidden"><i class="fas fa-hashtag input-icon"></i>
+                                                    <input type="number" id="post-repeat-weeks" class="form-input" min="1" value="1" placeholder="Weeks">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-center text-gray-400">Times are based on your local timezone.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p id="create-post-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                             <div id="post-nav-container" class="flex items-center mt-6">
+                                <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
+                                <div class="flex-grow flex justify-center">
+                                    <button type="button" id="post-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button>
+                                    <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="confirmation-modal-container" class="modal-container">
+            <div class="glass-pane">
+                <div class="modal-content-wrapper p-6 text-center">
+                    <h2 id="confirmation-title" class="text-2xl font-bold text-white mb-4">Confirm Action</h2>
+                    <p id="confirmation-message" class="text-gray-300 mb-6">Are you sure?</p>
+                    <div class="flex justify-center gap-4">
+                        <button id="confirmation-cancel-btn" class="w-full p-3 rounded-lg secondary-btn">Cancel</button>
+                        <button id="confirmation-confirm-btn" class="w-full p-3 rounded-lg primary-btn bg-red-600 hover:bg-red-700 !shadow-red-500/30">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post Actions Modal -->
+        <div id="post-actions-modal-container" class="modal-container" style="max-width: 300px;">
+            <div class="glass-pane">
+                <div class="modal-content-wrapper p-4">
+                    <h3 class="text-lg font-bold text-white text-center mb-4">Post Options</h3>
+                    <div class="space-y-2">
+                        <button id="modal-edit-post-btn" class="actions-modal-btn edit">
+                            <i class="fas fa-edit fa-fw"></i>
+                            <span>Edit Post</span>
+                        </button>
+                        <button id="modal-delete-post-btn" class="actions-modal-btn delete">
+                            <i class="fas fa-trash-alt fa-fw"></i>
+                            <span>Delete Post</span>
+                        </button>
+                    </div>
+                     <button id="close-post-actions-modal-btn" class="w-full p-2 rounded-lg secondary-btn mt-4">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
+            <div class="max-w-6xl mx-auto">
+
+                <header class="glass-pane header-main flex justify-between items-center mb-6">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white" style="text-shadow: 0 0 10px var(--color-primary-glow);">899<span class="font-bold" style="color: var(--color-primary);">HUB</span></h1>
+                        <p class="text-xs text-gray-400">Official Community Hub</p>
+                    </div>
+                    
+                    <nav id="main-nav" class="hidden md:flex flex-grow justify-center items-center">
+                        <div class="nav-item"><div class="nav-link active" data-main-target="page-events"><i class="fas fa-calendar-alt"></i><span>Events</span></div></div>
+                        <div class="nav-item"><div class="nav-link" data-main-target="page-social"><i class="fas fa-comments"></i><span>Social</span></div></div>
+                        <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
+                        <div class="nav-item"><div class="nav-link"><i class="fas fa-trophy"></i><span>Season</span></div><div class="dropdown-menu dropdown-pane glass-pane"><a class="dropdown-link" data-target="page-season-overview">Season Overview</a><a class="dropdown-link" data-target="page-season-rewards">Rewards</a><a class="dropdown-link" data-target="page-season-history">History</a></div></div>
+                    </nav>
+
+                    <div id="auth-container" class="hidden md:flex flex-shrink-0 relative">
+                        <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
+                        <div id="user-profile-container" class="hidden">
+                            <button id="player-card-btn" class="auth-button">
+                                 <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
+                                <span id="username-display"></span>
+                                <i class="fas fa-caret-down ml-2"></i>
+                            </button>
+                            <div id="player-card-dropdown" class="dropdown-pane glass-pane">
+                                <div id="player-card-info" class="p-2 mb-2 border-b border-white/10"></div>
+                                <button id="upload-avatar-btn" class="dropdown-link"><i class="fas fa-camera w-6 text-center mr-2"></i>Change Avatar</button>
+                                <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+                                <button id="edit-profile-btn" class="dropdown-link"><i class="fas fa-edit w-6 text-center mr-2"></i>Edit Profile</button>
+                                <button id="logout-btn" class="dropdown-link"><i class="fas fa-sign-out-alt w-6 text-center mr-2"></i>Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="open-mobile-menu-btn" class="md:hidden auth-button !px-4"><span class="font-bold tracking-wider">MENU</span></button>
+                </header>
+
+                <!-- Page Content Container -->
+                <div id="page-container">
+                    <!-- Social Page -->
+                    <div id="page-social" class="page-content" style="display: none;">
+                        <div class="glass-pane section-container">
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <!-- Main Content: Tabs and Panes -->
+                                <div class="flex-grow">
+                                    <div class="social-tabs flex items-center mb-4">
+                                        <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World Chat</button>
+                                        <button class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
+                                        <button class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
+                                        <button class="social-tab-btn" data-tab="friends"><i class="fas fa-user-friends mr-2"></i>Friends</button>
+                                    </div>
+
+                                    <!-- World Chat Pane -->
+                                    <div id="pane-world-chat" class="social-content-pane active">
+                                        <div class="flex flex-col h-full">
+                                            <div id="world-chat-window" class="chat-window p-4 flex-grow">
+                                                <!-- Messages will be injected here -->
+                                                <p class="text-center text-gray-500 m-auto">Welcome to World Chat!</p>
+                                            </div>
+                                            <form id="world-chat-form" class="mt-4 flex gap-2">
+                                                <input type="text" id="world-chat-input" class="form-input flex-grow" placeholder="Type a message in world chat..." required>
                                                 <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
                                             </form>
                                         </div>
-                                        <div class="lg:col-span-1 space-y-4">
+                                    </div>
+
+                                    <!-- Alliance Chat Pane -->
+                                    <div id="pane-alliance-chat" class="social-content-pane">
+                                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                            <div class="lg:col-span-2 flex flex-col h-full">
+                                                <div id="alliance-chat-window" class="chat-window p-4 flex-grow">
+                                                   <p class="text-center text-gray-500 m-auto">Your private alliance chat.</p>
+                                                </div>
+                                                <form id="alliance-chat-form" class="mt-4 flex gap-2">
+                                                    <input type="text" id="alliance-chat-input" class="form-input flex-grow" placeholder="Message your alliance..." required>
+                                                    <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                                </form>
+                                            </div>
+                                            <div class="lg:col-span-1 space-y-4">
+                                                <div>
+                                                    <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-bullhorn"></i>Alliance Announcements</h3>
+                                                    <div id="alliance-announcements-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
+                                                        <p class="text-gray-400 text-center">No announcements.</p>
+                                                    </div>
+                                                </div>
+                                                 <div>
+                                                    <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-calendar-check"></i>Alliance Events</h3>
+                                                    <div id="alliance-events-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
+                                                        <p class="text-gray-400 text-center">No events.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Leadership Chat Pane -->
+                                    <div id="pane-leadership-chat" class="social-content-pane">
+                                        <div class="flex flex-col h-full">
+                                            <div id="leadership-chat-window" class="chat-window p-4 flex-grow">
+                                                <p class="text-center text-gray-500 m-auto">Private chat for R4/R5 Leadership.</p>
+                                            </div>
+                                            <form id="leadership-chat-form" class="mt-4 flex gap-2">
+                                                <input type="text" id="leadership-chat-input" class="form-input flex-grow" placeholder="Message leadership..." required>
+                                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Friends Pane -->
+                                    <div id="pane-friends" class="social-content-pane">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-bullhorn"></i>Alliance Announcements</h3>
-                                                <div id="alliance-announcements-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
-                                                    <p class="text-gray-400 text-center">No announcements.</p>
+                                                <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-check"></i>Your Friends</h3>
+                                                <div id="friends-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-96 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center p-4">You haven't added any friends yet.</p>
                                                 </div>
                                             </div>
-                                             <div>
-                                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-calendar-check"></i>Alliance Events</h3>
-                                                <div id="alliance-events-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
-                                                    <p class="text-gray-400 text-center">No events.</p>
+                                            <div>
+                                                <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-plus"></i>Friend Requests</h3>
+                                                <div id="friend-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center p-4">No pending requests.</p>
+                                                </div>
+                                                <h3 class="section-header text-lg font-bold mb-2 mt-4"><i class="fas fa-paper-plane"></i>Sent Requests</h3>
+                                                <div id="sent-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center p-4">No sent requests.</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                <!-- Leadership Chat Pane -->
-                                <div id="pane-leadership-chat" class="social-content-pane">
-                                    <div class="flex flex-col h-full">
-                                        <div id="leadership-chat-window" class="chat-window p-4 flex-grow">
-                                            <p class="text-center text-gray-500 m-auto">Private chat for R4/R5 Leadership.</p>
+                    <!-- Players Page -->
+                    <div id="page-players" class="page-content" style="display: none;">
+                        <div class="glass-pane section-container">
+                            <div class="text-center mb-8">
+                                <h2 class="text-3xl font-bold text-white tracking-wider" style="text-shadow: 0 0 10px var(--color-primary);">PLAYERS OF 899</h2>
+                                <div class="themed-line-break mx-auto mt-2"></div>
+                            </div>
+
+                            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                                <div class="input-group flex-grow">
+                                    <i class="fas fa-search input-icon"></i>
+                                    <input type="text" id="player-search-input" placeholder="Search by player name..." class="form-input">
+                                </div>
+                                <div class="input-group md:max-w-xs">
+                                    <i class="fas fa-shield-alt input-icon"></i>
+                                    <div class="custom-select-container" data-type="alliance-filter">
+                                        <input type="hidden" id="alliance-filter" name="alliance-filter">
+                                        <button type="button" class="custom-select-value form-input"><span>All Alliances</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                        <div class="custom-select-options">
+                                            <div class="options-list"></div>
                                         </div>
-                                        <form id="leadership-chat-form" class="mt-4 flex gap-2">
-                                            <input type="text" id="leadership-chat-input" class="form-input flex-grow" placeholder="Message leadership..." required>
-                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                        </form>
                                     </div>
                                 </div>
-                                
-                                <!-- Friends Pane -->
-                                <div id="pane-friends" class="social-content-pane">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-check"></i>Your Friends</h3>
-                                            <div id="friends-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-96 overflow-y-auto">
-                                                <p class="text-gray-400 text-center p-4">You haven't added any friends yet.</p>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-plus"></i>Friend Requests</h3>
-                                            <div id="friend-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
-                                                <p class="text-gray-400 text-center p-4">No pending requests.</p>
-                                            </div>
-                                            <h3 class="section-header text-lg font-bold mb-2 mt-4"><i class="fas fa-paper-plane"></i>Sent Requests</h3>
-                                            <div id="sent-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
-                                                <p class="text-gray-400 text-center p-4">No sent requests.</p>
-                                            </div>
-                                        </div>
+                            </div>
+
+                            <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                 <!-- Player cards will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Events Page -->
+                    <div id="page-events" class="page-content">
+                        <main id="events-main-container" class="space-y-6">
+                            
+                            <div id="filter-container" class="filter-btn-group">
+                                <!-- Filter buttons will be dynamically inserted here -->
+                            </div>
+
+                            <div id="announcements-container" class="space-y-4">
+                                <!-- Skeletons or announcement cards will be rendered here -->
+                            </div>
+
+                            <div id="events-section-container" class="space-y-4">
+                                <!-- Skeletons or event group headers and lists will be rendered here -->
+                            </div>
+
+                        </main>
+                    </div>
+                    <!-- Top Alliances Page -->
+                    <div id="page-top-alliances" class="page-content" style="display: none;">
+                        <div class="glass-pane section-container">
+                            <h2 class="text-3xl font-bold text-white text-center mb-8">Top Alliances</h2>
+                            <div id="podium-container" class="flex flex-col md:flex-row items-end justify-center gap-4">
+                                <!-- 2nd Place -->
+                                <div class="w-full md:w-1/4 order-2 md:order-1">
+                                    <div id="silver-podium" class="glass-pane podium-card podium-silver h-full">
+                                        <!-- Silver/2nd place content will be populated here -->
+                                    </div>
+                                </div>
+                                <!-- 1st Place -->
+                                <div class="w-full md:w-1/3 order-1 md:order-2">
+                                    <div id="gold-podium" class="glass-pane podium-card podium-gold h-full">
+                                        <!-- Gold/1st place content will be populated here -->
+                                    </div>
+                                </div>
+                                <!-- 3rd Place -->
+                                <div class="w-full md:w-1/4 order-3 md:order-3">
+                                    <div id="bronze-podium" class="glass-pane podium-card podium-bronze h-full">
+                                        <!-- Bronze/3rd place content will be populated here -->
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <!-- Other Pages -->
+                    <div id="page-alliance-list" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Alliance List</h2></div></div>
+                    <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
+                    <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
+                    <div id="page-season-rewards" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Rewards</h2></div></div>
+                    <div id="page-season-history" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season History</h2></div></div>
+                    <div id="page-calculators" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Calculators</h2></div></div>
+                    <div id="page-guides" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Guides</h2></div></div>
+
                 </div>
 
-                <!-- Players Page -->
-                <div id="page-players" class="page-content" style="display: none;">
-                    <div class="glass-pane section-container">
-                        <div class="text-center mb-8">
-                            <h2 class="text-3xl font-bold text-white tracking-wider" style="text-shadow: 0 0 10px var(--color-primary);">PLAYERS OF 899</h2>
-                            <div class="themed-line-break mx-auto mt-2"></div>
-                        </div>
-
-                        <div class="flex flex-col md:flex-row gap-4 mb-6">
-                            <div class="input-group flex-grow">
-                                <i class="fas fa-search input-icon"></i>
-                                <input type="text" id="player-search-input" placeholder="Search by player name..." class="form-input">
-                            </div>
-                            <div class="input-group md:max-w-xs">
-                                <i class="fas fa-shield-alt input-icon"></i>
-                                <div class="custom-select-container" data-type="alliance-filter">
-                                    <input type="hidden" id="alliance-filter" name="alliance-filter">
-                                    <button type="button" class="custom-select-value form-input"><span>All Alliances</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options">
-                                        <div class="options-list"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                             <!-- Player cards will be inserted here -->
-                        </div>
-                    </div>
-                </div>
-                <!-- Events Page -->
-                <div id="page-events" class="page-content">
-                    <main id="events-main-container" class="space-y-6">
-                        
-                        <div id="filter-container" class="filter-btn-group">
-                            <!-- Filter buttons will be dynamically inserted here -->
-                        </div>
-
-                        <div id="announcements-container" class="space-y-4">
-                            <!-- Skeletons or announcement cards will be rendered here -->
-                        </div>
-
-                        <div id="events-section-container" class="space-y-4">
-                            <!-- Skeletons or event group headers and lists will be rendered here -->
-                        </div>
-
-                    </main>
-                </div>
-                <!-- Top Alliances Page -->
-                <div id="page-top-alliances" class="page-content" style="display: none;">
-                    <div class="glass-pane section-container">
-                        <h2 class="text-3xl font-bold text-white text-center mb-8">Top Alliances</h2>
-                        <div id="podium-container" class="flex flex-col md:flex-row items-end justify-center gap-4">
-                            <!-- 2nd Place -->
-                            <div class="w-full md:w-1/4 order-2 md:order-1">
-                                <div id="silver-podium" class="glass-pane podium-card podium-silver h-full">
-                                    <!-- Silver/2nd place content will be populated here -->
-                                </div>
-                            </div>
-                            <!-- 1st Place -->
-                            <div class="w-full md:w-1/3 order-1 md:order-2">
-                                <div id="gold-podium" class="glass-pane podium-card podium-gold h-full">
-                                    <!-- Gold/1st place content will be populated here -->
-                                </div>
-                            </div>
-                            <!-- 3rd Place -->
-                            <div class="w-full md:w-1/4 order-3 md:order-3">
-                                <div id="bronze-podium" class="glass-pane podium-card podium-bronze h-full">
-                                    <!-- Bronze/3rd place content will be populated here -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Other Pages -->
-                <div id="page-alliance-list" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Alliance List</h2></div></div>
-                <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
-                <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
-                <div id="page-season-rewards" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Rewards</h2></div></div>
-                <div id="page-season-history" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season History</h2></div></div>
-                <div id="page-calculators" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Calculators</h2></div></div>
-                <div id="page-guides" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Guides</h2></div></div>
-
+                <footer class="text-center mt-12 py-4 border-t border-gray-800/50"><p class="text-gray-500">&copy; 2024 Last War Survival - Server 899 Community.</p></footer>
             </div>
-
-            <footer class="text-center mt-12 py-4 border-t border-gray-800/50"><p class="text-gray-500">&copy; 2024 Last War Survival - Server 899 Community.</p></footer>
         </div>
     </div>
 
@@ -1171,10 +1235,13 @@ CHANGELOG
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, query, updateDoc, addDoc, serverTimestamp, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        import { getDatabase, ref as dbRef, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
 
         const firebaseConfig = {
             apiKey: "AIzaSyA8KKDjjw0Pb_wknZ3TRWuL7-7XMo4VeY0",
             authDomain: "events-ea397.firebaseapp.com",
+            databaseURL: "https://events-ea397-default-rtdb.firebaseio.com",
             projectId: "events-ea397",
             storageBucket: "events-ea397.firebasestorage.app",
             messagingSenderId: "51859633788",
@@ -1185,10 +1252,13 @@ CHANGELOG
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const rtdb = getDatabase(app);
         const storage = getStorage(app);
+        
         let currentUserData = null;
         let allPlayers = []; // Cache for player data
         let allPosts = []; // Cache for post data
+        let userSessions = {}; // Cache for user presence data
         
         const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
         const ALLIANCE_RANKS = [
@@ -1241,6 +1311,8 @@ CHANGELOG
 
 
         // --- DOM ELEMENTS ---
+        const appPreloader = document.getElementById('app-preloader');
+        const appContainer = document.getElementById('app-container');
         const modalBackdrop = document.getElementById('modal-backdrop');
         const authModalContainer = document.getElementById('auth-modal-container');
         const editProfileModalContainer = document.getElementById('edit-profile-modal-container');
@@ -1282,10 +1354,12 @@ CHANGELOG
         let editingPostId = null;
         let actionPostId = null; // For the post actions modal
         
-        // --- CHAT LISTENERS ---
+        // --- CHAT & PRESENCE LISTENERS ---
         let worldChatListener = null;
         let allianceChatListener = null;
         let leadershipChatListener = null;
+        let sessionsListener = null;
+        let awayTimer = null;
 
         // --- UTILITY & SKELETON FUNCTIONS ---
         function formatTimeAgo(date) {
@@ -1542,12 +1616,30 @@ CHANGELOG
             updateTopAlliancesPodium(allPlayers);
         }, (error) => console.error("Error with users listener:", error));
 
+        // Listen for all user sessions for presence
+        sessionsListener = onSnapshot(collection(db, 'sessions'), (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                userSessions[change.doc.id] = change.doc.data();
+            });
+            // Re-render components that show presence
+            applyPlayerFilters();
+            // You might need to re-render chat messages if they are visible
+            const activeChat = document.querySelector('.social-content-pane.active .chat-window');
+            if(activeChat) {
+                // This is a simplified re-render; a more robust solution would update just the status dot
+                const chatType = activeChat.id.split('-')[0] + '_chat';
+                // This part is tricky without re-fetching all messages. We'll rely on player list for now.
+            }
+        });
+
+
         // Handle auth state changes to update UI accordingly
         onAuthStateChanged(auth, (user) => {
             if (userDocListener) userDocListener(); // Detach old listener
-            detachChatListeners(); // Always detach old chat listeners on auth change
+            detachChatAndPresenceListeners(); // Always detach old chat/presence listeners on auth change
 
             if (user) {
+                setupPresenceManagement(user);
                 userDocListener = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
                     if (userDoc.exists()) {
                         currentUserData = { uid: user.uid, ...userDoc.data() };
@@ -1565,6 +1657,12 @@ CHANGELOG
                 applyPlayerFilters();
             }
             buildMobileNav();
+            // Hide preloader after first auth check
+            appPreloader.style.opacity = '0';
+            setTimeout(() => {
+                appPreloader.style.display = 'none';
+                appContainer.style.display = 'block';
+            }, 500);
         });
         
         function updateUIForLoggedInUser() {
@@ -1604,6 +1702,10 @@ CHANGELOG
         });
 
         logoutBtn.addEventListener('click', () => {
+            // Manually set offline before signing out
+            if(currentUserData) {
+                updateUserStatus(currentUserData.uid, 'offline');
+            }
             signOut(auth).catch(error => console.error("Logout error:", error));
         });
 
@@ -2372,13 +2474,15 @@ CHANGELOG
                 }
 
                 const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
+                const session = userSessions[player.uid];
+                const statusClass = session ? session.status : 'offline';
 
                 card.innerHTML = `
                     ${gearIconHTML}
-                    <div class="flex items-center pb-3 border-b" style="border-color: rgba(255,255,255,0.1);">
+                    <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
                         <img src="${avatarUrl}" class="w-12 h-12 rounded-full mr-4 border-2 object-cover" style="border-color: rgba(255,255,255,0.2);" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
                         <div>
-                            <h3 class="font-bold text-lg text-white">${player.username}</h3>
+                            <h3 class="font-bold text-lg text-white flex items-center">${player.username} <span class="status-dot ${statusClass} ml-2"></span></h3>
                             <p class="text-sm font-semibold" style="color: var(--color-primary);">[${player.alliance}] - ${player.allianceRank}</p>
                         </div>
                     </div>
@@ -2715,6 +2819,80 @@ CHANGELOG
              if (!activeSet) { const eventsLink = document.querySelector('.nav-link[data-main-target="page-events"]'); if (eventsLink) eventsLink.classList.add('active'); }
         }
 
+        // --- PRESENCE MANAGEMENT ---
+        function setupPresenceManagement(user) {
+            const userStatusDatabaseRef = dbRef(rtdb, '/status/' + user.uid);
+            const userStatusFirestoreRef = doc(db, '/sessions/' + user.uid);
+
+            const isOfflineForRTDB = {
+                status: 'offline',
+                lastSeen: rtdbServerTimestamp(),
+            };
+            const isOnlineForRTDB = {
+                status: 'online',
+                lastSeen: rtdbServerTimestamp(),
+            };
+            
+            const isOfflineForFirestore = {
+                status: 'offline',
+                lastSeen: serverTimestamp(),
+            };
+            const isOnlineForFirestore = {
+                status: 'online',
+                lastSeen: serverTimestamp(),
+            };
+            
+            onValue(dbRef(rtdb, '.info/connected'), (snapshot) => {
+                if (snapshot.val() === false) {
+                    setDoc(userStatusFirestoreRef, isOfflineForFirestore);
+                    return;
+                }
+
+                onDisconnect(userStatusDatabaseRef).set(isOfflineForRTDB).then(() => {
+                    set(userStatusDatabaseRef, isOnlineForRTDB);
+                    setDoc(userStatusFirestoreRef, isOnlineForFirestore);
+                });
+            });
+
+            function resetAwayTimer() {
+                if (awayTimer) clearTimeout(awayTimer);
+                
+                // If user was away, set them back to online
+                if(userSessions[user.uid] && userSessions[user.uid].status === 'away') {
+                     updateUserStatus(user.uid, 'online');
+                }
+
+                awayTimer = setTimeout(() => {
+                    updateUserStatus(user.uid, 'away');
+                }, 5 * 60 * 1000); // 5 minutes
+            }
+
+            // Listen for activity
+            ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+                document.addEventListener(event, resetAwayTimer, { passive: true });
+            });
+            
+            resetAwayTimer(); // Initial call
+        }
+
+        function updateUserStatus(uid, status) {
+            const userStatusFirestoreRef = doc(db, '/sessions/' + uid);
+            const userStatusDatabaseRef = dbRef(rtdb, '/status/' + uid);
+
+            const statusUpdate = {
+                status: status,
+                lastSeen: serverTimestamp()
+            };
+            const rtdbStatusUpdate = {
+                status: status,
+                lastSeen: rtdbServerTimestamp()
+            };
+
+            setDoc(userStatusFirestoreRef, statusUpdate, { merge: true });
+            set(userStatusDatabaseRef, rtdbStatusUpdate);
+        }
+
+
         // --- SOCIAL PAGE & CHAT LOGIC ---
         const socialTabBtns = document.querySelectorAll('.social-tab-btn');
         const socialContentPanes = document.querySelectorAll('.social-content-pane');
@@ -2765,13 +2943,14 @@ CHANGELOG
             }
         }
 
-        function detachChatListeners() {
+        function detachChatAndPresenceListeners() {
             if (worldChatListener) worldChatListener();
             if (allianceChatListener) allianceChatListener();
             if (leadershipChatListener) leadershipChatListener();
             worldChatListener = null;
             allianceChatListener = null;
             leadershipChatListener = null;
+            if (awayTimer) clearTimeout(awayTimer);
         }
 
         function renderMessages(messages, container, chatType) {
@@ -2785,13 +2964,15 @@ CHANGELOG
                 const canDelete = currentUserData.isAdmin || (chatType === 'alliance_chat' && currentUserData.allianceRank === 'R5');
                 
                 const avatarUrl = msg.authorAvatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${msg.authorUsername.charAt(0).toUpperCase()}`;
+                const session = userSessions[msg.authorUid];
+                const statusClass = session ? session.status : 'offline';
 
                 const messageEl = document.createElement('div');
                 messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
                 messageEl.innerHTML = `
                     <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0" alt="${msg.authorUsername}">
                     <div class="chat-message-bubble">
-                        <p class="chat-message-author">${msg.authorUsername}</p>
+                        <p class="chat-message-author">${msg.authorUsername} <span class="status-dot ${statusClass}"></span></p>
                         <p class="text-sm">${msg.text}</p>
                     </div>
                     ${canDelete ? `<button class="delete-message-btn" data-id="${msg.id}" data-type="${chatType}"><i class="fas fa-times"></i></button>` : ''}
