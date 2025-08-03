@@ -49,8 +49,8 @@ service cloud.firestore {
     }
     
     // Friend requests, friends list, etc.
-    match /users/{userId}/{subcollection}/{docId} {
-        allow read, write: if isSignedIn() && (isOwner(userId) || request.auth.uid == docId);
+    match /users/{userId}/friends/{friendId} {
+        allow read, write, delete: if isSignedIn() && isOwner(userId);
     }
 
     // This collection stores the real-time presence status of users.
@@ -87,7 +87,8 @@ service cloud.firestore {
     match /posts/{postId} {
       allow read: if true;
       allow create: if canCreatePost(request.resource.data);
-      allow update, delete: if isOwner(resource.data.authorUid) || isAdmin();
+      allow update: if isOwner(resource.data.authorUid) || isAdmin();
+      allow delete: if isOwner(resource.data.authorUid) || isAdmin();
     }
     
     function canCreatePost(postData) {
@@ -120,6 +121,16 @@ service cloud.firestore {
     match /alliance_chats/{allianceId}/messages/{messageId} {
         allow read, create: if isMemberOf(allianceId);
         allow update, delete: if (isLeader() && isMemberOf(allianceId));
+    }
+
+    // --- PRIVATE CHAT ---
+    match /private_chats/{chatId} {
+      allow read, write: if isSignedIn() && request.auth.uid in resource.data.participants;
+      
+      match /messages/{messageId} {
+      	allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
+        allow update, delete: if false; // Messages are immutable for now
+      }
     }
     
     // --- ALLIANCE-SPECIFIC EVENTS & ANNOUNCEMENTS ---
@@ -188,7 +199,15 @@ service firebase.storage {
 ===============================================
 CHANGELOG
 ===============================================
-- Prompt 60 (Current):
+- Prompt 61 (Current):
+    - Implemented a new player profile dropdown menu in the main navigation.
+    - Menu includes: Total Power, Friend Requests, Private Messages, Edit Profile, and Logout.
+    - "Friend Requests" and "Private Messages" buttons show notification counts and are disabled if there are no new items.
+    - Added functionality to remove friends from the Social > Friends tab.
+    - Implemented a basic private messaging system accessible from player cards.
+    - Fixed a bug where the edit/delete modal for events and announcements was not functioning correctly. The form is now properly populated and submittable.
+    - Updated Firestore security rules for private chat and refined friend management rules.
+- Prompt 60:
     - Replaced "Season" nav button with a new "Feed" notification system.
     - Feed dropdown shows real-time notifications for friend requests, verification requests, and alliance announcements.
     - Added a notification badge with an unread count to the Feed button.
@@ -197,14 +216,6 @@ CHANGELOG
     - Alliance leaders (R4/R5) now receive verification requests for new members.
     - Alliance members now receive notifications for new alliance-specific announcements.
     - Updated Firestore security rules to support the new `notifications` collection.
-- Prompt 59:
-    - Integrated real-time user presence (Online, Away, Offline).
-    - Uses Firebase Realtime Database for robust `onDisconnect` handling.
-    - User status changes to 'Away' after 5 minutes of inactivity.
-    - Status indicators (dots) added to Player cards and Chat messages.
-    - Added a pre-loader to prevent content flash before authentication check completes.
-- Prompt 58:
-    - Implemented full real-time chat functionality for World, Alliance, and Leadership channels.
 -->
 
 <!DOCTYPE html>
@@ -287,7 +298,7 @@ CHANGELOG
         .form-textarea { min-height: 100px; resize: vertical; }
         .primary-btn { background: linear-gradient(to right, #00BFFF, #1E90FF); color: white; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2); }
         .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 191, 255, 0.3); }
-        .primary-btn:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
+        .primary-btn:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.6; }
         .secondary-btn { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #c9d1d9; font-weight: 600; transition: all 0.3s ease; }
         .secondary-btn:hover { background-color: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
         .form-error { min-height: 20px; }
@@ -648,6 +659,27 @@ CHANGELOG
         .player-card-header .status-dot {
             margin-left: 0.5rem;
         }
+        .friend-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .friend-list-item:hover {
+            background-color: rgba(255,255,255,0.05);
+        }
+        .remove-friend-btn {
+            background: none;
+            border: none;
+            color: #8b949e;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .remove-friend-btn:hover {
+            color: var(--color-highlight);
+        }
         
         /* Feed / Notification Styles */
         .notification-badge {
@@ -730,6 +762,42 @@ CHANGELOG
             padding: 0.3rem 0.5rem;
             font-size: 0.75rem;
             border-radius: 0.375rem;
+        }
+
+        /* New Player Profile Dropdown */
+        #player-profile-dropdown {
+            top: calc(100% + 12px); 
+            right: 0;
+            left: auto;
+            transform: translateY(-10px);
+            width: 280px;
+        }
+        .nav-item.open #player-profile-dropdown {
+            transform: translateY(0);
+        }
+        .profile-menu-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+        }
+        .profile-menu-link .badge {
+            background-color: var(--color-primary);
+            color: var(--color-bg);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .profile-menu-link:disabled {
+            color: #6e7681;
+            cursor: not-allowed;
+            background-color: transparent !important;
+        }
+        .profile-menu-link:disabled .badge {
+            background-color: #444;
+            color: #888;
         }
 
     </style>
@@ -893,7 +961,6 @@ CHANGELOG
             </div>
         </div>
 
-        <!-- Player Settings Modal -->
         <div id="player-settings-modal-container" class="modal-container">
              <div class="glass-pane">
                 <div class="modal-content-wrapper">
@@ -1093,6 +1160,25 @@ CHANGELOG
                 </div>
             </div>
         </div>
+        
+        <!-- Private Message Modal -->
+        <div id="private-message-modal-container" class="modal-container" style="max-width: 500px;">
+            <div class="glass-pane">
+                <div class="modal-content-wrapper">
+                     <button id="close-private-message-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                        <i class="fas fa-times fa-lg"></i>
+                    </button>
+                    <h2 id="private-message-header" class="text-2xl font-bold text-white text-center mb-4">Private Message</h2>
+                    <div id="private-message-window" class="chat-window p-4 flex-grow" style="height: 50vh;">
+                        <!-- Private messages will be injected here -->
+                    </div>
+                    <form id="private-message-form" class="mt-4 flex gap-2">
+                        <input type="text" id="private-message-input" class="form-input flex-grow" placeholder="Type a message..." required>
+                        <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
 
         <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
@@ -1120,20 +1206,38 @@ CHANGELOG
                         </div>
                     </nav>
 
-                    <div id="auth-container" class="hidden md:flex flex-shrink-0 relative">
-                        <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
-                        <div id="user-profile-container" class="hidden">
-                            <button id="player-card-btn" class="auth-button">
+                    <div id="auth-container" class="hidden md:flex flex-shrink-0">
+                         <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
+                         <div id="user-profile-nav-item" class="nav-item hidden">
+                            <button id="user-profile-button" class="auth-button">
                                  <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
                                 <span id="username-display"></span>
-                                <i class="fas fa-caret-down ml-2"></i>
+                                <i class="fas fa-caret-down ml-2 transition-transform"></i>
                             </button>
-                            <div id="player-card-dropdown" class="dropdown-pane glass-pane">
-                                <div id="player-card-info" class="p-2 mb-2 border-b border-white/10"></div>
-                                <button id="upload-avatar-btn" class="dropdown-link"><i class="fas fa-camera w-6 text-center mr-2"></i>Change Avatar</button>
-                                <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
-                                <button id="edit-profile-btn" class="dropdown-link"><i class="fas fa-edit w-6 text-center mr-2"></i>Edit Profile</button>
-                                <button id="logout-btn" class="dropdown-link"><i class="fas fa-sign-out-alt w-6 text-center mr-2"></i>Logout</button>
+                            <div id="player-profile-dropdown" class="dropdown-pane glass-pane">
+                               <div class="p-2 mb-2 border-b border-white/10">
+                                   <p class="text-sm text-gray-400">Total Power</p>
+                                   <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
+                               </div>
+                               <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
+                                   <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
+                                   <span class="badge hidden">0</span>
+                               </button>
+                               <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
+                                   <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
+                                   <span class="badge hidden">0</span>
+                               </button>
+                               <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
+                                   <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
+                               </button>
+                               <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
+                                   <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
+                               </button>
+                               <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+                               <div class="p-1"><hr class="border-t border-white/10"></div>
+                               <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
+                                   <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
+                               </button>
                             </div>
                         </div>
                     </div>
@@ -1296,32 +1400,7 @@ CHANGELOG
                         </main>
                     </div>
                     <!-- Top Alliances Page -->
-                    <div id="page-top-alliances" class="page-content" style="display: none;">
-                        <div class="glass-pane section-container">
-                            <h2 class="text-3xl font-bold text-white text-center mb-8">Top Alliances</h2>
-                            <div id="podium-container" class="flex flex-col md:flex-row items-end justify-center gap-4">
-                                <!-- 2nd Place -->
-                                <div class="w-full md:w-1/4 order-2 md:order-1">
-                                    <div id="silver-podium" class="glass-pane podium-card podium-silver h-full">
-                                        <!-- Silver/2nd place content will be populated here -->
-                                    </div>
-                                </div>
-                                <!-- 1st Place -->
-                                <div class="w-full md:w-1/3 order-1 md:order-2">
-                                    <div id="gold-podium" class="glass-pane podium-card podium-gold h-full">
-                                        <!-- Gold/1st place content will be populated here -->
-                                    </div>
-                                </div>
-                                <!-- 3rd Place -->
-                                <div class="w-full md:w-1/4 order-3 md:order-3">
-                                    <div id="bronze-podium" class="glass-pane podium-card podium-bronze h-full">
-                                        <!-- Bronze/3rd place content will be populated here -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Other Pages -->
+                    <div id="page-top-alliances" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Top Alliances</h2></div></div>
                     <div id="page-alliance-list" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Alliance List</h2></div></div>
                     <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
                     <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
@@ -1368,6 +1447,7 @@ CHANGELOG
         let allPosts = []; // Cache for post data
         let userSessions = {}; // Cache for user presence data
         let userNotifications = []; // Cache for user notifications
+        let userFriends = []; // Cache for user's friends
         
         const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
         const ALLIANCE_RANKS = [
@@ -1429,18 +1509,15 @@ CHANGELOG
         const createPostModalContainer = document.getElementById('create-post-modal-container');
         const confirmationModalContainer = document.getElementById('confirmation-modal-container');
         const postActionsModalContainer = document.getElementById('post-actions-modal-container');
+        const privateMessageModalContainer = document.getElementById('private-message-modal-container');
         
         const loginFormContainer = document.getElementById('login-form-container');
         const registerFormContainer = document.getElementById('register-form-container');
         const loginBtn = document.getElementById('login-btn');
-        const userProfileContainer = document.getElementById('user-profile-container');
+        const userProfileNavItem = document.getElementById('user-profile-nav-item');
         const usernameDisplay = document.getElementById('username-display');
         const playerListContainer = document.getElementById('player-list-container');
-        const playerCardBtn = document.getElementById('player-card-btn');
-        const playerCardDropdown = document.getElementById('player-card-dropdown');
-        const playerCardInfo = document.getElementById('player-card-info');
-        const editProfileBtn = document.getElementById('edit-profile-btn');
-        const logoutBtn = document.getElementById('logout-btn');
+        const userProfileButton = document.getElementById('user-profile-button');
         const mobileNavMenu = document.getElementById('mobile-nav-menu');
         const mobileNavLinksContainer = document.getElementById('mobile-nav-links');
         const playerSearchInput = document.getElementById('player-search-input');
@@ -1448,7 +1525,6 @@ CHANGELOG
         const announcementsContainer = document.getElementById('announcements-container');
         const eventsSectionContainer = document.getElementById('events-section-container');
         const userAvatarButton = document.getElementById('user-avatar-button');
-        const uploadAvatarBtn = document.getElementById('upload-avatar-btn');
         const avatarUploadInput = document.getElementById('avatar-upload-input');
         const verificationToggleContainer = document.getElementById('verification-toggle-container');
         const eventsMainContainer = document.getElementById('events-main-container');
@@ -1457,6 +1533,7 @@ CHANGELOG
         const feedNavItem = document.getElementById('feed-nav-item');
         const notificationBadge = document.getElementById('notification-badge');
         const feedPageContainer = document.getElementById('feed-page-container');
+        const friendsListContainer = document.getElementById('friends-list');
 
 
         let activePlayerSettingsUID = null;
@@ -1466,6 +1543,8 @@ CHANGELOG
         let countdownInterval = null;
         let editingPostId = null;
         let actionPostId = null; // For the post actions modal
+        let activePrivateChatId = null;
+        let activePrivateChatPartner = null;
         
         // --- CHAT, PRESENCE & NOTIFICATION LISTENERS ---
         let worldChatListener = null;
@@ -1473,6 +1552,8 @@ CHANGELOG
         let leadershipChatListener = null;
         let sessionsListener = null;
         let notificationListener = null;
+        let friendsListener = null;
+        let privateChatListener = null;
         let awayTimer = null;
 
         // --- UTILITY & SKELETON FUNCTIONS ---
@@ -1682,6 +1763,14 @@ CHANGELOG
             showModal(postActionsModalContainer);
         }
 
+        function showPrivateMessageModal(targetPlayer) {
+            activePrivateChatPartner = targetPlayer;
+            document.getElementById('private-message-header').textContent = `Chat with ${targetPlayer.username}`;
+            document.getElementById('private-message-window').innerHTML = '<p class="text-center text-gray-500 m-auto">Loading messages...</p>';
+            showModal(privateMessageModalContainer);
+            setupPrivateChatListener();
+        }
+
         function hideAllModals() {
             modalBackdrop.classList.remove('visible');
             authModalContainer.classList.remove('visible');
@@ -1690,9 +1779,13 @@ CHANGELOG
             createPostModalContainer.classList.remove('visible');
             confirmationModalContainer.classList.remove('visible');
             postActionsModalContainer.classList.remove('visible');
+            privateMessageModalContainer.classList.remove('visible');
             activePlayerSettingsUID = null;
             editingPostId = null;
             actionPostId = null;
+            activePrivateChatId = null;
+            activePrivateChatPartner = null;
+            if (privateChatListener) privateChatListener();
         }
         
         loginBtn.addEventListener('click', () => showAuthModal('login'));
@@ -1700,6 +1793,7 @@ CHANGELOG
         document.getElementById('close-edit-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-player-settings-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-create-post-modal-btn').addEventListener('click', hideAllModals);
+        document.getElementById('close-private-message-modal-btn').addEventListener('click', hideAllModals);
         document.getElementById('confirmation-cancel-btn').addEventListener('click', hideAllModals);
         document.getElementById('close-post-actions-modal-btn').addEventListener('click', hideAllModals);
 
@@ -1727,7 +1821,7 @@ CHANGELOG
             allPlayers = [];
             querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
             applyPlayerFilters(); // Initial render
-            updateTopAlliancesPodium(allPlayers);
+            renderFriends();
         }, (error) => console.error("Error with users listener:", error));
 
         // Listen for all user sessions for presence
@@ -1737,13 +1831,7 @@ CHANGELOG
             });
             // Re-render components that show presence
             applyPlayerFilters();
-            // You might need to re-render chat messages if they are visible
-            const activeChat = document.querySelector('.social-content-pane.active .chat-window');
-            if(activeChat) {
-                // This is a simplified re-render; a more robust solution would update just the status dot
-                const chatType = activeChat.id.split('-')[0] + '_chat';
-                // This part is tricky without re-fetching all messages. We'll rely on player list for now.
-            }
+            renderFriends();
         });
 
 
@@ -1755,6 +1843,7 @@ CHANGELOG
             if (user) {
                 setupPresenceManagement(user);
                 setupNotificationListener(user);
+                setupFriendsListener(user);
                 userDocListener = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
                     if (userDoc.exists()) {
                         currentUserData = { uid: user.uid, ...userDoc.data() };
@@ -1784,15 +1873,15 @@ CHANGELOG
             if (!currentUserData) return;
             usernameDisplay.textContent = currentUserData.username;
             updateAvatarDisplay(currentUserData);
-            updatePlayerCard(currentUserData);
+            updatePlayerProfileDropdown(currentUserData);
             loginBtn.classList.add('hidden');
-            userProfileContainer.classList.remove('hidden');
+            userProfileNavItem.classList.remove('hidden');
         }
 
         function updateUIForLoggedOutUser() {
             loginBtn.classList.remove('hidden');
-            userProfileContainer.classList.add('hidden');
-            userProfileContainer.classList.remove('open');
+            userProfileNavItem.classList.add('hidden');
+            userProfileNavItem.classList.remove('open');
         }
 
         document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -1816,7 +1905,7 @@ CHANGELOG
             });
         });
 
-        logoutBtn.addEventListener('click', () => {
+        document.getElementById('profile-dropdown-logout').addEventListener('click', () => {
             // Manually set offline before signing out
             if(currentUserData) {
                 updateUserStatus(currentUserData.uid, 'offline');
@@ -1834,18 +1923,24 @@ CHANGELOG
                 .catch((error) => alert(error.message));
         });
         
-        // --- PLAYER CARD, AVATAR & EDIT PROFILE ---
-        playerCardBtn.addEventListener('click', (e) => {
+        // --- PLAYER PROFILE DROPDOWN, AVATAR & EDIT PROFILE ---
+        userProfileButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            userProfileContainer.classList.toggle('open');
+            userProfileNavItem.classList.toggle('open');
         });
         
-        editProfileBtn.addEventListener('click', () => {
-            userProfileContainer.classList.remove('open');
+        document.getElementById('profile-dropdown-edit').addEventListener('click', () => {
+            userProfileNavItem.classList.remove('open');
             showEditProfileModal();
         });
+        
+        document.getElementById('profile-dropdown-friends').addEventListener('click', () => {
+            userProfileNavItem.classList.remove('open');
+            showPage('page-social');
+            document.querySelector('.social-tab-btn[data-tab="friends"]').click();
+        });
 
-        uploadAvatarBtn.addEventListener('click', () => avatarUploadInput.click());
+        document.getElementById('profile-dropdown-avatar').addEventListener('click', () => avatarUploadInput.click());
 
         avatarUploadInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -1872,11 +1967,25 @@ CHANGELOG
             userAvatarButton.src = avatarUrl;
         }
 
-        function updatePlayerCard(data) {
-             playerCardInfo.innerHTML = `
-                <p class="text-sm text-gray-400">Alliance: <strong class="text-white">[${data.alliance}] ${data.allianceRank}</strong></p>
-                <p class="text-sm text-gray-400">Power: <strong class="text-white">${(data.power || 0).toLocaleString()}</strong></p>
-             `;
+        function updatePlayerProfileDropdown(data) {
+             document.getElementById('profile-dropdown-power').textContent = (data.power || 0).toLocaleString();
+             
+             const friendRequests = userNotifications.filter(n => n.type === 'friend_request' && !n.isRead);
+             const friendReqBtn = document.getElementById('profile-dropdown-friends');
+             const friendReqBadge = friendReqBtn.querySelector('.badge');
+             
+             if (friendRequests.length > 0) {
+                 friendReqBadge.textContent = friendRequests.length;
+                 friendReqBadge.classList.remove('hidden');
+                 friendReqBtn.disabled = false;
+             } else {
+                 friendReqBadge.classList.add('hidden');
+                 friendReqBtn.disabled = true;
+             }
+             
+             // Placeholder for private messages
+             const messagesBtn = document.getElementById('profile-dropdown-messages');
+             messagesBtn.disabled = true;
         }
         
         function populateEditForm() {
@@ -2421,7 +2530,9 @@ CHANGELOG
             }
 
             editingPostId = postId;
-            postCreationData = { ...POST_TYPES[`${post.subType}_${post.mainType}`] };
+            // This ensures we have the correct type info (like `text`, `visibility`) for the post.
+            const postTypeKey = Object.keys(POST_TYPES).find(key => POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType);
+            postCreationData = { ...POST_TYPES[postTypeKey] };
 
             document.getElementById('create-post-form').reset();
             
@@ -2429,6 +2540,7 @@ CHANGELOG
             const submitBtn = document.getElementById('post-submit-btn');
             submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
 
+            // Show the relevant form slides and hide the stepper navigation
             document.getElementById('post-nav-container').style.display = 'none';
             document.querySelectorAll('.form-slide').forEach(s => s.classList.remove('active'));
             document.querySelector('.form-slide[data-slide="3"]').classList.add('active');
@@ -2436,6 +2548,7 @@ CHANGELOG
                 document.querySelector('.form-slide[data-slide="4"]').classList.add('active');
             }
             
+            // Populate form fields
             document.getElementById('post-title').value = post.title;
             document.getElementById('post-details').value = post.details;
             document.getElementById('post-thumbnail-preview').src = post.thumbnailUrl || 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
@@ -2458,7 +2571,8 @@ CHANGELOG
             }
             
             showModal(createPostModalContainer);
-            postSubmitBtn.classList.remove('hidden');
+            // Ensure the submit button is visible for editing
+            submitBtn.classList.remove('hidden');
         }
 
 
@@ -2529,7 +2643,7 @@ CHANGELOG
                 }
                 
                 // If it's an alliance announcement, create notifications
-                if (finalPostData.subType === 'alliance' && finalPostData.mainType === 'announcement') {
+                if (finalPostData.subType === 'alliance' && finalPostData.mainType === 'announcement' && !editingPostId) {
                     const membersQuery = query(collection(db, 'users'), where('alliance', '==', finalPostData.alliance));
                     const membersSnapshot = await getDocs(membersQuery);
                     const batch = writeBatch(db);
@@ -2663,7 +2777,7 @@ CHANGELOG
                         </div>
                     </div>
                     <div class="flex justify-around items-center pt-3 border-t border-white/10">
-                        <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
+                        <button class="message-player-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
                         <button class="add-friend-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
                         <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
                     </div>
@@ -2729,54 +2843,6 @@ CHANGELOG
                 errorElement.textContent = "Failed to save settings.";
             }
         });
-
-
-        // --- TOP ALLIANCES PODIUM LOGIC ---
-        function updateTopAlliancesPodium(players) {
-            const topAlliances = ['THOR', 'fAfO', 'HeRA'];
-            const podiumData = topAlliances.map(allianceTag => {
-                const members = players.filter(p => p.alliance === allianceTag);
-                const totalPower = members.reduce((sum, p) => sum + (p.power || 0), 0);
-                const leader = members.find(p => p.allianceRank === 'R5')?.username || 'Unassigned';
-                const warlord = members.find(p => p.allianceRole === 'Warlord')?.username || 'Unassigned';
-                const recruiter = members.find(p => p.allianceRole === 'Recruiter')?.username || 'Unassigned';
-                const muse = members.find(p => p.allianceRole === 'Muse')?.username || 'Unassigned';
-                const butler = members.find(p => p.allianceRole === 'Butler')?.username || 'Unassigned';
-                return { tag: allianceTag, totalPower, leader, warlord, recruiter, muse, butler };
-            });
-
-            const [gold, silver, bronze] = podiumData;
-
-            document.getElementById('gold-podium').innerHTML = generatePodiumHTML(gold, '1st', 'gold');
-            document.getElementById('silver-podium').innerHTML = generatePodiumHTML(silver, '2nd', 'silver');
-            document.getElementById('bronze-podium').innerHTML = generatePodiumHTML(bronze, '3rd', 'bronze');
-        }
-
-        function generatePodiumHTML(data, rank, type) {
-            if (!data) return '<p>Loading...</p>';
-            const rankClasses = {
-                gold: { sup: 'text-3xl font-bold text-yellow-400', main: 'text-6xl font-black text-yellow-300', text: 'text-yellow-200', border: 'border-yellow-500/50'},
-                silver: { sup: 'text-2xl font-bold text-gray-400', main: 'text-5xl font-black text-gray-300', text: 'text-gray-300', border: 'border-gray-600'},
-                bronze: { sup: 'text-2xl font-bold text-yellow-800', main: 'text-5xl font-black text-yellow-700', text: 'text-yellow-200/70', border: 'border-yellow-800/50'}
-            };
-            const cls = rankClasses[type];
-
-            return `
-                <div class="mb-4"><span class="${cls.main}">${rank.charAt(0)}</span><sup class="${cls.sup}">${rank.slice(1)}</sup></div>
-                <h3 class="text-3xl font-extrabold text-white">[${data.tag}]</h3>
-                <div class="text-base ${cls.text} mt-2 space-y-1">
-                    <p><i class="fas fa-crown mr-2"></i>Leader: ${data.leader}</p>
-                    <p><i class="fas fa-fist-raised mr-2"></i>Power: ${(data.totalPower / 1_000_000_000).toFixed(1)}B</p>
-                </div>
-                <div class="border-t ${cls.border} my-4"></div>
-                <div class="text-left text-sm space-y-2">
-                    <p><strong class="${cls.text}">Warlord:</strong> ${data.warlord}</p>
-                    <p><strong class="${cls.text}">Recruiter:</strong> ${data.recruiter}</p>
-                    <p><strong class="${cls.text}">Muse:</strong> ${data.muse}</p>
-                    <p><strong class="${cls.text}">Butler:</strong> ${data.butler}</p>
-                </div>
-            `;
-        }
 
 
         // --- CUSTOM SELECT LOGIC ---
@@ -3100,10 +3166,14 @@ CHANGELOG
             if (allianceChatListener) allianceChatListener();
             if (leadershipChatListener) leadershipChatListener();
             if (notificationListener) notificationListener();
+            if (friendsListener) friendsListener();
+            if (privateChatListener) privateChatListener();
             worldChatListener = null;
             allianceChatListener = null;
             leadershipChatListener = null;
             notificationListener = null;
+            friendsListener = null;
+            privateChatListener = null;
             if (awayTimer) clearTimeout(awayTimer);
         }
 
@@ -3117,7 +3187,8 @@ CHANGELOG
                 const isSelf = msg.authorUid === currentUserData.uid;
                 const canDelete = currentUserData.isAdmin || (chatType === 'alliance_chat' && currentUserData.allianceRank === 'R5');
                 
-                const avatarUrl = msg.authorAvatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${msg.authorUsername.charAt(0).toUpperCase()}`;
+                const authorData = allPlayers.find(p => p.uid === msg.authorUid);
+                const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${msg.authorUsername.charAt(0).toUpperCase()}`;
                 const session = userSessions[msg.authorUid];
                 const statusClass = session ? session.status : 'offline';
 
@@ -3164,8 +3235,6 @@ CHANGELOG
                 text: text,
                 authorUid: currentUserData.uid,
                 authorUsername: currentUserData.username,
-                authorAvatarUrl: currentUserData.avatarUrl || null,
-                alliance: currentUserData.alliance,
                 timestamp: serverTimestamp()
             };
 
@@ -3221,6 +3290,9 @@ CHANGELOG
             notificationListener = onSnapshot(q, (snapshot) => {
                 userNotifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderNotifications(userNotifications);
+                if (currentUserData) {
+                    updatePlayerProfileDropdown(currentUserData);
+                }
             });
         }
 
@@ -3299,6 +3371,7 @@ CHANGELOG
             const actionBtn = e.target.closest('.notification-action-btn');
             
             if (actionBtn) {
+                e.stopPropagation(); // Prevent marking as read when clicking an action
                 const action = actionBtn.dataset.action;
                 const senderUid = notification.senderUid;
 
@@ -3327,6 +3400,114 @@ CHANGELOG
 
         feedDropdown.addEventListener('click', handleNotificationClick);
         feedPageContainer.addEventListener('click', handleNotificationClick);
+        
+        // --- FRIENDS & PRIVATE MESSAGING LOGIC ---
+        function setupFriendsListener(user) {
+            const q = collection(db, `users/${user.uid}/friends`);
+            friendsListener = onSnapshot(q, (snapshot) => {
+                userFriends = snapshot.docs.map(doc => doc.id);
+                renderFriends();
+            });
+        }
+        
+        function renderFriends() {
+            if (!currentUserData) {
+                friendsListContainer.innerHTML = '<p class="text-gray-400 text-center p-4">You must be logged in to see friends.</p>';
+                return;
+            }
+            if (userFriends.length === 0) {
+                friendsListContainer.innerHTML = '<p class="text-gray-400 text-center p-4">You haven\'t added any friends yet.</p>';
+                return;
+            }
+
+            friendsListContainer.innerHTML = '';
+            userFriends.forEach(friendId => {
+                const friendData = allPlayers.find(p => p.uid === friendId);
+                if (!friendData) return;
+
+                const session = userSessions[friendId];
+                const statusClass = session ? session.status : 'offline';
+                const avatarUrl = friendData.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${friendData.username.charAt(0).toUpperCase()}`;
+
+                const friendEl = document.createElement('div');
+                friendEl.className = 'friend-list-item';
+                friendEl.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover">
+                            <span class="status-dot ${statusClass} absolute bottom-0 right-0 border-2 border-gray-800"></span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white">${friendData.username}</p>
+                            <p class="text-xs text-gray-400">[${friendData.alliance}] - ${friendData.allianceRank}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button class="message-player-btn text-gray-400 hover:text-white" data-uid="${friendId}" title="Message"><i class="fas fa-comment-dots"></i></button>
+                        <button class="remove-friend-btn" data-uid="${friendId}" title="Remove Friend"><i class="fas fa-user-minus"></i></button>
+                    </div>
+                `;
+                friendsListContainer.appendChild(friendEl);
+            });
+        }
+
+        async function removeFriend(friendUid) {
+            if (!currentUserData) return;
+            showConfirmationModal('Remove Friend?', 'Are you sure you want to remove this friend?', async () => {
+                const batch = writeBatch(db);
+                batch.delete(doc(db, `users/${currentUserData.uid}/friends/${friendUid}`));
+                batch.delete(doc(db, `users/${friendUid}/friends/${currentUserData.uid}`));
+                await batch.commit();
+            });
+        }
+
+        function getPrivateChatId(uid1, uid2) {
+            return [uid1, uid2].sort().join('_');
+        }
+
+        function setupPrivateChatListener() {
+            if (!currentUserData || !activePrivateChatPartner) return;
+            if (privateChatListener) privateChatListener(); // Detach old one
+
+            activePrivateChatId = getPrivateChatId(currentUserData.uid, activePrivateChatPartner.uid);
+            const chatQuery = query(collection(db, `private_chats/${activePrivateChatId}/messages`), orderBy("timestamp", "desc"), limit(50));
+
+            privateChatListener = onSnapshot(chatQuery, (snapshot) => {
+                const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderMessages(messages, document.getElementById('private-message-window'), 'private_chat');
+            });
+        }
+
+        document.getElementById('private-message-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUserData || !activePrivateChatPartner || !activePrivateChatId) return;
+            
+            const input = document.getElementById('private-message-input');
+            const text = input.value.trim();
+            if (text === '') return;
+            input.value = '';
+
+            const chatDocRef = doc(db, 'private_chats', activePrivateChatId);
+            const messagesColRef = collection(chatDocRef, 'messages');
+
+            try {
+                // Ensure the chat document exists with participants
+                await setDoc(chatDocRef, { 
+                    participants: [currentUserData.uid, activePrivateChatPartner.uid] 
+                }, { merge: true });
+
+                // Add the new message
+                await addDoc(messagesColRef, {
+                    text: text,
+                    authorUid: currentUserData.uid,
+                    authorUsername: currentUserData.username,
+                    timestamp: serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Error sending private message:", error);
+                input.value = text;
+            }
+        });
 
 
         // --- GLOBAL EVENT LISTENERS ---
@@ -3361,21 +3542,12 @@ CHANGELOG
                 if (!e.target.closest('.nav-item')) {
                     document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));
                 }
-                if (!e.target.closest('#user-profile-container')) {
-                    userProfileContainer.classList.remove('open');
+                if (!e.target.closest('#user-profile-nav-item')) {
+                    userProfileNavItem.classList.remove('open');
                 }
                 if (!e.target.closest('.custom-select-container')) {
                     document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
                 }
-            });
-
-            document.querySelectorAll('.dropdown-link').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const targetId = link.dataset.target;
-                    if (targetId) showPage(targetId);
-                    link.closest('.nav-item').classList.remove('open');
-                });
             });
 
             eventsMainContainer.addEventListener('click', e => {
@@ -3406,9 +3578,13 @@ CHANGELOG
                 if (actionPostId) {
                     const postToDelete = allPosts.find(p => p.id === actionPostId);
                     hideAllModals();
-                    showConfirmationModal('Delete Post?', `Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`, () => {
-                        deleteDoc(doc(db, 'posts', actionPostId))
-                            .catch(err => console.error("Error deleting post: ", err));
+                    showConfirmationModal('Delete Post?', `Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`, async () => {
+                        try {
+                           await deleteDoc(doc(db, 'posts', actionPostId));
+                        } catch (err) {
+                           console.error("Error deleting post: ", err)
+                           alert("Error: Could not delete post.");
+                        }
                     });
                 }
             });
@@ -3422,9 +3598,11 @@ CHANGELOG
                 });
             });
             
-            // Player card action for sending friend request
+            // Player card action listeners
             playerListContainer.addEventListener('click', async (e) => {
                 const addFriendBtn = e.target.closest('.add-friend-btn');
+                const messageBtn = e.target.closest('.message-player-btn');
+
                 if (addFriendBtn && currentUserData) {
                     const playerCard = addFriendBtn.closest('.player-card');
                     const recipientUid = playerCard.dataset.uid;
@@ -3437,7 +3615,6 @@ CHANGELOG
                             recipientUid: recipientUid,
                             senderUid: currentUserData.uid,
                             senderUsername: currentUserData.username,
-                            senderAvatarUrl: currentUserData.avatarUrl || null,
                             type: 'friend_request',
                             message: `${currentUserData.username} sent you a friend request.`,
                             isRead: false,
@@ -3449,6 +3626,29 @@ CHANGELOG
                     } catch (error) {
                         console.error("Error sending friend request:", error);
                         addFriendBtn.innerHTML = `<i class="fas fa-user-plus"></i>`;
+                    }
+                } else if (messageBtn && currentUserData) {
+                    const playerCard = messageBtn.closest('.player-card');
+                    const targetUid = playerCard.dataset.uid;
+                    const targetPlayer = allPlayers.find(p => p.uid === targetUid);
+                    if (targetPlayer) {
+                        showPrivateMessageModal(targetPlayer);
+                    }
+                }
+            });
+
+            // Friends list action listeners
+            friendsListContainer.addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('.remove-friend-btn');
+                const messageBtn = e.target.closest('.message-player-btn');
+                
+                if (removeBtn) {
+                    removeFriend(removeBtn.dataset.uid);
+                } else if (messageBtn) {
+                    const targetUid = messageBtn.dataset.uid;
+                    const targetPlayer = allPlayers.find(p => p.uid === targetUid);
+                    if (targetPlayer) {
+                        showPrivateMessageModal(targetPlayer);
                     }
                 }
             });
