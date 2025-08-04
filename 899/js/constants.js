@@ -1,4 +1,10 @@
-// js/constants.js
+// code/js/constants.js
+
+/**
+ * This file exports constants used throughout the application,
+ * such as alliance names, ranks, post types, and styling information.
+ * This centralization makes it easy to update these values in one place.
+ */
 
 export const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
 

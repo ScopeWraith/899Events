@@ -1,4 +1,9 @@
-// js/firebase-config.js
+// code/js/firebase-config.js
+
+/**
+ * This file contains the Firebase configuration and initializes the Firebase services.
+ * It exports the initialized services for use in other modules.
+ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -23,4 +28,4 @@ const db = getFirestore(app);
 const rtdb = getDatabase(app);
 const storage = getStorage(app);
 
-export { auth, db, rtdb, storage, app };
+export { app, auth, db, rtdb, storage };
