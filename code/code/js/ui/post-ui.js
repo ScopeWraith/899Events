@@ -537,3 +537,29 @@ export async function populatePostFormForEdit(postId) {
     showModal(document.getElementById('create-post-modal-container'));
     submitBtn.classList.remove('hidden');
 }
+export function renderTodaysAllianceActivity() {
+    const { allPosts, currentUserData } = getState();
+    const container = document.getElementById('feed-alliance-activity-container');
+    
+    if (!container || !currentUserData || !currentUserData.alliance) {
+        if (container) container.innerHTML = '<p class="text-center text-gray-500 py-4">Join an alliance to see its activity.</p>';
+        return;
+    }
+
+    const now = new Date();
+    const todayStart = new Date(now.setHours(0, 0, 0, 0));
+
+    const todaysAlliancePosts = allPosts.filter(post => {
+        const postDate = post.createdAt?.toDate();
+        return post.alliance === currentUserData.alliance &&
+               post.visibility === 'alliance' &&
+               postDate >= todayStart;
+    });
+
+    if (todaysAlliancePosts.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-4">No alliance activity today.</p>';
+    } else {
+        container.innerHTML = `<div class="grid grid-cols-1 gap-4">${todaysAlliancePosts.map(createCard).join('')}</div>`;
+        updateCountdowns(); // We need to call this to make sure event timers are updated
+    }
+}

@@ -9,7 +9,7 @@ import { formatTimeAgo } from '../utils.js';
 
 export function renderNotifications(notifications) {
     const feedDropdown = document.getElementById('feed-dropdown');
-    const feedPageContainer = document.getElementById('feed-page-container');
+    const feedActionContainer = document.getElementById('feed-action-container'); // Changed from feed-page-container
     const notificationBadge = document.getElementById('notification-badge');
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -21,14 +21,25 @@ export function renderNotifications(notifications) {
         notificationBadge.classList.remove('visible');
     }
 
+    // --- Dropdown Rendering (up to 5 notifications) ---
     if (notifications.length === 0) {
         feedDropdown.innerHTML = '<p class="text-center text-gray-500 p-4">No new notifications.</p>';
-        feedPageContainer.innerHTML = '<p class="text-center text-gray-500 p-8">Your feed is empty.</p>';
-        return;
+    } else {
+        feedDropdown.innerHTML = notifications.slice(0, 5).map(n => createNotificationHTML(n)).join('');
     }
 
-    feedDropdown.innerHTML = notifications.slice(0, 5).map(n => createNotificationHTML(n)).join('');
-    feedPageContainer.innerHTML = notifications.map(n => createNotificationHTML(n)).join('');
+    // --- Full Feed Page Rendering (Actionable items only) ---
+    const actionableNotifications = notifications.filter(n => 
+        n.type === 'friend_request' || n.type === 'verification_request'
+    );
+
+    if (feedActionContainer) {
+        if (actionableNotifications.length === 0) {
+            feedActionContainer.innerHTML = '<p class="text-center text-gray-500 p-4">No pending actions.</p>';
+        } else {
+            feedActionContainer.innerHTML = actionableNotifications.map(n => createNotificationHTML(n)).join('');
+        }
+    }
 }
 
 function createNotificationHTML(notification) {

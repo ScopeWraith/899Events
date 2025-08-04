@@ -14,7 +14,7 @@ import { initializePostStepper, populatePostFormForEdit } from './post-ui.js';
 import { setupPrivateChatListener } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+import { renderTodaysAllianceActivity } from './post-ui.js';
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
@@ -30,6 +30,14 @@ export function showPage(targetId) {
         const mainTarget = link.dataset.mainTarget;
         link.classList.toggle('active', mainTarget === targetId);
     });
+
+    // --- ADD THIS BLOCK ---
+    if (targetId === 'page-feed') {
+        // Notifications are already rendered by the listener, but we can call it again to be safe.
+        // The main new call is for today's alliance activity.
+        renderTodaysAllianceActivity();
+    }
+    // ----------------------
 }
 
 export function showModal(modal) {
