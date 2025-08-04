@@ -101,7 +101,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .mobile-nav-link:hover, .mobile-nav-link.active { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
 .section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--glow-color, var(--color-primary)), transparent) 1; }
 
-.hidden { display: none !important; }
 
 /* --- Filter Buttons --- */
 .filter-btn-group {
