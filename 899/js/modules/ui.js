@@ -1,11 +1,12 @@
 // js/modules/ui.js
 
-import { state, constants } from '../app.js';
-import { handleNotificationClick, removeFriend, handleDeleteMessage, handleSendMessage, setupPrivateChatListener, getPrivateChatId } from './data.js';
-import { handleEditProfileSubmit, handlePlayerSettingsSubmit, handleCreatePostSubmit, deletePost, showEditPostModal } from './auth.js';
+import { POST_TYPES, POST_STYLES, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
 
-// --- DOM ELEMENTS ---
-const elements = {
+// This module handles all direct DOM manipulation and UI updates.
+// It receives data and renders it, but does not fetch or manage state.
+
+// --- DOM ELEMENT SELECTORS ---
+export const elements = {
     appPreloader: document.getElementById('app-preloader'),
     appContainer: document.getElementById('app-container'),
     modalBackdrop: document.getElementById('modal-backdrop'),
@@ -21,90 +22,23 @@ const elements = {
     loginBtn: document.getElementById('login-btn'),
     userProfileNavItem: document.getElementById('user-profile-nav-item'),
     usernameDisplay: document.getElementById('username-display'),
+    userAvatarButton: document.getElementById('user-avatar-button'),
     playerListContainer: document.getElementById('player-list-container'),
-    userProfileButton: document.getElementById('user-profile-button'),
-    mobileNavMenu: document.getElementById('mobile-nav-menu'),
-    mobileNavLinksContainer: document.getElementById('mobile-nav-links'),
-    playerSearchInput: document.getElementById('player-search-input'),
-    allianceFilterInput: document.getElementById('alliance-filter'),
     announcementsContainer: document.getElementById('announcements-container'),
     eventsSectionContainer: document.getElementById('events-section-container'),
-    userAvatarButton: document.getElementById('user-avatar-button'),
-    avatarUploadInput: document.getElementById('avatar-upload-input'),
-    verificationToggleContainer: document.getElementById('verification-toggle-container'),
-    eventsMainContainer: document.getElementById('events-main-container'),
     filterContainer: document.getElementById('filter-container'),
     feedDropdown: document.getElementById('feed-dropdown'),
-    feedNavItem: document.getElementById('feed-nav-item'),
-    notificationBadge: document.getElementById('notification-badge'),
     feedPageContainer: document.getElementById('feed-page-container'),
+    notificationBadge: document.getElementById('notification-badge'),
     friendsListContainer: document.getElementById('friends-list'),
+    mobileNavMenu: document.getElementById('mobile-nav-menu'),
+    mobileNavLinksContainer: document.getElementById('mobile-nav-links'),
+    pageContainer: document.getElementById('page-container'),
+    mainNav: document.getElementById('main-nav'),
+    eventsMainContainer: document.getElementById('events-main-container'),
 };
 
-// --- MODAL & FORM SWITCHING LOGIC ---
-export function showModal(modal) {
-    hideAllModals();
-    elements.modalBackdrop.classList.add('visible');
-    modal.classList.add('visible');
-}
-
-export function showAuthModal(formToShow) {
-    showModal(elements.authModalContainer);
-    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-    if (formToShow === 'register') {
-        elements.registerFormContainer.classList.add('active');
-    } else {
-        elements.loginFormContainer.classList.add('active');
-    }
-}
-
-export function showConfirmationModal(title, message, onConfirm) {
-    document.getElementById('confirmation-title').textContent = title;
-    document.getElementById('confirmation-message').textContent = message;
-
-    const confirmBtn = document.getElementById('confirmation-confirm-btn');
-    const newConfirmBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
-    newConfirmBtn.addEventListener('click', () => {
-        onConfirm();
-        hideAllModals();
-    });
-
-    showModal(elements.confirmationModalContainer);
-}
-
-export function showPostActionsModal(postId) {
-    state.actionPostId = postId;
-    showModal(elements.postActionsModalContainer);
-}
-
-export function showPrivateMessageModal(targetPlayer) {
-    state.activePrivateChatPartner = targetPlayer;
-    document.getElementById('private-message-header').textContent = `Chat with ${targetPlayer.username}`;
-    document.getElementById('private-message-window').innerHTML = '<p class="text-center text-gray-500 m-auto">Loading messages...</p>';
-    showModal(elements.privateMessageModalContainer);
-    setupPrivateChatListener();
-}
-
-export function hideAllModals() {
-    elements.modalBackdrop.classList.remove('visible');
-    elements.authModalContainer.classList.remove('visible');
-    elements.editProfileModalContainer.classList.remove('visible');
-    elements.playerSettingsModalContainer.classList.remove('visible');
-    elements.createPostModalContainer.classList.remove('visible');
-    elements.confirmationModalContainer.classList.remove('visible');
-    elements.postActionsModalContainer.classList.remove('visible');
-    elements.privateMessageModalContainer.classList.remove('visible');
-    state.activePlayerSettingsUID = null;
-    state.editingPostId = null;
-    state.actionPostId = null;
-    state.activePrivateChatId = null;
-    state.activePrivateChatPartner = null;
-    if (state.privateChatListener) state.privateChatListener();
-}
-
-// --- UTILITY & SKELETON FUNCTIONS ---
+// --- UTILITY & FORMATTING ---
 export function formatTimeAgo(date) {
     if (!date) return '';
     const now = new Date();
@@ -144,199 +78,138 @@ export function formatDuration(ms) {
     return parts.slice(0, 2).join(' ') || '<1m';
 }
 
-export function createSkeletonCard() {
-    return `
-        <div class="post-card skeleton-card">
-            <div class="post-card-thumbnail-wrapper">
-                <div class="post-card-thumbnail skeleton-loader"></div>
-            </div>
-            <div class="post-card-body">
-                <div class="post-card-content">
-                    <div class="post-card-header">
-                        <div class="skeleton-loader h-5 w-24"></div>
-                    </div>
-                    <div class="skeleton-loader h-8 w-4/5 mt-2"></div>
-                    <div class="skeleton-loader h-4 w-full mt-2"></div>
-                    <div class="skeleton-loader h-4 w-2/3 mt-1"></div>
-                </div>
-                <div class="post-card-status">
-                    <div class="skeleton-loader h-4 w-16 mb-2"></div>
-                    <div class="skeleton-loader h-7 w-24"></div>
-                </div>
-            </div>
-        </div>
-    `;
+// --- PAGE AND MODAL VISIBILITY ---
+export function showPage(pageId) {
+    elements.pageContainer.querySelectorAll('.page-content').forEach(page => {
+        page.style.display = page.id === pageId ? 'block' : 'none';
+    });
+    elements.mainNav.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.toggle('active', link.dataset.mainTarget === pageId);
+    });
 }
 
-export function renderSkeletons() {
-    elements.announcementsContainer.innerHTML = `
-        <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
-            <i class="fas fa-bullhorn"></i>
-            <span class="flex-grow">Announcements</span>
-        </div>
-        <div class="grid grid-cols-1 gap-4">
-            ${createSkeletonCard()}
-        </div>
-    `;
-    elements.eventsSectionContainer.innerHTML = `
-        <div class="section-header text-xl font-bold mb-4">
-             <i class="fas fa-calendar-alt"></i>
-             <span class="flex-grow">Events</span>
-        </div>
-        <div class="grid grid-cols-1 gap-4">
-            ${createSkeletonCard()}
-            ${createSkeletonCard()}
-            ${createSkeletonCard()}
-        </div>
-    `;
+export function showModal(modal) {
+    elements.modalBackdrop.classList.add('visible');
+    modal.classList.add('visible');
 }
 
-export function getEventStatus(event) {
-    const now = new Date();
-    let startTime = event.startTime?.toDate();
-    let endTime = event.endTime?.toDate();
+export function hideAllModals() {
+    elements.modalBackdrop.classList.remove('visible');
+    elements.authModalContainer.classList.remove('visible');
+    elements.editProfileModalContainer.classList.remove('visible');
+    elements.playerSettingsModalContainer.classList.remove('visible');
+    elements.createPostModalContainer.classList.remove('visible');
+    elements.confirmationModalContainer.classList.remove('visible');
+    elements.postActionsModalContainer.classList.remove('visible');
+    elements.privateMessageModalContainer.classList.remove('visible');
+    elements.mobileNavMenu.classList.remove('open');
+}
 
-    if (!startTime || !endTime) {
-        return { status: 'ended' };
-    }
-
-    if (event.isRecurring) {
-        if (endTime < now) {
-            const timeDiff = now.getTime() - endTime.getTime();
-            const weeksToAdvance = Math.ceil(timeDiff / (7 * 24 * 60 * 60 * 1000));
-            startTime.setDate(startTime.getDate() + weeksToAdvance * 7);
-            endTime.setDate(endTime.getDate() + weeksToAdvance * 7);
-        }
-    }
-
-    if (startTime > now) {
-        return { status: 'upcoming', timeDiff: startTime - now };
-    } else if (startTime <= now && endTime > now) {
-        return { status: 'live', timeDiff: endTime - now };
+export function showAuthModal(formToShow) {
+    showModal(elements.authModalContainer);
+    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+    if (formToShow === 'register') {
+        elements.registerFormContainer.classList.add('active');
     } else {
-        return { status: 'ended', endedDate: endTime };
+        elements.loginFormContainer.classList.add('active');
     }
 }
 
-export function updateCountdowns() {
-    document.querySelectorAll('.event-card').forEach(el => {
-        const postId = el.dataset.postId;
-        const post = state.allPosts.find(p => p.id === postId);
-        if (!post) return;
+export function showConfirmationModal(title, message, onConfirmCallback) {
+    document.getElementById('confirmation-title').textContent = title;
+    document.getElementById('confirmation-message').textContent = message;
 
-        const statusInfo = getEventStatus(post);
-        const statusEl = el.querySelector('.status-content-wrapper');
-        const dateEl = el.querySelector('.status-date');
+    const confirmBtn = document.getElementById('confirmation-confirm-btn');
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
-        if (!statusEl || !dateEl) return;
-
-        el.classList.remove('live', 'ended', 'upcoming');
-
-        const originalStartTime = post.startTime?.toDate();
-        if (originalStartTime) {
-            dateEl.textContent = formatEventDateTime(originalStartTime);
-        }
-
-        switch(statusInfo.status) {
-            case 'upcoming':
-                el.classList.add('upcoming');
-                statusEl.innerHTML = `<div class="status-label">STARTS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
-                break;
-            case 'live':
-                el.classList.add('live');
-                statusEl.innerHTML = `<div class="status-label">ENDS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
-                break;
-            case 'ended':
-                el.classList.add('ended');
-                statusEl.innerHTML = `<div class="status-label">ENDED</div><div class="status-time">${statusInfo.endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
-                break;
-        }
+    newConfirmBtn.addEventListener('click', () => {
+        onConfirmCallback();
+        hideAllModals();
     });
+
+    showModal(elements.confirmationModalContainer);
 }
 
-export function setupCustomSelect(container) {
-    const type = container.dataset.type;
-    const hiddenInput = container.querySelector('input[type="hidden"]');
-    const valueButton = container.querySelector('.custom-select-value');
-    const optionsContainer = container.querySelector('.custom-select-options');
-    const searchInput = container.querySelector('.custom-select-search');
-    const optionsList = container.querySelector('.options-list');
+// --- RENDERING FUNCTIONS ---
+export function renderSkeletons() {
+    function createSkeletonCard() {
+        return `
+            <div class="post-card skeleton-card">
+                <div class="post-card-thumbnail-wrapper"><div class="post-card-thumbnail skeleton-loader"></div></div>
+                <div class="post-card-body">
+                    <div class="post-card-content">
+                        <div class="post-card-header"><div class="skeleton-loader h-5 w-24"></div></div>
+                        <div class="skeleton-loader h-8 w-4/5 mt-2"></div>
+                        <div class="skeleton-loader h-4 w-full mt-2"></div>
+                        <div class="skeleton-loader h-4 w-2/3 mt-1"></div>
+                    </div>
+                    <div class="post-card-status">
+                        <div class="skeleton-loader h-4 w-16 mb-2"></div>
+                        <div class="skeleton-loader h-7 w-24"></div>
+                    </div>
+                </div>
+            </div>`;
+    }
+    elements.announcementsContainer.innerHTML = `<div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);"><i class="fas fa-bullhorn"></i><span class="flex-grow">Announcements</span></div><div class="grid grid-cols-1 gap-4">${createSkeletonCard()}</div>`;
+    elements.eventsSectionContainer.innerHTML = `<div class="section-header text-xl font-bold mb-4"><i class="fas fa-calendar-alt"></i><span class="flex-grow">Events</span></div><div class="grid grid-cols-1 gap-4">${createSkeletonCard()}${createSkeletonCard()}</div>`;
+}
 
-    let sourceData = [];
-    if (type === 'alliance') sourceData = constants.ALLIANCES.map(a => ({value: a, text: a}));
-    else if (type === 'rank') sourceData = constants.ALLIANCE_RANKS;
-    else if (type === 'role') sourceData = constants.ALLIANCE_ROLES;
-    else if (type === 'alliance-filter') sourceData = [{value: '', text: 'All Alliances'}, ...constants.ALLIANCES.map(a => ({value: a, text: a}))];
-    else if (type === 'day-of-week') sourceData = constants.DAYS_OF_WEEK;
-    else if (type === 'hour-of-day') sourceData = constants.HOURS_OF_DAY;
-    else if (type === 'repeat-type') sourceData = constants.REPEAT_TYPES;
+export function renderPlayers(allPlayers, userSessions, currentUserData) {
+    const container = elements.playerListContainer;
+    const searchTerm = document.getElementById('player-search-input').value.toLowerCase();
+    const allianceFilter = document.getElementById('alliance-filter').value;
 
-    const isSearchable = searchInput && type === 'alliance';
-    if(searchInput && !isSearchable) searchInput.style.display = 'none';
+    const filteredPlayers = allPlayers.filter(player => {
+        const nameMatch = player.username.toLowerCase().includes(searchTerm);
+        const allianceMatch = !allianceFilter || player.alliance === allianceFilter;
+        return nameMatch && allianceMatch;
+    });
 
-    function renderOptions(data = [], filter = '') {
-        optionsList.innerHTML = '';
-        const filteredData = data.filter(item => item.text.toLowerCase().includes(filter.toLowerCase()));
-        filteredData.forEach(item => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'custom-select-option';
-            optionDiv.textContent = item.text;
-            optionDiv.dataset.value = item.value;
-            optionsList.appendChild(optionDiv);
-        });
+    container.innerHTML = '';
+    if (filteredPlayers.length === 0) {
+        container.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No players match the current filters.</p>`;
+        return;
     }
 
-    valueButton.addEventListener('click', (e) => {
-        e.stopPropagation();
+    filteredPlayers.forEach(player => {
+        const card = document.createElement('div');
+        card.className = 'player-card glass-pane p-4 flex flex-col relative';
+        card.dataset.uid = player.uid;
 
-        const isOpen = container.classList.contains('open');
-        document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
-        if (!isOpen) {
-            const rect = container.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.bottom;
-            optionsContainer.classList.remove('open-up', 'open-down');
-            if (spaceBelow < 220 && rect.top > 220) {
-                optionsContainer.classList.add('open-up');
-            } else {
-                optionsContainer.classList.add('open-down');
+        let gearIconHTML = '';
+        if (currentUserData && currentUserData.uid !== player.uid) {
+            const canManage = currentUserData.isAdmin || (currentUserData.alliance === player.alliance && ((currentUserData.allianceRank === 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(player.allianceRank)) || (currentUserData.allianceRank === 'R4' && ['R3', 'R2', 'R1'].includes(player.allianceRank))));
+            if (canManage) {
+                gearIconHTML = `<button class="player-settings-btn absolute top-3 right-3 text-gray-400 hover:text-white transition-colors" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
             }
-            container.classList.add('open');
-            if (isSearchable) { searchInput.value = ''; searchInput.focus(); }
-            renderOptions(sourceData);
-        } else {
-            container.classList.remove('open');
         }
-    });
 
-    if (isSearchable) {
-        searchInput.addEventListener('input', () => renderOptions(sourceData, searchInput.value));
-    }
+        const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
+        const session = userSessions[player.uid];
+        const statusClass = session ? session.status : 'offline';
 
-    optionsList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('custom-select-option')) {
-            const value = e.target.dataset.value;
-            const text = e.target.textContent;
-            setCustomSelectValue(container, value, text);
-            container.classList.remove('open');
-            hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-    });
-    renderOptions(sourceData);
-}
-
-export function setCustomSelectValue(container, value, text) {
-    const hiddenInput = container.querySelector('input[type="hidden"]');
-    const valueSpan = container.querySelector('.custom-select-value span');
-    hiddenInput.value = value;
-    valueSpan.textContent = text || value;
-}
-
-export function showPage(targetId) {
-    document.querySelectorAll('.page-content').forEach(page => {
-        page.style.display = page.id === targetId ? 'block' : 'none';
-    });
-    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
-        const mainTarget = link.dataset.mainTarget;
-        link.classList.toggle('active', mainTarget === targetId);
+        card.innerHTML = `
+            ${gearIconHTML}
+            <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
+                <img src="${avatarUrl}" class="w-12 h-12 rounded-full mr-4 border-2 object-cover" style="border-color: rgba(255,255,255,0.2);" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                <div>
+                    <h3 class="font-bold text-lg text-white flex items-center">${player.username} <span class="status-dot ${statusClass} ml-2"></span></h3>
+                    <p class="text-sm font-semibold" style="color: var(--color-primary);">[${player.alliance}] - ${player.allianceRank}</p>
+                </div>
+            </div>
+            <div class="flex-grow my-4 space-y-3">
+                <div class="flex justify-between items-center text-sm"><span class="text-gray-400 flex items-center"><i class="fas fa-fist-raised w-6 text-center mr-2" style="color: var(--color-primary);"></i>Total Power</span><span class="font-bold text-white">${(player.power || 0).toLocaleString()}</span></div>
+                <div class="flex justify-between items-center text-sm"><span class="text-gray-400 flex items-center"><i class="fas fa-truck-monster w-6 text-center mr-2" style="color: var(--color-primary);"></i>Tank Power</span><span class="font-bold text-white">${(player.tankPower || 0).toLocaleString()}</span></div>
+                <div class="flex justify-between items-center text-sm"><span class="text-gray-400 flex items-center"><i class="fas fa-fighter-jet w-6 text-center mr-2" style="color: var(--color-primary);"></i>Air Power</span><span class="font-bold text-white">${(player.airPower || 0).toLocaleString()}</span></div>
+                <div class="flex justify-between items-center text-sm"><span class="text-gray-400 flex items-center"><i class="fas fa-rocket w-6 text-center mr-2" style="color: var(--color-primary);"></i>Missile Power</span><span class="font-bold text-white">${(player.missilePower || 0).toLocaleString()}</span></div>
+            </div>
+            <div class="flex justify-around items-center pt-3 border-t border-white/10">
+                <button class="message-player-btn text-gray-400 hover:text-white transition-colors !text-lg" data-uid="${player.uid}" title="Message Player"><i class="fas fa-comment-dots"></i></button>
+                <button class="add-friend-btn text-gray-400 hover:text-white transition-colors !text-lg" data-uid="${player.uid}" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                <button class="like-profile-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
+            </div>
+        `;
+        container.appendChild(card);
     });
 }
