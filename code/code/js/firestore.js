@@ -6,7 +6,7 @@
  */
 
 import { db } from './firebase-config.js';
-import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getState, updateState } from './state.js';
 import { renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
@@ -325,4 +325,3 @@ export async function createPost(postData) {
     // This function is handled directly by post-ui.js's handlePostSubmit
     // This placeholder is here to prevent breaking changes if other files still reference it.
 }
-
