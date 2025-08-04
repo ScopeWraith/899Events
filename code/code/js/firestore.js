@@ -11,7 +11,6 @@ import { getState, updateState } from './state.js';
 import { renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { renderFriendsList, renderFriendRequests, renderMessages } from './ui/social-ui.js';
-import { showNotification } from './ui/notifications-ui.js';
 import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
