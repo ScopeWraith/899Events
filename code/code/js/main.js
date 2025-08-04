@@ -1,67 +1,72 @@
-// code/js/main.js
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth } from './firebase-config.js';
+import { state, addUnsubscribeListener } from './state.js';
+import { initializeAppEventListeners } from './event-listeners.js';
+import { listenToUserProfile, listenToAllUsers, listenToPosts } from './firestore.js';
+import { setupPresence } from './presence.js';
+import { UIManager } from './ui/ui-manager.js';
+
+// Instantiate the UI Manager to handle all UI updates
+export const uiManager = new UIManager();
+window.uiManager = uiManager; // Make it globally accessible for inline event handlers in index.html
 
 /**
- * This is the main entry point for the application's JavaScript.
- * It imports all other modules and orchestrates the initial setup,
- * including event listeners and the initial rendering of content.
+ * Initializes the application, sets up authentication state listeners,
+ * and fetches initial data.
  */
+function initializeApp() {
+    // Set up all the event listeners for the app
+    initializeAppEventListeners();
 
-import { auth } from './firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { initializeAllEventListeners } from './event-listeners.js';
-import { setupInitialUI, showPage, buildMobileNav, updateUIForLoggedInUser, updateUIForLoggedOutUser, renderSkeletons } from './ui/ui-manager.js';
-import { setupAllListeners, detachAllListeners, fetchInitialData } from './firestore.js';
-import { setupPresenceManagement } from './presence.js';
-import { setCallbacks } from './state.js';
-
-// --- INITIALIZATION ---
-
-// Set callbacks to allow other modules to trigger UI updates
-setCallbacks({
-    onAuthChange: (user) => {
+    // Listen for authentication state changes
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
-            updateUIForLoggedInUser();
+            // User is signed in
+            console.log("User is signed in:", user);
+            uiManager.showAuthenticatedUI();
+
+            // Store basic user info in state immediately
+            state.currentUser = { uid: user.uid, displayName: user.displayName, photoURL: user.photoURL };
+
+            // Set up real-time presence tracking for the current user
+            setupPresence(user.uid);
+
+            // Listen for changes to the current user's profile for real-time updates
+            const unsubscribeProfile = listenToUserProfile(user.uid, (profile) => {
+                // Merge profile data with existing auth data
+                state.currentUser = { ...state.currentUser, ...profile };
+                uiManager.updatePlayerSettings(state.currentUser);
+            });
+            addUnsubscribeListener(unsubscribeProfile);
+
+
+            // Listen for changes to all users to update the player list
+            const unsubscribeUsers = listenToAllUsers((users) => {
+                state.players = users;
+                uiManager.updatePlayersList(state.players, state.currentUser.uid);
+            });
+            addUnsubscribeListener(unsubscribeUsers);
+
+            // Listen for new posts and updates
+            const unsubscribePosts = listenToPosts((posts) => {
+                state.posts = posts;
+                uiManager.updatePosts(state.posts, state.currentUser.uid);
+            });
+            addUnsubscribeListener(unsubscribePosts);
+
+
         } else {
-            updateUIForLoggedOutUser();
+            // User is signed out
+            console.log("User is signed out");
+            // Clean up listeners and state
+            state.unsubscribeAll();
+            state.currentUser = null;
+            state.players = [];
+            state.posts = [];
+            uiManager.showSignedOutUI();
         }
-        buildMobileNav();
-    }
-});
+    });
+}
 
-// Listen for auth state changes to update UI and listeners accordingly
-onAuthStateChanged(auth, (user) => {
-    detachAllListeners(); // Always detach old listeners on auth change
-
-    if (user) {
-        setupPresenceManagement(user);
-        setupAllListeners(user);
-    } else {
-        // For logged-out users, we still want to fetch public data
-        fetchInitialData();
-    }
-    
-    // Update the UI based on the new auth state
-    if (user) {
-        updateUIForLoggedInUser();
-    } else {
-        updateUIForLoggedOutUser();
-    }
-    buildMobileNav();
-
-    // Hide preloader after first auth check
-    const appPreloader = document.getElementById('app-preloader');
-    const appContainer = document.getElementById('app-container');
-    appPreloader.style.opacity = '0';
-    setTimeout(() => {
-        appPreloader.style.display = 'none';
-        appContainer.style.display = 'block';
-    }, 500);
-});
-
-// --- DOMContentLoaded ---
-document.addEventListener('DOMContentLoaded', () => {
-    renderSkeletons();
-    setupInitialUI();
-    initializeAllEventListeners();
-    showPage('page-events');
-});
+// Initialize the application when the script loads
+initializeApp();
