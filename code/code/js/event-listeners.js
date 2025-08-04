@@ -89,12 +89,13 @@ export function initializeAllEventListeners() {
     // --- Main Navigation & Page Switching ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', () => {
-            if (!link.closest('.nav-item').querySelector('.dropdown-menu')) {
+            // The check for a dropdown menu was preventing the Feed page from opening.
+            // We remove the if-statement to allow all nav links to trigger a page change.
+            if (link.dataset.mainTarget) {
                 showPage(link.dataset.mainTarget);
             }
         });
     });
-
     // --- Mobile Navigation ---
     getElement('open-mobile-menu-btn').addEventListener('click', () => {
         getElement('mobile-nav-menu').classList.add('open');
