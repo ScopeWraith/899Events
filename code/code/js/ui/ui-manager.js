@@ -15,7 +15,6 @@ import { setupPrivateChatListener } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { renderTodaysAllianceActivity } from './post-ui.js';
-import { renderRecentPublicPosts } from './post-ui.js';
 import { renderFeedActivity } from './post-ui.js';
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
