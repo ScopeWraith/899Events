@@ -151,14 +151,17 @@ export function initializeAllEventListeners() {
             }
         });
     }
-    getElement('page-social').addEventListener('click', (e) => {
-        const deleteBtn = e.target.closest('.delete-message-btn');
-        if (deleteBtn) {
-            showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
-                handleDeleteMessage(deleteBtn.dataset.id, deleteBtn.dataset.type);
-            });
-        }
-    });
+    const socialPage = getElement('page-social');
+    if (socialPage) {
+        socialPage.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.delete-message-btn');
+            if (deleteBtn) {
+                showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
+                    handleDeleteMessage(deleteBtn.dataset.id, deleteBtn.dataset.type);
+                });
+            }
+        });
+    }
 
     // --- Notifications ---
     getElement('feed-dropdown').addEventListener('click', (e) => handleNotificationClick(e));
