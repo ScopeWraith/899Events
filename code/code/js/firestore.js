@@ -11,6 +11,7 @@ import { getState, updateState } from './state.js';
 import { renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { renderFriendsList, renderFriendRequests, renderMessages } from './ui/social-ui.js';
+import { showNotification } from './ui/notifications-ui.js';
 import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
@@ -298,3 +299,31 @@ export async function sendPrivateMessage(text) {
         throw error; // Re-throw to be handled by the caller
     }
 }
+
+export async function deletePost(postId) {
+    try {
+        await deleteDoc(doc(db, 'posts', postId));
+        showNotification('Post deleted successfully!');
+    } catch (error) {
+        console.error("Error deleting post:", error);
+        showNotification('Error deleting post.', 'error');
+    }
+}
+
+export async function updatePost(postId, updatedData) {
+    try {
+        await updateDoc(doc(db, 'posts', postId), updatedData);
+        showNotification('Post updated successfully!');
+    } catch (error) {
+        console.error("Error updating post:", error);
+        showNotification('Error updating post.', 'error');
+    }
+}
+
+// This function is not used in the current context, but was present in event-listeners.js
+// It's kept here for completeness if it were to be used directly by other modules.
+export async function createPost(postData) {
+    // This function is handled directly by post-ui.js's handlePostSubmit
+    // This placeholder is here to prevent breaking changes if other files still reference it.
+}
+
