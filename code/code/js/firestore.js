@@ -1,3 +1,17 @@
+/**
+ * Create a new post in Firestore.
+ * @param {object} postData
+ * @returns {Promise<import('firebase/firestore').DocumentReference>} The new post's document reference
+ */
+export async function createPost(postData) {
+    try {
+        const docRef = await addDoc(collection(db, 'posts'), postData);
+        return docRef;
+    } catch (err) {
+        console.error('Error creating post:', err);
+        throw err;
+    }
+}
 // --- POSTS ---
 
 /**
