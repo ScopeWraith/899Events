@@ -570,16 +570,9 @@ export function renderFeedActivity() {
 
     if (!container) return;
 
-    // Step 1: Get all public posts and map them to a common format
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
-    const publicPosts = allPosts
-        .filter(post => {
-            const postDate = post.createdAt?.toDate();
-            // Keep the post if it's public AND was created within the last 3 days
-            return post.visibility === 'public' && postDate && postDate > threeDaysAgo;
-        })
+    // Step 1: Get Admin Announcements (server-wide)
+    const adminAnnouncements = allPosts
+        .filter(post => post.subType === 'server' && post.mainType === 'announcement')
         .map(post => {
             const style = POST_STYLES[post.subType] || {};
             return {
@@ -587,10 +580,25 @@ export function renderFeedActivity() {
                 style: style,
                 icon: style.icon || 'fas fa-bullhorn',
                 title: post.title,
-                text: `New ${POST_TYPES[`${post.subType}_${post.mainType}`]?.text || 'Announcement'}`
+                text: `New Server Announcement`
             };
         });
-    // Step 2: Get verification records for the user's alliance and map them
+
+    // Step 2: Get the user's specific Alliance Announcements and Events
+    const allianceActivity = currentUserData ? allPosts
+        .filter(post => post.alliance === currentUserData.alliance && (post.subType === 'alliance' || post.subType === 'leadership'))
+        .map(post => {
+            const style = POST_STYLES[post.subType] || {};
+            return {
+                date: post.createdAt?.toDate() || new Date(0),
+                style: style,
+                icon: style.icon || 'fas fa-shield-alt',
+                title: post.title,
+                text: `New ${post.mainType === 'event' ? 'Alliance Event' : 'Alliance Announcement'}`
+            };
+        }) : [];
+
+    // Step 3: Get verification records for the user's alliance
     const verificationActivities = currentUserData ? userNotifications
         .filter(n => n.type === 'user_verified_record' && n.alliance === currentUserData.alliance)
         .map(n => {
@@ -603,17 +611,17 @@ export function renderFeedActivity() {
             };
         }) : [];
 
-    // Step 3: Combine, sort, and get the most recent items
-    const feedItems = [...publicPosts, ...verificationActivities];
+    // Step 4: Combine, sort, and get the most recent items
+    const feedItems = [...adminAnnouncements, ...allianceActivity, ...verificationActivities];
     feedItems.sort((a, b) => b.date - a.date);
-    const recentFeedItems = feedItems.slice(0, 15); // Show up to 15 recent items
+    const recentFeedItems = feedItems.slice(0, 20); // Show up to 20 recent items
 
     if (recentFeedItems.length === 0) {
         container.innerHTML = '<p class="text-center text-gray-500 py-4">No recent activity.</p>';
         return;
     }
 
-    // Step 4: Render the combined list, removing any placeholder content
+    // Step 5: Render the combined list
     container.innerHTML = recentFeedItems.map(item => {
         const timeAgo = formatTimeAgo(item.date);
         return `
