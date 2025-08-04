@@ -164,21 +164,29 @@ export function initializeAllEventListeners() {
     }
 
     // --- Notifications ---
-    getElement('feed-dropdown').addEventListener('click', (e) => handleNotificationClick(e));
-    getElement('feed-page-container').addEventListener('click', (e) => handleNotificationClick(e));
-    async function handleNotificationClick(e) {
-        const item = e.target.closest('.notification-item');
-        if (!item) return;
-        const actionBtn = e.target.closest('.notification-action-btn');
-        if (actionBtn) e.stopPropagation();
-        
-        handleNotificationAction(
-            item.dataset.id, 
-            actionBtn ? actionBtn.dataset.action : 'read', 
-            item.dataset.senderUid, 
-            actionBtn ? actionBtn.dataset.targetUid : null
-        );
-    }
+    const feedDropdown = getElement('feed-dropdown');
+        if (feedDropdown) {
+            feedDropdown.addEventListener('click', (e) => handleNotificationClick(e));
+        }
+
+        const feedPageContainer = getElement('feed-page-container');
+        if (feedPageContainer) {
+            feedPageContainer.addEventListener('click', (e) => handleNotificationClick(e));
+        }
+
+        async function handleNotificationClick(e) {
+            const item = e.target.closest('.notification-item');
+            if (!item) return;
+            const actionBtn = e.target.closest('.notification-action-btn');
+            if (actionBtn) e.stopPropagation();
+            
+            handleNotificationAction(
+                item.dataset.id, 
+                actionBtn ? actionBtn.dataset.action : 'read', 
+                item.dataset.senderUid, 
+                actionBtn ? actionBtn.dataset.targetUid : null
+            );
+        }
 
     // --- Player & Friend Actions ---
     getElement('player-list-container').addEventListener('click', async (e) => {
