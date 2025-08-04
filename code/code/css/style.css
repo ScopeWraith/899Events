@@ -52,7 +52,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .modal-container.visible { transform: translate(-50%, -50%) scale(1); }
 .auth-form { display: none; animation: fadeIn 0.5s forwards; }
 .auth-form.active { display: block; }
-.modal-content-wrapper { padding: 1.5rem; max-height: 85vh; display: flex; flex-direction: column; }
+.modal-content-wrapper { padding: 1.5rem; display: flex; flex-direction: column; }
 .modal-content-scroll { overflow-y: auto; padding-right: 1rem; margin-right: -1rem; }
 .modal-content-scroll::-webkit-scrollbar { width: 8px; }
 .modal-content-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }

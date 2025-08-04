@@ -275,7 +275,7 @@ export async function handleNotificationAction(notificationId, action, senderUid
 
 export async function addFriend(recipientUid) {
     const { currentUserData } = getState();
-    if (!currentUserData || recipientUid === currentUserData.uid) return;
+    if (!currentUserData) return;
 
     try {
         await addDoc(collection(db, 'notifications'), {

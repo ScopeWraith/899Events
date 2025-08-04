@@ -161,7 +161,18 @@ export function showPostActionsModal(postId) {
 
 export function showPrivateMessageModal(targetPlayer) {
     updateState({ activePrivateChatPartner: targetPlayer });
-    getElement('private-message-header').textContent = `Chat with ${targetPlayer.username}`;
+
+    // Populate the new header
+    const { userSessions } = getState();
+    const session = userSessions[targetPlayer.uid];
+    const status = session ? session.status : 'offline';
+
+    getElement('private-message-username').textContent = targetPlayer.username;
+    getElement('private-message-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    getElement('private-message-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
+    getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
+
+    // Clear the window and show the modal
     getElement('private-message-window').innerHTML = '<p class="text-center text-gray-500 m-auto">Loading messages...</p>';
     showModal(getElement('private-message-modal-container'));
     setupPrivateChatListener();
