@@ -82,11 +82,17 @@ export function initializeAllEventListeners() {
 
     // --- Post Actions (Edit/Delete) ---
     getElement('modal-edit-post-btn').addEventListener('click', () => {
-        const { actionPostId } = getState();
-        if (actionPostId) {
-            hideAllModals();
-            populatePostFormForEdit(actionPostId);
-        }
+    const { actionPostId } = getState();
+    // For debugging, you can add this line to check the ID in your browser's console:
+    console.log('Attempting to edit post with ID:', actionPostId); 
+    
+    if (!actionPostId) {
+        alert("Error: Could not find the post to edit. Please try again.");
+        return;
+    }
+
+    hideAllModals();
+    populatePostFormForEdit(actionPostId);
     });
     getElement('modal-delete-post-btn').addEventListener('click', () => {
         const { actionPostId, allPosts } = getState();
