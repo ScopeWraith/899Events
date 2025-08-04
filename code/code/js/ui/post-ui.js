@@ -477,7 +477,8 @@ export async function handlePostSubmit(e) {
         hideAllModals();
     } catch (error) {
         console.error("Error saving post: ", error);
-        createPostError.textContent = 'Failed to save post.';
+         // Provide a more descriptive error message
+        createPostError.textContent = `Failed to save post: ${error.message}`; 
     } finally {
         submitBtn.disabled = false;
         // Reset button text based on context
