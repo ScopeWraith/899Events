@@ -571,8 +571,15 @@ export function renderFeedActivity() {
     if (!container) return;
 
     // Step 1: Get all public posts and map them to a common format
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
     const publicPosts = allPosts
-        .filter(post => post.visibility === 'public')
+        .filter(post => {
+            const postDate = post.createdAt?.toDate();
+            // Keep the post if it's public AND was created within the last 3 days
+            return post.visibility === 'public' && postDate && postDate > threeDaysAgo;
+        })
         .map(post => {
             const style = POST_STYLES[post.subType] || {};
             return {
@@ -583,7 +590,6 @@ export function renderFeedActivity() {
                 text: `New ${POST_TYPES[`${post.subType}_${post.mainType}`]?.text || 'Announcement'}`
             };
         });
-
     // Step 2: Get verification records for the user's alliance and map them
     const verificationActivities = currentUserData ? userNotifications
         .filter(n => n.type === 'user_verified_record' && n.alliance === currentUserData.alliance)
