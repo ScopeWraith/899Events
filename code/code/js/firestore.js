@@ -29,6 +29,7 @@ import { renderFriendsList, renderFriendRequests, renderMessages } from './ui/so
 import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
+import { updateSocialUITabs } from './ui/social-ui.js';
 
 export function setupAllListeners(user) {
     const listeners = {};
@@ -42,6 +43,7 @@ export function setupAllListeners(user) {
             renderPosts(); 
             applyPlayerFilters();
             setupChatListeners();
+            updateSocialUITabs(); // <-- ADD THIS LINE
         }
     });
 

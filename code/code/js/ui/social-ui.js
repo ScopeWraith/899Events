@@ -6,6 +6,7 @@
  */
 
 import { getState } from '../state.js';
+import { isUserLeader } from '../utils.js';
 
 export function renderMessages(messages, container, chatType) {
     const { currentUserData, allPlayers, userSessions } = getState();
@@ -38,7 +39,23 @@ export function renderMessages(messages, container, chatType) {
         container.appendChild(messageEl);
     });
 }
+export function updateSocialUITabs() {
+    const { currentUserData } = getState();
+    const leadershipTab = document.querySelector('.social-tab-btn[data-tab="leadership-chat"]');
+    
+    if (!leadershipTab) return;
 
+    if (currentUserData && isUserLeader(currentUserData)) {
+        leadershipTab.style.display = 'inline-flex';
+    } else {
+        leadershipTab.style.display = 'none';
+        // If the leadership pane is active when the user is no longer a leader, switch to world chat
+        const leadershipPane = document.getElementById('pane-leadership-chat');
+        if (leadershipPane && leadershipPane.classList.contains('active')) {
+            document.querySelector('.social-tab-btn[data-tab="world-chat"]').click();
+        }
+    }
+}
 export function renderFriendsList() {
     const { currentUserData, userFriends, allPlayers, userSessions } = getState();
     const friendsListContainer = document.getElementById('friends-list');
