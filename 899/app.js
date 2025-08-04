@@ -10,7 +10,7 @@ const firebaseConfig = {
     authDomain: "events-ea397.firebaseapp.com",
     databaseURL: "https://events-ea397-default-rtdb.firebaseio.com",
     projectId: "events-ea397",
-    storageBucket: "events-ea397.appspot.com",
+    storageBucket: "events-ea397.firebasestorage.app",
     messagingSenderId: "51859633788",
     appId: "1:51859633788:web:3653d3e7edb6d3c1c4fbf9",
     measurementId: "G-0ZCMZ86PJD"
