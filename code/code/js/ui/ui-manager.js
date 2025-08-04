@@ -12,6 +12,9 @@ import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } fr
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { initializePostStepper, populatePostFormForEdit } from './post-ui.js';
 import { setupPrivateChatListener } from '../firestore.js';
+import { db } from '../firebase-config.js';
+import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { populatePostFormForEdit } from './post-ui.js';
 
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
@@ -100,8 +103,45 @@ export function showConfirmationModal(title, message, onConfirm) {
 }
 
 export function showPostActionsModal(postId) {
-    updateState({ actionPostId: postId });
-    showModal(getElement('post-actions-modal-container'));
+    const editBtn = document.getElementById('modal-edit-post-btn');
+    const deleteBtn = document.getElementById('modal-delete-post-btn');
+
+    // Clone and replace buttons to remove old event listeners
+    const newEditBtn = editBtn.cloneNode(true);
+    const newDeleteBtn = deleteBtn.cloneNode(true);
+    editBtn.parentNode.replaceChild(newEditBtn, editBtn);
+    deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+
+    // Add new listener for the EDIT button
+    newEditBtn.addEventListener('click', () => {
+        hideAllModals();
+        // We are importing a function from post-ui.js that is not yet exported.
+        // We will add this export in the next step.
+        populatePostFormForEdit(postId); 
+    });
+
+    // Add new listener for the DELETE button
+    newDeleteBtn.addEventListener('click', () => {
+        const { allPosts } = getState();
+        const postToDelete = allPosts.find(p => p.id === postId);
+        if (postToDelete) {
+            hideAllModals();
+            showConfirmationModal(
+                'Delete Post?',
+                `Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`,
+                async () => {
+                    try {
+                        await deleteDoc(doc(db, 'posts', postId));
+                    } catch (err) {
+                        console.error("Error deleting post: ", err);
+                        alert("Error: Could not delete post.");
+                    }
+                }
+            );
+        }
+    });
+
+    showModal(document.getElementById('post-actions-modal-container'));
 }
 
 export function showPrivateMessageModal(targetPlayer) {
