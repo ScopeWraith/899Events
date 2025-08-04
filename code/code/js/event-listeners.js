@@ -13,6 +13,7 @@ import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreat
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePostFormForEdit, renderPosts } from './ui/post-ui.js';
+import { applyPlayerFilters } from './ui/players-ui.js';
 import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage } from './firestore.js';
 
 export function initializeAllEventListeners() {
@@ -211,6 +212,7 @@ export function initializeAllEventListeners() {
             const targetPlayer = allPlayers.find(p => p.uid === playerCard.dataset.uid);
             if (targetPlayer) showPrivateMessageModal(targetPlayer);
         } else if (settingsBtn) {
+            const { allPlayers } = getState();
             const targetPlayer = allPlayers.find(p => p.uid === settingsBtn.dataset.uid);
             if(targetPlayer) showPlayerSettingsModal(targetPlayer);
         }

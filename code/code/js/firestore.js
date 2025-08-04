@@ -8,11 +8,12 @@
 import { db } from './firebase-config.js';
 import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getState, updateState } from './state.js';
-import { renderPosts, applyPlayerFilters } from './ui/post-ui.js';
+import { renderPosts } from './ui/post-ui.js';
+import { applyPlayerFilters } from './ui/players-ui.js';
 import { renderFriendsList, renderFriendRequests, renderMessages } from './ui/social-ui.js';
 import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
-import { isUserLeader } from './utils.js';
+import { isUserLeader } from '../utils.js';
 
 export function setupAllListeners(user) {
     const listeners = {};
