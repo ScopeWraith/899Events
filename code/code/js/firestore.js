@@ -6,7 +6,7 @@
  */
 
 import { db } from './firebase-config.js';
-import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getState, updateState } from './state.js';
 import { renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
@@ -297,31 +297,4 @@ export async function sendPrivateMessage(text) {
         console.error("Error sending private message:", error);
         throw error; // Re-throw to be handled by the caller
     }
-}
-
-export async function deletePost(postId) {
-    try {
-        await deleteDoc(doc(db, 'posts', postId));
-        showNotification('Post deleted successfully!');
-    } catch (error) {
-        console.error("Error deleting post:", error);
-        showNotification('Error deleting post.', 'error');
-    }
-}
-
-export async function updatePost(postId, updatedData) {
-    try {
-        await updateDoc(doc(db, 'posts', postId), updatedData);
-        showNotification('Post updated successfully!');
-    } catch (error) {
-        console.error("Error updating post:", error);
-        showNotification('Error updating post.', 'error');
-    }
-}
-
-// This function is not used in the current context, but was present in event-listeners.js
-// It's kept here for completeness if it were to be used directly by other modules.
-export async function createPost(postData) {
-    // This function is handled directly by post-ui.js's handlePostSubmit
-    // This placeholder is here to prevent breaking changes if other files still reference it.
 }
