@@ -95,19 +95,36 @@ export function initializeAllEventListeners() {
     populatePostFormForEdit(actionPostId);
     });
     getElement('modal-delete-post-btn').addEventListener('click', () => {
-        const { actionPostId, allPosts } = getState();
-        if (actionPostId) {
-            const postToDelete = allPosts.find(p => p.id === actionPostId);
-            hideAllModals();
-            showConfirmationModal('Delete Post?', `Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`, async () => {
-                try {
-                await deletePost(actionPostId); // Use the existing deletePost function
-                } catch (err) {
-                console.error("Error deleting post: ", err)
-                alert("Error: Could not delete post.");
-                }
-            });
+    const { actionPostId, allPosts } = getState();
+    // For debugging, you can add this line:
+    console.log('Attempting to delete post with ID:', actionPostId); 
+    
+    if (!actionPostId) {
+        alert("Error: Could not find the post to delete. Please try again.");
+        return;
+    }
+
+    const postToDelete = allPosts.find(p => p.id === actionPostId);
+    if (!postToDelete) {
+        alert("Error: Post data not found.");
+        return;
+    }
+
+    hideAllModals();
+    
+    showConfirmationModal(
+        'Delete Post?', 
+        `Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`, 
+        async () => {
+            try {
+               // This direct call is correct based on your file structure
+               await deleteDoc(doc(db, 'posts', actionPostId));
+            } catch (err) {
+               console.error("Error deleting post: ", err);
+               alert("Error: Could not delete post.");
+            }
         }
+    );
     });
 
     // --- Main Navigation & Page Switching ---
