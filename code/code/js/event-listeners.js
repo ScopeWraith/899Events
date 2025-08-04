@@ -50,8 +50,15 @@ export function initializeAllEventListeners() {
 
     // --- User Profile & Actions ---
     getElement('user-profile-button').addEventListener('click', (e) => {
-        e.stopPropagation();
-        getElement('user-profile-nav-item').classList.toggle('open');
+    e.stopPropagation(); // This prevents the window click listener from immediately closing the menu.
+    const navItem = getElement('user-profile-nav-item');
+    // Close other dropdowns before opening this one
+    document.querySelectorAll('.nav-item.open').forEach(item => {
+        if (item !== navItem) {
+            item.classList.remove('open');
+        }
+    });
+    navItem.classList.toggle('open');
     });
     getElement('profile-dropdown-logout').addEventListener('click', () => signOut(auth));
     getElement('profile-dropdown-edit').addEventListener('click', () => {

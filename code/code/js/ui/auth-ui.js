@@ -287,7 +287,7 @@ export function updatePlayerProfileDropdown() {
         friendReqBtn.disabled = true;
     }
      
-    // Placeholder for private messages
+    // This is correctly a placeholder for now
     const messagesBtn = document.getElementById('profile-dropdown-messages');
     messagesBtn.disabled = true;
 }
