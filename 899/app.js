@@ -176,74 +176,40 @@ function initializeUIComponents() {
 // --- AUTHENTICATION & USER SESSION ---
 
 function handleAuthStateChange(user) {
-    // If the user is logged out (or not yet determined)
-    if (!user) {
+    detachUserSpecificListeners();
+    if (user) {
+        state.listeners.userDoc = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
+            if (userDoc.exists()) {
+                state.currentUser = { uid: user.uid, ...userDoc.data() };
+                onUserLogin();
+            } else {
+                console.error("User exists in Auth but not in Firestore. Logging out.");
+                signOut(auth);
+            }
+        });
+    } else {
         onUserLogout();
-        hidePreloader();
-        return;
     }
-
-    // If the user is logged in, listen to their document in Firestore
-    state.listeners.user.userDoc = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
-        if (userDoc.exists()) {
-            // Once we have the user's profile data, proceed with login
-            state.currentUser = { uid: user.uid, ...userDoc.data() };
-            onUserLogin();
-        } else {
-            // This case handles if a user exists in Auth but not Firestore (e.g., failed registration)
-            console.error("User exists in Auth but not in Firestore. Logging out.");
-            signOut(auth);
-        }
-        hidePreloader();
-    }, (error) => {
-        console.error("Error fetching user document:", error);
-        onUserLogout();
-        hidePreloader();
-    });
+    hidePreloader();
 }
 
-/**
- * Executes when a user successfully logs in.
- * Attaches user-specific listeners and updates the UI.
- */
 function onUserLogin() {
     console.log(`User logged in: ${state.currentUser.username}`);
     hideAllModals();
-    
-    // Make sure no old user listeners are lingering
-    detachUserSpecificListeners();
-    
-    // Attach listeners for data specific to this user
     setupUserSpecificListeners(state.currentUser);
     setupPresenceManagement(state.currentUser);
-    
-    // Update the UI to reflect logged-in state
     updateUIForLoggedInUser();
     renderAllDynamicContent();
 }
 
-/**
- * Executes when a user logs out.
- * Detaches user-specific listeners and updates the UI.
- */
 function onUserLogout() {
     console.log("User logged out.");
     hideAllModals();
-    
-    // Detach all listeners and clear timers associated with the previous user
-    detachUserSpecificListeners();
-    
     state.currentUser = null;
-    
-    // Update the UI to reflect logged-out state
     updateUIForLoggedOutUser();
     renderAllDynamicContent();
 }
 
-
-/**
- * Renders all content that may change based on auth state.
- */
 function renderAllDynamicContent() {
     renderPosts(state.allPosts);
     renderPlayers(state.allPlayers);
@@ -1095,7 +1061,7 @@ function handleSocialTabClick(e) {
 
 function listenToAllPosts() {
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
-    state.listeners.global.posts = onSnapshot(q, (snapshot) => {
+    state.listeners.posts = onSnapshot(q, (snapshot) => {
         state.allPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderPosts(state.allPosts);
     }, (error) => console.error("Error listening to posts:", error));
@@ -1103,7 +1069,7 @@ function listenToAllPosts() {
 
 function listenToAllPlayers() {
     const q = query(collection(db, 'users'));
-    state.listeners.global.players = onSnapshot(q, (snapshot) => {
+    state.listeners.players = onSnapshot(q, (snapshot) => {
         state.allPlayers = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
         renderPlayers(state.allPlayers);
         renderFriends();
@@ -1112,7 +1078,7 @@ function listenToAllPlayers() {
 
 function listenToAllSessions() {
     const q = collection(db, 'sessions');
-    state.listeners.global.sessions = onSnapshot(q, (snapshot) => {
+    state.listeners.sessions = onSnapshot(q, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
             state.userSessions[change.doc.id] = change.doc.data();
         });
@@ -1123,14 +1089,14 @@ function listenToAllSessions() {
 
 function setupUserSpecificListeners(user) {
     const notificationsQuery = query(collection(db, "notifications"), where("recipientUid", "==", user.uid), orderBy("timestamp", "desc"));
-    state.listeners.user.notifications = onSnapshot(notificationsQuery, (snapshot) => {
+    state.listeners.notifications = onSnapshot(notificationsQuery, (snapshot) => {
         state.userNotifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderNotifications(state.userNotifications);
         updatePlayerProfileDropdown();
     });
 
     const friendsQuery = collection(db, `users/${user.uid}/friends`);
-    state.listeners.user.friends = onSnapshot(friendsQuery, (snapshot) => {
+    state.listeners.friends = onSnapshot(friendsQuery, (snapshot) => {
         state.userFriends = snapshot.docs.map(doc => doc.id);
         renderFriends();
     });
@@ -1138,33 +1104,27 @@ function setupUserSpecificListeners(user) {
     setupChatListeners(user);
 }
 
-/**
- * Unsubscribes from all user-specific listeners to prevent memory leaks on logout.
- */
 function detachUserSpecificListeners() {
-    Object.values(state.listeners.user).forEach(unsubscribe => {
-        if (typeof unsubscribe === 'function') {
-            unsubscribe(); // Call the unsubscribe function
+    Object.values(state.listeners).forEach(listener => {
+        if (typeof listener === 'function') {
+            listener(); // Call the unsubscribe function
         }
     });
-    state.listeners.user = {}; // Reset user listeners object
-    if (state.timers.away) {
-        clearTimeout(state.timers.away);
-        delete state.timers.away;
-    }
-    console.log("User-specific listeners and timers detached.");
+    state.listeners = {}; // Reset listeners object
+    if (state.timers.away) clearTimeout(state.timers.away);
+    console.log("All listeners and timers detached.");
 }
 
 function setupChatListeners(user) {
     const worldChatQuery = query(collection(db, "world_chat"), orderBy("timestamp", "desc"), limit(50));
-    state.listeners.user.worldChat = onSnapshot(worldChatQuery, (snapshot) => {
+    state.listeners.worldChat = onSnapshot(worldChatQuery, (snapshot) => {
         const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderMessages(messages, document.getElementById('world-chat-window'), 'world_chat');
     });
 
     if (user.alliance) {
         const allianceChatQuery = query(collection(db, `alliance_chats/${user.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
-        state.listeners.user.allianceChat = onSnapshot(allianceChatQuery, (snapshot) => {
+        state.listeners.allianceChat = onSnapshot(allianceChatQuery, (snapshot) => {
             const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderMessages(messages, document.getElementById('alliance-chat-window'), 'alliance_chat');
         });
@@ -1172,7 +1132,7 @@ function setupChatListeners(user) {
 
     if (isUserLeader(user)) {
         const leadershipChatQuery = query(collection(db, "leadership_chat"), orderBy("timestamp", "desc"), limit(50));
-        state.listeners.user.leadershipChat = onSnapshot(leadershipChatQuery, (snapshot) => {
+        state.listeners.leadershipChat = onSnapshot(leadershipChatQuery, (snapshot) => {
             const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderMessages(messages, document.getElementById('leadership-chat-window'), 'leadership_chat');
         });
