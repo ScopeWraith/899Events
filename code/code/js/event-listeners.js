@@ -132,7 +132,10 @@ export function initializeAllEventListeners() {
     });
     getElement('world-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
     getElement('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
-    getElement('leadership-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
+    const leadershipForm = getElement('leadership-chat-form');
+    if (leadershipForm) {
+        leadershipForm.addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
+    }
     getElement('private-message-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const input = getElement('private-message-input');
