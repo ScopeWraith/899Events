@@ -14,6 +14,8 @@ import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handle
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePostFormForEdit, renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
+import { deletePost } from './firestore.js';
+import { showPlayerSettingsModal } from './ui/player-settings-ui.js';
 import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage } from './firestore.js';
 
 export function initializeAllEventListeners() {
@@ -95,10 +97,10 @@ export function initializeAllEventListeners() {
             hideAllModals();
             showConfirmationModal('Delete Post?', `Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`, async () => {
                 try {
-                   await deleteDoc(doc(db, 'posts', actionPostId));
+                await deletePost(actionPostId); // Use the existing deletePost function
                 } catch (err) {
-                   console.error("Error deleting post: ", err)
-                   alert("Error: Could not delete post.");
+                console.error("Error deleting post: ", err)
+                alert("Error: Could not delete post.");
                 }
             });
         }
