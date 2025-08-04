@@ -501,6 +501,89 @@ function setupParticleAnimation() {
     createParticles();
     animateParticles();
 }
+function hidePreloader() {
+    const preloader = document.getElementById('app-preloader');
+    const container = document.getElementById('app-container');
+    if (preloader && container) {
+        preloader.style.opacity = '0';
+        setTimeout(() => {
+            preloader.style.display = 'none';
+            container.style.display = 'block';
+        }, 500);
+    }
+}
+
+function setupPresenceManagement(user) {
+    const userStatusDatabaseRef = dbRef(rtdb, '/status/' + user.uid);
+    const userStatusFirestoreRef = doc(db, '/sessions/' + user.uid);
+
+    const isOfflineForRTDB = {
+        status: 'offline',
+        lastSeen: rtdbServerTimestamp(),
+    };
+    const isOnlineForRTDB = {
+        status: 'online',
+        lastSeen: rtdbServerTimestamp(),
+    };
+    
+    const isOfflineForFirestore = {
+        status: 'offline',
+        lastSeen: serverTimestamp(),
+    };
+    const isOnlineForFirestore = {
+        status: 'online',
+        lastSeen: serverTimestamp(),
+    };
+    
+    onValue(dbRef(rtdb, '.info/connected'), (snapshot) => {
+        if (snapshot.val() === false) {
+            setDoc(userStatusFirestoreRef, isOfflineForFirestore);
+            return;
+        }
+
+        onDisconnect(userStatusDatabaseRef).set(isOfflineForRTDB).then(() => {
+            set(userStatusDatabaseRef, isOnlineForRTDB);
+            setDoc(userStatusFirestoreRef, isOnlineForFirestore);
+        });
+    });
+
+    function resetAwayTimer() {
+        if (state.timers.away) clearTimeout(state.timers.away);
+        
+        // If user was away, set them back to online
+        if(state.userSessions[user.uid] && state.userSessions[user.uid].status === 'away') {
+             updateUserStatus(user.uid, 'online');
+        }
+
+        state.timers.away = setTimeout(() => {
+            updateUserStatus(user.uid, 'away');
+        }, 5 * 60 * 1000); // 5 minutes
+    }
+
+    // Listen for activity
+    ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, resetAwayTimer, { passive: true });
+    });
+    
+    resetAwayTimer(); // Initial call
+}
+
+function updateUserStatus(uid, status) {
+    const userStatusFirestoreRef = doc(db, '/sessions/' + uid);
+    const userStatusDatabaseRef = dbRef(rtdb, '/status/' + uid);
+
+    const statusUpdate = {
+        status: status,
+        lastSeen: serverTimestamp()
+    };
+    const rtdbStatusUpdate = {
+        status: status,
+        lastSeen: rtdbServerTimestamp()
+    };
+
+    setDoc(userStatusFirestoreRef, statusUpdate, { merge: true });
+    set(userStatusDatabaseRef, rtdbStatusUpdate);
+}
 // --- EVENT HANDLERS (A-Z) ---
 
 function handleAvatarUpload(e) {
