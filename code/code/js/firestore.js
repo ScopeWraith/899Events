@@ -252,8 +252,19 @@ export async function handleNotificationAction(notificationId, action, senderUid
     } else if (action === 'decline-friend') {
         await deleteDoc(doc(db, 'notifications', notificationId));
     } else if (action === 'verify-user') {
+        // Get the username before updating, just in case
+        const targetUsername = getState().allPlayers.find(p => p.uid === targetUid)?.username || 'A new member';
+
+        // 1. Update the user document to mark as verified
         await updateDoc(doc(db, 'users', targetUid), { isVerified: true });
-        await deleteDoc(doc(db, 'notifications', notificationId));
+
+        // 2. Instead of deleting the notification, transform it into a persistent record
+        await updateDoc(doc(db, 'notifications', notificationId), {
+            type: 'user_verified_record', // Change the type to make it a historical item
+            isRead: true, // Mark as read/actioned
+            message: `${targetUsername} has been verified in your alliance.`,
+            // The timestamp and other info are preserved
+        });
     } else {
         // Default action: mark as read
         await updateDoc(doc(db, 'notifications', notificationId), { isRead: true });

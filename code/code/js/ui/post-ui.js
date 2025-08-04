@@ -564,35 +564,60 @@ export function renderTodaysAllianceActivity() {
     }
 }
 // --- NEW FUNCTION for the redesigned Feed Page ---
-export function renderRecentPublicPosts() {
-    const { allPosts } = getState();
-    const container = document.getElementById('feed-public-announcements-container');
+export function renderFeedActivity() {
+    const { allPosts, userNotifications, currentUserData } = getState();
+    const container = document.getElementById('feed-activity-container');
 
     if (!container) return;
 
+    // Step 1: Get all public posts and map them to a common format
     const publicPosts = allPosts
         .filter(post => post.visibility === 'public')
-        .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0))
-        .slice(0, 5); // Get the 5 most recent public posts
+        .map(post => {
+            const style = POST_STYLES[post.subType] || {};
+            return {
+                date: post.createdAt?.toDate() || new Date(0),
+                style: style,
+                icon: style.icon || 'fas fa-bullhorn',
+                title: post.title,
+                text: `New ${POST_TYPES[`${post.subType}_${post.mainType}`]?.text || 'Announcement'}`
+            };
+        });
 
-    if (publicPosts.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-500 py-4">No recent announcements.</p>';
+    // Step 2: Get verification records for the user's alliance and map them
+    const verificationActivities = currentUserData ? userNotifications
+        .filter(n => n.type === 'user_verified_record' && n.alliance === currentUserData.alliance)
+        .map(n => {
+            return {
+                date: n.timestamp?.toDate() || new Date(0),
+                style: { color: 'var(--post-color-alliance)' },
+                icon: 'fas fa-user-check',
+                title: 'Alliance Member Verified',
+                text: n.message
+            };
+        }) : [];
+
+    // Step 3: Combine, sort, and get the most recent items
+    const feedItems = [...publicPosts, ...verificationActivities];
+    feedItems.sort((a, b) => b.date - a.date);
+    const recentFeedItems = feedItems.slice(0, 15); // Show up to 15 recent items
+
+    if (recentFeedItems.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-4">No recent activity.</p>';
         return;
     }
 
-    container.innerHTML = publicPosts.map(post => {
-        const style = POST_STYLES[post.subType] || {};
-        const postType = POST_TYPES[`${post.subType}_${post.mainType}`]?.text || 'Announcement';
-        const postDate = post.createdAt?.toDate() ? formatTimeAgo(post.createdAt.toDate()) : '';
-
+    // Step 4: Render the combined list, removing any placeholder content
+    container.innerHTML = recentFeedItems.map(item => {
+        const timeAgo = formatTimeAgo(item.date);
         return `
-            <div class="feed-item-compact" style="--glow-color: ${style.color || 'var(--color-primary)'};">
+            <div class="feed-item-compact" style="--glow-color: ${item.style.color || 'var(--color-primary)'};">
                 <div class="feed-item-icon">
-                    <i class="${style.icon || 'fas fa-bullhorn'}"></i>
+                    <i class="${item.icon}"></i>
                 </div>
                 <div class="feed-item-content">
-                    <h4>${post.title}</h4>
-                    <p>New ${postType} &bull; ${postDate}</p>
+                    <h4>${item.title}</h4>
+                    <p>${item.text} &bull; ${timeAgo}</p>
                 </div>
             </div>
         `;

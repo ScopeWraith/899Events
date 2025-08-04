@@ -16,6 +16,7 @@ import { db } from '../firebase-config.js';
 import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { renderTodaysAllianceActivity } from './post-ui.js';
 import { renderRecentPublicPosts } from './post-ui.js';
+import { renderFeedActivity } from './post-ui.js';
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
@@ -36,7 +37,6 @@ export function showPage(targetId) {
         const { currentUserData } = getState();
         const welcomeContainer = getElement('feed-welcome-message');
         
-        // Render the personalized welcome message
         if (currentUserData && welcomeContainer) {
             welcomeContainer.innerHTML = `
                 <h2 class="text-3xl font-bold text-white tracking-wider">Welcome Back, <span style="color: var(--color-primary);">${currentUserData.username}</span>!</h2>
@@ -44,8 +44,8 @@ export function showPage(targetId) {
             `;
         }
         
-        // Render the new public announcements section
-        renderRecentPublicPosts();
+        // Call our new, comprehensive feed renderer
+        renderFeedActivity();
     }
 }
 
