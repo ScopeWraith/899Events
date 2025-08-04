@@ -358,6 +358,97 @@ function setupGlobalEventListeners() {
     const leadershipChatForm = document.getElementById('leadership-chat-form');
     if(leadershipChatForm) leadershipChatForm.addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
 }
+
+// --- MISSING FUNCTIONS TO BE ADDED ---
+
+function setupCustomSelect(container) {
+    const type = container.dataset.type;
+    const hiddenInput = container.querySelector('input[type="hidden"]');
+    const valueButton = container.querySelector('.custom-select-value');
+    const optionsContainer = container.querySelector('.custom-select-options');
+    const searchInput = container.querySelector('.custom-select-search');
+    const optionsList = container.querySelector('.options-list');
+    
+    if (!hiddenInput || !valueButton || !optionsContainer || !optionsList) {
+        console.error("Custom select container is missing required elements:", container);
+        return;
+    }
+
+    let sourceData = [];
+    if (type === 'alliance') sourceData = ALLIANCES.map(a => ({value: a, text: a}));
+    else if (type === 'rank') sourceData = ALLIANCE_RANKS;
+    else if (type === 'role') sourceData = ALLIANCE_ROLES;
+    else if (type === 'alliance-filter') sourceData = [{value: '', text: 'All Alliances'}, ...ALLIANCES.map(a => ({value: a, text: a}))];
+    else if (type === 'day-of-week') sourceData = DAYS_OF_WEEK;
+    else if (type === 'hour-of-day') sourceData = HOURS_OF_DAY;
+    else if (type === 'repeat-type') sourceData = REPEAT_TYPES;
+    
+    const isSearchable = searchInput && type === 'alliance';
+    if(searchInput && !isSearchable) searchInput.style.display = 'none';
+
+    function renderOptions(data = [], filter = '') {
+        optionsList.innerHTML = '';
+        const filteredData = data.filter(item => item.text.toLowerCase().includes(filter.toLowerCase()));
+        if (filteredData.length === 0) {
+            optionsList.innerHTML = `<div class="custom-select-option text-gray-500">No results found</div>`;
+        } else {
+            filteredData.forEach(item => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'custom-select-option';
+                optionDiv.textContent = item.text;
+                optionDiv.dataset.value = item.value;
+                optionsList.appendChild(optionDiv);
+            });
+        }
+    }
+
+    valueButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = container.classList.contains('open');
+        document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
+        if (!isOpen) {
+            const rect = container.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            optionsContainer.classList.remove('open-up', 'open-down');
+            if (spaceBelow < 220 && rect.top > 220) { 
+                optionsContainer.classList.add('open-up');
+            } else {
+                optionsContainer.classList.add('open-down');
+            }
+            container.classList.add('open');
+            if (isSearchable && searchInput) { searchInput.value = ''; searchInput.focus(); }
+            renderOptions(sourceData);
+        }
+    });
+
+    if (isSearchable && searchInput) {
+        searchInput.addEventListener('input', () => renderOptions(sourceData, searchInput.value));
+    }
+
+    optionsList.addEventListener('click', (e) => {
+        const targetOption = e.target.closest('.custom-select-option');
+        if (targetOption && targetOption.dataset.value !== undefined) {
+            const value = targetOption.dataset.value;
+            const text = targetOption.textContent;
+            setCustomSelectValue(container, value, text);
+            container.classList.remove('open');
+            // Dispatch a 'change' event so other listeners can pick it up
+            hiddenInput.dispatchEvent(new Event('change', { bubbles: true })); 
+        }
+    });
+    renderOptions(sourceData);
+}
+
+function setCustomSelectValue(container, value, text) {
+    const hiddenInput = container.querySelector('input[type="hidden"]');
+    const valueSpan = container.querySelector('.custom-select-value span');
+
+    if(hiddenInput && valueSpan) {
+        hiddenInput.value = value;
+        valueSpan.textContent = text || value;
+    }
+}
+
 // --- EVENT HANDLERS (A-Z) ---
 
 function handleAvatarUpload(e) {
