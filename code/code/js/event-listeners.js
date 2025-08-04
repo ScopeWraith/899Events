@@ -136,18 +136,21 @@ export function initializeAllEventListeners() {
     if (leadershipForm) {
         leadershipForm.addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
     }
-    getElement('private-message-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const input = getElement('private-message-input');
-        const text = input.value.trim();
-        if (text === '') return;
-        input.value = '';
-        try {
-            await sendPrivateMessage(text);
-        } catch (error) {
-            input.value = text; // Restore on failure
-        }
-    });
+    const privateMessageForm = getElement('private-message-form');
+    if (privateMessageForm) {
+        privateMessageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = getElement('private-message-input');
+            const text = input.value.trim();
+            if (text === '') return;
+            input.value = '';
+            try {
+                await sendPrivateMessage(text);
+            } catch (error) {
+                input.value = text; // Restore on failure
+            }
+        });
+    }
     getElement('page-social').addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.delete-message-btn');
         if (deleteBtn) {
