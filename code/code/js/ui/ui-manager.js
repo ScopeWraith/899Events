@@ -11,7 +11,7 @@ import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, 
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { initializePostStepper, populatePostFormForEdit } from './post-ui.js';
-import { setupPrivateChatListener, renderFriends } from '../firestore.js';
+import { setupPrivateChatListener } from '../firestore.js';
 
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
