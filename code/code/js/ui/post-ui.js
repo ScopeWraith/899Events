@@ -563,3 +563,38 @@ export function renderTodaysAllianceActivity() {
         updateCountdowns(); // We need to call this to make sure event timers are updated
     }
 }
+// --- NEW FUNCTION for the redesigned Feed Page ---
+export function renderRecentPublicPosts() {
+    const { allPosts } = getState();
+    const container = document.getElementById('feed-public-announcements-container');
+
+    if (!container) return;
+
+    const publicPosts = allPosts
+        .filter(post => post.visibility === 'public')
+        .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0))
+        .slice(0, 5); // Get the 5 most recent public posts
+
+    if (publicPosts.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-4">No recent announcements.</p>';
+        return;
+    }
+
+    container.innerHTML = publicPosts.map(post => {
+        const style = POST_STYLES[post.subType] || {};
+        const postType = POST_TYPES[`${post.subType}_${post.mainType}`]?.text || 'Announcement';
+        const postDate = post.createdAt?.toDate() ? formatTimeAgo(post.createdAt.toDate()) : '';
+
+        return `
+            <div class="feed-item-compact" style="--glow-color: ${style.color || 'var(--color-primary)'};">
+                <div class="feed-item-icon">
+                    <i class="${style.icon || 'fas fa-bullhorn'}"></i>
+                </div>
+                <div class="feed-item-content">
+                    <h4>${post.title}</h4>
+                    <p>New ${postType} &bull; ${postDate}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+}

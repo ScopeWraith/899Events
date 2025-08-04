@@ -621,3 +621,33 @@ input:checked + .slider:before {
     border-color: var(--color-primary);
     transform: translateY(-2px);
 }
+/* --- Compact Feed Item Styles --- */
+.feed-item-compact {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: rgba(33, 38, 45, 0.5);
+    border-radius: 8px;
+    border-left: 4px solid var(--glow-color, var(--color-primary));
+    transition: background-color 0.2s ease;
+}
+.feed-item-compact:hover {
+    background-color: rgba(48, 54, 61, 0.7);
+}
+.feed-item-icon {
+    font-size: 1.5rem;
+    color: var(--glow-color, var(--color-primary));
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+}
+.feed-item-content h4 {
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+}
+.feed-item-content p {
+    font-size: 0.875rem;
+    color: #8b949e;
+}

@@ -458,13 +458,27 @@
                 <div id="page-container">
                     <!-- Feed Page -->
                     <div id="page-feed" class="page-content" style="display: none;">
-                        <div class="glass-pane section-container">
-                             <h2 class="text-3xl font-bold text-white tracking-wider mb-6" style="text-shadow: 0 0 10px var(--color-primary);">YOUR FEED</h2>
-                             <div id="feed-page-container" class="space-y-4">
-                                <!-- Full page notifications will be rendered here -->
-                             </div>
+                        <div id="feed-welcome-message" class="mb-8 text-center"></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div class="lg:col-span-1">
+                                <h3 class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>Action Required</span>
+                                </h3>
+                                <div id="feed-action-container" class="space-y-3"><p class="text-center text-gray-500 py-4">No pending actions.</p></div>
+                            </div>
+                            <div class="lg:col-span-2">
+                                <h3 class="section-header text-xl font-bold mb-4" style="--glow-color: var(--post-color-server);">
+                                    <i class="fas fa-server"></i>
+                                    <span>Recent Announcements</span>
+                                </h3>
+                                <div id="feed-public-announcements-container" class="space-y-3">
+                                    <p class="text-center text-gray-500 py-4">No recent announcements.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
                     
                     <!-- Social Page -->
                     <div id="page-social" class="page-content" style="display: none;">

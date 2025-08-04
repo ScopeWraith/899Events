@@ -15,6 +15,7 @@ import { setupPrivateChatListener } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { renderTodaysAllianceActivity } from './post-ui.js';
+import { renderRecentPublicPosts } from './post-ui.js';
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
@@ -31,13 +32,21 @@ export function showPage(targetId) {
         link.classList.toggle('active', mainTarget === targetId);
     });
 
-    // --- ADD THIS BLOCK ---
     if (targetId === 'page-feed') {
-        // Notifications are already rendered by the listener, but we can call it again to be safe.
-        // The main new call is for today's alliance activity.
-        renderTodaysAllianceActivity();
+        const { currentUserData } = getState();
+        const welcomeContainer = getElement('feed-welcome-message');
+        
+        // Render the personalized welcome message
+        if (currentUserData && welcomeContainer) {
+            welcomeContainer.innerHTML = `
+                <h2 class="text-3xl font-bold text-white tracking-wider">Welcome Back, <span style="color: var(--color-primary);">${currentUserData.username}</span>!</h2>
+                <p class="text-gray-400 mt-1">Here's what's happening in the community.</p>
+            `;
+        }
+        
+        // Render the new public announcements section
+        renderRecentPublicPosts();
     }
-    // ----------------------
 }
 
 export function showModal(modal) {
