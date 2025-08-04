@@ -222,80 +222,142 @@ function renderAllDynamicContent() {
 // --- GLOBAL EVENT LISTENERS SETUP ---
 
 function setupGlobalEventListeners() {
-    dom.modalBackdrop.addEventListener('click', (e) => {
-        if (e.target === dom.modalBackdrop) {
-            hideAllModals();
-            dom.mobileNavMenu.classList.remove('open');
-        }
-    });
+    // --- Modals & Navigation ---
+    if (dom.modalBackdrop) {
+        dom.modalBackdrop.addEventListener('click', (e) => {
+            if (e.target === dom.modalBackdrop) {
+                hideAllModals();
+                if (dom.mobileNavMenu) dom.mobileNavMenu.classList.remove('open');
+            }
+        });
+    }
 
-    document.addEventListener('click', handleDocumentClick);
-    dom.mainNav.addEventListener('click', handleMainNavClick);
-    document.getElementById('open-mobile-menu-btn').addEventListener('click', openMobileMenu);
-    document.getElementById('close-mobile-menu-btn').addEventListener('click', closeMobileMenu);
+    document.addEventListener('click', handleDocumentClick); // document is always available
+
+    if (dom.mainNav) dom.mainNav.addEventListener('click', handleMainNavClick);
     
-    dom.loginBtn.addEventListener('click', () => showAuthModal('login'));
-    dom.logoutBtn.addEventListener('click', () => {
-        if(state.currentUser) updateUserStatus(state.currentUser.uid, 'offline');
-        signOut(auth);
-    });
-    document.getElementById('show-register-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
-    document.getElementById('show-login-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
-    document.getElementById('forgot-password-link').addEventListener('click', handleForgotPassword);
+    const openMobileMenuBtn = document.getElementById('open-mobile-menu-btn');
+    if (openMobileMenuBtn) openMobileMenuBtn.addEventListener('click', openMobileMenu);
 
-    dom.loginForm.addEventListener('submit', handleLogin);
-    dom.registerForm.addEventListener('submit', handleRegistration);
-    document.getElementById('edit-profile-form').addEventListener('submit', handleEditProfile);
-    dom.createPostForm.addEventListener('submit', handlePostSubmit);
-    document.getElementById('player-settings-form').addEventListener('submit', handlePlayerSettingsSave);
-    document.getElementById('private-message-form').addEventListener('submit', handlePrivateMessageSend);
+    const closeMobileMenuBtn = document.getElementById('close-mobile-menu-btn');
+    if (closeMobileMenuBtn) closeMobileMenuBtn.addEventListener('click', closeMobileMenu);
     
-    dom.eventsMainContainer.addEventListener('click', handleEventsContainerClick);
-    dom.playerListContainer.addEventListener('click', handlePlayerListClick);
-    dom.friendsListContainer.addEventListener('click', handleFriendsListClick);
-    dom.feedDropdown.addEventListener('click', handleNotificationClick);
-    dom.feedPageContainer.addEventListener('click', handleNotificationClick);
-    dom.socialTabs.addEventListener('click', handleSocialTabClick);
-    document.getElementById('page-social').addEventListener('click', handleDeleteMessage);
+    // --- Auth Buttons & Links ---
+    if (dom.loginBtn) dom.loginBtn.addEventListener('click', () => showAuthModal('login'));
+    if (dom.logoutBtn) {
+        dom.logoutBtn.addEventListener('click', () => {
+            if(state.currentUser) updateUserStatus(state.currentUser.uid, 'offline');
+            signOut(auth);
+        });
+    }
 
-    dom.filterContainer.addEventListener('click', handleFilterClick);
-    dom.playerSearchInput.addEventListener('input', () => renderPlayers(state.allPlayers));
-    document.getElementById('alliance-filter').addEventListener('change', () => renderPlayers(state.allPlayers));
-    dom.avatarUploadInput.addEventListener('change', handleAvatarUpload);
-    document.getElementById('profile-dropdown-avatar').addEventListener('click', () => dom.avatarUploadInput.click());
-
-    document.getElementById('register-next-btn').addEventListener('click', () => navigateRegistrationStepper(1));
-    document.getElementById('register-back-btn').addEventListener('click', () => navigateRegistrationStepper(-1));
-    document.getElementById('register-avatar-btn').addEventListener('click', () => document.getElementById('register-avatar-input').click());
-    document.getElementById('register-avatar-input').addEventListener('change', handleRegisterAvatarSelect);
+    const showRegisterLink = document.getElementById('show-register-link');
+    if (showRegisterLink) showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
     
-    document.getElementById('post-next-btn').addEventListener('click', () => navigatePostStepper(1));
-    document.getElementById('post-back-btn').addEventListener('click', () => navigatePostStepper(-1));
-    document.getElementById('post-thumbnail-btn').addEventListener('click', () => document.getElementById('post-thumbnail-input').click());
-    document.getElementById('post-thumbnail-input').addEventListener('change', handlePostThumbnailSelect);
+    const showLoginLink = document.getElementById('show-login-link');
+    if (showLoginLink) showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
 
-    // Modal close buttons
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    if (forgotPasswordLink) forgotPasswordLink.addEventListener('click', handleForgotPassword);
+
+    // --- Forms ---
+    if (dom.loginForm) dom.loginForm.addEventListener('submit', handleLogin);
+    if (dom.registerForm) dom.registerForm.addEventListener('submit', handleRegistration);
+    
+    const editProfileForm = document.getElementById('edit-profile-form');
+    if (editProfileForm) editProfileForm.addEventListener('submit', handleEditProfile);
+
+    if (dom.createPostForm) dom.createPostForm.addEventListener('submit', handlePostSubmit);
+    
+    const playerSettingsForm = document.getElementById('player-settings-form');
+    if (playerSettingsForm) playerSettingsForm.addEventListener('submit', handlePlayerSettingsSave);
+
+    const privateMessageForm = document.getElementById('private-message-form');
+    if (privateMessageForm) privateMessageForm.addEventListener('submit', handlePrivateMessageSend);
+    
+    // --- Event Delegation for Dynamic Content ---
+    if (dom.eventsMainContainer) dom.eventsMainContainer.addEventListener('click', handleEventsContainerClick);
+    if (dom.playerListContainer) dom.playerListContainer.addEventListener('click', handlePlayerListClick);
+    if (dom.friendsListContainer) dom.friendsListContainer.addEventListener('click', handleFriendsListClick);
+    if (dom.feedDropdown) dom.feedDropdown.addEventListener('click', handleNotificationClick);
+    if (dom.feedPageContainer) dom.feedPageContainer.addEventListener('click', handleNotificationClick);
+    if (dom.socialTabs) dom.socialTabs.addEventListener('click', handleSocialTabClick);
+
+    const pageSocial = document.getElementById('page-social');
+    if(pageSocial) pageSocial.addEventListener('click', handleDeleteMessage);
+
+    // --- Other UI ---
+    if (dom.filterContainer) dom.filterContainer.addEventListener('click', handleFilterClick);
+    if (dom.playerSearchInput) dom.playerSearchInput.addEventListener('input', () => renderPlayers(state.allPlayers));
+    
+    const allianceFilter = document.getElementById('alliance-filter');
+    if(allianceFilter) allianceFilter.addEventListener('change', () => renderPlayers(state.allPlayers));
+
+    if (dom.avatarUploadInput) dom.avatarUploadInput.addEventListener('change', handleAvatarUpload);
+    
+    const profileDropdownAvatar = document.getElementById('profile-dropdown-avatar');
+    if(profileDropdownAvatar) profileDropdownAvatar.addEventListener('click', () => dom.avatarUploadInput.click());
+
+    // --- Registration Stepper ---
+    const regNextBtn = document.getElementById('register-next-btn');
+    if(regNextBtn) regNextBtn.addEventListener('click', () => navigateRegistrationStepper(1));
+    
+    const regBackBtn = document.getElementById('register-back-btn');
+    if(regBackBtn) regBackBtn.addEventListener('click', () => navigateRegistrationStepper(-1));
+
+    const regAvatarBtn = document.getElementById('register-avatar-btn');
+    if(regAvatarBtn) regAvatarBtn.addEventListener('click', () => document.getElementById('register-avatar-input').click());
+
+    const regAvatarInput = document.getElementById('register-avatar-input');
+    if(regAvatarInput) regAvatarInput.addEventListener('change', handleRegisterAvatarSelect);
+    
+    // --- Post Creation Stepper ---
+    const postNextBtn = document.getElementById('post-next-btn');
+    if(postNextBtn) postNextBtn.addEventListener('click', () => navigatePostStepper(1));
+    
+    const postBackBtn = document.getElementById('post-back-btn');
+    if(postBackBtn) postBackBtn.addEventListener('click', () => navigatePostStepper(-1));
+
+    const postThumbnailBtn = document.getElementById('post-thumbnail-btn');
+    if(postThumbnailBtn) postThumbnailBtn.addEventListener('click', () => document.getElementById('post-thumbnail-input').click());
+
+    const postThumbnailInput = document.getElementById('post-thumbnail-input');
+    if(postThumbnailInput) postThumbnailInput.addEventListener('change', handlePostThumbnailSelect);
+
+    // --- Modal close buttons ---
     document.querySelectorAll('[id^="close-"]').forEach(btn => btn.addEventListener('click', hideAllModals));
-    document.getElementById('confirmation-cancel-btn').addEventListener('click', hideAllModals);
+    
+    const confirmationCancelBtn = document.getElementById('confirmation-cancel-btn');
+    if(confirmationCancelBtn) confirmationCancelBtn.addEventListener('click', hideAllModals);
 
-    // Profile Dropdown Actions
-    document.getElementById('profile-dropdown-edit').addEventListener('click', showEditProfileModal);
-    document.getElementById('profile-dropdown-friends').addEventListener('click', () => {
+    // --- Profile Dropdown Actions ---
+    const profileDropdownEdit = document.getElementById('profile-dropdown-edit');
+    if(profileDropdownEdit) profileDropdownEdit.addEventListener('click', showEditProfileModal);
+
+    const profileDropdownFriends = document.getElementById('profile-dropdown-friends');
+    if(profileDropdownFriends) profileDropdownFriends.addEventListener('click', () => {
         showPage('page-social');
-        document.querySelector('.social-tab-btn[data-tab="friends"]').click();
+        const friendsTab = document.querySelector('.social-tab-btn[data-tab="friends"]');
+        if (friendsTab) friendsTab.click();
     });
 
-    // Post Actions Modal Buttons
-    document.getElementById('modal-edit-post-btn').addEventListener('click', handlePostEditAction);
-    document.getElementById('modal-delete-post-btn').addEventListener('click', handlePostDeleteAction);
+    // --- Post Actions Modal Buttons ---
+    const modalEditPostBtn = document.getElementById('modal-edit-post-btn');
+    if(modalEditPostBtn) modalEditPostBtn.addEventListener('click', handlePostEditAction);
+    
+    const modalDeletePostBtn = document.getElementById('modal-delete-post-btn');
+    if(modalDeletePostBtn) modalDeletePostBtn.addEventListener('click', handlePostDeleteAction);
 
-    // Chat form submissions
-    document.getElementById('world-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
-    document.getElementById('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
-    document.getElementById('leadership-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
+    // --- Chat form submissions ---
+    const worldChatForm = document.getElementById('world-chat-form');
+    if(worldChatForm) worldChatForm.addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
+    
+    const allianceChatForm = document.getElementById('alliance-chat-form');
+    if(allianceChatForm) allianceChatForm.addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
+
+    const leadershipChatForm = document.getElementById('leadership-chat-form');
+    if(leadershipChatForm) leadershipChatForm.addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
 }
-
-
 // --- EVENT HANDLERS (A-Z) ---
 
 function handleAvatarUpload(e) {
