@@ -1,225 +1,271 @@
-import {
-    auth
-} from './firebase-config.js';
-import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-    state
-} from './state.js';
-import {
-    createUserProfile,
-    updateUserProfile,
-    createPost,
-    updatePost,
-    deletePost
-} from './firestore.js';
-import {
-    uiManager
-} from './ui/ui-manager.js';
-import {
-    showNotification
-} from './ui/notifications-ui.js';
+// code/js/event-listeners.js
 
 /**
- * Handles user sign-up.
- * @param {Event} event - The form submission event.
+ * This module centralizes the setup of all major event listeners
+ * for the application, keeping the main.js file cleaner.
  */
-async function handleSignUp(event) {
-    event.preventDefault();
-    const email = event.target.email.value;
-    const password = event.target.password.value;
-    const displayName = event.target.displayName.value;
 
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+import { auth, db } from './firebase-config.js';
+import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getState, updateState } from './state.js';
+import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal } from './ui/ui-manager.js';
+import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
+import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
+import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePostFormForEdit, renderPosts } from './ui/post-ui.js';
+import { applyPlayerFilters } from './ui/players-ui.js';
+import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage } from './firestore.js';
 
-        // Create a user profile in Firestore
-        await createUserProfile(user.uid, {
-            displayName: displayName,
-            email: user.email,
-            photoURL: '', // Default or placeholder photo
-            bio: '',
-            createdAt: new Date()
+export function initializeAllEventListeners() {
+    const getElement = (id) => document.getElementById(id);
+
+    // --- Modal Triggers & Closers ---
+    getElement('login-btn').addEventListener('click', () => showAuthModal('login'));
+    getElement('close-auth-modal-btn').addEventListener('click', hideAllModals);
+    getElement('close-edit-modal-btn').addEventListener('click', hideAllModals);
+    getElement('close-player-settings-modal-btn').addEventListener('click', hideAllModals);
+    getElement('close-create-post-modal-btn').addEventListener('click', hideAllModals);
+    getElement('close-private-message-modal-btn').addEventListener('click', hideAllModals);
+    getElement('confirmation-cancel-btn').addEventListener('click', hideAllModals);
+    getElement('close-post-actions-modal-btn').addEventListener('click', hideAllModals);
+    getElement('modal-backdrop').addEventListener('click', (e) => {
+        if (e.target === getElement('modal-backdrop')) {
+            hideAllModals();
+            getElement('mobile-nav-menu').classList.remove('open');
+        }
+    });
+
+    // --- Auth Forms ---
+    getElement('show-register-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
+    getElement('show-login-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
+    getElement('login-form').addEventListener('submit', handleLoginSubmit);
+    getElement('forgot-password-link').addEventListener('click', handleForgotPassword);
+    
+    // --- Registration Stepper ---
+    getElement('register-next-btn').addEventListener('click', handleRegistrationNext);
+    getElement('register-back-btn').addEventListener('click', handleRegistrationBack);
+    getElement('register-avatar-btn').addEventListener('click', () => getElement('register-avatar-input').click());
+    getElement('register-avatar-input').addEventListener('change', handleAvatarSelection);
+    getElement('register-form').addEventListener('submit', handleRegistrationSubmit);
+
+    // --- User Profile & Actions ---
+    getElement('user-profile-button').addEventListener('click', (e) => {
+        e.stopPropagation();
+        getElement('user-profile-nav-item').classList.toggle('open');
+    });
+    getElement('profile-dropdown-logout').addEventListener('click', () => signOut(auth));
+    getElement('profile-dropdown-edit').addEventListener('click', () => {
+        getElement('user-profile-nav-item').classList.remove('open');
+        showEditProfileModal();
+    });
+    getElement('profile-dropdown-friends').addEventListener('click', () => {
+        getElement('user-profile-nav-item').classList.remove('open');
+        showPage('page-social');
+        document.querySelector('.social-tab-btn[data-tab="friends"]').click();
+    });
+    getElement('profile-dropdown-avatar').addEventListener('click', () => getElement('avatar-upload-input').click());
+    getElement('avatar-upload-input').addEventListener('change', handleAvatarUpload);
+    getElement('edit-profile-form').addEventListener('submit', handleEditProfileSubmit);
+
+    // --- Player Settings ---
+    getElement('player-settings-form').addEventListener('submit', handlePlayerSettingsSubmit);
+
+    // --- Post Creation/Editing ---
+    getElement('post-next-btn').addEventListener('click', handlePostNext);
+    getElement('post-back-btn').addEventListener('click', handlePostBack);
+    getElement('post-thumbnail-btn').addEventListener('click', () => getElement('post-thumbnail-input').click());
+    getElement('post-thumbnail-input').addEventListener('change', handleThumbnailSelection);
+    getElement('create-post-form').addEventListener('submit', handlePostSubmit);
+    getElement('post-repeat-type').addEventListener('change', (e) => {
+        getElement('post-repeat-weeks-container').classList.toggle('hidden', e.target.value !== 'weekly');
+    });
+
+    // --- Post Actions (Edit/Delete) ---
+    getElement('modal-edit-post-btn').addEventListener('click', () => {
+        const { actionPostId } = getState();
+        if (actionPostId) {
+            hideAllModals();
+            populatePostFormForEdit(actionPostId);
+        }
+    });
+    getElement('modal-delete-post-btn').addEventListener('click', () => {
+        const { actionPostId, allPosts } = getState();
+        if (actionPostId) {
+            const postToDelete = allPosts.find(p => p.id === actionPostId);
+            hideAllModals();
+            showConfirmationModal('Delete Post?', `Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`, async () => {
+                try {
+                   await deleteDoc(doc(db, 'posts', actionPostId));
+                } catch (err) {
+                   console.error("Error deleting post: ", err)
+                   alert("Error: Could not delete post.");
+                }
+            });
+        }
+    });
+
+    // --- Main Navigation & Page Switching ---
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            if (!link.closest('.nav-item').querySelector('.dropdown-menu')) {
+                showPage(link.dataset.mainTarget);
+            }
         });
+    });
 
-        showNotification('Sign up successful!');
-        uiManager.hideAuthModal();
+    // --- Mobile Navigation ---
+    getElement('open-mobile-menu-btn').addEventListener('click', () => {
+        getElement('mobile-nav-menu').classList.add('open');
+        getElement('modal-backdrop').classList.add('visible');
+    });
+    getElement('close-mobile-menu-btn').addEventListener('click', () => {
+        getElement('mobile-nav-menu').classList.remove('open');
+        getElement('modal-backdrop').classList.remove('visible');
+    });
 
-    } catch (error) {
-        console.error("Error signing up:", error);
-        showNotification(`Error: ${error.message}`, 'error');
-    }
-}
+    // --- Filtering ---
+    getElement('filter-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('filter-btn')) {
+            updateState({ activeFilter: e.target.dataset.filter });
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            renderPosts();
+        }
+    });
+    getElement('player-search-input').addEventListener('input', () => applyPlayerFilters());
+    getElement('alliance-filter').addEventListener('change', () => applyPlayerFilters());
 
-/**
- * Handles user sign-in.
- * @param {Event} event - The form submission event.
- */
-async function handleSignIn(event) {
-    event.preventDefault();
-    const email = event.target.email.value;
-    const password = event.target.password.value;
 
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showNotification('Signed in successfully!');
-        uiManager.hideAuthModal();
-    } catch (error) {
-        console.error("Error signing in:", error);
-        showNotification(`Error: ${error.message}`, 'error');
-    }
-}
-
-/**
- * Handles user sign-out.
- */
-async function handleSignOut() {
-    try {
-        await signOut(auth);
-        showNotification('Signed out.');
-    } catch (error) {
-        console.error("Error signing out:", error);
-        showNotification(`Error: ${error.message}`, 'error');
-    }
-}
-
-/**
- * Handles new post creation.
- * @param {Event} event - The form submission event.
- */
-async function handlePostCreate(event) {
-    event.preventDefault();
-    const content = event.target.content.value;
-    if (!content.trim()) {
-        showNotification('Post cannot be empty.', 'error');
-        return;
-    }
-
-    if (state.currentUser) {
-        try {
-            await createPost({
-                content: content,
-                uid: state.currentUser.uid,
-                displayName: state.currentUser.displayName,
-                photoURL: state.currentUser.photoURL,
+    // --- Social Page & Chat ---
+    document.querySelectorAll('.social-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.social-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const targetPaneId = `pane-${btn.dataset.tab}`;
+            document.querySelectorAll('.social-content-pane').forEach(pane => {
+                pane.classList.toggle('active', pane.id === targetPaneId);
             });
-            event.target.reset(); // Clear the form
+        });
+    });
+    getElement('world-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
+    getElement('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
+    getElement('leadership-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
+    getElement('private-message-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = getElement('private-message-input');
+        const text = input.value.trim();
+        if (text === '') return;
+        input.value = '';
+        try {
+            await sendPrivateMessage(text);
         } catch (error) {
-            console.error("Error creating post:", error);
-            showNotification(`Error: ${error.message}`, 'error');
+            input.value = text; // Restore on failure
         }
-    } else {
-        showNotification('You must be signed in to post.', 'error');
-    }
-}
-
-/**
- * Handles the submission of the profile edit form.
- * @param {Event} event - The form submission event.
- */
-async function handleProfileUpdate(event) {
-    event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
-    const displayName = formData.get('displayName');
-    const photoURL = formData.get('photoURL');
-    const bio = formData.get('bio');
-
-    const dataToUpdate = {
-        displayName,
-        photoURL,
-        bio
-    };
-
-    if (state.currentUser && state.currentUser.uid) {
-        try {
-            await updateUserProfile(state.currentUser.uid, dataToUpdate);
-            showNotification('Profile updated successfully!');
-            uiManager.hideEditProfileModal();
-        } catch (error)
-        {
-            console.error("Error updating profile: ", error);
-            showNotification(`Error: ${error.message}`, 'error');
-        }
-    } else {
-        console.error("Cannot update profile. No current user found in state.");
-        showNotification('Could not find user to update.', 'error');
-    }
-}
-
-/**
- * Handles the submission of the post edit form.
- * @param {Event} event - The form submission event.
- */
-async function handlePostUpdate(event) {
-    event.preventDefault();
-    const form = event.target;
-    const postId = form.querySelector('#edit-post-id').value;
-    const newContent = form.querySelector('#edit-post-content').value;
-
-    if (postId && newContent) {
-        try {
-            await updatePost(postId, {
-                content: newContent
+    });
+    getElement('page-social').addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-message-btn');
+        if (deleteBtn) {
+            showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
+                handleDeleteMessage(deleteBtn.dataset.id, deleteBtn.dataset.type);
             });
-            showNotification('Post updated!');
-            uiManager.hideEditPostModal();
-        } catch (error) {
-            console.error("Error updating post: ", error);
-            showNotification(`Error: ${error.message}`, 'error');
         }
+    });
+
+    // --- Notifications ---
+    getElement('feed-dropdown').addEventListener('click', (e) => handleNotificationClick(e));
+    getElement('feed-page-container').addEventListener('click', (e) => handleNotificationClick(e));
+    async function handleNotificationClick(e) {
+        const item = e.target.closest('.notification-item');
+        if (!item) return;
+        const actionBtn = e.target.closest('.notification-action-btn');
+        if (actionBtn) e.stopPropagation();
+        
+        handleNotificationAction(
+            item.dataset.id, 
+            actionBtn ? actionBtn.dataset.action : 'read', 
+            item.dataset.senderUid, 
+            actionBtn ? actionBtn.dataset.targetUid : null
+        );
     }
-}
 
-/**
- * Shows the modal to edit a post.
- * This function is exported to be used in post-ui.js
- * @param {string} postId - The ID of the post to edit.
- * @param {string} currentContent - The current text content of the post.
- */
-export function handlePostEdit(postId, currentContent) {
-    uiManager.showEditPostModal(postId, currentContent);
-}
+    // --- Player & Friend Actions ---
+    getElement('player-list-container').addEventListener('click', async (e) => {
+        const addFriendBtn = e.target.closest('.add-friend-btn');
+        const messageBtn = e.target.closest('.message-player-btn');
+        const settingsBtn = e.target.closest('.player-settings-btn');
+        const { currentUserData, allPlayers } = getState();
 
-/**
- * Handles the deletion of a post.
- * This function is exported to be used in post-ui.js
- * @param {string} postId - The ID of the post to delete.
- */
-export async function handlePostDelete(postId) {
-    // A custom modal would be better than window.confirm for a polished UX
-    if (window.confirm('Are you sure you want to delete this post?')) {
-        try {
-            await deletePost(postId);
-            showNotification('Post deleted.');
-        } catch (error) {
-            console.error("Error deleting post: ", error);
-            showNotification(`Error: ${error.message}`, 'error');
+        if (addFriendBtn && currentUserData) {
+            const playerCard = addFriendBtn.closest('.player-card');
+            const recipientUid = playerCard.dataset.uid;
+            addFriendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+            const success = await addFriend(recipientUid);
+            if (success) {
+                addFriendBtn.innerHTML = `<i class="fas fa-check"></i>`;
+                addFriendBtn.title = "Request Sent";
+                addFriendBtn.disabled = true;
+            } else {
+                addFriendBtn.innerHTML = `<i class="fas fa-user-plus"></i>`;
+            }
+        } else if (messageBtn && currentUserData) {
+            const playerCard = messageBtn.closest('.player-card');
+            const targetPlayer = allPlayers.find(p => p.uid === playerCard.dataset.uid);
+            if (targetPlayer) showPrivateMessageModal(targetPlayer);
+        } else if (settingsBtn) {
+            const { allPlayers } = getState();
+            const targetPlayer = allPlayers.find(p => p.uid === settingsBtn.dataset.uid);
+            if(targetPlayer) showPlayerSettingsModal(targetPlayer);
         }
-    }
-}
+    });
 
+    getElement('friends-list').addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-friend-btn');
+        const messageBtn = e.target.closest('.message-player-btn');
+        
+        if (removeBtn) {
+            showConfirmationModal('Remove Friend?', 'Are you sure you want to remove this friend?', () => {
+                removeFriend(removeBtn.dataset.uid);
+            });
+        } else if (messageBtn) {
+            const { allPlayers } = getState();
+            const targetPlayer = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
+            if (targetPlayer) showPrivateMessageModal(targetPlayer);
+        }
+    });
+    
+    // --- General UI ---
+    window.addEventListener('click', (e) => { 
+        if (!e.target.closest('.nav-item')) {
+            document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));
+        }
+        if (!e.target.closest('#user-profile-nav-item')) {
+            getElement('user-profile-nav-item').classList.remove('open');
+        }
+        if (!e.target.closest('.custom-select-container')) {
+            document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
+        }
+    });
 
-/**
- * Initializes all the application's event listeners.
- */
-export function initializeAppEventListeners() {
-    // Auth form listeners
-    document.getElementById('signup-form').addEventListener('submit', handleSignUp);
-    document.getElementById('signin-form').addEventListener('submit', handleSignIn);
+    document.querySelectorAll('.power-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+            let value = String(e.target.value).replace(/,/g, '');
+            if (isNaN(value)) { e.target.value = ''; return; }
+            e.target.value = Number(value).toLocaleString('en-US');
+        });
+    });
 
-    // Button listeners
-    document.getElementById('sign-out-btn').addEventListener('click', handleSignOut);
-    document.getElementById('sign-in-register-btn').addEventListener('click', () => uiManager.showAuthModal());
+    // --- Event/Announcement Creation Triggers ---
+    getElement('events-main-container').addEventListener('click', e => {
+        const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
+        const createEventBtn = e.target.closest('#create-event-btn');
+        const actionsBtn = e.target.closest('.post-card-actions-trigger');
 
-    // Post creation listener
-    document.getElementById('create-post-form').addEventListener('submit', handlePostCreate);
-
-    // Modal-specific form listeners
-    document.getElementById('edit-profile-form').addEventListener('submit', handleProfileUpdate);
-    document.getElementById('edit-post-form').addEventListener('submit', handlePostUpdate);
+        if (createAnnouncementBtn) {
+            showCreatePostModal('announcement');
+        } else if (createEventBtn) {
+            showCreatePostModal('event');
+        } else if (actionsBtn) {
+            showPostActionsModal(actionsBtn.dataset.postId);
+        }
+    });
 }
