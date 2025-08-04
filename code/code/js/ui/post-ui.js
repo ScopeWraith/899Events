@@ -10,12 +10,249 @@ import { doc, addDoc, updateDoc, collection, serverTimestamp, writeBatch, query,
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from '../state.js';
 import { POST_TYPES, POST_STYLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
-import { formatTimeAgo, formatEventDateTime, getEventStatus, calculateNextDateTime, resizeImage } from '../utils.js';
-import { hideAllModals, showModal, setCustomSelectValue, createSkeletonCard } from './ui-manager.js';
+import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage } from '../utils.js';
+import { hideAllModals, showModal, setCustomSelectValue } from './ui-manager.js';
 
 let currentPostStep = 1;
 let postCreationData = {};
 let resizedThumbnailBlob = null;
+
+// --- RENDERING POSTS ---
+
+function createCard(post) {
+    const { currentUserData } = getState();
+    const style = POST_STYLES[post.subType] || {};
+    const isEvent = post.mainType === 'event';
+    const color = style.color || 'var(--color-primary)';
+    const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
+    const postDate = post.createdAt?.toDate();
+    const timestamp = postDate ? formatTimeAgo(postDate) : '...';
+    const postTypeText = POST_TYPES[`${post.subType}_${post.mainType}`]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
+
+    let actionsTriggerHTML = '';
+    if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
+        actionsTriggerHTML = `
+            <button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options">
+                <i class="fas fa-cog"></i>
+            </button>
+        `;
+    }
+
+    let statusContentHTML = '';
+    if (isEvent) {
+        statusContentHTML = `<div class="status-content-wrapper"></div><div class="status-date"></div>`; 
+    } else {
+        statusContentHTML = `
+            <div class="status-content-wrapper">
+                <div class="status-label" title="${postDate?.toLocaleString() || ''}">Posted</div>
+                <div class="status-time">${timestamp}</div>
+            </div>
+            <div class="status-date">${postDate ? formatEventDateTime(postDate) : ''}</div>
+        `;
+    }
+
+    return `
+        <div class="post-card ${isEvent ? 'event-card' : 'announcement-card'}" data-post-id="${post.id}" style="--glow-color: ${color};">
+            <div class="post-card-thumbnail-wrapper">
+                <div class="post-card-thumbnail" style="${headerStyle}"></div>
+                ${actionsTriggerHTML}
+            </div>
+            <div class="post-card-body">
+                <div class="post-card-content">
+                    <div class="post-card-header">
+                        <span class="post-card-category" style="background-color: ${color};">${postTypeText}</span>
+                    </div>
+                    <h3 class="post-card-title">${post.title}</h3>
+                    <p class="post-card-details">${post.details}</p>
+                </div>
+                <div class="post-card-status">
+                    ${statusContentHTML}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderAnnouncements(announcements) {
+    const { currentUserData } = getState();
+    const announcementsContainer = document.getElementById('announcements-container');
+    let createBtnHTML = '';
+    if (currentUserData && getAvailablePostTypes('announcement').length > 0) {
+        createBtnHTML = `<button id="create-announcement-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Announcement"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
+    }
+
+    const contentHTML = announcements.length > 0
+        ? `<div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>`
+        : `<p class="text-center text-gray-500 py-4">No announcements to display.</p>`;
+
+    announcementsContainer.innerHTML = `
+        <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
+            <i class="fas fa-bullhorn"></i>
+            <span class="flex-grow">Announcements</span>
+            ${createBtnHTML}
+        </div>
+        ${contentHTML}
+    `;
+}
+
+function renderEvents(events) {
+    const { currentUserData } = getState();
+    const eventsSectionContainer = document.getElementById('events-section-container');
+    const announcementsContainer = document.getElementById('announcements-container');
+    const now = new Date();
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    let displayableEvents = events.filter(event => {
+        const status = getEventStatus(event);
+        const prospectiveStartTime = event.isRecurring ? getEventStatus(event).startTime : event.startTime?.toDate();
+        return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || event.startTime?.toDate()) <= sevenDaysFromNow);
+    });
+
+    displayableEvents.sort((a, b) => {
+        const statusA = getEventStatus(a);
+        const statusB = getEventStatus(b);
+        if (statusA.status === 'live' && statusB.status !== 'live') return -1;
+        if (statusA.status !== 'live' && statusB.status === 'live') return 1;
+        if (statusA.status === 'live' && statusB.status === 'live') {
+            return statusA.timeDiff - statusB.timeDiff;
+        }
+        if (statusA.status === 'upcoming' && statusB.status === 'upcoming') {
+            if (statusA.timeDiff !== statusB.timeDiff) {
+                return statusA.timeDiff - statusB.timeDiff;
+            }
+            return a.title.localeCompare(b.title);
+        }
+        return 0;
+    });
+    
+    let createBtnHTML = '';
+    if (currentUserData && getAvailablePostTypes('event').length > 0) {
+        createBtnHTML = `<button id="create-event-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Event"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
+    }
+
+    const headerHTML = announcementsContainer.innerHTML.trim() === '' ? '' : '<div></div>';
+    
+    const contentHTML = displayableEvents.length > 0
+        ? `<div class="grid grid-cols-1 gap-4">${displayableEvents.map(createCard).join('')}</div>`
+        : `<p class="text-center text-gray-500 py-4">No upcoming events in the next 7 days.</p>`;
+
+    eventsSectionContainer.innerHTML = `
+        ${headerHTML}
+        <div class="section-header text-xl font-bold mb-4">
+            <i class="fas fa-calendar-alt"></i>
+            <span class="flex-grow">Events</span>
+            ${createBtnHTML}
+        </div>
+        ${contentHTML}
+    `;
+}
+
+function updateCountdowns() {
+    const { allPosts } = getState();
+    document.querySelectorAll('.event-card').forEach(el => {
+        const postId = el.dataset.postId;
+        const post = allPosts.find(p => p.id === postId);
+        if (!post) return;
+
+        const statusInfo = getEventStatus(post);
+        const statusEl = el.querySelector('.status-content-wrapper');
+        const dateEl = el.querySelector('.status-date'); 
+
+        if (!statusEl || !dateEl) return;
+
+        el.classList.remove('live', 'ended', 'upcoming');
+        
+        const originalStartTime = post.startTime?.toDate();
+        if (originalStartTime) {
+            dateEl.textContent = formatEventDateTime(originalStartTime);
+        }
+
+        switch(statusInfo.status) {
+            case 'upcoming':
+                el.classList.add('upcoming');
+                statusEl.innerHTML = `<div class="status-label">STARTS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
+                break;
+            case 'live':
+                el.classList.add('live');
+                statusEl.innerHTML = `<div class="status-label">ENDS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
+                break;
+            case 'ended':
+                el.classList.add('ended');
+                statusEl.innerHTML = `<div class="status-label">ENDED</div><div class="status-time">${statusInfo.endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
+                break;
+        }
+    });
+}
+
+function buildFilterControls(visiblePosts) {
+    const filterContainer = document.getElementById('filter-container');
+    const availableSubTypes = [...new Set(visiblePosts.map(p => p.subType))];
+    
+    filterContainer.innerHTML = ''; // Clear previous buttons
+    
+    const allBtn = document.createElement('button');
+    allBtn.className = 'filter-btn active';
+    allBtn.textContent = 'All';
+    allBtn.dataset.filter = 'all';
+    allBtn.style.setProperty('--glow-color', 'var(--color-primary)');
+    allBtn.style.setProperty('--glow-color-bg', 'rgba(0, 191, 255, 0.1)');
+    filterContainer.appendChild(allBtn);
+
+    availableSubTypes.forEach(subType => {
+        const style = POST_STYLES[subType] || {};
+        const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === subType);
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.textContent = postTypeInfo ? postTypeInfo.text : subType.replace('_', ' ');
+        btn.dataset.filter = subType;
+        btn.style.setProperty('--glow-color', style.color || 'var(--color-primary)');
+        btn.style.setProperty('--glow-color-bg', style.bgColor || 'rgba(0, 191, 255, 0.1)');
+        filterContainer.appendChild(btn);
+    });
+}
+
+export function renderPosts() {
+    let { countdownInterval, allPosts, currentUserData, activeFilter } = getState();
+    const eventsSectionContainer = document.getElementById('events-section-container');
+    const announcementsContainer = document.getElementById('announcements-container');
+
+    if (countdownInterval) clearInterval(countdownInterval);
+    
+    let visiblePosts = allPosts.filter(post => {
+        if (!currentUserData) return post.visibility === 'public';
+        if (post.visibility === 'public') return true;
+        if (currentUserData.isAdmin) return true;
+        if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
+        return false;
+    });
+    
+    buildFilterControls(visiblePosts);
+
+    if (activeFilter !== 'all') {
+        visiblePosts = visiblePosts.filter(p => p.subType === activeFilter);
+    }
+
+    const announcements = visiblePosts
+        .filter(p => p.mainType === 'announcement')
+        .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+
+    const events = visiblePosts.filter(p => p.mainType === 'event');
+    
+    renderAnnouncements(announcements);
+    renderEvents(events);
+    
+    if (announcements.length === 0 && events.length > 0) {
+        eventsSectionContainer.style.marginTop = '0';
+    } else if (announcements.length > 0) {
+        eventsSectionContainer.style.marginTop = '2rem';
+    }
+
+    countdownInterval = setInterval(updateCountdowns, 1000 * 30);
+    updateState({ countdownInterval });
+    updateCountdowns();
+}
+
+// --- POST CREATION & EDITING ---
 
 export function initializePostStepper(mainType) {
     document.getElementById('create-post-form').reset();
@@ -40,7 +277,7 @@ function getAvailablePostTypes(mainType) {
         if (type.isAdminOnly) return currentUserData.isAdmin;
         if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
         if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
-        return true; // Changed from false to allow non-restricted posts
+        return true;
     });
 }
 
