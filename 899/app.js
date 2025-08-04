@@ -1475,16 +1475,23 @@ function renderEvents(events) {
 }
 
 function renderFriends() {
-    if (!state.currentUser) {
-        dom.friendsListContainer.innerHTML = '<p class="text-gray-400 text-center p-4">You must be logged in to see friends.</p>';
-        return;
-    }
-    if (state.userFriends.length === 0) {
-        dom.friendsListContainer.innerHTML = '<p class="text-gray-400 text-center p-4">You haven\'t added any friends yet.</p>';
+    const container = dom.friendsListContainer;
+    if (!container) {
+        // This check prevents the crash.
+        console.error("Error: The 'friends-list' container is missing from index.html.");
         return;
     }
 
-    dom.friendsListContainer.innerHTML = state.userFriends.map(friendId => {
+    if (!state.currentUser) {
+        container.innerHTML = '<p class="text-gray-400 text-center p-4">You must be logged in to see friends.</p>';
+        return;
+    }
+    if (state.userFriends.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center p-4">You haven\'t added any friends yet.</p>';
+        return;
+    }
+
+    container.innerHTML = state.userFriends.map(friendId => {
         const friendData = state.allPlayers.find(p => p.uid === friendId);
         if (!friendData) return ''; // Friend data not loaded yet
 
@@ -1513,6 +1520,12 @@ function renderFriends() {
 }
 
 function renderMessages(messages, container, chatType) {
+    if (!container) {
+        // This check prevents the crash.
+        console.error(`Error: The container for chat type "${chatType}" is missing from index.html.`);
+        return;
+    }
+
     container.innerHTML = messages.map(msg => {
         const isSelf = msg.authorUid === state.currentUser?.uid;
         const canDelete = state.currentUser?.isAdmin || (chatType === 'alliance_chat' && isUserLeader(state.currentUser));
