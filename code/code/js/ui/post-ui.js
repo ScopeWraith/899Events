@@ -250,6 +250,88 @@ export function renderPosts() {
     countdownInterval = setInterval(updateCountdowns, 1000 * 30);
     updateState({ countdownInterval });
     updateCountdowns();
+
+    // Attach post actions listeners (edit/delete)
+    setTimeout(() => { // Wait for DOM update
+        document.querySelectorAll('.post-card-actions-trigger').forEach(btn => {
+            btn.removeEventListener('click', handlePostActionsClick); // Prevent duplicate
+            btn.addEventListener('click', handlePostActionsClick);
+        });
+    }, 0);
+}
+// --- POST ACTIONS (EDIT/DELETE) ---
+
+// Helper to show a simple context menu/modal for post actions
+function showPostActionsMenu(postId, triggerBtn) {
+    // Remove any existing menu
+    let existing = document.getElementById('post-actions-menu');
+    if (existing) existing.remove();
+
+    const menu = document.createElement('div');
+    menu.id = 'post-actions-menu';
+    menu.className = 'post-actions-menu';
+    menu.style.position = 'absolute';
+    const rect = triggerBtn.getBoundingClientRect();
+    menu.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+    menu.style.left = (window.scrollX + rect.left) + 'px';
+    menu.style.zIndex = 9999;
+    menu.style.background = '#222';
+    menu.style.border = '1px solid #444';
+    menu.style.borderRadius = '6px';
+    menu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+    menu.style.padding = '0.5rem 0';
+    menu.innerHTML = `
+        <button class="post-action-edit" style="display:block;width:100%;padding:0.5rem 1.5rem;background:none;border:none;color:#fff;text-align:left;">Edit</button>
+        <button class="post-action-delete" style="display:block;width:100%;padding:0.5rem 1.5rem;background:none;border:none;color:#ff5555;text-align:left;">Delete</button>
+    `;
+    document.body.appendChild(menu);
+
+    // Remove menu on click outside
+    function handleOutside(e) {
+        if (!menu.contains(e.target) && e.target !== triggerBtn) {
+            menu.remove();
+            document.removeEventListener('mousedown', handleOutside);
+        }
+    }
+    setTimeout(() => document.addEventListener('mousedown', handleOutside), 0);
+
+    // Edit
+    menu.querySelector('.post-action-edit').onclick = () => {
+        menu.remove();
+        populatePostFormForEdit(postId);
+    };
+    // Delete
+    menu.querySelector('.post-action-delete').onclick = () => {
+        menu.remove();
+        confirmDeletePost(postId);
+    };
+}
+
+function handlePostActionsClick(e) {
+    e.preventDefault();
+    const postId = e.currentTarget.dataset.postId;
+    showPostActionsMenu(postId, e.currentTarget);
+}
+
+function confirmDeletePost(postId) {
+    if (window.confirm('Are you sure you want to delete this post? This cannot be undone.')) {
+        deletePost(postId);
+    }
+}
+
+async function deletePost(postId) {
+    try {
+        const { db } = await import('../firebase-config.js');
+        const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+        await deleteDoc(doc(db, 'posts', postId));
+        // Remove from state and re-render
+        const { allPosts } = getState();
+        updateState({ allPosts: allPosts.filter(p => p.id !== postId) });
+        renderPosts();
+    } catch (err) {
+        alert('Failed to delete post.');
+        console.error('Delete error:', err);
+    }
 }
 
 // --- POST CREATION & EDITING ---
