@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="app-preloader">
@@ -27,7 +27,6 @@
         </div>
 
         <div id="modal-backdrop" class="modal-backdrop"></div>
-        
         <div id="auth-modal-container" class="modal-container">
             <div class="glass-pane">
                 <div class="modal-content-wrapper">
@@ -112,12 +111,10 @@
                                     <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
                                 </form>
                             </div>
-                            <div id="registration-success" class="hidden">
-                                <div class="text-center">
-                                    <i class="fas fa-check-circle text-5xl text-green-400 success-icon" style="animation: success-pop 0.5s ease-out forwards;"></i>
-                                    <h2 class="text-2xl font-bold text-white mt-4">Registration Complete!</h2>
-                                    <p class="text-gray-400 mt-2">Welcome to the 899 Hub. You will be logged in shortly.</p>
-                                </div>
+                            <div id="registration-success">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <h2 class="text-2xl font-bold text-white mt-4">Registration Complete!</h2>
+                                <p class="text-gray-400 mt-2">Welcome to the 899 Hub. You will be logged in shortly.</p>
                             </div>
                         </div>
                     </div>
@@ -197,11 +194,11 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div id="verification-toggle-container" class="flex items-center justify-between bg-black/20 p-3 rounded-lg">
+                                <div id="verification-toggle-container" class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
                                     <label for="setting-verified" class="font-semibold text-white">Verified Status</label>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" id="setting-verified" class="sr-only peer">
-                                        <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500/50 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="setting-verified">
+                                        <span class="slider"></span>
                                     </label>
                                 </div>
                             </div>
@@ -222,6 +219,12 @@
                     <div class="modal-content-scroll">
                         <form id="create-post-form">
                             <div id="post-creation-flow">
+                                 <div class="form-slide" data-slide="1">
+                                    <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
+                                    <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
+                                    <div id="post-main-type-selection-container" class="space-y-4">
+                                       </div>
+                                </div>
                                 <div class="form-slide" data-slide="2">
                                     <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
                                     <p class="text-center text-gray-400 mb-6">Select a category.</p>
@@ -248,14 +251,9 @@
                                             <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
                                             <div class="flex items-center gap-4">
                                                 <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=PREVIEW" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
-                                                <div class="flex-grow flex flex-col gap-2">
-                                                    <button type="button" id="post-thumbnail-btn" class="w-full p-3 rounded-lg secondary-btn">
-                                                        <i class="fas fa-upload mr-2"></i> Choose Image
-                                                    </button>
-                                                    <button type="button" id="post-thumbnail-remove-btn" class="w-full p-2 rounded-lg secondary-btn text-red-400 text-sm hidden">
-                                                        <i class="fas fa-times mr-2"></i> Remove Image
-                                                    </button>
-                                                </div>
+                                                <button type="button" id="post-thumbnail-btn" class="flex-grow p-3 rounded-lg secondary-btn">
+                                                    <i class="fas fa-upload mr-2"></i> Choose Image
+                                                </button>
                                                 <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
                                             </div>
                                         </div>
@@ -375,6 +373,7 @@
             </div>
         </div>
 
+
         <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
             <div class="max-w-6xl mx-auto">
 
@@ -399,7 +398,7 @@
                         </div>
                     </nav>
 
-                    <div id="auth-container" class="hidden md:flex flex-shrink-0 items-center">
+                    <div id="auth-container" class="hidden md:flex flex-shrink-0">
                          <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
                          <div id="user-profile-nav-item" class="nav-item hidden">
                             <button id="user-profile-button" class="auth-button">
@@ -438,7 +437,7 @@
                 </header>
 
                 <div id="page-container">
-                    <div id="page-feed" class="page-content hidden">
+                    <div id="page-feed" class="page-content" style="display: none;">
                         <div class="glass-pane section-container">
                              <h2 class="text-3xl font-bold text-white tracking-wider mb-6" style="text-shadow: 0 0 10px var(--color-primary);">YOUR FEED</h2>
                              <div id="feed-page-container" class="space-y-4">
@@ -446,99 +445,101 @@
                         </div>
                     </div>
                     
-                    <div id="page-social" class="page-content hidden">
-    <div class="glass-pane section-container">
-        <div class="flex flex-col md:flex-row gap-4">
-            <div class="flex-grow">
-                <div id="social-tabs" class="social-tabs flex items-center mb-4">
-                    <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World Chat</button>
-                    <button class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
-                    <button class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
-                    <button class="social-tab-btn" data-tab="friends"><i class="fas fa-user-friends mr-2"></i>Friends</button>
-                </div>
+                    <div id="page-social" class="page-content" style="display: none;">
+                        <div class="glass-pane section-container">
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <div class="flex-grow">
+                                    <div class="social-tabs flex items-center mb-4">
+                                        <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World Chat</button>
+                                        <button class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
+                                        <button class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
+                                        <button class="social-tab-btn" data-tab="friends"><i class="fas fa-user-friends mr-2"></i>Friends</button>
+                                    </div>
 
-                <div id="pane-world-chat" class="social-content-pane active">
-                    <div class="flex flex-col h-full">
-                        <div id="world-chat-window" class="chat-window p-4 flex-grow">
-                            <p class="text-center text-gray-500 m-auto">Welcome to World Chat!</p>
-                        </div>
-                        <form id="world-chat-form" class="mt-4 flex gap-2">
-                            <input type="text" id="world-chat-input" class="form-input flex-grow" placeholder="Type a message in world chat..." required>
-                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                        </form>
-                    </div>
-                </div>
+                                    <div id="pane-world-chat" class="social-content-pane active">
+                                        <div class="flex flex-col h-full">
+                                            <div id="world-chat-window" class="chat-window p-4 flex-grow">
+                                                <p class="text-center text-gray-500 m-auto">Welcome to World Chat!</p>
+                                            </div>
+                                            <form id="world-chat-form" class="mt-4 flex gap-2">
+                                                <input type="text" id="world-chat-input" class="form-input flex-grow" placeholder="Type a message in world chat..." required>
+                                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                            </form>
+                                        </div>
+                                    </div>
 
-                <div id="pane-alliance-chat" class="social-content-pane">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 flex flex-col h-full">
-                            <div id="alliance-chat-window" class="chat-window p-4 flex-grow">
-                               <p class="text-center text-gray-500 m-auto">Your private alliance chat.</p>
-                            </div>
-                            <form id="alliance-chat-form" class="mt-4 flex gap-2">
-                                <input type="text" id="alliance-chat-input" class="form-input flex-grow" placeholder="Message your alliance..." required>
-                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                            </form>
-                        </div>
-                        <div class="lg:col-span-1 space-y-4">
-                            <div>
-                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-bullhorn"></i>Alliance Announcements</h3>
-                                <div id="alliance-announcements-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
-                                    <p class="text-gray-400 text-center">No announcements.</p>
+                                    <div id="pane-alliance-chat" class="social-content-pane">
+                                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                            <div class="lg:col-span-2 flex flex-col h-full">
+                                                <div id="alliance-chat-window" class="chat-window p-4 flex-grow">
+                                                   <p class="text-center text-gray-500 m-auto">Your private alliance chat.</p>
+                                                </div>
+                                                <form id="alliance-chat-form" class="mt-4 flex gap-2">
+                                                    <input type="text" id="alliance-chat-input" class="form-input flex-grow" placeholder="Message your alliance..." required>
+                                                    <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                                </form>
+                                            </div>
+                                            <div class="lg:col-span-1 space-y-4">
+                                                <div>
+                                                    <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-bullhorn"></i>Alliance Announcements</h3>
+                                                    <div id="alliance-announcements-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
+                                                        <p class="text-gray-400 text-center">No announcements.</p>
+                                                    </div>
+                                                </div>
+                                                 <div>
+                                                    <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-calendar-check"></i>Alliance Events</h3>
+                                                    <div id="alliance-events-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
+                                                        <p class="text-gray-400 text-center">No events.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="pane-leadership-chat" class="social-content-pane">
+                                        <div class="flex flex-col h-full">
+                                            <div id="leadership-chat-window" class="chat-window p-4 flex-grow">
+                                                <p class="text-center text-gray-500 m-auto">Private chat for R4/R5 Leadership.</p>
+                                            </div>
+                                            <form id="leadership-chat-form" class="mt-4 flex gap-2">
+                                                <input type="text" id="leadership-chat-input" class="form-input flex-grow" placeholder="Message leadership..." required>
+                                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="pane-friends" class="social-content-pane">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-check"></i>Your Friends</h3>
+                                                <div id="friends-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-96 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center p-4">You haven't added any friends yet.</p>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-plus"></i>Friend Requests</h3>
+                                                <div id="friend-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center p-4">No pending requests.</p>
+                                                </div>
+                                                <h3 class="section-header text-lg font-bold mb-2 mt-4"><i class="fas fa-paper-plane"></i>Sent Requests</h3>
+                                                <div id="sent-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
+                                                    <p class="text-gray-400 text-center p-4">No sent requests.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                             <div>
-                                <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-calendar-check"></i>Alliance Events</h3>
-                                <div id="alliance-events-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
-                                    <p class="text-gray-400 text-center">No events.</p>
-                                </div>
-                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div id="pane-leadership-chat" class="social-content-pane">
-                    <div class="flex flex-col h-full">
-                        <div id="leadership-chat-window" class="chat-window p-4 flex-grow">
-                            <p class="text-center text-gray-500 m-auto">Private chat for R4/R5 Leadership.</p>
-                        </div>
-                        <form id="leadership-chat-form" class="mt-4 flex gap-2">
-                            <input type="text" id="leadership-chat-input" class="form-input flex-grow" placeholder="Message leadership..." required>
-                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                        </form>
-                    </div>
-                </div>
-                
-                <div id="pane-friends" class="social-content-pane">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-check"></i>Your Friends</h3>
-                            <div id="friends-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-96 overflow-y-auto">
-                                <p class="text-gray-400 text-center p-4">You haven't added any friends yet.</p>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-plus"></i>Friend Requests</h3>
-                            <div id="friend-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
-                                <p class="text-gray-400 text-center p-4">No pending requests.</p>
-                            </div>
-                            <h3 class="section-header text-lg font-bold mb-2 mt-4"><i class="fas fa-paper-plane"></i>Sent Requests</h3>
-                            <div id="sent-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
-                                <p class="text-gray-400 text-center p-4">No sent requests.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-                    <div id="page-players" class="page-content hidden">
+                    <div id="page-players" class="page-content" style="display: none;">
                         <div class="glass-pane section-container">
                             <div class="text-center mb-8">
                                 <h2 class="text-3xl font-bold text-white tracking-wider" style="text-shadow: 0 0 10px var(--color-primary);">PLAYERS OF 899</h2>
+                                <div class="themed-line-break mx-auto mt-2"></div>
                             </div>
+
                             <div class="flex flex-col md:flex-row gap-4 mb-6">
                                 <div class="input-group flex-grow">
                                     <i class="fas fa-search input-icon"></i>
@@ -555,21 +556,34 @@
                                     </div>
                                 </div>
                             </div>
+
                             <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                  </div>
                         </div>
                     </div>
-
                     <div id="page-events" class="page-content">
                         <main id="events-main-container" class="space-y-6">
+                            
                             <div id="filter-container" class="filter-btn-group">
                                 </div>
+
                             <div id="announcements-container" class="space-y-4">
                                 </div>
+
                             <div id="events-section-container" class="space-y-4">
                                 </div>
+
                         </main>
                     </div>
+                    <div id="page-top-alliances" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Top Alliances</h2></div></div>
+                    <div id="page-alliance-list" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Alliance List</h2></div></div>
+                    <div id="page-recruitment" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Recruitment</h2></div></div>
+                    <div id="page-season-overview" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Overview</h2></div></div>
+                    <div id="page-season-rewards" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season Rewards</h2></div></div>
+                    <div id="page-season-history" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Season History</h2></div></div>
+                    <div id="page-calculators" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Calculators</h2></div></div>
+                    <div id="page-guides" class="page-content" style="display: none;"><div class="glass-pane section-container"><h2 class="text-2xl font-bold text-white">Guides</h2></div></div>
+
                 </div>
 
                 <footer class="text-center mt-12 py-4 border-t border-gray-800/50"><p class="text-gray-500">&copy; 2024 Last War Survival - Server 899 Community.</p></footer>
@@ -577,6 +591,16 @@
         </div>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js" type="module"></script>
+
+    <script src="js/firebase-config.js" type="module"></script>
+    <script src="js/modules/ui.js" type="module"></script>
+    <script src="js/modules/auth.js" type="module"></script>
+    <script src="js/modules/data.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
 </body>
 </html>
