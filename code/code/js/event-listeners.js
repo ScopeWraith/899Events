@@ -15,7 +15,6 @@ import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePostFormForEdit, renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { deletePost } from './firestore.js';
-import { showPlayerSettingsModal } from './ui/player-settings-ui.js';
 import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage } from './firestore.js';
 
 export function initializeAllEventListeners() {
