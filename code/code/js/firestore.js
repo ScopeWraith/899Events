@@ -1,3 +1,18 @@
+// --- POSTS ---
+
+/**
+ * Delete a post by ID from Firestore.
+ * @param {string} postId
+ * @returns {Promise<void>}
+ */
+export async function deletePost(postId) {
+    try {
+        await deleteDoc(doc(db, 'posts', postId));
+    } catch (err) {
+        console.error('Error deleting post:', err);
+        throw err;
+    }
+}
 // code/js/firestore.js
 
 /**
