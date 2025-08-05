@@ -13,74 +13,85 @@ import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handle
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
-import { handleDeleteMessage, handleNotificationAction, addFriend, sendPrivateMessage, setupChatListeners, toggleReaction } from './firestore.js';
-import { activateChatChannel } from './ui/social-ui.js'; 
+import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction } from './firestore.js';
+import { activateChatChannel } from './ui/social-ui.js';
 import { positionEmojiPicker } from './utils.js';
+
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
 
+    // --- Null-safe listener attachment function ---
+    const addListener = (id, event, handler) => {
+        const element = getElement(id);
+        if (element) {
+            element.addEventListener(event, handler);
+        }
+    };
+
     // --- Modal Triggers & Closers ---
-    getElement('login-btn').addEventListener('click', () => showAuthModal('login'));
-    getElement('close-auth-modal-btn').addEventListener('click', hideAllModals);
-    getElement('close-edit-modal-btn').addEventListener('click', hideAllModals);
-    getElement('close-player-settings-modal-btn').addEventListener('click', hideAllModals);
-    getElement('close-create-post-modal-btn').addEventListener('click', hideAllModals);
-    getElement('close-private-message-modal-btn').addEventListener('click', hideAllModals);
-    getElement('confirmation-cancel-btn').addEventListener('click', hideAllModals);
-    getElement('close-post-actions-modal-btn').addEventListener('click', hideAllModals);
-    getElement('modal-backdrop').addEventListener('click', (e) => {
+    addListener('login-btn', 'click', () => showAuthModal('login'));
+    addListener('close-auth-modal-btn', 'click', hideAllModals);
+    addListener('close-edit-modal-btn', 'click', hideAllModals);
+    addListener('close-player-settings-modal-btn', 'click', hideAllModals);
+    addListener('close-create-post-modal-btn', 'click', hideAllModals);
+    addListener('close-private-message-modal-btn', 'click', hideAllModals);
+    addListener('confirmation-cancel-btn', 'click', hideAllModals);
+    addListener('close-post-actions-modal-btn', 'click', hideAllModals);
+    addListener('modal-backdrop', 'click', (e) => {
         if (e.target === getElement('modal-backdrop')) {
             hideAllModals();
-            getElement('mobile-nav-menu').classList.remove('open');
+            const mobileNav = getElement('mobile-nav-menu');
+            if(mobileNav) mobileNav.classList.remove('open');
         }
     });
 
     // --- Auth Forms ---
-    getElement('show-register-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
-    getElement('show-login-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
-    getElement('login-form').addEventListener('submit', handleLoginSubmit);
-    getElement('forgot-password-link').addEventListener('click', handleForgotPassword);
+    addListener('show-register-link', 'click', (e) => { e.preventDefault(); showAuthModal('register'); });
+    addListener('show-login-link', 'click', (e) => { e.preventDefault(); showAuthModal('login'); });
+    addListener('login-form', 'submit', handleLoginSubmit);
+    addListener('forgot-password-link', 'click', handleForgotPassword);
     
     // --- Registration Stepper ---
-    getElement('register-next-btn').addEventListener('click', handleRegistrationNext);
-    getElement('register-back-btn').addEventListener('click', handleRegistrationBack);
-    getElement('register-avatar-btn').addEventListener('click', () => getElement('register-avatar-input').click());
-    getElement('register-avatar-input').addEventListener('change', handleAvatarSelection);
-    getElement('register-form').addEventListener('submit', handleRegistrationSubmit);
+    addListener('register-next-btn', 'click', handleRegistrationNext);
+    addListener('register-back-btn', 'click', handleRegistrationBack);
+    addListener('register-avatar-btn', 'click', () => getElement('register-avatar-input').click());
+    addListener('register-avatar-input', 'change', handleAvatarSelection);
+    addListener('register-form', 'submit', handleRegistrationSubmit);
 
     // --- User Profile & Actions ---
-    getElement('user-profile-button').addEventListener('click', (e) => {
+    addListener('user-profile-button', 'click', (e) => {
         e.stopPropagation();
         const navItem = getElement('user-profile-nav-item');
         document.querySelectorAll('.nav-item.open').forEach(item => {
             if (item !== navItem) item.classList.remove('open');
         });
-        navItem.classList.toggle('open');
+        if(navItem) navItem.classList.toggle('open');
     });
-    getElement('profile-dropdown-logout').addEventListener('click', () => signOut(auth));
-    getElement('profile-dropdown-edit').addEventListener('click', () => {
+    addListener('profile-dropdown-logout', 'click', () => signOut(auth));
+    addListener('profile-dropdown-edit', 'click', () => {
         getElement('user-profile-nav-item').classList.remove('open');
         showEditProfileModal();
     });
-    getElement('profile-dropdown-friends').addEventListener('click', () => {
+    addListener('profile-dropdown-friends', 'click', () => {
         getElement('user-profile-nav-item').classList.remove('open');
         showPage('page-feed');
     });
-    getElement('profile-dropdown-avatar').addEventListener('click', () => getElement('avatar-upload-input').click());
-    getElement('avatar-upload-input').addEventListener('change', handleAvatarUpload);
-    getElement('edit-profile-form').addEventListener('submit', handleEditProfileSubmit);
+    addListener('profile-dropdown-avatar', 'click', () => getElement('avatar-upload-input').click());
+    addListener('avatar-upload-input', 'change', handleAvatarUpload);
+    addListener('edit-profile-form', 'submit', handleEditProfileSubmit);
 
     // --- Player Settings ---
-    getElement('player-settings-form').addEventListener('submit', handlePlayerSettingsSubmit);
+    addListener('player-settings-form', 'submit', handlePlayerSettingsSubmit);
 
     // --- Post Creation/Editing ---
-    getElement('post-next-btn').addEventListener('click', handlePostNext);
-    getElement('post-back-btn').addEventListener('click', handlePostBack);
-    getElement('post-thumbnail-btn').addEventListener('click', () => getElement('post-thumbnail-input').click());
-    getElement('post-thumbnail-input').addEventListener('change', handleThumbnailSelection);
-    getElement('create-post-form').addEventListener('submit', handlePostSubmit);
-    getElement('post-repeat-type').addEventListener('change', (e) => {
-        getElement('post-repeat-weeks-container').classList.toggle('hidden', e.target.value !== 'weekly');
+    addListener('post-next-btn', 'click', handlePostNext);
+    addListener('post-back-btn', 'click', handlePostBack);
+    addListener('post-thumbnail-btn', 'click', () => getElement('post-thumbnail-input').click());
+    addListener('post-thumbnail-input', 'change', handleThumbnailSelection);
+    addListener('create-post-form', 'submit', handlePostSubmit);
+    addListener('post-repeat-type', 'change', (e) => {
+        const container = getElement('post-repeat-weeks-container');
+        if (container) container.classList.toggle('hidden', e.target.value !== 'weekly');
     });
     
     // --- Main Navigation & Page Switching ---
@@ -91,17 +102,17 @@ export function initializeAllEventListeners() {
     });
     
     // --- Mobile Navigation ---
-    getElement('open-mobile-menu-btn').addEventListener('click', () => {
+    addListener('open-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.add('open');
         getElement('modal-backdrop').classList.add('visible');
     });
-    getElement('close-mobile-menu-btn').addEventListener('click', () => {
+    addListener('close-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.remove('open');
         getElement('modal-backdrop').classList.remove('visible');
     });
 
     // --- Filtering ---
-    getElement('filter-container').addEventListener('click', (e) => {
+    addListener('filter-container', 'click', (e) => {
         if (e.target.classList.contains('filter-btn')) {
             updateState({ activeFilter: e.target.dataset.filter });
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -109,7 +120,7 @@ export function initializeAllEventListeners() {
             renderPosts();
         }
     });
-    getElement('player-search-input').addEventListener('input', () => applyPlayerFilters());
+    addListener('player-search-input', 'input', () => applyPlayerFilters());
     const allianceFilter = getElement('alliance-filter');
     if (allianceFilter) {
         allianceFilter.addEventListener('change', () => applyPlayerFilters());
@@ -129,20 +140,23 @@ export function initializeAllEventListeners() {
     }
 
     // Chat Forms
-    getElement('private-message-form')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const input = getElement('private-message-input');
-        const text = input.value.trim();
-        if (text === '') return;
-        input.value = '';
-        try {
-            await sendPrivateMessage(text);
-        } catch (error) {
-            console.error("Failed to send private message:", error);
-            alert("Error: Could not send message.");
-            input.value = text;
-        }
-    });
+    const privateMessageForm = getElement('private-message-form');
+    if (privateMessageForm) {
+        privateMessageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = getElement('private-message-input');
+            const text = input.value.trim();
+            if (text === '') return;
+            input.value = '';
+            try {
+                await sendPrivateMessage(text);
+            } catch (error) {
+                console.error("Failed to send private message:", error);
+                alert("Error: Could not send message.");
+                input.value = text;
+            }
+        });
+    }
 
     // Social Page Click Handler (for main chat window)
     const socialPage = getElement('page-social');
@@ -160,7 +174,7 @@ export function initializeAllEventListeners() {
                         hideAllModals();
                     });
                 }
-            } else if (bubble) { // This now correctly handles a click on the bubble itself
+            } else if (bubble) {
                 const picker = getElement('reaction-picker-container');
                 picker.style.display = 'flex';
                 const rect = bubble.getBoundingClientRect();
@@ -193,14 +207,11 @@ export function initializeAllEventListeners() {
     }
 
     // --- Collapsible Friends List ---
-    const collapseBtn = getElement('collapse-friends-btn');
-    if (collapseBtn) {
-        collapseBtn.addEventListener('click', () => {
-            const container = getElement('friends-list-container-social');
-            const isCollapsed = container.classList.toggle('collapsed');
-            updateState({ isFriendsListCollapsed: isCollapsed });
-        });
-    }
+    addListener('collapse-friends-btn', 'click', () => {
+        const container = getElement('friends-list-container-social');
+        const isCollapsed = container.classList.toggle('collapsed');
+        updateState({ isFriendsListCollapsed: isCollapsed });
+    });
 
     // --- Notifications ---
     const feedDropdown = getElement('feed-dropdown');
@@ -218,15 +229,15 @@ export function initializeAllEventListeners() {
         const actionBtn = e.target.closest('.notification-action-btn');
         if (actionBtn) e.stopPropagation();
         handleNotificationAction(
-            item.dataset.id, 
-            actionBtn ? actionBtn.dataset.action : 'read', 
-            item.dataset.senderUid, 
+            item.dataset.id,
+            actionBtn ? actionBtn.dataset.action : 'read',
+            item.dataset.senderUid,
             actionBtn ? actionBtn.dataset.targetUid : null
         );
     }
 
     // --- Player & Friend Actions ---
-    getElement('player-list-container').addEventListener('click', async (e) => {
+    addListener('player-list-container', 'click', async (e) => {
         const addFriendBtn = e.target.closest('.add-friend-btn');
         const messageBtn = e.target.closest('.message-player-btn');
         const settingsBtn = e.target.closest('.player-settings-btn');
@@ -238,7 +249,7 @@ export function initializeAllEventListeners() {
             addFriendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
             const success = await addFriend(recipientUid);
             addFriendBtn.innerHTML = success ? `<i class="fas fa-check"></i>` : `<i class="fas fa-user-plus"></i>`;
-            if(success) addFriendBtn.disabled = true;
+            if (success) addFriendBtn.disabled = true;
         } else if (messageBtn && currentUserData) {
             const playerCard = messageBtn.closest('.player-card');
             const targetPlayer = allPlayers.find(p => p.uid === playerCard.dataset.uid);
@@ -248,7 +259,7 @@ export function initializeAllEventListeners() {
             if(targetPlayer) showPlayerSettingsModal(targetPlayer);
         }
     });
-    
+
     const friendsListSocial = getElement('friends-list-social-page');
     if (friendsListSocial) {
         friendsListSocial.addEventListener('click', (e) => {
@@ -260,26 +271,27 @@ export function initializeAllEventListeners() {
             }
         });
     }
-    
+
     // --- General UI ---
-    window.addEventListener('click', (e) => { 
+    window.addEventListener('click', (e) => {
         if (!e.target.closest('.nav-item')) {
             document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));
         }
-        if (!e.target.closest('#user-profile-nav-item')) {
-            getElement('user-profile-nav-item').classList.remove('open');
+        const userProfileNavItem = getElement('user-profile-nav-item');
+        if (userProfileNavItem && !e.target.closest('#user-profile-nav-item')) {
+             userProfileNavItem.classList.remove('open');
         }
         if (!e.target.closest('.custom-select-container')) {
             document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
         }
         const picker = getElement('reaction-picker-container');
         if (picker && picker.style.display === 'flex' && !e.target.closest('.chat-message-bubble') && !e.target.closest('#reaction-picker-container')) {
-             picker.style.display = 'none';
+            picker.style.display = 'none';
         }
     });
 
     // --- Event/Announcement Creation Triggers ---
-    getElement('events-main-container').addEventListener('click', e => {
+    addListener('events-main-container', 'click', e => {
         const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
         const createEventBtn = e.target.closest('#create-event-btn');
         const actionsBtn = e.target.closest('.post-card-actions-trigger');
@@ -290,15 +302,14 @@ export function initializeAllEventListeners() {
     });
 
     // --- Attachment and Emoji Logic ---
-    const attachBtn = getElement('private-message-attach-btn');
-    const attachInput = getElement('private-message-attach-input');
-    if (attachBtn && attachInput) {
-        attachBtn.addEventListener('click', () => attachInput.click());
-        attachInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) handleImageAttachment(file);
-        });
-    }
+    addListener('private-message-attach-btn', 'click', () => {
+        const attachInput = getElement('private-message-attach-input');
+        if (attachInput) attachInput.click();
+    });
+    addListener('private-message-attach-input', 'change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleImageAttachment(file);
+    });
 
     const emojiPickerContainer = getElement('emoji-picker-container');
     const emojiPicker = document.querySelector('emoji-picker');
@@ -324,7 +335,7 @@ export function initializeAllEventListeners() {
             if (emojiPickerContainer) emojiPickerContainer.style.display = 'none';
         });
     }
-    
+
     // --- Reaction Picker Listener ---
     const reactionPicker = getElement('reaction-picker-container');
     if (reactionPicker) {

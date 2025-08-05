@@ -437,11 +437,12 @@
                         </div>
                     </nav>
 
-                    <div id="mobile-auth-container" class="hidden">
-                        <img id="user-avatar-mobile" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-8 h-8 rounded-full object-cover border-2 border-white/20" alt="User Avatar">
+                    <div id="mobile-controls-container" class="flex md:hidden items-center gap-4">
+                        <div id="mobile-auth-container" class="hidden">
+                             <img id="user-avatar-mobile" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-8 h-8 rounded-full object-cover border-2 border-white/20" alt="User Avatar">
+                        </div>
+                        <button id="open-mobile-menu-btn" class="auth-button !px-4 gap-2"><i class="fas fa-bars"></i><span class="font-bold tracking-wider">MENU</span></button>
                     </div>
-
-                    <div id="auth-container" class="hidden md:flex flex-shrink-0">
 
                     <div id="auth-container" class="hidden md:flex flex-shrink-0">
                          <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
@@ -479,7 +480,7 @@
                         </div>
                     </div>
                     <button id="open-mobile-menu-btn" class="md:hidden auth-button !px-4 gap-2"><i class="fas fa-bars"></i><span class="font-bold tracking-wider">MENU</span></button>                </header>
-
+                </div>
                 <!-- Page Content Container -->
                 <div id="page-container">
                     <!-- Feed Page -->
