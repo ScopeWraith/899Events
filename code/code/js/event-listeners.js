@@ -159,15 +159,16 @@ export function initializeAllEventListeners() {
                 showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
                     handleDeleteMessage(deleteBtn.dataset.id, deleteBtn.dataset.type);
                 });
-            } else if (addReactionBtn) {
+            } else if (e.target.closest('.chat-message-bubble')) {
+                const bubble = e.target.closest('.chat-message-bubble');
                 const picker = getElement('reaction-picker-container');
                 picker.style.display = 'flex';
-                const rect = addReactionBtn.getBoundingClientRect();
+                const rect = bubble.getBoundingClientRect();
                 picker.style.left = `${rect.left}px`;
                 picker.style.top = `${rect.top}px`;
 
-                picker.dataset.messageId = addReactionBtn.closest('.chat-message').dataset.id;
-                picker.dataset.chatType = addReactionBtn.closest('.chat-message').dataset.type;
+                picker.dataset.messageId = bubble.dataset.messageId;
+                picker.dataset.chatType = bubble.dataset.chatType;
             }
         });
     }

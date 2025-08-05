@@ -370,10 +370,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     max-width: 85%; /* Don't get too wide */
     animation: slideInUp 0.3s ease-out;
 }
-.chat-message.self {
-    margin-left: auto; /* This pushes the entire message to the right */
-    flex-direction: row-reverse; /* Avatar on the right */
-}
 .chat-message:hover .delete-message-btn {
     opacity: 1;
 }
@@ -388,10 +384,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     transition: background-color 0.2s ease;
 }
 
-.chat-message.self .chat-message-bubble {
-    background-color: #005580; /* A custom blue for self messages */
-    color: #E6EDF3;
-}
 .chat-message-bubble:hover {
     background-color: rgba(48, 54, 61, 0.8); /* Lighten on hover */
 }
@@ -861,31 +853,6 @@ emoji-picker {
     position: relative;
 }
 
-.message-actions {
-    display: flex;
-    gap: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-    margin-top: 4px; /* Space below the avatar */
-}
-
-.chat-message:hover .message-actions {
-    opacity: 1;
-}
-
-/* For self messages, bubble comes first, then actions */
-.chat-message.self .chat-message-bubble-container {
-    order: 1;
-}
-
-/* For other's messages, actions come first, then bubble */
-.chat-message:not(.self) .chat-message-bubble-container {
-    order: 2;
-}
-
-.chat-message:hover .message-actions {
-    opacity: 1;
-}
 
 .chat-message.self .message-actions {
     right: 10px;
@@ -979,19 +946,6 @@ emoji-picker {
     padding-right: 2.5rem; /* Make room for emoji button */
 }
 
-.pm-footer-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background-color: #30363d;
-    color: #8b949e;
-    font-size: 1rem;
-    flex-shrink: 0;
-    transition: background-color 0.2s ease;
-}
 .pm-footer-btn:hover {
     background-color: #485461;
     color: #c9d1d9;

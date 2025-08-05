@@ -147,6 +147,13 @@ export function renderMessages(messages, container, chatType) {
     const { currentUserData, allPlayers } = getState();
     if (!currentUserData || !container) return;
 
+    // A helper to get the right CSS class for the border
+    const getRankBorderClass = (player) => {
+        if (player?.isAdmin) return 'rank-border-admin';
+        const rank = player?.allianceRank;
+        return `rank-border-${rank?.toLowerCase() || 'r1'}`;
+    };
+
     container.innerHTML = ''; // Clear previous messages
     if (messages.length === 0) {
         container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
@@ -155,73 +162,60 @@ export function renderMessages(messages, container, chatType) {
 
     messages.forEach(msg => {
         const isSelf = msg.authorUid === currentUserData.uid;
-        const authorUsername = msg.authorUsername || '?';
         const authorData = allPlayers.find(p => p.uid === msg.authorUid);
+        const authorUsername = authorData?.username || 'Unknown User';
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
         const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
+        const borderClass = getRankBorderClass(authorData);
+        
+        // --- Determine which action buttons to show ---
+        const canEdit = isSelf;
+        const canDelete = canDeleteMessage(currentUserData, authorData);
+        let messageActionsHTML = '';
+        if (canEdit || canDelete) {
+            messageActionsHTML = `
+                <div class="message-actions">
+                    ${canEdit ? `<button class="message-action-btn edit-message-btn" title="Edit"><i class="fas fa-pencil-alt"></i></button>` : ''}
+                    ${canDelete ? `<button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>` : ''}
+                </div>
+            `;
+        }
 
         // --- REACTION LOGIC ---
         const reactions = msg.reactions || {};
         const reactionPillsHTML = Object.entries(reactions)
             .map(([emoji, userMap]) => {
-                const userList = Object.values(userMap);
-                const count = userList.length;
+                const count = Object.keys(userMap).length;
                 if (count === 0) return '';
-                
                 const hasReacted = currentUserData.uid in userMap;
-                const tooltipText = userList.join(', ');
+                const tooltipText = Object.values(userMap).join(', ');
+                return `<div class="reaction-pill ${hasReacted ? 'reacted' : ''}" data-emoji="${emoji}" data-tooltip="${tooltipText}"><span class="emoji">${emoji}</span><span class="count">${count}</span><div class="reaction-tooltip">${tooltipText}</div></div>`;
+            }).join('');
 
-                return `
-                    <div class="reaction-pill ${hasReacted ? 'reacted' : ''}" data-emoji="${emoji}" data-tooltip="${tooltipText}">
-                        <span class="emoji">${emoji}</span>
-                        <span class="count">${count}</span>
-                        <div class="reaction-tooltip">${tooltipText}</div>
-                    </div>
-                `;
-            })
-            .join('');
-        
         // --- MESSAGE CONTENT ---
-        let messageContent = '';
-        if (msg.text) {
-            messageContent += `<p>${autoLinkText(msg.text)}</p>`;
-        }
-        if (msg.imageUrl) {
-            messageContent += `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">`;
-        }
+        let messageContent = `<p class="chat-message-author">${authorUsername}</p>`;
+        if (msg.text) messageContent += `<p>${autoLinkText(msg.text)}</p>`;
+        if (msg.imageUrl) messageContent += `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">`;
 
-        const messageActionsHTML = isSelf ? `
-        <div class="message-actions">
-            <button class="message-action-btn add-reaction-btn" title="Add Reaction"><i class="far fa-smile"></i></button>
-            <button class="message-action-btn edit-message-btn" title="Edit"><i class="fas fa-pencil-alt"></i></button>
-            <button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>
-        </div>
-    ` : '';
+        // --- FINAL ASSEMBLY ---
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
-        messageEl.dataset.id = msg.id;
-        messageEl.dataset.type = chatType;
-
         messageEl.innerHTML = `
             <div class="chat-message-identity">
-                <img src="${avatarUrl}" class="w-10 h-10 rounded-full flex-shrink-0" alt="${authorUsername}">
-                <p class="chat-message-timestamp">${timestamp}</p>
+                 <img src="${avatarUrl}" class="w-10 h-10 rounded-full flex-shrink-0" alt="${authorUsername}">
+                 <p class="chat-message-timestamp">${timestamp}</p>
+                 ${messageActionsHTML}
             </div>
             <div class="chat-message-main">
-                <div class="chat-message-bubble-container">
-                    <div class="chat-message-bubble">
-                        <p class="chat-message-author">${authorUsername}</p>
-                        ${messageContent}
-                    </div>
-                    <div class="chat-reactions-container">
-                        ${reactionPillsHTML}
-                    </div>
+                <div class="chat-message-bubble ${borderClass}" data-message-id="${msg.id}" data-chat-type="${chatType}">
+                    ${messageContent}
                 </div>
-                ${messageActionsHTML}
+                <div class="chat-reactions-container">${reactionPillsHTML}</div>
             </div>
         `;
         container.appendChild(messageEl);
-        });
+    });
+    
     // Scroll to the bottom of the chat window
     container.scrollTop = container.scrollHeight;
 }

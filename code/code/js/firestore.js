@@ -31,7 +31,7 @@ import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
 import { storage } from './firebase-config.js';
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-
+import { doc, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Add runTransaction and getDoc to the import
 export function setupAllListeners(user) {
     const listeners = {};
 
@@ -387,47 +387,54 @@ export async function toggleReaction(chatType, messageId, emoji) {
     if (!currentUserData) return;
 
     const { uid, username } = currentUserData;
-
+    
     let docPath;
+    // ... (the switch statement for docPath remains the same)
     switch(chatType) {
-       case 'world_chat':
-           docPath = `world_chat/${messageId}`;
-           break;
-       case 'alliance_chat':
-           if (!currentUserData.alliance) return;
-           docPath = `alliance_chats/${currentUserData.alliance}/messages/${messageId}`;
-           break;
-       case 'leadership_chat':
-           docPath = `leadership_chat/${messageId}`;
-           break;
+       case 'world_chat': docPath = `world_chat/${messageId}`; break;
+       case 'alliance_chat': if (!currentUserData.alliance) return; docPath = `alliance_chats/${currentUserData.alliance}/messages/${messageId}`; break;
+       case 'leadership_chat': docPath = `leadership_chat/${messageId}`; break;
        case 'private_chat':
             const partnerUid = getState().activePrivateChatPartner?.uid;
             if (!partnerUid) return;
             const chatId = [uid, partnerUid].sort().join('_');
             docPath = `private_chats/${chatId}/messages/${messageId}`;
             break;
-       default:
-           return;
+       default: return;
    }
 
     const messageRef = doc(db, docPath);
-    const reactionField = `reactions.${emoji}.${uid}`;
 
-    // This is a placeholder; we need to get the actual reaction state.
-    // For simplicity, we'll just toggle for now. In a real app, you'd check if the field exists.
-    // NOTE: The logic here is simplified. A robust solution would use a transaction
-    // to read the document first, but for this project, we'll do a "blind write".
-    // To remove a reaction, we'll set the value to null which doesn't work directly with update.
-    // A better approach is to get the doc, modify the map in JS, and then `update`.
-    // But for a quick toggle, we can set and delete.
-
-    // For this implementation, we will just add the reaction.
-    // A full toggle is more complex and requires reading the doc first.
     try {
-        await updateDoc(messageRef, {
-            [reactionField]: username
+        await runTransaction(db, async (transaction) => {
+            const messageDoc = await transaction.get(messageRef);
+            if (!messageDoc.exists()) {
+                throw "Document does not exist!";
+            }
+
+            const reactions = messageDoc.data().reactions || {};
+            
+            // Check if the user has already reacted with this emoji
+            const userHasReacted = reactions[emoji] && reactions[emoji][uid];
+
+            if (userHasReacted) {
+                // User has reacted, so remove their reaction
+                delete reactions[emoji][uid];
+                // If no one else has reacted with this emoji, remove the emoji entry
+                if (Object.keys(reactions[emoji]).length === 0) {
+                    delete reactions[emoji];
+                }
+            } else {
+                // User has not reacted, so add their reaction
+                if (!reactions[emoji]) {
+                    reactions[emoji] = {};
+                }
+                reactions[emoji][uid] = username;
+            }
+
+            transaction.update(messageRef, { reactions: reactions });
         });
     } catch (error) {
-        console.error("Error toggling reaction:", error);
+        console.error("Transaction failed: ", error);
     }
 }

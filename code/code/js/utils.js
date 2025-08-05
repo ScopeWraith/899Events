@@ -21,7 +21,16 @@ export function positionEmojiPicker(button, pickerContainer) {
     // This is more reliable than calculating with offsetHeight.
     pickerContainer.style.transform = 'translateY(-100%) translateY(-10px)';
 }
-
+export function canDeleteMessage(currentUser, messageAuthor) {
+    if (!currentUser || !messageAuthor) return false;
+    // An admin can delete any message.
+    if (currentUser.isAdmin) return true;
+    // A user can delete their own message.
+    if (currentUser.uid === messageAuthor.uid) return true;
+    // A leader can delete a message from someone in their own alliance.
+    if (isUserLeader(currentUser) && currentUser.alliance === messageAuthor.alliance) return true;
+    return false;
+}
 export function formatTimeAgo(date) {
     if (!date) return '';
     const now = new Date();
