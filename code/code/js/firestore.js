@@ -139,19 +139,19 @@ export function setupChatListeners(activeChatId = 'world_chat') {
     switch (activeChatId) {
         case 'alliance_chat':
             if (currentUserData.alliance) {
-                chatQuery = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
+                chatQuery = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "asc"), limit(50));
                 listeners.allianceChat = createListener(chatQuery, 'alliance_chat');
             }
             break;
         case 'leadership_chat':
             if (isUserLeader(currentUserData)) {
-                chatQuery = query(collection(db, "leadership_chat"), orderBy("timestamp", "desc"), limit(50));
+                chatQuery = query(collection(db, "leadership_chat"), orderBy("timestamp", "asc"), limit(50));
                 listeners.leadershipChat = createListener(chatQuery, 'leadership_chat');
             }
             break;
         case 'world_chat':
         default:
-            chatQuery = query(collection(db, "world_chat"), orderBy("timestamp", "desc"), limit(50));
+            chatQuery = query(collection(db, "world_chat"), orderBy("timestamp", "asc"), limit(50));
             listeners.worldChat = createListener(chatQuery, 'world_chat');
             break;
     }

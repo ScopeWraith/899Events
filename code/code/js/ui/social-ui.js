@@ -153,8 +153,6 @@ export function renderMessages(messages, container, chatType) {
         return;
     }
 
-    const orderedMessages = messages.reverse();
-
     orderedMessages.forEach(msg => {
         const isSelf = msg.authorUid === currentUserData.uid;
         const authorUsername = msg.authorUsername || '?';
@@ -193,12 +191,12 @@ export function renderMessages(messages, container, chatType) {
         }
 
         const messageActionsHTML = isSelf ? `
-            <div class="message-actions">
-                <button class="message-action-btn edit-message-btn" title="Edit"><i class="fas fa-pencil-alt"></i></button>
-                <button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>
-            </div>
-        ` : '';
-
+        <div class="message-actions">
+            <button class="message-action-btn add-reaction-btn" title="Add Reaction"><i class="far fa-smile"></i></button>
+            <button class="message-action-btn edit-message-btn" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+            <button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>
+        </div>
+    ` : '';
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
         messageEl.dataset.id = msg.id;
@@ -206,21 +204,24 @@ export function renderMessages(messages, container, chatType) {
 
         messageEl.innerHTML = `
             <div class="chat-message-identity">
-                 <img src="${avatarUrl}" class="w-10 h-10 rounded-full flex-shrink-0" alt="${authorUsername}">
-                 <p class="chat-message-timestamp">${timestamp}</p>
+                <img src="${avatarUrl}" class="w-10 h-10 rounded-full flex-shrink-0" alt="${authorUsername}">
+                <p class="chat-message-timestamp">${timestamp}</p>
             </div>
             <div class="chat-message-main">
+                <div class="chat-message-bubble-container">
+                    <div class="chat-message-bubble">
+                        <p class="chat-message-author">${authorUsername}</p>
+                        ${messageContent}
+                    </div>
+                    <div class="chat-reactions-container">
+                        ${reactionPillsHTML}
+                    </div>
+                </div>
                 ${messageActionsHTML}
-                <div class="chat-message-bubble">
-                    <p class="chat-message-author">${authorUsername}</p>
-                    ${messageContent}
-                </div>
-                <div class="chat-reactions-container">
-                    ${reactionPillsHTML}
-                    <button class="add-reaction-btn" title="Add Reaction"><i class="far fa-smile"></i></button>
-                </div>
             </div>
         `;
         container.appendChild(messageEl);
-    });
+        });
+    // Scroll to the bottom of the chat window
+    container.scrollTop = container.scrollHeight;
 }
