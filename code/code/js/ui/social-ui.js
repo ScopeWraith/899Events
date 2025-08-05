@@ -3,7 +3,7 @@ import { isUserLeader } from '../utils.js';
 import { handleSendMessage } from '../firestore.js';
 import { formatMessageTimestamp, autoLinkText } from '../utils.js';
 import { positionEmojiPicker } from '../utils.js';
-
+let currentSubmitHandler = null; // To manage the form's event listener
 // --- NEW CHAT MANAGEMENT SYSTEM ---
 
 // An object to define our chat channels
@@ -64,14 +64,13 @@ export function renderChatSelectors() {
 export function activateChatChannel(chatId) {
     const chatWindow = document.getElementById('chat-window-main');
     const chatInputForm = document.getElementById('chat-input-form');
-    const emojiPane = document.getElementById('main-chat-emoji-pane');
-    const emojiPicker = emojiPane.querySelector('emoji-picker');
+    const chatInput = document.getElementById('chat-input-main');
+    const emojiBtn = document.getElementById('main-chat-emoji-btn');
 
-    if (!chatWindow || !chatInputForm || !emojiPane || !emojiPicker) return;
-
-    // Ensure chat window is visible and emoji picker is hidden by default
-    chatWindow.style.display = 'flex';
-    emojiPane.style.display = 'none';
+    if (!chatWindow || !chatInputForm || !chatInput || !emojiBtn) {
+        console.error("Could not find all necessary chat elements in the DOM.");
+        return;
+    }
 
     document.querySelectorAll('.chat-selector-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.chatId === chatId);
@@ -79,36 +78,25 @@ export function activateChatChannel(chatId) {
 
     chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Loading messages for ${chatId.replace(/_/g, ' ')}...</p>`;
     chatInputForm.style.display = 'flex';
+    chatInput.placeholder = `Type a message in ${chatId.replace('_chat', '')}...`;
 
-    const newForm = chatInputForm.cloneNode(true);
-    const newFormInput = newForm.querySelector('#chat-input-main');
-    const newFormEmojiBtn = newForm.querySelector('#main-chat-emoji-btn');
-    chatInputForm.parentNode.replaceChild(newForm, chatInputForm);
-
-    newFormInput.placeholder = `Type a message in ${chatId.replace('_chat', '')}...`;
-    newForm.addEventListener('submit', (e) => {
-        e.preventDefault(); // Prevent default form submission
-        const text = newFormInput.value;
-        if (text.trim() === '') return;
-        handleSendMessage(e, chatId, text); // Pass text directly
-        newFormInput.value = ''; // Clear input
-    });
-
-    // --- New Emoji Toggle Logic ---
-    if (newFormEmojiBtn && newFormInput) {
-        newFormEmojiBtn.addEventListener('click', () => {
-            const isEmojiVisible = emojiPane.style.display === 'block';
-            emojiPane.style.display = isEmojiVisible ? 'none' : 'block';
-            chatWindow.style.display = isEmojiVisible ? 'flex' : 'none';
-        });
+    // --- New, More Reliable Event Listener Handling ---
+    // 1. Remove the previous listener if it exists
+    if (currentSubmitHandler) {
+        chatInputForm.removeEventListener('submit', currentSubmitHandler);
     }
 
-    // --- New Emoji Selection Logic ---
-    emojiPicker.addEventListener('emoji-click', event => {
-        newFormInput.value += event.detail.unicode;
-        emojiPane.style.display = 'none'; // Hide picker
-        chatWindow.style.display = 'flex'; // Show chat window
-    });
+    // 2. Define the new handler for the active chat
+    currentSubmitHandler = (e) => {
+        e.preventDefault();
+        const text = chatInput.value;
+        if (text.trim() === '') return;
+        handleSendMessage(e, chatId, text);
+        chatInput.value = '';
+    };
+
+    // 3. Add the new listener
+    chatInputForm.addEventListener('submit', currentSubmitHandler);
 }
 
 // --- EXISTING FUNCTIONS (Modified) ---

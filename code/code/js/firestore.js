@@ -199,24 +199,11 @@ export function detachAllListeners() {
 
 // --- DATA WRITING FUNCTIONS ---
 
-export async function handleSendMessage(e, chatType) {
+export async function handleSendMessage(e, chatType, text) {
     e.preventDefault();
     const { currentUserData } = getState();
-    if (!currentUserData) return;
+    if (!currentUserData || text.trim() === '') return;
 
-    // --- FIX: Directly target the one, consistent input ID ---
-    const input = document.getElementById('chat-input-main');
-
-    if (!input) {
-        console.error("Could not find the main chat input element.");
-        return;
-    }
-
-    const text = input.value.trim();
-    if (text === '') return;
-    input.value = ''; // Clear the input
-
-    // Determine the correct database path for the message
     let collectionPath;
     switch (chatType) {
         case 'world_chat':
@@ -230,7 +217,7 @@ export async function handleSendMessage(e, chatType) {
             collectionPath = 'leadership_chat';
             break;
         default:
-            console.error("Invalid chat type for sending message:", chatType);
+            console.error("Invalid chat type:", chatType);
             return;
     }
 
@@ -245,7 +232,9 @@ export async function handleSendMessage(e, chatType) {
         await addDoc(collection(db, collectionPath), messageData);
     } catch (error) {
         console.error(`Error sending message to ${chatType}:`, error);
-        input.value = text; // Restore text on failure
+        // Optionally, restore the text to the input if sending fails
+        const input = document.getElementById('chat-input-main');
+        if(input) input.value = text;
     }
 }
 
