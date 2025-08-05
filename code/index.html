@@ -29,9 +29,6 @@
 
         <!-- Modals Container -->
         <div id="modal-container-all">
-            <div id="emoji-picker-container" class="absolute z-[2000]" style="display: none;">
-                <emoji-picker class="light"></emoji-picker>
-            </div>
             <!-- Auth & Edit Modals -->
             <div id="modal-backdrop" class="modal-backdrop"></div>
             <div id="auth-modal-container" class="modal-container">
@@ -508,6 +505,18 @@
 
                     <div id="social-chat-pane" class="md:col-span-3">
                         <div class="flex flex-col h-full">
+                            <div id="social-chat-pane" class="md:col-span-3">
+                                <div class="flex flex-col h-full">
+                                    <div id="main-chat-emoji-pane" class="chat-window p-4 flex-grow" style="height: 65vh; display: none;">
+                                        <emoji-picker class="light w-full h-full"></emoji-picker>
+                                    </div>
+                                    <div id="chat-window-main" class="chat-window p-4 flex-grow" style="height: 65vh;">
+                                    <p class="text-center text-gray-500 m-auto">Select a chat to begin.</p>
+                                    </div>
+                                    <form id="chat-input-form" class="mt-4 flex items-center gap-2" style="display: none;">
+                                        </form>
+                                </div>
+                            </div>
                             <div id="chat-window-main" class="chat-window p-4 flex-grow" style="height: 65vh;">
                                <p class="text-center text-gray-500 m-auto">Select a chat to begin.</p>
                             </div>

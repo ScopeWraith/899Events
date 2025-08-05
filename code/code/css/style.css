@@ -739,3 +739,9 @@ input:checked + .slider:before {
   scrollbar-width: thin;
   scrollbar-color: #373E47 rgba(13, 17, 23, 0.5);
 }
+
+/* Ensure emoji-picker fills its container */
+emoji-picker {
+    width: 100%;
+    height: 100%;
+}

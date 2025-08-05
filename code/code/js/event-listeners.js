@@ -16,7 +16,6 @@ import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSub
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { deletePost, handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners } from './firestore.js';
 import { activateChatChannel } from './ui/social-ui.js'; 
-import { positionEmojiPicker } from './utils.js';
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
 
@@ -291,18 +290,6 @@ const emojiPicker = document.querySelector('emoji-picker');
 let activeEmojiInput = null;
 
 // Setup for Private Message button ONLY
-const setupEmojiButton = (buttonId, inputId) => {
-    const button = document.getElementById(buttonId);
-    const input = document.getElementById(inputId);
-    if (button && input) {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            activeEmojiInput = input;
-            positionEmojiPicker(button, emojiPickerContainer);
-        });
-    }
-};
-
 setupEmojiButton('private-message-emoji-btn', 'private-message-input');
 
 if (emojiPicker) {
