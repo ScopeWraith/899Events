@@ -400,15 +400,16 @@
             </div>
         </div>
 
-        <div id="header-wrapper">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <header class="glass-pane header-main flex justify-between items-center">
+        <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
+            <div class="max-w-6xl mx-auto">
+
+                <header class="glass-pane header-main flex justify-between items-center mb-6">
                     <div class="flex-shrink-0">
                         <img src="img/logo.png" alt="899Events Hub Logo" style="height: 50px;">
                     </div>
                     
                     <nav id="main-nav" class="hidden md:flex flex-grow justify-center items-center">
-                        <div class="nav-item"><div class="nav-link active" data-main-target="page-news"><i class="fas fa-newspaper"></i><span>News</span></div></div>
+                        <div class="nav-item"><div class="nav-link active" data-main-target="page-events"><i class="fas fa-calendar-alt"></i><span>Events</span></div></div>
                         <div class="nav-item"><div class="nav-link" data-main-target="page-social"><i class="fas fa-comments"></i><span>Social</span></div></div>
                         <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
                         <div class="nav-item" id="feed-nav-item">
@@ -464,14 +465,8 @@
                             </div>
                         </div>
                     </div>
-                </header>
-            </div>
-            <div id="sub-nav-container" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    </header>
                 </div>
-        </div>
-
-        <div class="relative w-full p-4 sm:p-6 lg:p-8">
-            <div class="max-w-6xl mx-auto">
                 <div id="page-container">
                     <div id="page-feed" class="page-content" style="display: none;">
                         <div id="feed-welcome-message" class="mb-8 text-center"></div>
@@ -494,6 +489,7 @@
                             </div>
                         </div>
                     </div>
+                </div>
                     
                     <div id="page-social" class="page-content" style="display: none;">
                         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -563,9 +559,12 @@
                                  </div>
                         </div>
                     </div>
-                    <div id="page-news" class="page-content">
-                        <main id="news-main-container" class="space-y-6">
+                    <div id="page-events" class="page-content">
+                        <main id="events-main-container" class="space-y-6">
                             
+                            <div id="filter-container" class="filter-btn-group">
+                                </div>
+
                             <div id="announcements-container" class="space-y-4">
                                 </div>
 
