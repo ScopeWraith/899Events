@@ -119,11 +119,19 @@ service cloud.firestore {
 
     // --- PRIVATE CHAT ---
     match /private_chats/{chatId} {
-      allow read, write: if isSignedIn() && request.auth.uid in resource.data.participants;
-      
+      // Allow a user to read or update a chat document only if they are a participant.
+      allow read, update: if isSignedIn() && request.auth.uid in resource.data.participants;
+
+      // Allow a user to create a new chat document only if their UID is in the "participants" array of the document being created.
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+
       match /messages/{messageId} {
-      	allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
-        allow update, delete: if false; // Messages are immutable for now
+        // Allow message creation if the author is who they say they are, AND they are a participant in the parent chat room.
+      	allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid &&
+                      request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
+        // Allow users to read messages if they are a participant in the chat.
+        allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
+      	allow update, delete: if false; // Messages are immutable for now
       }
     }
     

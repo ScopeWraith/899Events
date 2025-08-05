@@ -145,8 +145,10 @@ export function initializeAllEventListeners() {
             if (text === '') return;
             input.value = '';
             try {
-                await sendPrivateMessage(text);
+            await sendPrivateMessage(text);
             } catch (error) {
+                console.error("Failed to send private message:", error);
+                alert("Error: Could not send message. Please check console for details.");
                 input.value = text; // Restore on failure
             }
         });
