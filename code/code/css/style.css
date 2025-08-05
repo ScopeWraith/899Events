@@ -17,12 +17,12 @@
     --post-color-vs: #0077ff;
 
     /* Rank Glow Colors */     
-    --rank-admin-color: #F87171;
-    --rank-r5-color: #FFD700;
-    --rank-r4-color: #9370DB;
-    --rank-r3-color: #00BFFF;
-    --rank-r2-color: #FFFFFF;
-    --rank-r1-color: #8b949e;
+    --rank-admin-color: #f200ff;
+    --rank-r5-color: #ffbb00;
+    --rank-r4-color: #8400ff;
+    --rank-r3-color: #007bff;
+    --rank-r2-color: #c1c1c1;
+    --rank-r1-color: #696969;
 }
 
 @keyframes pulse-border-horizontal { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -388,12 +388,30 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     background-color: rgba(48, 54, 61, 0.8); /* Lighten on hover */
 }
 /* --- Rank Border Colors --- */
-.rank-border-admin { border-color: var(--rank-admin-color); }
-.rank-border-r5 { border-color: var(--rank-r5-color); }
-.rank-border-r4 { border-color: var(--rank-r4-color); }
-.rank-border-r3 { border-color: var(--rank-r3-color); }
-.rank-border-r2 { border-color: var(--rank-r2-color); }
-.rank-border-r1 { border-color: var(--rank-r1-color); }
+.rank-border-admin { 
+    border-color: var(--rank-admin-color);
+    box-shadow: 0 0 10px -2px var(--rank-admin-color); /* Add this line */
+}
+.rank-border-r5 { 
+    border-color: var(--rank-r5-color);
+    box-shadow: 0 0 10px -2px var(--rank-r5-color); /* Add this line */
+}
+.rank-border-r4 { 
+    border-color: var(--rank-r4-color);
+    box-shadow: 0 0 10px -2px var(--rank-r4-color); /* Add this line */
+}
+.rank-border-r3 { 
+    border-color: var(--rank-r3-color);
+    box-shadow: 0 0 10px -2px var(--rank-r3-color); /* Add this line */
+}
+.rank-border-r2 { 
+    border-color: var(--rank-r2-color);
+    box-shadow: 0 0 10px -2px var(--rank-r2-color); /* Add this line */
+}
+.rank-border-r1 { 
+    border-color: var(--rank-r1-color);
+    box-shadow: 0 0 10px -2px var(--rank-r1-color); /* Add this line */
+}
 
 .chat-message-author {
     font-weight: 700;
@@ -968,4 +986,23 @@ emoji-picker {
     white-space: nowrap;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.chat-message.self .chat-message-bubble {
+    border-bottom-right-radius: 4px;
+}
+.chat-message:not(.self) .chat-message-bubble {
+    border-bottom-left-radius: 4px;
+}
+.pm-footer-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: #30363d;
+    color: #8b949e;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
 }
