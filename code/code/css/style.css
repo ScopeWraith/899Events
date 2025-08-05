@@ -884,3 +884,77 @@ emoji-picker {
 .message-action-btn:hover {
     color: white;
 }
+
+/* --- Private Message Modal Overhaul --- */
+
+/* Adjust the modal container itself */
+#private-message-modal-container .glass-pane {
+    background: #161B22; /* Darker, solid background */
+}
+
+/* Style the new header */
+#private-message-header {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+#private-message-header #close-private-message-modal-btn i {
+    transition: transform 0.2s ease-in-out;
+}
+#private-message-header #close-private-message-modal-btn:hover i {
+    transform: translateX(-2px);
+}
+
+/* Style the new chat window background */
+#private-message-window {
+    background-color: #0D1117;
+}
+
+/* Tweak message spacing within the PM window */
+#private-message-window .chat-message {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+/* Refine the message bubbles within the PM window */
+#private-message-window .chat-message-bubble {
+    border-radius: 18px; /* Slightly different radius */
+}
+
+#private-message-window .chat-message:not(.self) .chat-message-bubble {
+    background-color: #21262D;
+    border-bottom-left-radius: 4px;
+}
+#private-message-window .chat-message.self .chat-message-bubble {
+    background-color: #238636; /* Use a distinct "sent" color */
+    border-bottom-right-radius: 4px;
+}
+
+/* Hide author name on self-messages to de-clutter */
+#private-message-window .chat-message.self .chat-message-author {
+    display: none;
+}
+
+/* Style the new input area footer */
+#private-message-footer .form-input {
+    height: 44px;
+    padding-left: 1rem;
+    padding-right: 2.5rem; /* Make room for emoji button */
+}
+
+.pm-footer-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: #30363d;
+    color: #8b949e;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
+}
+.pm-footer-btn:hover {
+    background-color: #485461;
+    color: #c9d1d9;
+}
