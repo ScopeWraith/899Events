@@ -284,6 +284,15 @@ export async function addFriend(recipientUid) {
     }
 }
 
+export async function removeFriend(friendUid) {
+    const { currentUserData } = getState();
+    if (!currentUserData) return;
+    const batch = writeBatch(db);
+    batch.delete(doc(db, `users/${currentUserData.uid}/friends/${friendUid}`));
+    batch.delete(doc(db, `users/${friendUid}/friends/${currentUserData.uid}`));
+    await batch.commit();
+}
+
 export async function sendPrivateMessage(text) {
     const { currentUserData, activePrivateChatId } = getState();
     if (!currentUserData || !activePrivateChatId) {
