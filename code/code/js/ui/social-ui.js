@@ -153,7 +153,7 @@ export function renderMessages(messages, container, chatType) {
         return;
     }
 
-    orderedMessages.forEach(msg => {
+    messages.forEach(msg => {
         const isSelf = msg.authorUid === currentUserData.uid;
         const authorUsername = msg.authorUsername || '?';
         const authorData = allPlayers.find(p => p.uid === msg.authorUid);
