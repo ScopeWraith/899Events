@@ -21,7 +21,7 @@ export async function deletePost(postId) {
  */
 
 import { db } from './firebase-config.js';
-import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/116.1/firebase-firestore.js";
+import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getState, updateState } from './state.js';
 import { renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
