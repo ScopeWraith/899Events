@@ -159,38 +159,45 @@ export function showPostActionsModal(postId) {
     showModal(document.getElementById('post-actions-modal-container'));
 }
 
-export function showPrivateMessageModal(targetPlayer) {
+// Add async here
+export async function showPrivateMessageModal(targetPlayer) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
 
-    // 1. Calculate the necessary ID and ensure the chat document exists in Firestore.
-    const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
-    const chatDocRef = doc(db, 'private_chats', chatId);
-    setDoc(chatDocRef, {
-        participants: [currentUserData.uid, targetPlayer.uid]
-    }, { merge: true });
+    try {
+        // 1. Calculate the ID and get a reference to the chat document.
+        const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
+        const chatDocRef = doc(db, 'private_chats', chatId);
 
-    // 2. THIS IS THE CRITICAL STEP THAT MUST BE PRESENT AND CORRECT.
-    // It saves the active user AND the calculated chat ID to the application state.
-    updateState({
-        activePrivateChatPartner: targetPlayer,
-        activePrivateChatId: chatId
-    });
+        // 2. IMPORTANT: Proactively create/update the chat document and WAIT for it to complete.
+        // This ensures the document exists before any listeners are attached.
+        await setDoc(chatDocRef, {
+            participants: [currentUserData.uid, targetPlayer.uid]
+        }, { merge: true });
 
-    // 3. Populate the UI elements in the modal header.
-    const session = userSessions[targetPlayer.uid];
-    const status = session ? session.status : 'offline';
-    getElement('private-message-username').textContent = targetPlayer.username;
-    getElement('private-message-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
-    getElement('private-message-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
-    getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
-    getElement('private-message-window').innerHTML = '<p class="text-center text-gray-500 m-auto">Loading messages...</p>';
+        // 3. Now that the document exists, it's safe to update the state.
+        updateState({
+            activePrivateChatPartner: targetPlayer,
+            activePrivateChatId: chatId
+        });
 
-    // 4. Show the modal.
-    showModal(getElement('private-message-modal-container'));
+        // 4. Populate the UI header.
+        const session = userSessions[targetPlayer.uid];
+        const status = session ? session.status : 'offline';
+        getElement('private-message-username').textContent = targetPlayer.username;
+        getElement('private-message-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        getElement('private-message-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
+        getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
 
-    // 5. Set up the Firestore listener, which can now safely access the state.
-    setupPrivateChatListener();
+        // 5. Show the modal and attach the listener, which can now safely run.
+        getElement('private-message-window').innerHTML = ''; // Clear previous "Loading" message
+        showModal(getElement('private-message-modal-container'));
+        setupPrivateChatListener();
+
+    } catch (error) {
+        console.error("Failed to open private chat:", error);
+        alert("Could not open the chat window. Please check the console for errors.");
+    }
 }
 // --- UI INITIALIZATION & UPDATES ---
 

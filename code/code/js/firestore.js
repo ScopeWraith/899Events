@@ -149,11 +149,11 @@ export function setupChatListeners() {
 
 export function setupPrivateChatListener() {
     const { activePrivateChatId, listeners } = getState();
-    if (listeners.privateChat) listeners.privateChat(); // Detach old listener
+    if (listeners.privateChat) listeners.privateChat();
 
-    // This guard clause is what shows the error in your screenshot. It's working correctly.
     if (!activePrivateChatId) {
-        console.error("setupPrivateChatListener called without an activePrivateChatId.");
+        // This guard clause is our safety net.
+        console.error("setupPrivateChatListener was called without a chat ID.");
         return;
     }
 
@@ -162,17 +162,10 @@ export function setupPrivateChatListener() {
     listeners.privateChat = onSnapshot(chatQuery, (snapshot) => {
         const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse();
         renderMessages(messages, document.getElementById('private-message-window'), 'private_chat');
-    }, (error) => {
-        console.error(`Error listening to private chat ${activePrivateChatId}:`, error);
-        const chatWindow = document.getElementById('private-message-window');
-        if (chatWindow) {
-            chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Could not load messages. You may not have permission to view this chat.</p>`;
-        }
     });
 
     updateState({ listeners });
 }
-
 export function detachAllListeners() {
     const { listeners } = getState();
     Object.values(listeners).forEach(unsubscribe => {
@@ -321,15 +314,10 @@ export async function sendPrivateMessage(text) {
 
     const messagesColRef = collection(db, `private_chats/${activePrivateChatId}/messages`);
 
-    try {
-        await addDoc(messagesColRef, {
-            text: text,
-            authorUid: currentUserData.uid,
-            authorUsername: currentUserData.username,
-            timestamp: serverTimestamp()
-        });
-    } catch (error) {
-        console.error("Error sending private message:", error);
-        throw error; // Re-throw to be handled by the UI
-    }
+    await addDoc(messagesColRef, {
+        text: text,
+        authorUid: currentUserData.uid,
+        authorUsername: currentUserData.username,
+        timestamp: serverTimestamp()
+    });
 }
