@@ -240,7 +240,7 @@ export async function handleSendMessage(e, chatType, text) {
 }
 
 export async function handleDeleteMessage(messageId, chatType) {
-    const { currentUserData } = getState();
+    const { currentUserData, activePrivateChatPartner } = getState();
     let docPath;
     switch(chatType) {
        case 'world_chat':
@@ -253,7 +253,13 @@ export async function handleDeleteMessage(messageId, chatType) {
        case 'leadership_chat':
            docPath = `leadership_chat/${messageId}`;
            break;
+       case 'private_chat':
+            if (!currentUserData || !activePrivateChatPartner) return;
+            const chatId = [currentUserData.uid, activePrivateChatPartner.uid].sort().join('_');
+            docPath = `private_chats/${chatId}/messages/${messageId}`;
+            break;
        default:
+           console.error("Invalid chat type for delete:", chatType);
            return;
    }
 
@@ -261,6 +267,7 @@ export async function handleDeleteMessage(messageId, chatType) {
        await deleteDoc(doc(db, docPath));
    } catch (error) {
        console.error("Error deleting message:", error);
+       alert("Failed to delete message. You may not have permission.");
    }
 }
 
