@@ -29,7 +29,6 @@ import { renderFriendsList, renderMessages } from './ui/social-ui.js';
 import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
-import { updateSocialUITabs } from './ui/social-ui.js';
 import { storage } from './firebase-config.js';
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
