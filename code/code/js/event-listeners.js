@@ -18,15 +18,6 @@ import { deletePost, handleSendMessage, handleDeleteMessage, handleNotificationA
 import { activateChatChannel } from './ui/social-ui.js'; 
 import { positionEmojiPicker } from './utils.js';
 export function initializeAllEventListeners() {
-    // --- Collapsible Friends List ---
-    const collapseBtn = getElement('collapse-friends-btn');
-    if (collapseBtn) {
-        collapseBtn.addEventListener('click', () => {
-            const container = getElement('friends-list-container-social');
-            const isCollapsed = container.classList.toggle('collapsed');
-            updateState({ isFriendsListCollapsed: isCollapsed });
-        });
-    }
     const getElement = (id) => document.getElementById(id);
 
     // --- Modal Triggers & Closers ---
@@ -167,7 +158,7 @@ export function initializeAllEventListeners() {
                 if (bubble) {
                     showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
                         handleDeleteMessage(bubble.dataset.messageId, bubble.dataset.chatType);
-                        hideAllModals(); // Add this line
+                        hideAllModals();
                     });
                 }
             } else if (bubble) {
@@ -194,11 +185,21 @@ export function initializeAllEventListeners() {
                     if (bubble) {
                         showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
                             handleDeleteMessage(bubble.dataset.messageId, 'private_chat');
-                            hideAllModals(); // Add this line
+                            hideAllModals();
                         });
                     }
                 }
             }
+        });
+    }
+
+    // --- Collapsible Friends List ---
+    const collapseBtn = getElement('collapse-friends-btn');
+    if (collapseBtn) {
+        collapseBtn.addEventListener('click', () => {
+            const container = getElement('friends-list-container-social');
+            const isCollapsed = container.classList.toggle('collapsed');
+            updateState({ isFriendsListCollapsed: isCollapsed });
         });
     }
 
