@@ -133,8 +133,15 @@ export function initializeAllEventListeners() {
             }
         });
     }
-    getElement('world-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
-    getElement('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
+    const worldChatForm = getElement('world-chat-form');
+    if (worldChatForm) {
+        worldChatForm.addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
+    }
+
+    const allianceChatForm = getElement('alliance-chat-form');
+    if (allianceChatForm) {
+        allianceChatForm.addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
+    }
     const leadershipForm = getElement('leadership-chat-form');
     if (leadershipForm) {
         leadershipForm.addEventListener('submit', (e) => handleSendMessage(e, 'leadership_chat'));
