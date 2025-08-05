@@ -160,34 +160,25 @@ export function showPostActionsModal(postId) {
 }
 
 // Add async here
+// Add async to the function definition
 export async function showPrivateMessageModal(targetPlayer) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
 
     try {
-        // --- STEP 1: DEFINE THE CHAT and GET A REFERENCE ---
-        // This creates a consistent ID for the chat between two users.
+        // 1. Calculate the ID and ensure the chat document exists.
         const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
         const chatDocRef = doc(db, 'private_chats', chatId);
-
-        // --- STEP 2: GUARANTEE THE CHAT DOCUMENT EXISTS ---
-        // We use 'await' to pause the function here until Firestore confirms
-        // the document has been created. This resolves the race condition.
         await setDoc(chatDocRef, {
             participants: [currentUserData.uid, targetPlayer.uid]
         }, { merge: true });
 
-        // --- STEP 3: UPDATE THE CLIENT-SIDE STATE ---
-        // This is the most critical step for fixing the error.
-        // We are now certain the chat exists, so we can safely set the
-        // active chat ID for other functions to use.
+        // 2. Update the state ONLY with the partner info.
         updateState({
-            activePrivateChatPartner: targetPlayer,
-            activePrivateChatId: chatId
+            activePrivateChatPartner: targetPlayer
         });
 
-        // --- STEP 4: POPULATE THE UI ---
-        // Now that the state is correct, we update the modal's visuals.
+        // 3. Populate the UI header.
         const session = userSessions[targetPlayer.uid];
         const status = session ? session.status : 'offline';
         getElement('private-message-username').textContent = targetPlayer.username;
@@ -196,11 +187,11 @@ export async function showPrivateMessageModal(targetPlayer) {
         getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
         getElement('private-message-window').innerHTML = '';
 
-        // --- STEP 5: SHOW THE MODAL AND SET UP THE LISTENER ---
-        // Now it's safe to show the modal and attach the listener,
-        // which will find the 'activePrivateChatId' in the state.
+        // 4. Show the modal.
         showModal(getElement('private-message-modal-container'));
-        setupPrivateChatListener();
+
+        // 5. Call the listener and PASS THE CHAT ID DIRECTLY as an argument.
+        setupPrivateChatListener(chatId);
 
     } catch (error) {
         console.error("Failed to open private chat:", error);
