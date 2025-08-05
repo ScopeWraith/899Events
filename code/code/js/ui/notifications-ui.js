@@ -56,7 +56,7 @@ function createNotificationHTML(notification) {
                 actionsHTML = `
                     <div class="notification-actions">
                         <button class="notification-action-btn primary-btn" data-action="accept-friend" data-sender-uid="${notification.senderUid}">Accept</button>
-                        <button class="notification-action-btn secondary-btn" data-action="decline-friend">Decline</button>
+                        <button class="notification-action-btn secondary-btn" data-action="decline-friend" data-sender-uid="${notification.senderUid}">Decline</button>
                     </div>
                 `;
             }

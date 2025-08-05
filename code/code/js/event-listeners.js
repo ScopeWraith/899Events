@@ -67,9 +67,8 @@ export function initializeAllEventListeners() {
         showEditProfileModal();
     });
     getElement('profile-dropdown-friends').addEventListener('click', () => {
-        getElement('user-profile-nav-item').classList.remove('open');
-        showPage('page-social');
-        document.querySelector('.social-tab-btn[data-tab="friends"]').click();
+    getElement('user-profile-nav-item').classList.remove('open');
+    showPage('page-feed');
     });
     getElement('profile-dropdown-avatar').addEventListener('click', () => getElement('avatar-upload-input').click());
     getElement('avatar-upload-input').addEventListener('change', handleAvatarUpload);
@@ -195,7 +194,10 @@ export function initializeAllEventListeners() {
                 actionBtn ? actionBtn.dataset.targetUid : null
             );
         }
-
+        const feedActionContainer = getElement('feed-action-container');
+        if (feedActionContainer) {
+            feedActionContainer.addEventListener('click', (e) => handleNotificationClick(e));
+        }
     // --- Player & Friend Actions ---
     getElement('player-list-container').addEventListener('click', async (e) => {
         const addFriendBtn = e.target.closest('.add-friend-btn');
