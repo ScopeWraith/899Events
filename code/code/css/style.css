@@ -650,8 +650,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 #player-profile-dropdown {
     top: calc(100% + 12px); 
     right: 0;
-    left: auto;
-    transform: translateY(-10px);
+    left: auto; /* Ensures it aligns to the right */
+    transform: translateY(-10px); /* Initial state for animation */
     width: 280px;
 }
 .nav-item.open #player-profile-dropdown {

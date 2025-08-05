@@ -60,10 +60,17 @@ export function initializeAllEventListeners() {
 
     // --- User Profile & Actions ---
     addListener('user-profile-button', 'click', (e) => {
-        // ... existing desktop listener ...
+        e.stopPropagation();
+        const navItem = getElement('user-profile-nav-item');
+        // Close other dropdowns
+        document.querySelectorAll('.nav-item.open').forEach(item => {
+            if (item !== navItem) item.classList.remove('open');
+        });
+        // Toggle this dropdown
+        if(navItem) navItem.classList.toggle('open');
     });
 
-    // --- NEW: Mobile Avatar Dropdown Listener ---
+    // --- Mobile Avatar Dropdown Listener ---
     addListener('user-avatar-mobile', 'click', (e) => {
         e.stopPropagation(); // Prevent the window click listener from closing it immediately
         const navItem = getElement('user-profile-nav-item');
