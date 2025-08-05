@@ -62,17 +62,13 @@ export function renderChatSelectors() {
 export function activateChatChannel(chatId) {
     const chatWindow = document.getElementById('chat-window-main');
     const chatInputForm = document.getElementById('chat-input-form');
-
-    // This is the input element we need to find and modify.
     const chatInput = document.getElementById('chat-input-main');
 
-    // A safety check to ensure all necessary elements exist before proceeding.
     if (!chatWindow || !chatInputForm || !chatInput) {
         console.error("Could not find all necessary chat elements in the DOM.");
         return;
     }
 
-    // Update the active state on the selector buttons.
     document.querySelectorAll('.chat-selector-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.chatId === chatId);
     });
@@ -80,10 +76,9 @@ export function activateChatChannel(chatId) {
     chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Loading messages for ${chatId.replace(/_/g, ' ')}...</p>`;
     chatInputForm.style.display = 'flex';
 
-    // Correctly set the placeholder text for the active chat.
+    // --- FIX: Set the placeholder text instead of changing the ID ---
     chatInput.placeholder = `Type a message in ${chatId.replace('_chat', '')}...`;
 
-    // Replace the form's event listener to avoid duplicates and correctly call handleSendMessage.
     const newForm = chatInputForm.cloneNode(true);
     chatInputForm.parentNode.replaceChild(newForm, chatInputForm);
     newForm.addEventListener('submit', (e) => handleSendMessage(e, chatId));
