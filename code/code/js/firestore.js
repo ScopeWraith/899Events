@@ -151,7 +151,7 @@ export function setupPrivateChatListener() {
     const { activePrivateChatId, listeners } = getState();
     if (listeners.privateChat) listeners.privateChat(); // Detach old listener
 
-    // A guard clause to ensure we don't run this function without a valid chat ID
+    // This guard clause is what shows the error in your screenshot. It's working correctly.
     if (!activePrivateChatId) {
         console.error("setupPrivateChatListener called without an activePrivateChatId.");
         return;
@@ -163,7 +163,6 @@ export function setupPrivateChatListener() {
         const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse();
         renderMessages(messages, document.getElementById('private-message-window'), 'private_chat');
     }, (error) => {
-        // Add error handling to the listener itself
         console.error(`Error listening to private chat ${activePrivateChatId}:`, error);
         const chatWindow = document.getElementById('private-message-window');
         if (chatWindow) {
