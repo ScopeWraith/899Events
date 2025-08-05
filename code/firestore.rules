@@ -104,17 +104,17 @@ service cloud.firestore {
     match /world_chat/{messageId} {
         allow read: if isSignedIn();
         allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid;
-        allow update, delete: if isAdmin();
+        allow update, delete: if isAdmin() || isOwner(resource.data.authorUid);
     }
     
     match /leadership_chat/{messageId} {
         allow read, create: if isLeader();
-        allow update, delete: if isAdmin();
+        allow update, delete: if isAdmin() || isOwner(resource.data.authorUid);
     }
     
     match /alliance_chats/{allianceId}/messages/{messageId} {
         allow read, create: if isMemberOf(allianceId);
-        allow update, delete: if (isLeader() && isMemberOf(allianceId));
+        allow update, delete: if (isLeader() && isMemberOf(allianceId)) || isOwner(resource.data.authorUid);
     }
 
     // --- PRIVATE CHAT ---

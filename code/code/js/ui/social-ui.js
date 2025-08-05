@@ -194,26 +194,26 @@ export function renderMessages(messages, container, chatType) {
         messageContent += `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">`;
     }
 
-    const messageEl = document.createElement('div');
-    messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
-    messageEl.dataset.id = msg.id; // Add message ID for reactions
-    messageEl.dataset.type = chatType; // Add chat type for reactions
+    const messageActionsHTML = isSelf ? `
+            <div class="message-actions">
+                <button class="message-action-btn edit-message-btn" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                <button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>
+            </div>
+        ` : '';
 
-    messageEl.innerHTML = `
-        <div class="chat-message-identity">
-             <img src="${avatarUrl}" class="w-10 h-10 rounded-full flex-shrink-0" alt="${authorUsername}">
-             <p class="chat-message-timestamp">${timestamp}</p>
-        </div>
-        <div class="chat-message-main">
-            <div class="chat-message-bubble">
-                <p class="chat-message-author">${authorUsername}</p>
-                ${messageContent}
+        const messageEl = document.createElement('div');
+        messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
+        messageEl.dataset.id = msg.id; // Add message ID for reactions
+        messageEl.dataset.type = chatType; // Add chat type for reactions
+
+        messageEl.innerHTML = `
+            <div class="chat-message-identity">
+                 <img src="${avatarUrl}" class="w-10 h-10 rounded-full flex-shrink-0" alt="${authorUsername}">
+                 <p class="chat-message-timestamp">${timestamp}</p>
             </div>
-            <div class="chat-reactions-container">
-                ${reactionPillsHTML}
-                <button class="add-reaction-btn" title="Add Reaction"><i class="far fa-smile"></i></button>
-            </div>
-        </div>
+            <div class="chat-message-main">
+                ${messageActionsHTML}
+                <div class="chat-message-bubble">
     `;
     container.appendChild(messageEl);
 });
