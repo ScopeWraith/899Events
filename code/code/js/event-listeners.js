@@ -15,7 +15,7 @@ import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePostFormForEdit, renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { deletePost, handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage } from './firestore.js';
-import { activateChatChannel } from './social-ui.js'; 
+import { activateChatChannel } from './ui/social-ui.js'; 
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
 
