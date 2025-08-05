@@ -60,12 +60,29 @@ export function initializeAllEventListeners() {
 
     // --- User Profile & Actions ---
     addListener('user-profile-button', 'click', (e) => {
-        e.stopPropagation();
+        // ... existing desktop listener ...
+    });
+
+    // --- NEW: Mobile Avatar Dropdown Listener ---
+    addListener('user-avatar-mobile', 'click', (e) => {
+        e.stopPropagation(); // Prevent the window click listener from closing it immediately
         const navItem = getElement('user-profile-nav-item');
-        document.querySelectorAll('.nav-item.open').forEach(item => {
-            if (item !== navItem) item.classList.remove('open');
-        });
-        if(navItem) navItem.classList.toggle('open');
+        const dropdown = getElement('player-profile-dropdown');
+        const avatar = getElement('user-avatar-mobile');
+
+        if (navItem && dropdown && avatar) {
+            // Toggle the dropdown's visibility
+            const isOpen = navItem.classList.toggle('open');
+            
+            // If opening, position it correctly near the mobile avatar
+            if (isOpen) {
+                const avatarRect = avatar.getBoundingClientRect();
+                dropdown.style.top = `${avatarRect.bottom + 10}px`; // 10px below the avatar
+                dropdown.style.right = '1rem'; // Align to the right edge of the screen
+                dropdown.style.left = 'auto';
+                dropdown.style.transform = 'none'; // Reset any desktop transforms
+            }
+        }
     });
     addListener('profile-dropdown-logout', 'click', () => signOut(auth));
     addListener('profile-dropdown-edit', 'click', () => {
