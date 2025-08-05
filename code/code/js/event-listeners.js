@@ -223,7 +223,9 @@ export function initializeAllEventListeners() {
         }
     });
 
-    getElement('friends-list').addEventListener('click', (e) => {
+    const friendsList = getElement('friends-list');
+    if (friendsList) {
+    friendsList.addEventListener('click', (e) => {
         const removeBtn = e.target.closest('.remove-friend-btn');
         const messageBtn = e.target.closest('.message-player-btn');
         
@@ -236,7 +238,8 @@ export function initializeAllEventListeners() {
             const targetPlayer = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
             if (targetPlayer) showPrivateMessageModal(targetPlayer);
         }
-    });
+        
+    })};
     const friendsListSocial = getElement('friends-list-social-page');
     if (friendsListSocial) {
         friendsListSocial.addEventListener('click', (e) => {
