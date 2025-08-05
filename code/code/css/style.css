@@ -374,7 +374,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     opacity: 1;
 }
 .chat-message-bubble {
-    padding: 0.75rem 1rem;
+    padding: 0.5rem .75rem;
     border-radius: 18px;
     background-color: rgba(33, 38, 45, 0.6); /* Slightly transparent background */
     border: 2px solid; /* The border will get its color from a class */
