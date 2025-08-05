@@ -121,14 +121,15 @@ export function setupChatListeners(activeChatId = 'world_chat') {
     if (listeners.allianceChat) listeners.allianceChat();
     if (listeners.leadershipChat) listeners.leadershipChat();
 
-    let query;
+    // --- FIX: Rename the variable from 'query' to 'chatQuery' ---
+    let chatQuery; 
     let container = document.getElementById('chat-window-main');
 
     switch (activeChatId) {
         case 'alliance_chat':
             if (currentUserData.alliance) {
-                query = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
-                listeners.allianceChat = onSnapshot(query, (snapshot) => {
+                chatQuery = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
+                listeners.allianceChat = onSnapshot(chatQuery, (snapshot) => {
                     const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderMessages(messages, container, 'alliance_chat');
                 });
@@ -136,8 +137,8 @@ export function setupChatListeners(activeChatId = 'world_chat') {
             break;
         case 'leadership_chat':
             if (isUserLeader(currentUserData)) {
-                query = query(collection(db, "leadership_chat"), orderBy("timestamp", "desc"), limit(50));
-                listeners.leadershipChat = onSnapshot(query, (snapshot) => {
+                chatQuery = query(collection(db, "leadership_chat"), orderBy("timestamp", "desc"), limit(50));
+                listeners.leadershipChat = onSnapshot(chatQuery, (snapshot) => {
                     const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderMessages(messages, container, 'leadership_chat');
                 });
@@ -145,8 +146,8 @@ export function setupChatListeners(activeChatId = 'world_chat') {
             break;
         case 'world_chat':
         default:
-            query = query(collection(db, "world_chat"), orderBy("timestamp", "desc"), limit(50));
-            listeners.worldChat = onSnapshot(query, (snapshot) => {
+            chatQuery = query(collection(db, "world_chat"), orderBy("timestamp", "desc"), limit(50));
+            listeners.worldChat = onSnapshot(chatQuery, (snapshot) => {
                 const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderMessages(messages, container, 'world_chat');
             });
