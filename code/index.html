@@ -11,14 +11,14 @@
     <link rel="stylesheet" href="code/css/style.css">
 </head>
 <body>
-    <div id="app-preloader">
+    <div id="app-preloader" class="flex flex-col items-center justify-center">
+        <img src="img/logo.png" alt="Logo" class="mb-4" style="width: 200px;"/>
         <div class="spinner"></div>
     </div>
 
     <div id="app-container">
         <canvas id="particle-canvas"></canvas>
 
-        <!-- Mobile Nav Menu -->
         <div id="mobile-nav-menu" class="glass-pane !rounded-l-lg !rounded-r-none">
             <div class="p-4 flex justify-between items-center border-b border-white/10">
                 <h3 class="text-xl font-bold text-white">Menu</h3>
@@ -27,7 +27,6 @@
             <nav id="mobile-nav-links" class="flex flex-col p-2"></nav>
         </div>
 
-        <!-- Modals Container -->
         <div id="modal-container-all">
             <div id="emoji-picker-container" class="absolute z-[2000]" style="display: none;">
                 <emoji-picker class="light"></emoji-picker>
@@ -37,7 +36,6 @@
                 <span class="emoji-option" data-emoji="👍">👍</span>
                 <span class="emoji-option" data-emoji="😂">😂</span>
             </div>
-            <!-- Auth & Edit Modals -->
             <div id="modal-backdrop" class="modal-backdrop"></div>
             <div id="auth-modal-container" class="modal-container">
                 <div class="glass-pane">
@@ -175,7 +173,6 @@
                 </div>
             </div>
 
-            <!-- Player Settings Modal -->
             <div id="player-settings-modal-container" class="modal-container">
                  <div class="glass-pane">
                     <div class="modal-content-wrapper">
@@ -221,7 +218,6 @@
                 </div>
             </div>
 
-            <!-- Create/Edit Post Modal -->
             <div id="create-post-modal-container" class="modal-container">
                  <div class="glass-pane">
                     <div class="modal-content-wrapper">
@@ -231,23 +227,18 @@
                         <div class="modal-content-scroll">
                             <form id="create-post-form">
                                 <div id="post-creation-flow">
-                                     <!-- Slide 1: Main Type (Event vs Announcement) - SKIPPED IN NEW FLOW -->
-                                    <div class="form-slide" data-slide="1">
+                                     <div class="form-slide" data-slide="1">
                                         <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
                                         <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
                                         <div id="post-main-type-selection-container" class="space-y-4">
-                                           <!-- Dynamically inserted buttons for Event/Announcement -->
-                                        </div>
+                                           </div>
                                     </div>
-                                    <!-- Slide 2: Sub-Type Selection -->
                                     <div class="form-slide" data-slide="2">
                                         <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
                                         <p class="text-center text-gray-400 mb-6">Select a category.</p>
                                         <div id="post-subtype-selection-container" class="space-y-3">
-                                           <!-- Dynamically inserted sub-type buttons -->
-                                        </div>
+                                           </div>
                                     </div>
-                                    <!-- Slide 3: Content -->
                                     <div class="form-slide" data-slide="3">
                                         <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
                                         <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
@@ -276,8 +267,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                     <!-- Slide 4: Timing (for events) -->
-                                    <div class="form-slide" data-slide="4">
+                                     <div class="form-slide" data-slide="4">
                                         <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
                                         <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
                                         <div id="post-timing-group" class="space-y-4">
@@ -342,7 +332,6 @@
                 </div>
             </div>
 
-            <!-- Confirmation Modal -->
             <div id="confirmation-modal-container" class="modal-container">
                 <div class="glass-pane">
                     <div class="modal-content-wrapper p-6 text-center">
@@ -356,7 +345,6 @@
                 </div>
             </div>
 
-            <!-- Post Actions Modal -->
             <div id="post-actions-modal-container" class="modal-container" style="max-width: 300px;">
                 <div class="glass-pane">
                     <div class="modal-content-wrapper p-4">
@@ -376,8 +364,7 @@
                 </div>
             </div>
             
-            <!-- Private Message Modal -->
-        <div id="private-message-modal-container" class="modal-container !p-0" style="max-width: 500px; height: 85vh; max-height: 700px;">
+            <div id="private-message-modal-container" class="modal-container !p-0" style="max-width: 500px; height: 85vh; max-height: 700px;">
                 <div class="glass-pane flex flex-col h-full overflow-hidden">
                     <div id="private-message-header" class="flex items-center p-3 border-b border-white/10 flex-shrink-0">
                         <button id="close-private-message-modal-btn" class="text-gray-500 hover:text-white transition-colors mr-3 ml-1">
@@ -418,8 +405,7 @@
 
                 <header class="glass-pane header-main flex justify-between items-center mb-6">
                     <div class="flex-shrink-0">
-                        <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white" style="text-shadow: 0 0 10px var(--color-primary-glow);">899<span class="font-bold" style="color: var(--color-primary);">HUB</span></h1>
-                        <p class="text-xs text-gray-400">Official Community Hub</p>
+                        <img src="img/logo.png" alt="899Events Hub Logo" style="height: 50px;">
                     </div>
                     
                     <nav id="main-nav" class="hidden md:flex flex-grow justify-center items-center">
@@ -432,7 +418,6 @@
                                 <span id="notification-badge" class="notification-badge"></span>
                             </div>
                             <div id="feed-dropdown" class="dropdown-menu dropdown-pane glass-pane">
-                                <!-- Notifications will be rendered here -->
                                 <p class="text-center text-gray-500 p-4">No new notifications.</p>
                             </div>
                         </div>
@@ -482,9 +467,7 @@
                     </div>
                     </header>
                 </div>
-                <!-- Page Content Container -->
                 <div id="page-container">
-                    <!-- Feed Page -->
                     <div id="page-feed" class="page-content" style="display: none;">
                         <div id="feed-welcome-message" class="mb-8 text-center"></div>
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -508,7 +491,6 @@
                     </div>
                 </div>
                     
-                    <!-- Social Page -->
                     <div id="page-social" class="page-content" style="display: none;">
                         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                             <div class="lg:col-span-1">
@@ -549,7 +531,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Players Page -->
                     <div id="page-players" class="page-content" style="display: none;">
                         <div class="glass-pane section-container">
                             <div class="text-center mb-8">
@@ -575,25 +556,20 @@
                             </div>
 
                             <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                 <!-- Player cards will be inserted here -->
-                            </div>
+                                 </div>
                         </div>
                     </div>
-                    <!-- Events Page -->
                     <div id="page-events" class="page-content">
                         <main id="events-main-container" class="space-y-6">
                             
                             <div id="filter-container" class="filter-btn-group">
-                                <!-- Filter buttons will be dynamically inserted here -->
-                            </div>
+                                </div>
 
                             <div id="announcements-container" class="space-y-4">
-                                <!-- Skeletons or announcement cards will be rendered here -->
-                            </div>
+                                </div>
 
                             <div id="events-section-container" class="space-y-4">
-                                <!-- Skeletons or event group headers and lists will be rendered here -->
-                            </div>
+                                </div>
 
                         </main>
                     </div>
@@ -603,7 +579,6 @@
             </div>
         </div>
     </div>
-    <!-- Firebase SDK -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
     <script type="module" src="code/js/main.js"></script>
 </body>
