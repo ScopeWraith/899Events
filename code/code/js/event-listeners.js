@@ -18,6 +18,23 @@ import { deletePost, handleSendMessage, handleDeleteMessage, handleNotificationA
 import { activateChatChannel } from './ui/social-ui.js'; 
 import { positionEmojiPicker } from './utils.js';
 export function initializeAllEventListeners() {
+    const reactionPicker = getElement('reaction-picker-container');
+    if (reactionPicker) {
+        reactionPicker.addEventListener('click', (e) => {
+            const emojiOption = e.target.closest('.emoji-option');
+            if (emojiOption) {
+                const { messageId, chatType } = reactionPicker.dataset;
+                const emoji = emojiOption.dataset.emoji;
+
+                toggleReaction(chatType, messageId, emoji);
+
+                // Hide the picker
+                reactionPicker.style.display = 'none';
+                delete reactionPicker.dataset.messageId;
+                delete reactionPicker.dataset.chatType;
+            }
+        });
+    }
     const getElement = (id) => document.getElementById(id);
 
     // --- Modal Triggers & Closers ---
@@ -167,10 +184,28 @@ export function initializeAllEventListeners() {
     if (socialPage) {
         socialPage.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-message-btn');
+            const addReactionBtn = e.target.closest('.add-reaction-btn');
+            const reactionPill = e.target.closest('.reaction-pill');
+
             if (deleteBtn) {
                 showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
                     handleDeleteMessage(deleteBtn.dataset.id, deleteBtn.dataset.type);
                 });
+            } else if (addReactionBtn) {
+                // Show the reaction picker
+                const picker = document.getElementById('reaction-picker-container');
+                picker.style.display = 'flex';
+                const rect = addReactionBtn.getBoundingClientRect();
+                picker.style.left = `${rect.left}px`;
+                picker.style.top = `${rect.top}px`;
+
+                // Temporarily store which message we're reacting to
+                picker.dataset.messageId = addReactionBtn.closest('.chat-message').dataset.id;
+                picker.dataset.chatType = addReactionBtn.closest('.chat-message').dataset.type;
+
+            } else if (reactionPill) {
+                // This could be used to also toggle a reaction
+                // For now, it just shows the tooltip via CSS
             }
         });
     }
