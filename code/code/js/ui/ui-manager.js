@@ -16,6 +16,7 @@ import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { renderTodaysAllianceActivity } from './post-ui.js';
 import { renderFeedActivity } from './post-ui.js';
+import { renderChatSelectors, renderFriendsList } from './social-ui.js';
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
@@ -45,6 +46,13 @@ export function showPage(targetId) {
         
         // Call our new, comprehensive feed renderer
         renderFeedActivity();
+    }
+    if (targetId === 'page-social') {
+        renderChatSelectors();
+        renderFriendsList();
+        // Optionally activate the world chat by default
+        activateChatChannel('world_chat');
+        setupChatListeners('world_chat');
     }
 }
 
