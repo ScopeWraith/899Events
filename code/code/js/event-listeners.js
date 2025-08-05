@@ -116,9 +116,10 @@ export function initializeAllEventListeners() {
         }
     });
     getElement('player-search-input').addEventListener('input', () => applyPlayerFilters());
-    getElement('alliance-filter').addEventListener('change', () => applyPlayerFilters());
-
-
+    const allianceFilter = getElement('alliance-filter');
+    if (allianceFilter) {
+        allianceFilter.addEventListener('change', () => applyPlayerFilters());
+    }
     // --- Social Page & Chat ---
     const socialChatSelector = getElement('social-chat-selector');
     if (socialChatSelector) {
