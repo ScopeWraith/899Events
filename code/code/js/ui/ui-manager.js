@@ -11,7 +11,7 @@ import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, 
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { initializePostStepper, populatePostFormForEdit } from './post-ui.js';
-import { setupPrivateChatListener } from '../firestore.js';
+import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { renderTodaysAllianceActivity } from './post-ui.js';
