@@ -153,48 +153,46 @@ export function renderMessages(messages, container, chatType) {
         return;
     }
 
-    // CRITICAL FIX: The query returns newest messages first. We MUST reverse this
-    // to get oldest-first before rendering. The CSS will then display it correctly.
     const orderedMessages = messages.reverse();
 
-   orderedMessages.forEach(msg => {
-    const isSelf = msg.authorUid === currentUserData.uid;
-    const authorUsername = msg.authorUsername || '?';
-    const authorData = allPlayers.find(p => p.uid === msg.authorUid);
-    const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
-    const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
+    orderedMessages.forEach(msg => {
+        const isSelf = msg.authorUid === currentUserData.uid;
+        const authorUsername = msg.authorUsername || '?';
+        const authorData = allPlayers.find(p => p.uid === msg.authorUid);
+        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
+        const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
 
-    // --- REACTION LOGIC ---
-    const reactions = msg.reactions || {};
-    const reactionPillsHTML = Object.entries(reactions)
-        .map(([emoji, userMap]) => {
-            const userList = Object.values(userMap);
-            const count = userList.length;
-            if (count === 0) return '';
+        // --- REACTION LOGIC ---
+        const reactions = msg.reactions || {};
+        const reactionPillsHTML = Object.entries(reactions)
+            .map(([emoji, userMap]) => {
+                const userList = Object.values(userMap);
+                const count = userList.length;
+                if (count === 0) return '';
+                
+                const hasReacted = currentUserData.uid in userMap;
+                const tooltipText = userList.join(', ');
 
-            const hasReacted = currentUserData.uid in userMap;
-            const tooltipText = userList.join(', ');
+                return `
+                    <div class="reaction-pill ${hasReacted ? 'reacted' : ''}" data-emoji="${emoji}" data-tooltip="${tooltipText}">
+                        <span class="emoji">${emoji}</span>
+                        <span class="count">${count}</span>
+                        <div class="reaction-tooltip">${tooltipText}</div>
+                    </div>
+                `;
+            })
+            .join('');
+        
+        // --- MESSAGE CONTENT ---
+        let messageContent = '';
+        if (msg.text) {
+            messageContent += `<p>${autoLinkText(msg.text)}</p>`;
+        }
+        if (msg.imageUrl) {
+            messageContent += `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">`;
+        }
 
-            return `
-                <div class="reaction-pill ${hasReacted ? 'reacted' : ''}" data-emoji="${emoji}" data-tooltip="${tooltipText}">
-                    <span class="emoji">${emoji}</span>
-                    <span class="count">${count}</span>
-                    <div class="reaction-tooltip">${tooltipText}</div>
-                </div>
-            `;
-        })
-        .join('');
-
-    // --- MESSAGE CONTENT ---
-    let messageContent = '';
-    if (msg.text) {
-        messageContent += `<p>${autoLinkText(msg.text)}</p>`;
-    }
-    if (msg.imageUrl) {
-        messageContent += `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">`;
-    }
-
-    const messageActionsHTML = isSelf ? `
+        const messageActionsHTML = isSelf ? `
             <div class="message-actions">
                 <button class="message-action-btn edit-message-btn" title="Edit"><i class="fas fa-pencil-alt"></i></button>
                 <button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>
@@ -203,8 +201,8 @@ export function renderMessages(messages, container, chatType) {
 
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
-        messageEl.dataset.id = msg.id; // Add message ID for reactions
-        messageEl.dataset.type = chatType; // Add chat type for reactions
+        messageEl.dataset.id = msg.id;
+        messageEl.dataset.type = chatType;
 
         messageEl.innerHTML = `
             <div class="chat-message-identity">
@@ -214,7 +212,15 @@ export function renderMessages(messages, container, chatType) {
             <div class="chat-message-main">
                 ${messageActionsHTML}
                 <div class="chat-message-bubble">
-    `;
-    container.appendChild(messageEl);
-});
+                    <p class="chat-message-author">${authorUsername}</p>
+                    ${messageContent}
+                </div>
+                <div class="chat-reactions-container">
+                    ${reactionPillsHTML}
+                    <button class="add-reaction-btn" title="Add Reaction"><i class="far fa-smile"></i></button>
+                </div>
+            </div>
+        `;
+        container.appendChild(messageEl);
+    });
 }
