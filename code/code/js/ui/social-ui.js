@@ -62,7 +62,7 @@ export function renderChatSelectors() {
 export function activateChatChannel(chatId) {
     const chatWindow = document.getElementById('chat-window-main');
     const chatInputForm = document.getElementById('chat-input-form');
-    
+
     // Update active button state
     document.querySelectorAll('.chat-selector-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.chatId === chatId);
@@ -70,13 +70,15 @@ export function activateChatChannel(chatId) {
 
     chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Loading messages for ${chatId.replace('_', ' ')}...</p>`;
     chatInputForm.style.display = 'flex';
-    
-    // Replace the form's event listener to avoid duplicates
+
+    // Set the ID of the input field to match the active chat
+    const chatInput = chatInputForm.querySelector('#chat-input-main');
+    chatInput.id = `${chatId.replace('_chat', '')}-chat-input`;
+
+    // Replace the form's event listener to avoid duplicates and correctly call handleSendMessage
     const newForm = chatInputForm.cloneNode(true);
     chatInputForm.parentNode.replaceChild(newForm, chatInputForm);
     newForm.addEventListener('submit', (e) => handleSendMessage(e, chatId));
-    
-    // We will hook up the Firestore listeners in firestore.js
 }
 
 // --- EXISTING FUNCTIONS (Modified) ---
