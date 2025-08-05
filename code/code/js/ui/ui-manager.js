@@ -170,7 +170,8 @@ export function showPrivateMessageModal(targetPlayer) {
         participants: [currentUserData.uid, targetPlayer.uid] 
     }, { merge: true });
 
-    // Update the state
+    // THIS IS THE CRUCIAL STEP THAT FIXES THE ERROR
+    // It saves the active user and the calculated chat ID to the application state.
     updateState({ 
         activePrivateChatPartner: targetPlayer,
         activePrivateChatId: chatId 
@@ -189,7 +190,6 @@ export function showPrivateMessageModal(targetPlayer) {
     showModal(getElement('private-message-modal-container'));
     setupPrivateChatListener();
 }
-
 
 // --- UI INITIALIZATION & UPDATES ---
 
