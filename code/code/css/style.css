@@ -432,7 +432,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 }
 
 /* Improve main message text typography */
-chat-message-bubble p {
+.chat-message-bubble p {
     font-size: 1rem;
     line-height: 1.5;
     color: #e6edf3;
