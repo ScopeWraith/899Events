@@ -81,7 +81,17 @@ export function activateChatChannel(chatId) {
 
     const newForm = chatInputForm.cloneNode(true);
     chatInputForm.parentNode.replaceChild(newForm, chatInputForm);
-    newForm.addEventListener('submit', (e) => handleSendMessage(e, chatId));
+    newForm.addEventListener('submit', (e) => {
+        // Find the input within the newly cloned form
+        const input = newForm.querySelector('#chat-input-main');
+        const text = input.value;
+
+        // Pass the text to the handler
+        handleSendMessage(e, chatId, text);
+
+        // Clear the input for the next message
+        input.value = '';
+    });
 }
 
 // --- EXISTING FUNCTIONS (Modified) ---
