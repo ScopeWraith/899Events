@@ -174,11 +174,6 @@ export function initializeAllEventListeners() {
             feedDropdown.addEventListener('click', (e) => handleNotificationClick(e));
         }
 
-        const feedPageContainer = getElement('feed-page-container');
-        if (feedPageContainer) {
-            feedPageContainer.addEventListener('click', (e) => handleNotificationClick(e));
-        }
-
         async function handleNotificationClick(e) {
             const item = e.target.closest('.notification-item');
             if (!item) return;
