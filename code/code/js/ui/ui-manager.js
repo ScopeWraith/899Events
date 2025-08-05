@@ -221,6 +221,7 @@ export function updateUIForLoggedInUser() {
     updatePlayerProfileDropdown();
     getElement('login-btn').classList.add('hidden');
     getElement('user-profile-nav-item').classList.remove('hidden');
+    getElement('mobile-auth-container').classList.add('logged-in');
 }
 
 export function updateUIForLoggedOutUser() {
@@ -228,6 +229,7 @@ export function updateUIForLoggedOutUser() {
     const userProfileNavItem = getElement('user-profile-nav-item');
     userProfileNavItem.classList.add('hidden');
     userProfileNavItem.classList.remove('open');
+    getElement('mobile-auth-container').classList.remove('logged-in');
 }
 
 export function buildMobileNav() {

@@ -266,6 +266,7 @@ export async function handleAvatarUpload(e) {
 export function updateAvatarDisplay(data) {
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
     document.getElementById('user-avatar-button').src = avatarUrl;
+    document.getElementById('user-avatar-mobile').src = avatarUrl;
 }
 
 export function updatePlayerProfileDropdown() {

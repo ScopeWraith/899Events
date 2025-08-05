@@ -1032,3 +1032,27 @@ emoji-picker {
 #collapse-friends-btn i {
     transition: transform 0.3s ease;
 }
+
+/* --- Mobile Header Optimizations --- */
+.header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* On mobile (screens less than 768px wide) */
+@media (max-width: 767px) {
+    .header-main {
+        /* This creates space between the title, the menu button, and the avatar */
+        justify-content: space-between;
+    }
+    
+    #mobile-auth-container.logged-in {
+        display: block; /* Show the avatar container when the user is logged in */
+    }
+
+    #open-mobile-menu-btn {
+        /* This ensures the menu button doesn't take up all the space */
+        flex-grow: 0;
+    }
+}
