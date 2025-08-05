@@ -498,99 +498,37 @@
                     
                     <!-- Social Page -->
                     <div id="page-social" class="page-content" style="display: none;">
-                        <div class="glass-pane section-container">
-                            <div class="flex flex-col md:flex-row gap-4">
-                                <!-- Main Content: Tabs and Panes -->
-                                <div class="flex-grow">
-                                    <div class="social-tabs flex items-center mb-4">
-                                        <button class="social-tab-btn active" data-tab="world-chat"><i class="fas fa-globe mr-2"></i>World Chat</button>
-                                        <button class="social-tab-btn" data-tab="alliance-chat"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
-                                        <button class="social-tab-btn" data-tab="leadership-chat"><i class="fas fa-crown mr-2"></i>Leadership</button>
-                                        <button class="social-tab-btn" data-tab="friends"><i class="fas fa-user-friends mr-2"></i>Friends</button>
-                                    </div>
+                    <div class="glass-pane section-container">
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-                                    <!-- World Chat Pane -->
-                                    <div id="pane-world-chat" class="social-content-pane active">
+                            <div class="lg:col-span-3">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <div id="social-chat-selector" class="md:col-span-1 space-y-2">
+                                        </div>
+
+                                    <div id="social-chat-pane" class="md:col-span-3">
                                         <div class="flex flex-col h-full">
-                                            <div id="world-chat-window" class="chat-window p-4 flex-grow">
-                                                <!-- Messages will be injected here -->
-                                                <p class="text-center text-gray-500 m-auto">Welcome to World Chat!</p>
+                                            <div id="chat-window-main" class="chat-window p-4 flex-grow" style="height: 65vh;">
+                                            <p class="text-center text-gray-500 m-auto">Select a chat to begin.</p>
                                             </div>
-                                            <form id="world-chat-form" class="mt-4 flex gap-2">
-                                                <input type="text" id="world-chat-input" class="form-input flex-grow" placeholder="Type a message in world chat..." required>
+                                            <form id="chat-input-form" class="mt-4 flex gap-2" style="display: none;">
+                                                <input type="text" id="chat-input-main" class="form-input flex-grow" placeholder="Type a message..." required>
                                                 <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
                                             </form>
-                                        </div>
-                                    </div>
-
-                                    <!-- Alliance Chat Pane -->
-                                    <div id="pane-alliance-chat" class="social-content-pane">
-                                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                            <div class="lg:col-span-2 flex flex-col h-full">
-                                                <div id="alliance-chat-window" class="chat-window p-4 flex-grow">
-                                                   <p class="text-center text-gray-500 m-auto">Your private alliance chat.</p>
-                                                </div>
-                                                <form id="alliance-chat-form" class="mt-4 flex gap-2">
-                                                    <input type="text" id="alliance-chat-input" class="form-input flex-grow" placeholder="Message your alliance..." required>
-                                                    <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                                </form>
-                                            </div>
-                                            <div class="lg:col-span-1 space-y-4">
-                                                <div>
-                                                    <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-bullhorn"></i>Alliance Announcements</h3>
-                                                    <div id="alliance-announcements-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
-                                                        <p class="text-gray-400 text-center">No announcements.</p>
-                                                    </div>
-                                                </div>
-                                                 <div>
-                                                    <h3 class="section-header text-lg font-bold mb-2" style="--glow-color: var(--color-alliance);"><i class="fas fa-calendar-check"></i>Alliance Events</h3>
-                                                    <div id="alliance-events-list" class="space-y-2 text-sm p-2 rounded-lg bg-black/20 max-h-48 overflow-y-auto">
-                                                        <p class="text-gray-400 text-center">No events.</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Leadership Chat Pane -->
-                                    <div id="pane-leadership-chat" class="social-content-pane">
-                                        <div class="flex flex-col h-full">
-                                            <div id="leadership-chat-window" class="chat-window p-4 flex-grow">
-                                                <p class="text-center text-gray-500 m-auto">Private chat for R4/R5 Leadership.</p>
-                                            </div>
-                                            <form id="leadership-chat-form" class="mt-4 flex gap-2">
-                                                <input type="text" id="leadership-chat-input" class="form-input flex-grow" placeholder="Message leadership..." required>
-                                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Friends Pane -->
-                                    <div id="pane-friends" class="social-content-pane">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-check"></i>Your Friends</h3>
-                                                <div id="friends-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-96 overflow-y-auto">
-                                                    <p class="text-gray-400 text-center p-4">You haven't added any friends yet.</p>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-plus"></i>Friend Requests</h3>
-                                                <div id="friend-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
-                                                    <p class="text-gray-400 text-center p-4">No pending requests.</p>
-                                                </div>
-                                                <h3 class="section-header text-lg font-bold mb-2 mt-4"><i class="fas fa-paper-plane"></i>Sent Requests</h3>
-                                                <div id="sent-requests-list" class="space-y-2 p-2 rounded-lg bg-black/20 h-40 overflow-y-auto">
-                                                    <p class="text-gray-400 text-center p-4">No sent requests.</p>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="lg:col-span-1">
+                                <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-friends"></i>Friends</h3>
+                                <div id="friends-list-social-page" class="space-y-2 p-2 rounded-lg bg-black/20" style="height: 75vh; overflow-y: auto;">
+                                    </div>
+                            </div>
+
                         </div>
                     </div>
-
+                </div>
                     <!-- Players Page -->
                     <div id="page-players" class="page-content" style="display: none;">
                         <div class="glass-pane section-container">

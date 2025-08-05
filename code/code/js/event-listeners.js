@@ -120,16 +120,18 @@ export function initializeAllEventListeners() {
 
 
     // --- Social Page & Chat ---
-    document.querySelectorAll('.social-tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.social-tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const targetPaneId = `pane-${btn.dataset.tab}`;
-            document.querySelectorAll('.social-content-pane').forEach(pane => {
-                pane.classList.toggle('active', pane.id === targetPaneId);
-            });
+    const socialChatSelector = getElement('social-chat-selector');
+    if (socialChatSelector) {
+        socialChatSelector.addEventListener('click', (e) => {
+            const chatButton = e.target.closest('.chat-selector-btn');
+            if (chatButton) {
+                const chatId = chatButton.dataset.chatId;
+                activateChatChannel(chatId);
+                // We need to trigger the correct Firestore listener
+                setupChatListeners(chatId);
+            }
         });
-    });
+    }
     getElement('world-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'world_chat'));
     getElement('alliance-chat-form').addEventListener('submit', (e) => handleSendMessage(e, 'alliance_chat'));
     const leadershipForm = getElement('leadership-chat-form');
@@ -234,7 +236,18 @@ export function initializeAllEventListeners() {
             if (targetPlayer) showPrivateMessageModal(targetPlayer);
         }
     });
-    
+    const friendsListSocial = getElement('friends-list-social-page');
+    if (friendsListSocial) {
+        friendsListSocial.addEventListener('click', (e) => {
+            // This existing logic for opening a PM window is perfect here
+            const messageBtn = e.target.closest('.message-player-btn');
+            if (messageBtn) {
+                const { allPlayers } = getState();
+                const targetPlayer = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
+                if (targetPlayer) showPrivateMessageModal(targetPlayer);
+            }
+        });
+    }
     // --- General UI ---
     window.addEventListener('click', (e) => { 
         if (!e.target.closest('.nav-item')) {
