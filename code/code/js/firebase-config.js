@@ -28,4 +28,15 @@ const db = getFirestore(app);
 const rtdb = getDatabase(app);
 const storage = getStorage(app);
 
+enableIndexedDbPersistence(db)
+  .catch((err) => {
+      if (err.code == 'failed-precondition') {
+          // This can happen if multiple tabs are open.
+          console.warn("Firestore persistence failed: Multiple tabs open. App will still work online.");
+      } else if (err.code == 'unimplemented') {
+          // This can happen in very old browsers or unsupported environments.
+          console.log("Firestore persistence is not available in this browser.");
+      }
+  });
+  
 export { app, auth, db, rtdb, storage };
