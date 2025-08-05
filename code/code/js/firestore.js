@@ -55,7 +55,6 @@ export function setupAllListeners(user) {
         updateState({ userNotifications });
         renderNotifications(userNotifications);
         updatePlayerProfileDropdown();
-        renderFriendRequests();
     });
 
     // Friends listener
