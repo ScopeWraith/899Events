@@ -974,7 +974,7 @@ emoji-picker {
 
 .player-badge {
     position: absolute;
-    bottom: -4px;
+    bottom: -0px;
     left: 50%;
     transform: translateX(-50%);
     background-color: rgba(13, 17, 23, 0.85);
