@@ -2,6 +2,7 @@ import { getState, updateState } from '../state.js';
 import { isUserLeader } from '../utils.js';
 import { handleSendMessage } from '../firestore.js';
 import { formatMessageTimestamp, autoLinkText } from '../utils.js';
+import { positionEmojiPicker } from '../utils.js';
 
 // --- NEW CHAT MANAGEMENT SYSTEM ---
 
@@ -63,12 +64,9 @@ export function renderChatSelectors() {
 export function activateChatChannel(chatId) {
     const chatWindow = document.getElementById('chat-window-main');
     const chatInputForm = document.getElementById('chat-input-form');
-    const chatInput = document.getElementById('chat-input-main');
 
-    if (!chatWindow || !chatInputForm || !chatInput) {
-        console.error("Could not find all necessary chat elements in the DOM.");
-        return;
-    }
+    // --- All element checks happen here ---
+    if (!chatWindow || !chatInputForm) return;
 
     document.querySelectorAll('.chat-selector-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.chatId === chatId);
@@ -77,12 +75,31 @@ export function activateChatChannel(chatId) {
     chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Loading messages for ${chatId.replace(/_/g, ' ')}...</p>`;
     chatInputForm.style.display = 'flex';
 
-    // --- FIX: Set the placeholder text instead of changing the ID ---
-    chatInput.placeholder = `Type a message in ${chatId.replace('_chat', '')}...`;
-
+    // --- FORM REPLACEMENT ---
     const newForm = chatInputForm.cloneNode(true);
+    const newFormInput = newForm.querySelector('#chat-input-main');
+    const newFormEmojiBtn = newForm.querySelector('#main-chat-emoji-btn');
     chatInputForm.parentNode.replaceChild(newForm, chatInputForm);
-    newForm.addEventListener('submit', (e) => handleSendMessage(e, chatId));
+
+    newFormInput.placeholder = `Type a message in ${chatId.replace('_chat', '')}...`;
+    newForm.addEventListener('submit', (e) => handleSendMessage(e, chatId, newFormInput));
+
+    // --- EMOJI LISTENER ATTACHED TO THE NEW BUTTON ---
+    if (newFormEmojiBtn && newFormInput) {
+        newFormEmojiBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // This logic is now self-contained and robust
+            const emojiPickerContainer = document.getElementById('emoji-picker-container');
+            const activeEmojiInput = newFormInput;
+            positionEmojiPicker(newFormEmojiBtn, emojiPickerContainer);
+
+            // A one-time listener for the selection
+            const emojiPicker = document.querySelector('emoji-picker');
+            emojiPicker.addEventListener('emoji-click', event => {
+                activeEmojiInput.value += event.detail.unicode;
+            }, { once: true }); // Use 'once' to avoid multiple emojis on subsequent clicks
+        });
+    }
 }
 
 // --- EXISTING FUNCTIONS (Modified) ---
