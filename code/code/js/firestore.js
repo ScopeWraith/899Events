@@ -113,38 +113,50 @@ export function fetchInitialData() {
 }
 
 
-export function setupChatListeners() {
+// Import the UI function to render messages
+import { renderMessages } from './ui/social-ui.js';
+
+// ... (other functions)
+
+export function setupChatListeners(activeChatId = 'world_chat') {
     const { currentUserData, listeners } = getState();
     if (!currentUserData) return;
 
-    // Detach old chat listeners if they exist
+    // Detach all previous chat listeners
     if (listeners.worldChat) listeners.worldChat();
     if (listeners.allianceChat) listeners.allianceChat();
     if (listeners.leadershipChat) listeners.leadershipChat();
 
-    // World Chat
-    const worldChatQuery = query(collection(db, "world_chat"), orderBy("timestamp", "desc"), limit(50));
-    listeners.worldChat = onSnapshot(worldChatQuery, (snapshot) => {
-        const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse();
-        renderMessages(messages, document.getElementById('world-chat-window'), 'world_chat');
-    });
+    let query;
+    let container = document.getElementById('chat-window-main');
 
-    // Alliance Chat
-    if (currentUserData.alliance) {
-        const allianceChatQuery = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
-        listeners.allianceChat = onSnapshot(allianceChatQuery, (snapshot) => {
-            const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse();
-            renderMessages(messages, document.getElementById('alliance-chat-window'), 'alliance_chat');
-        });
-    }
-
-    // Leadership Chat
-    if (isUserLeader(currentUserData)) {
-        const leadershipChatQuery = query(collection(db, "leadership_chat"), orderBy("timestamp", "desc"), limit(50));
-        listeners.leadershipChat = onSnapshot(leadershipChatQuery, (snapshot) => {
-            const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse();
-            renderMessages(messages, document.getElementById('leadership-chat-window'), 'leadership_chat');
-        });
+    switch (activeChatId) {
+        case 'alliance_chat':
+            if (currentUserData.alliance) {
+                query = query(collection(db, `alliance_chats/${currentUserData.alliance}/messages`), orderBy("timestamp", "desc"), limit(50));
+                listeners.allianceChat = onSnapshot(query, (snapshot) => {
+                    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderMessages(messages, container, 'alliance_chat');
+                });
+            }
+            break;
+        case 'leadership_chat':
+            if (isUserLeader(currentUserData)) {
+                query = query(collection(db, "leadership_chat"), orderBy("timestamp", "desc"), limit(50));
+                listeners.leadershipChat = onSnapshot(query, (snapshot) => {
+                    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderMessages(messages, container, 'leadership_chat');
+                });
+            }
+            break;
+        case 'world_chat':
+        default:
+            query = query(collection(db, "world_chat"), orderBy("timestamp", "desc"), limit(50));
+            listeners.worldChat = onSnapshot(query, (snapshot) => {
+                const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderMessages(messages, container, 'world_chat');
+            });
+            break;
     }
     updateState({ listeners });
 }
