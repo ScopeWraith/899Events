@@ -2,7 +2,7 @@ import { getState, updateState } from '../state.js';
 import { isUserLeader } from '../utils.js';
 import { handleSendMessage } from '../firestore.js';
 import { formatMessageTimestamp, autoLinkText } from '../utils.js';
-import { positionEmojiPicker } from './utils.js';
+import { positionEmojiPicker } from '../utils.js';
 
 // --- NEW CHAT MANAGEMENT SYSTEM ---
 
