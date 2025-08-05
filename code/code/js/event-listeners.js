@@ -16,6 +16,7 @@ import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSub
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { deletePost, handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners } from './firestore.js';
 import { activateChatChannel } from './ui/social-ui.js'; 
+import { positionEmojiPicker } from './utils.js';
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
 
