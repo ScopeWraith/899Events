@@ -99,9 +99,15 @@ export function activateChatChannel(chatId) {
 export function renderFriendsList() {
     // This now specifically targets the new sidebar on the social page
     const container = document.getElementById('friends-list-social-page');
-    const { currentUserData, userFriends, allPlayers, userSessions } = getState();
+    const { currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed } = getState();
 
-    if (!container) return; // Only run if we are on the social page
+    // Add this block to handle the initial collapsed state
+    const friendsContainer = document.getElementById('friends-list-container-social');
+    if (friendsContainer) {
+        friendsContainer.classList.toggle('collapsed', isFriendsListCollapsed);
+    }
+
+    if (!container) return;
 
     if (!currentUserData) {
         container.innerHTML = '<p class="text-gray-400 text-center p-4">You must be logged in to see friends.</p>';

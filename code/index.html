@@ -40,100 +40,44 @@
             <!-- Auth & Edit Modals -->
             <div id="modal-backdrop" class="modal-backdrop"></div>
             <div id="auth-modal-container" class="modal-container">
-                <div class="glass-pane">
-                    <div class="modal-content-wrapper">
-                        <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                            <i class="fas fa-times fa-lg"></i>
-                        </button>
-                        <div class="modal-content-scroll">
-                            <!-- Login Form -->
-                            <div id="login-form-container" class="auth-form">
-                                <h2 class="text-2xl font-bold text-white text-center mb-4">Login</h2>
-                                <p class="text-center text-gray-400 mb-6">Welcome back to the 899 Hub.</p>
-                                <form id="login-form">
-                                    <div class="space-y-4">
-                                        <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="login-email" placeholder="Email" class="form-input" required></div>
-                                        <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="login-password" placeholder="Password" class="form-input" required></div>
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            <div class="lg:col-span-1">
+                                <div id="friends-list-container-social" class="glass-pane section-container flex flex-col">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h3 class="section-header !border-none !p-0 text-lg font-bold">
+                                            <i class="fas fa-user-friends"></i>Friends
+                                        </h3>
+                                        <button id="collapse-friends-btn" class="lg:hidden text-gray-400 hover:text-white">
+                                            <i class="fas fa-chevron-up"></i>
+                                        </button>
                                     </div>
-                                    <p id="login-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                                    <button type="submit" id="login-submit-btn" class="w-full p-3 rounded-lg primary-btn mt-2">Login</button>
-                                    <div class="text-center text-sm text-gray-400 mt-6">
-                                        <a href="#" id="forgot-password-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Forgot Password?</a>
-                                    </div>
-                                    <p class="text-center text-sm text-gray-400 mt-4">
-                                        Don't have an account? <a href="#" id="show-register-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Register here</a>
-                                    </p>
-                                </form>
-                            </div>
-                            <!-- Registration Form -->
-                            <div id="register-form-container" class="auth-form">
-                                <div id="registration-flow">
-                                    <h2 class="text-2xl font-bold text-white text-center mb-4">Create Account</h2>
-                                    <div class="progress-bar" id="register-progress-bar">
-                                        <div class="line"></div>
-                                        <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
-                                        <div class="progress-step" data-step="2"><i class="fas fa-shield-alt"></i></div>
-                                        <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
-                                        <div class="progress-step" data-step="4"><i class="fas fa-camera"></i></div>
-                                    </div>
-                                    <form id="register-form">
-                                        <div class="form-slide active" data-slide="1"><p class="text-center text-gray-400 mb-6">Step 1: Your Account Details</p><div class="space-y-4">
-                                            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password (min. 6 characters)" class="form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
-                                        </div></div>
-                                        <div class="form-slide" data-slide="2"><p class="text-center text-gray-400 mb-6">Step 2: Alliance Information</p><div class="space-y-4">
-                                             <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                                                <div class="custom-select-container" data-type="alliance">
-                                                    <input type="hidden" id="register-alliance" name="alliance" required>
-                                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                                    <div class="custom-select-options">
-                                                        <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                                        <div class="options-list"></div>
-                                                    </div>
-                                                </div>
-                                             </div>
-                                            <div class="input-group"><i class="fas fa-star input-icon"></i>
-                                                <div class="custom-select-container" data-type="rank">
-                                                    <input type="hidden" id="register-alliance-rank" name="alliance-rank" required>
-                                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                                    <div class="custom-select-options">
-                                                        <div class="options-list"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div></div>
-                                        <div class="form-slide" data-slide="3"><p class="text-center text-gray-400 mb-6">Step 3: Your Power Stats</p><div class="space-y-4">
-                                            <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power (e.g., 150,000,000)" class="power-input form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power" class="power-input form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
-                                        </div></div>
-                                        <div class="form-slide" data-slide="4">
-                                            <p class="text-center text-gray-400 mb-6">Step 4: Upload an Avatar (Optional)</p>
-                                            <div class="flex flex-col items-center gap-4">
-                                                <img id="register-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover border-2 border-white/20">
-                                                <button type="button" id="register-avatar-btn" class="w-full p-3 rounded-lg secondary-btn">
-                                                    <i class="fas fa-upload mr-2"></i> Choose Image
-                                                </button>
-                                                <input type="file" id="register-avatar-input" class="hidden" accept="image/*">
-                                            </div>
+                                    <div id="friends-list-social-page" class="space-y-2 p-2 rounded-lg bg-black/20 flex-grow" style="height: 75vh; overflow-y: auto;">
                                         </div>
-                                        <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                                        <div id="register-nav-container" class="flex items-center mt-6"><button type="button" id="register-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button><div class="flex-grow flex justify-center"><button type="button" id="register-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button><button type="submit" id="register-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Register</button></div></div>
-                                        <p class="text-center text-sm text-gray-400 mt-6">Already have an account? <a href="#" id="show-login-link" class="font-semibold hover:text-white" style="color: var(--color-primary);">Login here</a></p>
-                                    </form>
                                 </div>
-                                <div id="registration-success">
-                                    <i class="fas fa-check-circle success-icon"></i>
-                                    <h2 class="text-2xl font-bold text-white mt-4">Registration Complete!</h2>
-                                    <p class="text-gray-400 mt-2">Welcome to the 899 Hub. You will be logged in shortly.</p>
+                            </div>
+
+                            <div class="lg:col-span-3">
+                                <div class="glass-pane section-container flex flex-col h-full">
+                                    <div id="social-chat-selector" class="mb-4">
+                                        </div>
+                                    
+                                    <div id="social-chat-pane" class="flex flex-col flex-grow">
+                                        <div id="chat-window-main" class="chat-window p-4 flex-grow" style="height: 65vh;">
+                                            <p class="text-center text-gray-500 m-auto">Select a chat to begin.</p>
+                                        </div>
+                                        <form id="chat-input-form" class="mt-4 flex items-center gap-2" style="display: none;">
+                                            <div class="relative flex-grow">
+                                                <input type="text" id="chat-input-main" class="form-input" placeholder="Type a message...">
+                                                <button type="button" id="main-chat-emoji-btn" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                                                    <i class="fas fa-smile"></i>
+                                                </button>
+                                            </div>
+                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
             </div>
             
             <div id="edit-profile-modal-container" class="modal-container">

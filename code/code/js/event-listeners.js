@@ -18,6 +18,15 @@ import { deletePost, handleSendMessage, handleDeleteMessage, handleNotificationA
 import { activateChatChannel } from './ui/social-ui.js'; 
 import { positionEmojiPicker } from './utils.js';
 export function initializeAllEventListeners() {
+    // --- Collapsible Friends List ---
+    const collapseBtn = getElement('collapse-friends-btn');
+    if (collapseBtn) {
+        collapseBtn.addEventListener('click', () => {
+            const container = getElement('friends-list-container-social');
+            const isCollapsed = container.classList.toggle('collapsed');
+            updateState({ isFriendsListCollapsed: isCollapsed });
+        });
+    }
     const getElement = (id) => document.getElementById(id);
 
     // --- Modal Triggers & Closers ---

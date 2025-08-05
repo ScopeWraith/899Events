@@ -481,7 +481,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     color: #8b949e;
     background-color: rgba(33, 38, 45, 0.5);
     transition: all 0.2s ease;
-    border-left: 4px solid transparent;
 }
 .chat-selector-btn:hover {
     background-color: #30363d;
@@ -1004,4 +1003,32 @@ emoji-picker {
     font-size: 1rem;
     flex-shrink: 0;
     transition: background-color 0.2s ease;
+}
+#social-chat-selector {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+#social-chat-selector .chat-selector-btn {
+    padding: 0.5rem 1.5rem;
+    border-bottom: 3px solid transparent;
+    border-radius: 6px;
+}
+#social-chat-selector .chat-selector-btn.active {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-bottom-color: var(--glow-color, var(--color-primary));
+    color: white;
+}
+
+/* --- Collapsible Friends List Styles --- */
+#friends-list-container-social.collapsed #friends-list-social-page {
+    display: none;
+}
+#friends-list-container-social.collapsed #collapse-friends-btn i {
+    transform: rotate(180deg);
+}
+#collapse-friends-btn i {
+    transition: transform 0.3s ease;
 }

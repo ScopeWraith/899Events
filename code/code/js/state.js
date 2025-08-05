@@ -19,6 +19,7 @@ let state = {
     actionPostId: null,
     activePrivateChatId: null,
     activePrivateChatPartner: null,
+    isFriendsListCollapsed: false,
     listeners: {}, // To hold unsubscribe functions for Firestore listeners
     awayTimer: null,
     callbacks: {} // For simple pub/sub
