@@ -13,7 +13,7 @@ import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { initializePostStepper, populatePostFormForEdit } from './post-ui.js';
 import { setupPrivateChatListener } from '../firestore.js';
 import { db } from '../firebase-config.js';
-import { doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { renderTodaysAllianceActivity } from './post-ui.js';
 import { renderFeedActivity } from './post-ui.js';
 // --- DOM ELEMENT GETTERS ---
@@ -160,19 +160,31 @@ export function showPostActionsModal(postId) {
 }
 
 export function showPrivateMessageModal(targetPlayer) {
-    updateState({ activePrivateChatPartner: targetPlayer });
+    const { currentUserData, userSessions } = getState();
+    if (!currentUserData) return;
 
-    // Populate the new header
-    const { userSessions } = getState();
+    // Proactively create the chat document to satisfy security rules
+    const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
+    const chatDocRef = doc(db, 'private_chats', chatId);
+    setDoc(chatDocRef, { 
+        participants: [currentUserData.uid, targetPlayer.uid] 
+    }, { merge: true });
+
+    // Update the state
+    updateState({ 
+        activePrivateChatPartner: targetPlayer,
+        activePrivateChatId: chatId 
+    });
+
+    // Populate the modal header
     const session = userSessions[targetPlayer.uid];
     const status = session ? session.status : 'offline';
-
     getElement('private-message-username').textContent = targetPlayer.username;
     getElement('private-message-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
     getElement('private-message-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
     getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
 
-    // Clear the window and show the modal
+    // Clear the window, show the modal, and set up the listener
     getElement('private-message-window').innerHTML = '<p class="text-center text-gray-500 m-auto">Loading messages...</p>';
     showModal(getElement('private-message-modal-container'));
     setupPrivateChatListener();

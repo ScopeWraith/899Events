@@ -304,17 +304,14 @@ export async function removeFriend(friendUid) {
 }
 
 export async function sendPrivateMessage(text) {
-    const { currentUserData, activePrivateChatPartner, activePrivateChatId } = getState();
-    if (!currentUserData || !activePrivateChatPartner || !activePrivateChatId) return;
+    const { currentUserData, activePrivateChatId } = getState();
+    if (!currentUserData || !activePrivateChatId) {
+        throw new Error("User or chat session not found.");
+    }
 
-    const chatDocRef = doc(db, 'private_chats', activePrivateChatId);
-    const messagesColRef = collection(chatDocRef, 'messages');
+    const messagesColRef = collection(db, `private_chats/${activePrivateChatId}/messages`);
 
     try {
-        await setDoc(chatDocRef, { 
-            participants: [currentUserData.uid, activePrivateChatPartner.uid] 
-        }, { merge: true });
-
         await addDoc(messagesColRef, {
             text: text,
             authorUid: currentUserData.uid,
@@ -323,6 +320,6 @@ export async function sendPrivateMessage(text) {
         });
     } catch (error) {
         console.error("Error sending private message:", error);
-        throw error; // Re-throw to be handled by the caller
+        throw error; // Re-throw to be handled by the UI
     }
 }
