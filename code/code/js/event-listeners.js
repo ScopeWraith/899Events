@@ -222,24 +222,7 @@ export function initializeAllEventListeners() {
             if(targetPlayer) showPlayerSettingsModal(targetPlayer);
         }
     });
-
-    const friendsList = getElement('friends-list');
-    if (friendsList) {
-    friendsList.addEventListener('click', (e) => {
-        const removeBtn = e.target.closest('.remove-friend-btn');
-        const messageBtn = e.target.closest('.message-player-btn');
-        
-        if (removeBtn) {
-            showConfirmationModal('Remove Friend?', 'Are you sure you want to remove this friend?', () => {
-                removeFriend(removeBtn.dataset.uid);
-            });
-        } else if (messageBtn) {
-            const { allPlayers } = getState();
-            const targetPlayer = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
-            if (targetPlayer) showPrivateMessageModal(targetPlayer);
-        }
-        
-    })};
+    
     const friendsListSocial = getElement('friends-list-social-page');
     if (friendsListSocial) {
         friendsListSocial.addEventListener('click', (e) => {
