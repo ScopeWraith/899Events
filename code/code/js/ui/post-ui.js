@@ -76,6 +76,7 @@ function createCard(post) {
 function renderAnnouncements(announcements) {
     const { currentUserData } = getState();
     const announcementsContainer = document.getElementById('announcements-container');
+    announcementsContainer.style.display = 'block'; // Ensure it's visible
     let createBtnHTML = '';
     if (currentUserData && getAvailablePostTypes('announcement').length > 0) {
         createBtnHTML = `<button id="create-announcement-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Announcement"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
@@ -83,7 +84,7 @@ function renderAnnouncements(announcements) {
 
     const contentHTML = announcements.length > 0
         ? `<div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>`
-        : `<p class="text-center text-gray-500 py-4">No announcements to display.</p>`;
+        : `<p class="text-center text-gray-500 py-4">No recent announcements.</p>`;
 
     announcementsContainer.innerHTML = `
         <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
@@ -98,17 +99,10 @@ function renderAnnouncements(announcements) {
 function renderEvents(events) {
     const { currentUserData } = getState();
     const eventsSectionContainer = document.getElementById('events-section-container');
-    const announcementsContainer = document.getElementById('announcements-container');
-    const now = new Date();
-    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-    let displayableEvents = events.filter(event => {
-        const status = getEventStatus(event);
-        const prospectiveStartTime = event.isRecurring ? getEventStatus(event).startTime : event.startTime?.toDate();
-        return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || event.startTime?.toDate()) <= sevenDaysFromNow);
-    });
-
-    displayableEvents.sort((a, b) => {
+    eventsSectionContainer.style.display = 'block'; // Ensure it's visible
+    
+    // Sort events that are passed in
+    const sortedEvents = [...events].sort((a, b) => {
         const statusA = getEventStatus(a);
         const statusB = getEventStatus(b);
         if (statusA.status === 'live' && statusB.status !== 'live') return -1;
@@ -130,14 +124,11 @@ function renderEvents(events) {
         createBtnHTML = `<button id="create-event-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Event"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
     }
 
-    const headerHTML = announcementsContainer.innerHTML.trim() === '' ? '' : '<div></div>';
-    
-    const contentHTML = displayableEvents.length > 0
-        ? `<div class="grid grid-cols-1 gap-4">${displayableEvents.map(createCard).join('')}</div>`
-        : `<p class="text-center text-gray-500 py-4">No upcoming events in the next 7 days.</p>`;
+    const contentHTML = sortedEvents.length > 0
+        ? `<div class="grid grid-cols-1 gap-4">${sortedEvents.map(createCard).join('')}</div>`
+        : `<p class="text-center text-gray-500 py-4">No upcoming events in this timeframe.</p>`;
 
     eventsSectionContainer.innerHTML = `
-        ${headerHTML}
         <div class="section-header text-xl font-bold mb-4">
             <i class="fas fa-calendar-alt"></i>
             <span class="flex-grow">Events</span>
@@ -184,36 +175,9 @@ function updateCountdowns() {
     });
 }
 
-function buildFilterControls(visiblePosts) {
-    const filterContainer = document.getElementById('filter-container');
-    const availableSubTypes = [...new Set(visiblePosts.map(p => p.subType))];
-    
-    filterContainer.innerHTML = ''; // Clear previous buttons
-    
-    const allBtn = document.createElement('button');
-    allBtn.className = 'filter-btn active';
-    allBtn.textContent = 'All';
-    allBtn.dataset.filter = 'all';
-    allBtn.style.setProperty('--glow-color', 'var(--color-primary)');
-    allBtn.style.setProperty('--glow-color-bg', 'rgba(0, 191, 255, 0.1)');
-    filterContainer.appendChild(allBtn);
-
-    availableSubTypes.forEach(subType => {
-        const style = POST_STYLES[subType] || {};
-        const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === subType);
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.textContent = postTypeInfo ? postTypeInfo.text : subType.replace('_', ' ');
-        btn.dataset.filter = subType;
-        btn.style.setProperty('--glow-color', style.color || 'var(--color-primary)');
-        btn.style.setProperty('--glow-color-bg', style.bgColor || 'rgba(0, 191, 255, 0.1)');
-        filterContainer.appendChild(btn);
-    });
-}
-
-export function renderPosts() {
-    let { countdownInterval, allPosts, currentUserData, activeFilter } = getState();
-    const eventsSectionContainer = document.getElementById('events-section-container');
+export function renderNewsContent() {
+    let { countdownInterval, allPosts, currentUserData, activeNewsSubCategory } = getState();
+    const eventsContainer = document.getElementById('events-section-container');
     const announcementsContainer = document.getElementById('announcements-container');
 
     if (countdownInterval) clearInterval(countdownInterval);
@@ -226,31 +190,49 @@ export function renderPosts() {
         return false;
     });
     
-    buildFilterControls(visiblePosts);
+    const now = new Date();
+    let announcementsToShow = [];
+    let eventsToShow = [];
 
-    if (activeFilter !== 'all') {
-        visiblePosts = visiblePosts.filter(p => p.subType === activeFilter);
+    const allAnnouncements = visiblePosts.filter(p => p.mainType === 'announcement');
+    const allEvents = visiblePosts.filter(p => p.mainType === 'event');
+
+    switch (activeNewsSubCategory) {
+        case 'all':
+            const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+            announcementsToShow = allAnnouncements.filter(a => (a.createdAt?.toDate() || new Date(0)) >= threeDaysAgo);
+            
+            const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            eventsToShow = allEvents.filter(e => {
+                const status = getEventStatus(e);
+                return status.status === 'live' || (status.status === 'upcoming' && status.timeDiff <= sevenDaysFromNow.getTime() - now.getTime());
+            });
+            break;
+        case 'events':
+            const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+            eventsToShow = allEvents.filter(e => {
+                const status = getEventStatus(e);
+                return status.status === 'live' || (status.status === 'upcoming' && status.timeDiff <= thirtyDaysFromNow.getTime() - now.getTime());
+            });
+            break;
+        case 'announcements':
+            const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            announcementsToShow = allAnnouncements.filter(a => (a.createdAt?.toDate() || new Date(0)) >= sevenDaysAgo);
+            break;
     }
-
-    const announcements = visiblePosts
-        .filter(p => p.mainType === 'announcement')
-        .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-
-    const events = visiblePosts.filter(p => p.mainType === 'event');
     
-    renderAnnouncements(announcements);
-    renderEvents(events);
-    
-    if (announcements.length === 0 && events.length > 0) {
-        eventsSectionContainer.style.marginTop = '0';
-    } else if (announcements.length > 0) {
-        eventsSectionContainer.style.marginTop = '2rem';
-    }
+    // Hide or show containers based on filter
+    announcementsContainer.style.display = announcementsToShow.length > 0 || activeNewsSubCategory === 'announcements' || activeNewsSubCategory === 'all' ? 'block' : 'none';
+    eventsContainer.style.display = eventsToShow.length > 0 || activeNewsSubCategory === 'events' || activeNewsSubCategory === 'all' ? 'block' : 'none';
 
+    renderAnnouncements(announcementsToShow.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0)));
+    renderEvents(eventsToShow);
+    
     countdownInterval = setInterval(updateCountdowns, 1000 * 30);
     updateState({ countdownInterval });
     updateCountdowns();
 }
+
 
 // --- POST CREATION & EDITING ---
 
@@ -537,40 +519,13 @@ export async function populatePostFormForEdit(postId) {
     showModal(document.getElementById('create-post-modal-container'));
     submitBtn.classList.remove('hidden');
 }
-export function renderTodaysAllianceActivity() {
-    const { allPosts, currentUserData } = getState();
-    const container = document.getElementById('feed-alliance-activity-container');
-    
-    if (!container || !currentUserData || !currentUserData.alliance) {
-        if (container) container.innerHTML = '<p class="text-center text-gray-500 py-4">Join an alliance to see its activity.</p>';
-        return;
-    }
 
-    const now = new Date();
-    const todayStart = new Date(now.setHours(0, 0, 0, 0));
-
-    const todaysAlliancePosts = allPosts.filter(post => {
-        const postDate = post.createdAt?.toDate();
-        return post.alliance === currentUserData.alliance &&
-               post.visibility === 'alliance' &&
-               postDate >= todayStart;
-    });
-
-    if (todaysAlliancePosts.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-500 py-4">No alliance activity today.</p>';
-    } else {
-        container.innerHTML = `<div class="grid grid-cols-1 gap-4">${todaysAlliancePosts.map(createCard).join('')}</div>`;
-        updateCountdowns(); // We need to call this to make sure event timers are updated
-    }
-}
-// --- NEW FUNCTION for the redesigned Feed Page ---
 export function renderFeedActivity() {
     const { allPosts, userNotifications, currentUserData } = getState();
     const container = document.getElementById('feed-activity-container');
 
     if (!container) return;
 
-    // Step 1: Get Admin Announcements (server-wide)
     const adminAnnouncements = allPosts
         .filter(post => post.subType === 'server' && post.mainType === 'announcement')
         .map(post => {
@@ -584,7 +539,6 @@ export function renderFeedActivity() {
             };
         });
 
-    // Step 2: Get the user's specific Alliance Announcements and Events
     const allianceActivity = currentUserData ? allPosts
         .filter(post => post.alliance === currentUserData.alliance && (post.subType === 'alliance' || post.subType === 'leadership'))
         .map(post => {
@@ -598,7 +552,6 @@ export function renderFeedActivity() {
             };
         }) : [];
 
-    // Step 3: Get verification records for the user's alliance
     const verificationActivities = currentUserData ? userNotifications
         .filter(n => n.type === 'user_verified_record' && n.alliance === currentUserData.alliance)
         .map(n => {
@@ -611,17 +564,15 @@ export function renderFeedActivity() {
             };
         }) : [];
 
-    // Step 4: Combine, sort, and get the most recent items
     const feedItems = [...adminAnnouncements, ...allianceActivity, ...verificationActivities];
     feedItems.sort((a, b) => b.date - a.date);
-    const recentFeedItems = feedItems.slice(0, 20); // Show up to 20 recent items
+    const recentFeedItems = feedItems.slice(0, 20); 
 
     if (recentFeedItems.length === 0) {
         container.innerHTML = '<p class="text-center text-gray-500 py-4">No recent activity.</p>';
         return;
     }
 
-    // Step 5: Render the combined list
     container.innerHTML = recentFeedItems.map(item => {
         const timeAgo = formatTimeAgo(item.date);
         return `

@@ -63,5 +63,5 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSkeletons();
     setupInitialUI();
     initializeAllEventListeners();
-    showPage('page-events');
+    showPage('page-news'); // Changed from page-events to page-news
 });

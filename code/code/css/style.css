@@ -1056,3 +1056,74 @@ emoji-picker {
         flex-grow: 0;
     }
 }
+
+/* Add these new styles to the end of your style.css file */
+
+#header-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: rgba(13, 17, 23, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 0;
+}
+
+#sub-nav-container {
+    padding: 0.5rem 0;
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transform: translateY(-120%);
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+#sub-nav-container.visible {
+    display: flex;
+    transform: translateY(0);
+    opacity: 1;
+    height: auto; /* Adjust height for content */
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sub-nav-btn {
+    padding: 0.4rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    background-color: rgba(33, 38, 45, 0.5);
+    color: #8b949e;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.sub-nav-btn:hover {
+    background-color: #30363d;
+    color: #c9d1d9;
+}
+
+.sub-nav-btn.active {
+    color: #fff;
+    border-color: var(--color-primary);
+    background-color: rgba(0, 191, 255, 0.1);
+    box-shadow: 0 0 8px -2px var(--color-primary);
+}
+
+/* Remove margin from header now that wrapper has padding */
+.header-main {
+    margin-bottom: 0 !important;
+}
+
+/* Remove filter button group as it's replaced by sub-nav */
+.filter-btn-group {
+    display: none;
+}

@@ -10,51 +10,114 @@ import { getState, updateState } from '../state.js';
 import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
-import { initializePostStepper, populatePostFormForEdit } from './post-ui.js';
+import { initializePostStepper, populatePostFormForEdit, renderNewsContent } from './post-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { renderTodaysAllianceActivity } from './post-ui.js';
 import { renderFeedActivity } from './post-ui.js';
 import { renderChatSelectors, renderFriendsList, activateChatChannel } from './social-ui.js';
+import { applyPlayerFilters } from './players-ui.js';
+
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
 const querySelectorAll = (selector) => document.querySelectorAll(selector);
 
-// --- PAGE & MODAL MANAGEMENT ---
 
-export function showPage(targetId) {
-    querySelectorAll('.page-content').forEach(page => {
-        page.style.display = page.id === targetId ? 'block' : 'none';
-    });
-    querySelectorAll('#main-nav .nav-link').forEach(link => {
-        const mainTarget = link.dataset.mainTarget;
-        link.classList.toggle('active', mainTarget === targetId);
-    });
-
-    if (targetId === 'page-feed') {
-        const { currentUserData } = getState();
-        const welcomeContainer = getElement('feed-welcome-message');
-        
-        if (currentUserData && welcomeContainer) {
-            welcomeContainer.innerHTML = `
-                <h2 class="text-3xl font-bold text-white tracking-wider">Welcome Back, <span style="color: var(--color-primary);">${currentUserData.username}</span>!</h2>
-                <p class="text-gray-400 mt-1">Here's what's happening in the community.</p>
-            `;
-        }
-        
-        // Call our new, comprehensive feed renderer
-        renderFeedActivity();
-    }
-    if (targetId === 'page-social') {
-        renderChatSelectors();
-        renderFriendsList();
-        // Optionally activate the world chat by default
-        activateChatChannel('world_chat');
-        setupChatListeners('world_chat');
+// --- PAGE & SUB-NAV MANAGEMENT ---
+function renderPageContent() {
+    const { activeMainCategory } = getState();
+    switch(activeMainCategory) {
+        case 'news':
+            renderNewsContent();
+            break;
+        case 'social':
+            renderChatSelectors(); 
+            renderFriendsList();
+            activateChatChannel('world_chat');
+            setupChatListeners('world_chat');
+            break;
+        case 'players':
+            applyPlayerFilters();
+            break;
+        case 'feed':
+            const { currentUserData } = getState();
+            const welcomeContainer = getElement('feed-welcome-message');
+            
+            if (currentUserData && welcomeContainer) {
+                welcomeContainer.innerHTML = `
+                    <h2 class="text-3xl font-bold text-white tracking-wider">Welcome Back, <span style="color: var(--color-primary);">${currentUserData.username}</span>!</h2>
+                    <p class="text-gray-400 mt-1">Here's what's happening in the community.</p>
+                `;
+            }
+            renderFeedActivity();
+            break;
     }
 }
+
+export function renderSubNav() {
+    const { activeMainCategory, activeNewsSubCategory, activeSocialSubCategory } = getState();
+    const subNavContainer = getElement('sub-nav-container');
+    subNavContainer.innerHTML = '';
+    let buttons = [];
+
+    if (activeMainCategory === 'news') {
+        buttons = [
+            { text: 'All', filter: 'all' },
+            { text: 'Announcements', filter: 'announcements' },
+            { text: 'Events', filter: 'events' },
+        ];
+        const activeFilter = activeNewsSubCategory;
+        buttons.forEach(btnInfo => {
+            const btn = document.createElement('button');
+            btn.className = 'sub-nav-btn';
+            btn.textContent = btnInfo.text;
+            btn.dataset.filter = btnInfo.filter;
+            if (btnInfo.filter === activeFilter) {
+                btn.classList.add('active');
+            }
+            subNavContainer.appendChild(btn);
+        });
+        subNavContainer.classList.add('visible');
+    } else if (activeMainCategory === 'social') {
+        // Future implementation for Social sub-nav
+        // For now, ensure it's hidden
+        subNavContainer.classList.remove('visible');
+    } else {
+        // Hide for Players and Feed
+        subNavContainer.classList.remove('visible');
+    }
+}
+
+export function showPage(pageId) {
+    const mainCategory = pageId.replace('page-', '');
+    updateState({ activeMainCategory: mainCategory });
+
+    // Reset sub-category when changing main category
+    if (mainCategory === 'news') {
+        updateState({ activeNewsSubCategory: 'all' });
+    }
+
+    // Show the correct page content div
+    querySelectorAll('.page-content').forEach(page => {
+        page.style.display = page.id === pageId ? 'block' : 'none';
+    });
+
+    // Update main nav active class
+    querySelectorAll('#main-nav .nav-link').forEach(link => {
+        const mainTarget = link.dataset.mainTarget;
+        link.classList.toggle('active', mainTarget === pageId);
+    });
+
+    // Render the sub-nav based on the new page
+    renderSubNav();
+    
+    // Render the content for that page
+    renderPageContent();
+}
+
+
+// --- MODAL MANAGEMENT ---
 
 export function showModal(modal) {
     hideAllModals();
@@ -135,8 +198,6 @@ export function showPostActionsModal(postId) {
     // Add new listener for the EDIT button
     newEditBtn.addEventListener('click', () => {
         hideAllModals();
-        // We are importing a function from post-ui.js that is not yet exported.
-        // We will add this export in the next step.
         populatePostFormForEdit(postId); 
     });
 
@@ -165,27 +226,22 @@ export function showPostActionsModal(postId) {
     showModal(document.getElementById('post-actions-modal-container'));
 }
 
-// Add async here
-// Add async to the function definition
 export async function showPrivateMessageModal(targetPlayer) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
 
     try {
-        // 1. Calculate the ID and ensure the chat document exists.
         const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
         const chatDocRef = doc(db, 'private_chats', chatId);
         await setDoc(chatDocRef, {
             participants: [currentUserData.uid, targetPlayer.uid]
         }, { merge: true });
 
-        // 2. Update the state with BOTH the partner info and the calculated ID.
         updateState({
             activePrivateChatPartner: targetPlayer,
-            activePrivateChatId: chatId // This is the critical fix
+            activePrivateChatId: chatId
         });
 
-        // 3. Populate the UI header.
         const session = userSessions[targetPlayer.uid];
         const status = session ? session.status : 'offline';
         getElement('private-message-username').textContent = targetPlayer.username;
@@ -194,10 +250,7 @@ export async function showPrivateMessageModal(targetPlayer) {
         getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
         getElement('private-message-window').innerHTML = '';
 
-        // 4. Show the modal.
         showModal(getElement('private-message-modal-container'));
-
-        // 5. Call the listener and PASS THE CHAT ID DIRECTLY as an argument.
         setupPrivateChatListener(chatId);
 
     } catch (error) {

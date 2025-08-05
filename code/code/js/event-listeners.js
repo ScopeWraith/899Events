@@ -8,10 +8,10 @@
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal } from './ui/ui-manager.js';
+import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, renderSubNav } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
-import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, renderPosts } from './ui/post-ui.js';
+import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, renderNewsContent } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction } from './firestore.js';
 import { activateChatChannel } from './ui/social-ui.js';
@@ -31,6 +31,7 @@ export function initializeAllEventListeners() {
     // --- Modal Triggers & Closers ---
     addListener('login-btn', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
+    // ... (rest of modal listeners are unchanged) ...
     addListener('close-edit-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
@@ -45,49 +46,38 @@ export function initializeAllEventListeners() {
         }
     });
 
-    // --- Auth Forms ---
+    // --- Auth & Profile ---
+    // ... (All auth listeners are unchanged) ...
     addListener('show-register-link', 'click', (e) => { e.preventDefault(); showAuthModal('register'); });
     addListener('show-login-link', 'click', (e) => { e.preventDefault(); showAuthModal('login'); });
     addListener('login-form', 'submit', handleLoginSubmit);
     addListener('forgot-password-link', 'click', handleForgotPassword);
-    
-    // --- Registration Stepper ---
     addListener('register-next-btn', 'click', handleRegistrationNext);
     addListener('register-back-btn', 'click', handleRegistrationBack);
     addListener('register-avatar-btn', 'click', () => getElement('register-avatar-input').click());
     addListener('register-avatar-input', 'change', handleAvatarSelection);
     addListener('register-form', 'submit', handleRegistrationSubmit);
-
-    // --- User Profile & Actions ---
     addListener('user-profile-button', 'click', (e) => {
         e.stopPropagation();
         const navItem = getElement('user-profile-nav-item');
-        // Close other dropdowns
         document.querySelectorAll('.nav-item.open').forEach(item => {
             if (item !== navItem) item.classList.remove('open');
         });
-        // Toggle this dropdown
         if(navItem) navItem.classList.toggle('open');
     });
-
-    // --- Mobile Avatar Dropdown Listener ---
     addListener('user-avatar-mobile', 'click', (e) => {
-        e.stopPropagation(); // Prevent the window click listener from closing it immediately
+        e.stopPropagation(); 
         const navItem = getElement('user-profile-nav-item');
         const dropdown = getElement('player-profile-dropdown');
         const avatar = getElement('user-avatar-mobile');
-
         if (navItem && dropdown && avatar) {
-            // Toggle the dropdown's visibility
             const isOpen = navItem.classList.toggle('open');
-            
-            // If opening, position it correctly near the mobile avatar
             if (isOpen) {
                 const avatarRect = avatar.getBoundingClientRect();
-                dropdown.style.top = `${avatarRect.bottom + 10}px`; // 10px below the avatar
-                dropdown.style.right = '1rem'; // Align to the right edge of the screen
+                dropdown.style.top = `${avatarRect.bottom + 10}px`;
+                dropdown.style.right = '1rem';
                 dropdown.style.left = 'auto';
-                dropdown.style.transform = 'none'; // Reset any desktop transforms
+                dropdown.style.transform = 'none';
             }
         }
     });
@@ -103,11 +93,10 @@ export function initializeAllEventListeners() {
     addListener('profile-dropdown-avatar', 'click', () => getElement('avatar-upload-input').click());
     addListener('avatar-upload-input', 'change', handleAvatarUpload);
     addListener('edit-profile-form', 'submit', handleEditProfileSubmit);
-
-    // --- Player Settings ---
     addListener('player-settings-form', 'submit', handlePlayerSettingsSubmit);
 
     // --- Post Creation/Editing ---
+    // ... (Unchanged) ...
     addListener('post-next-btn', 'click', handlePostNext);
     addListener('post-back-btn', 'click', handlePostBack);
     addListener('post-thumbnail-btn', 'click', () => getElement('post-thumbnail-input').click());
@@ -117,15 +106,38 @@ export function initializeAllEventListeners() {
         const container = getElement('post-repeat-weeks-container');
         if (container) container.classList.toggle('hidden', e.target.value !== 'weekly');
     });
-    
+
     // --- Main Navigation & Page Switching ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', () => {
-            if (link.dataset.mainTarget) showPage(link.dataset.mainTarget);
+            if (link.dataset.mainTarget) {
+                showPage(link.dataset.mainTarget);
+            }
         });
     });
-    
+
+    // --- Sub Navigation ---
+    const subNavContainer = getElement('sub-nav-container');
+    if (subNavContainer) {
+        subNavContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('sub-nav-btn')) {
+                const filter = e.target.dataset.filter;
+                const { activeMainCategory } = getState();
+
+                if (activeMainCategory === 'news') {
+                    updateState({ activeNewsSubCategory: filter });
+                    // Update active class on buttons
+                    subNavContainer.querySelectorAll('.sub-nav-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderNewsContent(); // Re-render the content
+                }
+                // Add else if for 'social' here in the future
+            }
+        });
+    }
+
     // --- Mobile Navigation ---
+    // ... (Unchanged) ...
     addListener('open-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.add('open');
         getElement('modal-backdrop').classList.add('visible');
@@ -135,22 +147,26 @@ export function initializeAllEventListeners() {
         getElement('modal-backdrop').classList.remove('visible');
     });
 
-    // --- Filtering ---
-    addListener('filter-container', 'click', (e) => {
-        if (e.target.classList.contains('filter-btn')) {
-            updateState({ activeFilter: e.target.dataset.filter });
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-            renderPosts();
-        }
-    });
+
+    // --- Filtering (Player page specific) ---
     addListener('player-search-input', 'input', () => applyPlayerFilters());
     const allianceFilter = getElement('alliance-filter');
     if (allianceFilter) {
         allianceFilter.addEventListener('change', () => applyPlayerFilters());
     }
 
-    // --- Social Page & Chat ---
+    // --- Event/Announcement Creation Triggers ---
+    addListener('page-news', 'click', e => {
+        const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
+        const createEventBtn = e.target.closest('#create-event-btn');
+        const actionsBtn = e.target.closest('.post-card-actions-trigger');
+
+        if (createAnnouncementBtn) showCreatePostModal('announcement');
+        else if (createEventBtn) showCreatePostModal('event');
+        else if (actionsBtn) showPostActionsModal(actionsBtn.dataset.postId);
+    });
+
+    // ... (Rest of event listeners are unchanged) ...
     const socialChatSelector = getElement('social-chat-selector');
     if (socialChatSelector) {
         socialChatSelector.addEventListener('click', (e) => {
@@ -163,7 +179,6 @@ export function initializeAllEventListeners() {
         });
     }
 
-    // Chat Forms
     const privateMessageForm = getElement('private-message-form');
     if (privateMessageForm) {
         privateMessageForm.addEventListener('submit', async (e) => {
@@ -182,7 +197,6 @@ export function initializeAllEventListeners() {
         });
     }
 
-    // Social Page Click Handler (for main chat window)
     const socialPage = getElement('page-social');
     if (socialPage) {
         socialPage.addEventListener('click', (e) => {
@@ -210,7 +224,6 @@ export function initializeAllEventListeners() {
         });
     }
 
-    // Private Message Modal Click Handler
     const privateMessageModal = getElement('private-message-modal-container');
     if (privateMessageModal) {
         privateMessageModal.addEventListener('click', (e) => {
@@ -230,14 +243,12 @@ export function initializeAllEventListeners() {
         });
     }
 
-    // --- Collapsible Friends List ---
     addListener('collapse-friends-btn', 'click', () => {
         const container = getElement('friends-list-container-social');
         const isCollapsed = container.classList.toggle('collapsed');
         updateState({ isFriendsListCollapsed: isCollapsed });
     });
 
-    // --- Notifications ---
     const feedDropdown = getElement('feed-dropdown');
     if (feedDropdown) {
         feedDropdown.addEventListener('click', (e) => handleNotificationClick(e));
@@ -260,7 +271,6 @@ export function initializeAllEventListeners() {
         );
     }
 
-    // --- Player & Friend Actions ---
     addListener('player-list-container', 'click', async (e) => {
         const addFriendBtn = e.target.closest('.add-friend-btn');
         const messageBtn = e.target.closest('.message-player-btn');
@@ -296,7 +306,6 @@ export function initializeAllEventListeners() {
         });
     }
 
-    // --- General UI ---
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.nav-item')) {
             document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));
@@ -314,18 +323,6 @@ export function initializeAllEventListeners() {
         }
     });
 
-    // --- Event/Announcement Creation Triggers ---
-    addListener('events-main-container', 'click', e => {
-        const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
-        const createEventBtn = e.target.closest('#create-event-btn');
-        const actionsBtn = e.target.closest('.post-card-actions-trigger');
-
-        if (createAnnouncementBtn) showCreatePostModal('announcement');
-        else if (createEventBtn) showCreatePostModal('event');
-        else if (actionsBtn) showPostActionsModal(actionsBtn.dataset.postId);
-    });
-
-    // --- Attachment and Emoji Logic ---
     addListener('private-message-attach-btn', 'click', () => {
         const attachInput = getElement('private-message-attach-input');
         if (attachInput) attachInput.click();
@@ -360,7 +357,6 @@ export function initializeAllEventListeners() {
         });
     }
 
-    // --- Reaction Picker Listener ---
     const reactionPicker = getElement('reaction-picker-container');
     if (reactionPicker) {
         reactionPicker.addEventListener('click', (e) => {
