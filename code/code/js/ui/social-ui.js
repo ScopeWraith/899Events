@@ -13,19 +13,19 @@ export function renderMessages(messages, container, chatType) {
     const { currentUserData, allPlayers } = getState();
     if (!currentUserData || !container) return;
 
-    // We no longer need the complex scroll-checking logic because we will always
-    // want the newest messages at the bottom.
-
     container.innerHTML = ''; // Clear previous messages
     if (messages.length === 0) {
         container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
         return;
     }
 
-    // IMPORTANT: We REMOVE the .reverse() call here.
-    // The CSS flex-direction: column-reverse will handle the visual order.
-    // Firestore's 'desc' query gives us newest messages first, so we just render them.
-    messages.forEach(msg => {
+    // --- THIS IS THE CRITICAL FIX ---
+    // The query returns messages newest-first. We must REVERSE this array
+    // to get oldest-first before rendering. The CSS `column-reverse` will then
+    // display them correctly with the newest at the bottom.
+    const orderedMessages = messages.reverse();
+
+    orderedMessages.forEach(msg => {
         const isSelf = msg.authorUid === currentUserData.uid;
         const authorUsername = msg.authorUsername || '?';
         const authorData = allPlayers.find(p => p.uid === msg.authorUid);
@@ -50,11 +50,12 @@ export function renderMessages(messages, container, chatType) {
                 <p class="chat-message-timestamp">${timestamp}</p>
             </div>
         `;
+        // By appending in oldest-to-newest order, the `column-reverse` CSS
+        // will correctly place the newest message at the bottom.
         container.appendChild(messageEl);
     });
 
-    // Note: Because of 'flex-direction: column-reverse', no scrolling logic is needed.
-    // The browser will automatically keep the bottom of the content in view.
+    // The browser will handle scrolling automatically with this CSS layout.
 }
 export function updateSocialUITabs() {
     const { currentUserData } = getState();
