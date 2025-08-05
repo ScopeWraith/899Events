@@ -467,7 +467,7 @@ chat-message-bubble p {
     font-size: 0.7rem;
     color: #7d8590;
     text-align: center;
-    margin-top:7px;
+    margin-top:6px;
 }
 /* --- New Social Page Chat Selector Styles --- */
 .chat-selector-btn {
@@ -978,7 +978,7 @@ emoji-picker {
     bottom: -12px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(13, 17, 23, 0.85);
+    background-color: rgba(36, 40, 46, 0);
     color: #c9d1d9;
     font-size: 0.6rem;
     font-weight: 700;
@@ -986,7 +986,6 @@ emoji-picker {
     border-radius: 4px;
     white-space: nowrap;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 .chat-message.self .chat-message-bubble {
     border-bottom-right-radius: 4px;
