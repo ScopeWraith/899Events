@@ -163,16 +163,15 @@ export function showPrivateMessageModal(targetPlayer) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
 
-    // --- The Correct Order of Operations ---
-
-    // 1. Calculate the necessary IDs and create the chat document in Firestore.
+    // 1. Calculate the necessary ID and ensure the chat document exists in Firestore.
     const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
     const chatDocRef = doc(db, 'private_chats', chatId);
     setDoc(chatDocRef, { 
         participants: [currentUserData.uid, targetPlayer.uid] 
     }, { merge: true });
 
-    // 2. Update the application's state with the active user and chat ID.
+    // 2. CRITICAL: Update the application's state with the active user and chat ID.
+    // This is the step that prevents the error.
     updateState({ 
         activePrivateChatPartner: targetPlayer,
         activePrivateChatId: chatId 
@@ -187,13 +186,12 @@ export function showPrivateMessageModal(targetPlayer) {
     getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
     getElement('private-message-window').innerHTML = '<p class="text-center text-gray-500 m-auto">Loading messages...</p>';
     
-    // 4. Show the modal itself.
+    // 4. Show the modal.
     showModal(getElement('private-message-modal-container'));
 
-    // 5. FINALLY, set up the Firestore listener that relies on the state we just set.
+    // 5. FINALLY, set up the Firestore listener, which now has the correct state to work with.
     setupPrivateChatListener();
 }
-
 // --- UI INITIALIZATION & UPDATES ---
 
 export function setupInitialUI() {
