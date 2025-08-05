@@ -503,39 +503,42 @@
                     
                     <!-- Social Page -->
                     <div id="page-social" class="page-content" style="display: none;">
-                        <div class="glass-pane section-container">
-                            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-                                <div class="lg:col-span-3">
-                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                        <div id="social-chat-selector" class="md:col-span-1 space-y-2">
-                                            </div>
-
-                                        <div id="social-chat-pane" class="md:col-span-3">
-                                            <div class="flex flex-col h-full">
-                                                <div id="chat-window-main" class="chat-window p-4 flex-grow" style="height: 65vh;">
-                                                <p class="text-center text-gray-500 m-auto">Select a chat to begin.</p>
-                                                </div>
-                                                <form id="chat-input-form" class="mt-4 flex items-center gap-2" style="display: none;">
-                                                    <div class="relative flex-grow">
-                                                        <input type="text" id="chat-input-main" class="form-input" placeholder="Type a message...">
-                                                        <button type="button" id="main-chat-emoji-btn" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
-                                                            <i class="fas fa-smile"></i>
-                                                        </button>
-                                                    </div>
-                                                    <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                                </form>
-                                            </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            <div class="lg:col-span-1">
+                                <div id="friends-list-container-social" class="glass-pane section-container flex flex-col">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h3 class="section-header !border-none !p-0 text-lg font-bold">
+                                            <i class="fas fa-user-friends"></i>Friends
+                                        </h3>
+                                        <button id="collapse-friends-btn" class="lg:hidden text-gray-400 hover:text-white">
+                                            <i class="fas fa-chevron-up"></i>
+                                        </button>
+                                    </div>
+                                    <div id="friends-list-social-page" class="space-y-2 p-2 rounded-lg bg-black/20 flex-grow" style="height: 75vh; overflow-y: auto;">
                                         </div>
+                                </div>
+                            </div>
+
+                            <div class="lg:col-span-3">
+                                <div class="glass-pane section-container flex flex-col h-full">
+                                    <div id="social-chat-selector" class="mb-4">
+                                        </div>
+                                    
+                                    <div id="social-chat-pane" class="flex flex-col flex-grow">
+                                        <div id="chat-window-main" class="chat-window p-4 flex-grow" style="height: 65vh;">
+                                            <p class="text-center text-gray-500 m-auto">Select a chat to begin.</p>
+                                        </div>
+                                        <form id="chat-input-form" class="mt-4 flex items-center gap-2" style="display: none;">
+                                            <div class="relative flex-grow">
+                                                <input type="text" id="chat-input-main" class="form-input" placeholder="Type a message...">
+                                                <button type="button" id="main-chat-emoji-btn" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                                                    <i class="fas fa-smile"></i>
+                                                </button>
+                                            </div>
+                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                        </form>
                                     </div>
                                 </div>
-
-                                <div class="lg:col-span-1">
-                                    <h3 class="section-header text-lg font-bold mb-2"><i class="fas fa-user-friends"></i>Friends</h3>
-                                    <div id="friends-list-social-page" class="space-y-2 p-2 rounded-lg bg-black/20" style="height: 75vh; overflow-y: auto;">
-                                        </div>
-                                </div>
-
                             </div>
                         </div>
                     </div>
