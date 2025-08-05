@@ -7,10 +7,19 @@
  */
 export function positionEmojiPicker(button, pickerContainer) {
     const buttonRect = button.getBoundingClientRect();
+
+    // Set the base position and display style
     pickerContainer.style.position = 'absolute';
-    pickerContainer.style.top = `${buttonRect.top - pickerContainer.offsetHeight - 10}px`;
-    pickerContainer.style.left = `${buttonRect.left}px`;
     pickerContainer.style.display = 'block';
+
+    // --- NEW, MORE RELIABLE POSITIONING LOGIC ---
+    // Position the picker's top-left corner at the button's top-left corner
+    pickerContainer.style.left = `${buttonRect.left}px`;
+    pickerContainer.style.top = `${buttonRect.top}px`;
+
+    // Use a CSS transform to shift the picker up by its own height plus a 10px margin.
+    // This is more reliable than calculating with offsetHeight.
+    pickerContainer.style.transform = 'translateY(-100%) translateY(-10px)';
 }
 
 export function formatTimeAgo(date) {
