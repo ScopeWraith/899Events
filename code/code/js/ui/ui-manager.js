@@ -181,9 +181,10 @@ export async function showPrivateMessageModal(targetPlayer) {
             participants: [currentUserData.uid, targetPlayer.uid]
         }, { merge: true });
 
-        // 2. Update the state ONLY with the partner info.
+        // 2. Update the state with BOTH the partner info and the calculated ID.
         updateState({
-            activePrivateChatPartner: targetPlayer
+            activePrivateChatPartner: targetPlayer,
+            activePrivateChatId: chatId // This is the critical fix
         });
 
         // 3. Populate the UI header.

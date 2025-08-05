@@ -18,6 +18,21 @@ import { deletePost, handleSendMessage, handleDeleteMessage, handleNotificationA
 import { activateChatChannel } from './ui/social-ui.js'; 
 import { positionEmojiPicker } from './utils.js';
 export function initializeAllEventListeners() {
+    // Private Message Modal Click Handler
+    const privateMessageModal = getElement('private-message-modal-container');
+    if (privateMessageModal) {
+        privateMessageModal.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.delete-message-btn');
+            if (deleteBtn) {
+                const messageEl = deleteBtn.closest('.chat-message');
+                if (messageEl) {
+                    showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
+                        handleDeleteMessage(messageEl.dataset.id, 'private_chat');
+                    });
+                }
+            }
+        });
+    }
     const getElement = (id) => document.getElementById(id);
 
     // --- Modal Triggers & Closers ---

@@ -175,7 +175,6 @@ export function renderMessages(messages, container, chatType) {
         if (canEdit || canDelete) {
             messageActionsHTML = `
                 <div class="message-actions">
-                    ${canEdit ? `<button class="message-action-btn edit-message-btn" title="Edit"><i class="fas fa-pencil-alt"></i></button>` : ''}
                     ${canDelete ? `<button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>` : ''}
                 </div>
             `;
@@ -202,7 +201,10 @@ export function renderMessages(messages, container, chatType) {
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
         messageEl.innerHTML = `
             <div class="chat-message-identity">
-                 <img src="${avatarUrl}" class="w-10 h-10 rounded-full flex-shrink-0" alt="${authorUsername}">
+                 <div class="avatar-container">
+                    <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover" alt="${authorUsername}">
+                    ${!authorData?.isAdmin ? `<div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>` : ''}
+                </div>
                  <p class="chat-message-timestamp">${timestamp}</p>
                  ${messageActionsHTML}
             </div>

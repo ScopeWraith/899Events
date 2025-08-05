@@ -131,7 +131,8 @@ service cloud.firestore {
                       request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
         // Allow users to read messages if they are a participant in the chat.
         allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
-      	allow update, delete: if false; // Messages are immutable for now
+      	allow update: if false; // Messages are still immutable
+        allow delete: if isOwner(resource.data.authorUid);
       }
     }
     
