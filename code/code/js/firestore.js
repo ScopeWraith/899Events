@@ -113,10 +113,6 @@ export function fetchInitialData() {
 }
 
 
-// Import the UI function to render messages
-import { renderMessages } from './ui/social-ui.js';
-
-// ... (other functions)
 
 export function setupChatListeners(activeChatId = 'world_chat') {
     const { currentUserData, listeners } = getState();
