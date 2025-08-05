@@ -975,10 +975,10 @@ emoji-picker {
 
 .player-badge {
     position: absolute;
-    bottom: -12px;
+    bottom: -15px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(36, 40, 46, 0);
+    background-color: rgba(36, 40, 46, 0.5);
     color: #c9d1d9;
     font-size: 0.6rem;
     font-weight: 700;
