@@ -65,9 +65,8 @@ export function activateChatChannel(chatId) {
     const chatWindow = document.getElementById('chat-window-main');
     const chatInputForm = document.getElementById('chat-input-form');
     const chatInput = document.getElementById('chat-input-main');
-    const emojiBtn = document.getElementById('main-chat-emoji-btn');
 
-    if (!chatWindow || !chatInputForm || !chatInput || !emojiBtn) {
+    if (!chatWindow || !chatInputForm || !chatInput) {
         console.error("Could not find all necessary chat elements in the DOM.");
         return;
     }
@@ -80,23 +79,9 @@ export function activateChatChannel(chatId) {
     chatInputForm.style.display = 'flex';
     chatInput.placeholder = `Type a message in ${chatId.replace('_chat', '')}...`;
 
-    // --- New, More Reliable Event Listener Handling ---
-    // 1. Remove the previous listener if it exists
-    if (currentSubmitHandler) {
-        chatInputForm.removeEventListener('submit', currentSubmitHandler);
-    }
-
-    // 2. Define the new handler for the active chat
-    currentSubmitHandler = (e) => {
-        e.preventDefault();
-        const text = chatInput.value;
-        if (text.trim() === '') return;
-        handleSendMessage(e, chatId, text);
-        chatInput.value = '';
-    };
-
-    // 3. Add the new listener
-    chatInputForm.addEventListener('submit', currentSubmitHandler);
+    const newForm = chatInputForm.cloneNode(true);
+    chatInputForm.parentNode.replaceChild(newForm, chatInputForm);
+    newForm.addEventListener('submit', (e) => handleSendMessage(e, chatId));
 }
 
 // --- EXISTING FUNCTIONS (Modified) ---
