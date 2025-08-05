@@ -467,6 +467,7 @@ chat-message-bubble p {
     font-size: 0.7rem;
     color: #7d8590;
     text-align: center;
+    margin-top:5px;
 }
 /* --- New Social Page Chat Selector Styles --- */
 .chat-selector-btn {
@@ -974,7 +975,7 @@ emoji-picker {
 
 .player-badge {
     position: absolute;
-    bottom: -0px;
+    bottom: -12px;
     left: 50%;
     transform: translateX(-50%);
     background-color: rgba(13, 17, 23, 0.85);
