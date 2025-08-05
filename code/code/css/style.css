@@ -367,16 +367,19 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     flex-direction: row-reverse;
 }
 .chat-message-bubble {
-    max-width: 70%;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.75rem;
+    max-width: 75%;
+    padding: 0.6rem 1rem;
+    border-radius: 1rem;
     background-color: #21262d;
     word-wrap: break-word;
+    position: relative; /* For timestamp positioning */
 }
+
 .chat-message.self .chat-message-bubble {
     background-color: var(--color-primary);
     color: #0D1117;
 }
+
 .chat-message-author {
     font-weight: 700;
     font-size: 0.8rem;
@@ -385,8 +388,28 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     align-items: center;
     gap: 0.5rem;
 }
+
 .chat-message.self .chat-message-author {
     color: #0D1117;
+}
+
+/* New Timestamp and Image Styles */
+.chat-message-timestamp {
+    font-size: 0.65rem;
+    color: #8b949e;
+    margin-top: 0.3rem;
+    text-align: right;
+}
+
+.chat-message.self .chat-message-timestamp {
+    color: rgba(13, 17, 23, 0.7);
+}
+
+.chat-message-image {
+    max-width: 250px;
+    border-radius: 0.75rem;
+    margin-top: 0.5rem;
+    cursor: pointer;
 }
 .delete-message-btn {
     position: absolute;

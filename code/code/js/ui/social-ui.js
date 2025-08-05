@@ -7,37 +7,53 @@
 
 import { getState } from '../state.js';
 import { isUserLeader } from '../utils.js';
+import { autoLinkText, formatMessageTimestamp } from '../utils.js';
 
 export function renderMessages(messages, container, chatType) {
     const { currentUserData, allPlayers, userSessions } = getState();
-    if (!currentUserData) return;
+    if (!currentUserData || !container) return;
+
+    // Scroll to bottom logic
+    const shouldScroll = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
 
     container.innerHTML = ''; // Clear previous messages
     if (messages.length === 0) {
         container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
         return;
     }
+
     messages.forEach(msg => {
         const isSelf = msg.authorUid === currentUserData.uid;
-        const canDelete = currentUserData.isAdmin || (chatType === 'alliance_chat' && (currentUserData.allianceRank === 'R5' || currentUserData.allianceRank === 'R4'));
-        
         const authorData = allPlayers.find(p => p.uid === msg.authorUid);
-        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${msg.authorUsername.charAt(0).toUpperCase()}`;
-        const session = userSessions[msg.authorUid];
-        const statusClass = session ? session.status : 'offline';
+        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(msg.authorUsername || '?').charAt(0).toUpperCase()}`;
+        const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
+
+        // Determine message content (text, image, or both)
+        let messageContent = '';
+        if (msg.text) {
+            messageContent += `<p class="text-sm">${autoLinkText(msg.text)}</p>`;
+        }
+        if (msg.imageUrl) {
+            messageContent += `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">`;
+        }
 
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
         messageEl.innerHTML = `
             <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0" alt="${msg.authorUsername}">
             <div class="chat-message-bubble">
-                <p class="chat-message-author">${msg.authorUsername} <span class="status-dot ${statusClass}"></span></p>
-                <p class="text-sm">${msg.text}</p>
+                <p class="chat-message-author">${msg.authorUsername}</p>
+                ${messageContent}
+                <p class="chat-message-timestamp">${timestamp}</p>
             </div>
-            ${canDelete ? `<button class="delete-message-btn" data-id="${msg.id}" data-type="${chatType}"><i class="fas fa-times"></i></button>` : ''}
         `;
         container.appendChild(messageEl);
     });
+
+    // Ensure the most recent message is visible
+    if (shouldScroll) {
+        container.scrollTop = container.scrollHeight;
+    }
 }
 export function updateSocialUITabs() {
     const { currentUserData } = getState();
