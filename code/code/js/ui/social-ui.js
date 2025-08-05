@@ -13,21 +13,20 @@ export function renderMessages(messages, container, chatType) {
     const { currentUserData, allPlayers } = getState();
     if (!currentUserData || !container) return;
 
-    // --- Smart Scrolling Logic ---
-    // Check if the user is scrolled near the bottom before adding new messages.
-    // We consider "near" to be within 50 pixels.
-    const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
+    // We no longer need the complex scroll-checking logic because we will always
+    // want the newest messages at the bottom.
 
-    // --- Render Messages ---
     container.innerHTML = ''; // Clear previous messages
     if (messages.length === 0) {
         container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
         return;
     }
 
+    // IMPORTANT: We REMOVE the .reverse() call here.
+    // The CSS flex-direction: column-reverse will handle the visual order.
+    // Firestore's 'desc' query gives us newest messages first, so we just render them.
     messages.forEach(msg => {
         const isSelf = msg.authorUid === currentUserData.uid;
-        // Use a default '?' if username is missing, to prevent crashes
         const authorUsername = msg.authorUsername || '?';
         const authorData = allPlayers.find(p => p.uid === msg.authorUid);
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
@@ -35,7 +34,6 @@ export function renderMessages(messages, container, chatType) {
 
         let messageContent = '';
         if (msg.text) {
-            // Use our existing autoLinkText utility
             messageContent += `<p>${autoLinkText(msg.text)}</p>`;
         }
         if (msg.imageUrl) {
@@ -55,10 +53,8 @@ export function renderMessages(messages, container, chatType) {
         container.appendChild(messageEl);
     });
 
-    // --- Auto-scroll if the user was already at the bottom ---
-    if (isScrolledToBottom) {
-        container.scrollTop = container.scrollHeight;
-    }
+    // Note: Because of 'flex-direction: column-reverse', no scrolling logic is needed.
+    // The browser will automatically keep the bottom of the content in view.
 }
 export function updateSocialUITabs() {
     const { currentUserData } = getState();

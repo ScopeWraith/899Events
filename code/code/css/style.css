@@ -351,7 +351,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     border-radius: 0.5rem;
     overflow-y: auto;
     display: flex;
-    flex-direction: column-reverse;
+    /* This is the key: it stacks items from the bottom up */
+    flex-direction: column-reverse; 
 }
 .chat-message {
     padding: 0.5rem 1rem;
@@ -689,4 +690,30 @@ input:checked + .slider:before {
 .feed-item-content p {
     font-size: 0.875rem;
     color: #8b949e;
+}
+/* --- Custom Scrollbar Styling --- */
+/* Works on Chrome, Edge, and Safari */
+.chat-window::-webkit-scrollbar {
+  width: 10px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+  background: rgba(13, 17, 23, 0.5);
+  border-radius: 10px;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+  background-color: #373E47;
+  border-radius: 10px;
+  border: 2px solid rgba(13, 17, 23, 0.5);
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+  background-color: #4A5159;
+}
+
+/* Works on Firefox */
+.chat-window {
+  scrollbar-width: thin;
+  scrollbar-color: #373E47 rgba(13, 17, 23, 0.5);
 }
