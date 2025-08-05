@@ -117,10 +117,7 @@ export function showConfirmationModal(title, message, onConfirm) {
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
-    newConfirmBtn.addEventListener('click', () => {
-        onConfirm();
-        hideAllModals();
-    });
+    newConfirmBtn.addEventListener('click', onConfirm);;
 
     showModal(getElement('confirmation-modal-container'));
 }
@@ -159,6 +156,7 @@ export function showPostActionsModal(postId) {
                         console.error("Error deleting post: ", err);
                         alert("Error: Could not delete post.");
                     }
+                    hideAllModals(); // Add this line
                 }
             );
         }
