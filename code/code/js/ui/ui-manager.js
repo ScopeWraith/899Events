@@ -163,31 +163,34 @@ export function showPrivateMessageModal(targetPlayer) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
 
-    // Proactively create the chat document to satisfy security rules
+    // --- The Correct Order of Operations ---
+
+    // 1. Calculate the necessary IDs and create the chat document in Firestore.
     const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
     const chatDocRef = doc(db, 'private_chats', chatId);
     setDoc(chatDocRef, { 
         participants: [currentUserData.uid, targetPlayer.uid] 
     }, { merge: true });
 
-    // THIS IS THE CRUCIAL STEP THAT FIXES THE ERROR
-    // It saves the active user and the calculated chat ID to the application state.
+    // 2. Update the application's state with the active user and chat ID.
     updateState({ 
         activePrivateChatPartner: targetPlayer,
         activePrivateChatId: chatId 
     });
 
-    // Populate the modal header
+    // 3. Populate the UI elements in the modal header.
     const session = userSessions[targetPlayer.uid];
     const status = session ? session.status : 'offline';
     getElement('private-message-username').textContent = targetPlayer.username;
     getElement('private-message-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
     getElement('private-message-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
     getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
-
-    // Clear the window, show the modal, and set up the listener
     getElement('private-message-window').innerHTML = '<p class="text-center text-gray-500 m-auto">Loading messages...</p>';
+    
+    // 4. Show the modal itself.
     showModal(getElement('private-message-modal-container'));
+
+    // 5. FINALLY, set up the Firestore listener that relies on the state we just set.
     setupPrivateChatListener();
 }
 
