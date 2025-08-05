@@ -209,7 +209,7 @@ export function renderMessages(messages, container, chatType) {
             <div class="chat-message-identity">
                  <div class="avatar-container">
                     <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover" alt="${authorUsername}">
-                    ${!authorData?.isAdmin ? `<div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>` : ''}
+                    <div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>                
                 </div>
                  <p class="chat-message-timestamp">${timestamp}</p>
                  ${messageActionsHTML}

@@ -851,8 +851,8 @@ emoji-picker {
 .reaction-tooltip {
     position: absolute;
     bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-5px);
+    right: 0; /* Align to the right edge of the reaction pill */
+    transform: translateY(-5px); /* Only move it up */
     background-color: #161B22;
     padding: 5px 10px;
     border-radius: 6px;

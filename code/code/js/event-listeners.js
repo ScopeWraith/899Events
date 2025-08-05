@@ -160,7 +160,7 @@ export function initializeAllEventListeners() {
                         hideAllModals();
                     });
                 }
-            } else if (bubble) {
+            } else if (bubble) { // This now correctly handles a click on the bubble itself
                 const picker = getElement('reaction-picker-container');
                 picker.style.display = 'flex';
                 const rect = bubble.getBoundingClientRect();

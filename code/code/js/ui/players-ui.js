@@ -53,7 +53,7 @@ export function renderPlayers(players) {
             <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
                 <div class="avatar-container mr-4">
                     <img src="${avatarUrl}" class="w-12 h-12 rounded-full border-2 object-cover" style="border-color: rgba(255,255,255,0.2);" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
-                    ${!player.isAdmin ? `<div class="player-badge">[${player.alliance}] ${player.allianceRank}</div>` : ''}
+                    <div class="player-badge">[${player.alliance}] ${player.allianceRank}</div>
                 </div>                
                 <div>
                     <h3 class="font-bold text-lg text-white flex items-center">${player.username} <span class="status-dot ${statusClass} ml-2"></span></h3>
