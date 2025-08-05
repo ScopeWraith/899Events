@@ -44,7 +44,6 @@ export function setupAllListeners(user) {
             renderPosts(); 
             applyPlayerFilters();
             setupChatListeners();
-            updateSocialUITabs(); // <-- ADD THIS LINE
         }
     });
 
