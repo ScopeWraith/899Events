@@ -201,26 +201,44 @@ export async function handleSendMessage(e, chatType) {
     const { currentUserData } = getState();
     if (!currentUserData) return;
 
-    let input, collectionPath;
-    switch(chatType) {
-        case 'world_chat':
-            input = document.getElementById('world-chat-input');
-            collectionPath = 'world_chat';
-            break;
-        case 'alliance_chat':
-            input = document.getElementById('alliance-chat-input');
-            if (!currentUserData.alliance) return;
-            collectionPath = `alliance_chats/${currentUserData.alliance}/messages`;
-            break;
-        case 'leadership_chat':
-            input = document.getElementById('leadership-chat-input');
-            collectionPath = 'leadership_chat';
-            break;
+    // Determine the correct input element based on the chat type
+    const inputId = `${chatType.replace('_chat', '')}-chat-input`;
+    const input = document.getElementById(inputId);
+
+    // This check prevents the error if the input is not found
+    if (!input) {
+        console.error(`Could not find input element with ID: ${inputId}`);
+        return;
     }
 
     const text = input.value.trim();
     if (text === '') return;
-    input.value = '';
+    input.value = ''; // Clear the input after getting the text
+
+    let collectionPath;
+    switch (chatType) {
+        case 'world_chat':
+            collectionPath = 'world_chat';
+            break;
+        case 'alliance_chat':
+            if (!currentUserData.alliance) return;
+            collectionPath = `alliance_chats/${currentUserData.alliance}/messages`;
+            break;
+        case 'leadership_chat':
+            collectionPath = 'leadership_chat';
+            break;
+        default:
+            // Handle the new combined chat input form
+            const mainChatInput = document.getElementById('chat-input-main');
+            if (mainChatInput) {
+                const mainText = mainChatInput.value.trim();
+                if (mainText === '') return;
+                collectionPath = chatType; // The chatId is passed directly
+                mainChatInput.value = '';
+            } else {
+                return; // No valid chat type or input found
+            }
+    }
 
     const messageData = {
         text: text,
@@ -233,7 +251,7 @@ export async function handleSendMessage(e, chatType) {
         await addDoc(collection(db, collectionPath), messageData);
     } catch (error) {
         console.error(`Error sending message to ${chatType}:`, error);
-        input.value = text;
+        input.value = text; // Restore text on failure
     }
 }
 
