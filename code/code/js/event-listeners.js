@@ -285,44 +285,45 @@ export function initializeAllEventListeners() {
             }
         });
     }
-// --- New, Robust Emoji Picker Logic ---
-const emojiPickerContainer = getElement('emoji-picker-container');
-const emojiPicker = document.querySelector('emoji-picker');
-let activeEmojiInput = null; // Variable to track the currently active input
+    // --- New, Robust Emoji Picker Logic ---
+    const emojiPickerContainer = getElement('emoji-picker-container');
+    const emojiPicker = document.querySelector('emoji-picker');
+    let activeEmojiInput = null; // Variable to track the currently active input
 
-// THIS IS THE MISSING FUNCTION DEFINITION
-const setupEmojiButton = (buttonId, inputId) => {
-    const button = getElement(buttonId);
-    const input = getElement(inputId);
-    if (button && input) {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            activeEmojiInput = input; // Set the active input
-            positionEmojiPicker(button, emojiPickerContainer);
+    const setupEmojiButton = (buttonId, inputId) => {
+        const button = getElement(buttonId);
+        const input = getElement(inputId);
+        // Ensure both the button and the main picker container exist
+        if (button && input && emojiPickerContainer) {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                activeEmojiInput = input; // Set the active input
+                positionEmojiPicker(button, emojiPickerContainer);
+            });
+        }
+    };
+
+    // Initialize listeners for both emoji buttons
+    setupEmojiButton('main-chat-emoji-btn', 'chat-input-main');
+    setupEmojiButton('private-message-emoji-btn', 'private-message-input');
+
+    if (emojiPicker) {
+        // One listener to handle all emoji clicks
+        emojiPicker.addEventListener('emoji-click', event => {
+            if (activeEmojiInput) {
+                activeEmojiInput.value += event.detail.unicode; // Insert emoji into the active input
+            }
+            if (emojiPickerContainer) {
+                emojiPickerContainer.style.display = 'none'; // Hide picker after selection
+            }
         });
     }
-};
 
-// Initialize listeners for both emoji buttons
-setupEmojiButton('main-chat-emoji-btn', 'chat-input-main');
-setupEmojiButton('private-message-emoji-btn', 'private-message-input');
-
-if (emojiPicker) {
-    // One listener to handle all emoji clicks
-    emojiPicker.addEventListener('emoji-click', event => {
-        if (activeEmojiInput) {
-            activeEmojiInput.value += event.detail.unicode; // Insert emoji into the active input
+    // --- Smarter "Click Away" Listener ---
+    window.addEventListener('click', (e) => {
+        if (emojiPickerContainer && !emojiPickerContainer.contains(e.target) && !e.target.closest('#main-chat-emoji-btn') && !e.target.closest('#private-message-emoji-btn')) {
+            emojiPickerContainer.style.display = 'none';
+            activeEmojiInput = null; // Clear the active input
         }
-        emojiPickerContainer.style.display = 'none'; // Hide picker after selection
     });
-}
-
-// --- Smarter "Click Away" Listener ---
-window.addEventListener('click', (e) => {
-    // Hide the picker only if the click is NOT on the picker itself or one of the emoji buttons
-    if (emojiPickerContainer && !emojiPickerContainer.contains(e.target) && !e.target.closest('#main-chat-emoji-btn') && !e.target.closest('#private-message-emoji-btn')) {
-        emojiPickerContainer.style.display = 'none';
-        activeEmojiInput = null; // Clear the active input
-    }
-});
 }
