@@ -16,7 +16,7 @@ import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { renderTodaysAllianceActivity } from './post-ui.js';
 import { renderFeedActivity } from './post-ui.js';
-import { renderChatSelectors, renderFriendsList } from './social-ui.js';
+import { renderChatSelectors, renderFriendsList, activateChatChannel } from './social-ui.js';
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
