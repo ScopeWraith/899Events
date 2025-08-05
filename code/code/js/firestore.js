@@ -31,7 +31,7 @@ import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
 import { storage } from './firebase-config.js';
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-import { doc, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Add runTransaction and getDoc to the import
+import { runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Add runTransaction and getDoc to the import
 export function setupAllListeners(user) {
     const listeners = {};
 
