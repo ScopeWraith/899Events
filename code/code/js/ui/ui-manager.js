@@ -166,15 +166,15 @@ export function showPrivateMessageModal(targetPlayer) {
     // 1. Calculate the necessary ID and ensure the chat document exists in Firestore.
     const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
     const chatDocRef = doc(db, 'private_chats', chatId);
-    setDoc(chatDocRef, { 
-        participants: [currentUserData.uid, targetPlayer.uid] 
+    setDoc(chatDocRef, {
+        participants: [currentUserData.uid, targetPlayer.uid]
     }, { merge: true });
 
-    // 2. CRITICAL: Update the application's state with the active user and chat ID.
-    // This is the step that prevents the error.
-    updateState({ 
+    // 2. THIS IS THE CRITICAL STEP THAT MUST BE PRESENT AND CORRECT.
+    // It saves the active user AND the calculated chat ID to the application state.
+    updateState({
         activePrivateChatPartner: targetPlayer,
-        activePrivateChatId: chatId 
+        activePrivateChatId: chatId
     });
 
     // 3. Populate the UI elements in the modal header.
@@ -185,11 +185,11 @@ export function showPrivateMessageModal(targetPlayer) {
     getElement('private-message-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
     getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
     getElement('private-message-window').innerHTML = '<p class="text-center text-gray-500 m-auto">Loading messages...</p>';
-    
+
     // 4. Show the modal.
     showModal(getElement('private-message-modal-container'));
 
-    // 5. FINALLY, set up the Firestore listener, which now has the correct state to work with.
+    // 5. Set up the Firestore listener, which can now safely access the state.
     setupPrivateChatListener();
 }
 // --- UI INITIALIZATION & UPDATES ---
