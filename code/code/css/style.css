@@ -351,7 +351,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     border-radius: 0.5rem;
     overflow-y: auto;
     display: flex;
-    /* This is the key: it stacks items from the bottom up */
+    flex-direction: column; /* This is the fix for the horizontal layout */
 }
 .chat-message {
     padding: 0.5rem 1rem;
@@ -837,13 +837,13 @@ emoji-picker {
 
 .message-actions {
     display: flex;
+    gap: 8px; /* Added to space out the buttons */
     background-color: #2c3440;
     border-radius: 20px;
-    padding: 4px;
+    padding: 4px 8px; /* Adjusted padding slightly */
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
-    /* Position it second in the flex row for self-messages */
     order: 1; 
 }
 
@@ -855,16 +855,10 @@ emoji-picker {
 .chat-message.self .chat-message-bubble-container {
     order: 1;
 }
-.chat-message.self .message-actions {
-    order: 2;
-}
 
 /* For other's messages, actions come first, then bubble */
 .chat-message:not(.self) .chat-message-bubble-container {
     order: 2;
-}
-.chat-message:not(.self) .message-actions {
-    order: 1;
 }
 
 .chat-message:hover .message-actions {
