@@ -148,18 +148,29 @@ export function setupChatListeners() {
 }
 
 export function setupPrivateChatListener() {
-    const { currentUserData, activePrivateChatPartner, listeners } = getState();
-    if (!currentUserData || !activePrivateChatPartner) return;
-    if (listeners.privateChat) listeners.privateChat();
+    const { activePrivateChatId, listeners } = getState();
+    if (listeners.privateChat) listeners.privateChat(); // Detach old listener
 
-    const chatId = [currentUserData.uid, activePrivateChatPartner.uid].sort().join('_');
-    updateState({ activePrivateChatId: chatId });
+    // A guard clause to ensure we don't run this function without a valid chat ID
+    if (!activePrivateChatId) {
+        console.error("setupPrivateChatListener called without an activePrivateChatId.");
+        return;
+    }
 
-    const chatQuery = query(collection(db, `private_chats/${chatId}/messages`), orderBy("timestamp", "desc"), limit(50));
+    const chatQuery = query(collection(db, `private_chats/${activePrivateChatId}/messages`), orderBy("timestamp", "desc"), limit(50));
+    
     listeners.privateChat = onSnapshot(chatQuery, (snapshot) => {
         const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse();
         renderMessages(messages, document.getElementById('private-message-window'), 'private_chat');
+    }, (error) => {
+        // Add error handling to the listener itself
+        console.error(`Error listening to private chat ${activePrivateChatId}:`, error);
+        const chatWindow = document.getElementById('private-message-window');
+        if (chatWindow) {
+            chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Could not load messages. You may not have permission to view this chat.</p>`;
+        }
     });
+
     updateState({ listeners });
 }
 
