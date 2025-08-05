@@ -154,9 +154,12 @@ export function initializeAllEventListeners() {
             const bubble = e.target.closest('.chat-message-bubble');
 
             if (deleteBtn && messageEl) {
-                showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
-                    handleDeleteMessage(messageEl.dataset.id, messageEl.dataset.type);
-                });
+                const bubble = messageEl.querySelector('.chat-message-bubble');
+                if (bubble) {
+                    showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
+                        handleDeleteMessage(bubble.dataset.messageId, bubble.dataset.chatType);
+                    });
+                }
             } else if (bubble) {
                 const picker = getElement('reaction-picker-container');
                 picker.style.display = 'flex';
@@ -177,9 +180,12 @@ export function initializeAllEventListeners() {
             if (deleteBtn) {
                 const messageEl = deleteBtn.closest('.chat-message');
                 if (messageEl) {
-                    showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
-                        handleDeleteMessage(messageEl.dataset.id, 'private_chat');
-                    });
+                    const bubble = messageEl.querySelector('.chat-message-bubble');
+                    if (bubble) {
+                        showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
+                            handleDeleteMessage(bubble.dataset.messageId, 'private_chat');
+                        });
+                    }
                 }
             }
         });
