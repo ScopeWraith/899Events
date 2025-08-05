@@ -30,6 +30,8 @@ import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
 import { updateSocialUITabs } from './ui/social-ui.js';
+import { storage } from './firebase-config.js';
+import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 export function setupAllListeners(user) {
     const listeners = {};
@@ -321,13 +323,52 @@ export async function sendPrivateMessage(text) {
     if (!currentUserData || !activePrivateChatId) {
         throw new Error("User or chat session not found.");
     }
+    // Allow sending empty messages if an image is being attached simultaneously
+    if (text.trim() === '') return;
 
     const messagesColRef = collection(db, `private_chats/${activePrivateChatId}/messages`);
-
     await addDoc(messagesColRef, {
         text: text,
         authorUid: currentUserData.uid,
         authorUsername: currentUserData.username,
         timestamp: serverTimestamp()
     });
+}
+export async function handleImageAttachment(file) {
+    const { currentUserData, activePrivateChatId } = getState();
+    if (!currentUserData || !activePrivateChatId) {
+        alert("Error: You must be in a chat to send an image.");
+        return;
+    }
+
+    try {
+        // Show a temporary "uploading" message
+        const textInput = document.getElementById('private-message-input');
+        const originalPlaceholder = textInput.placeholder;
+        textInput.placeholder = "Uploading image...";
+        textInput.disabled = true;
+
+        const imageId = doc(collection(db, 'posts')).id; // Generate a unique ID
+        const storageRef = ref(storage, `private_chat_images/${activePrivateChatId}/${imageId}`);
+        
+        await uploadBytes(storageRef, file);
+        const imageUrl = await getDownloadURL(storageRef);
+
+        const messagesColRef = collection(db, `private_chats/${activePrivateChatId}/messages`);
+        await addDoc(messagesColRef, {
+            authorUid: currentUserData.uid,
+            authorUsername: currentUserData.username,
+            imageUrl: imageUrl,
+            text: '', // Can add caption functionality later
+            timestamp: serverTimestamp()
+        });
+
+        // Restore input
+        textInput.placeholder = originalPlaceholder;
+        textInput.disabled = false;
+
+    } catch (error) {
+        console.error("Image upload failed:", error);
+        alert("Image upload failed. Please try again.");
+    }
 }

@@ -29,6 +29,9 @@
 
         <!-- Modals Container -->
         <div id="modal-container-all">
+            <div id="emoji-picker-container" class="absolute z-[2000]" style="display: none;">
+                <emoji-picker class="light"></emoji-picker>
+            </div>
             <!-- Auth & Edit Modals -->
             <div id="modal-backdrop" class="modal-backdrop"></div>
             <div id="auth-modal-container" class="modal-container">
@@ -391,8 +394,12 @@
                             <button type="button" id="private-message-attach-btn" class="secondary-btn !px-4 !py-3 rounded-lg text-gray-400 hover:text-white" title="Attach Image">
                                 <i class="fas fa-paperclip"></i>
                             </button>
-                            <input type="file" id="private-message-attach-input" class="hidden" accept="image/*">
-                            <input type="text" id="private-message-input" class="form-input flex-grow" placeholder="Type a message..." required>
+                            <div class="relative flex-grow">
+                                <input type="text" id="private-message-input" class="form-input" placeholder="Type a message..." required>
+                                <button type="button" id="private-message-emoji-btn" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                                    <i class="fas fa-smile"></i>
+                                </button>
+                            </div>
                             <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
                         </form>
                     </div>
@@ -639,6 +646,7 @@
         </div>
     </div>
     <!-- Firebase SDK -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
     <script type="module" src="code/js/firestore.js"></script>
     <script type="module" src="code/js/main.js"></script>
 </body>

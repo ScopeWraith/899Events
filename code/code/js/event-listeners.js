@@ -270,4 +270,33 @@ export function initializeAllEventListeners() {
             showPostActionsModal(actionsBtn.dataset.postId);
         }
     });
+    const attachBtn = getElement('private-message-attach-btn');
+    const attachInput = getElement('private-message-attach-input');
+
+    if (attachBtn && attachInput) {
+        attachBtn.addEventListener('click', () => attachInput.click());
+        attachInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageAttachment(file);
+            }
+        });
+    }
+    // Emoji Picker Logic
+    const emojiBtn = getElement('private-message-emoji-btn');
+    const emojiPickerContainer = getElement('emoji-picker-container');
+    const emojiPicker = document.querySelector('emoji-picker');
+    const pmInput = getElement('private-message-input');
+
+    if (emojiBtn && emojiPicker && pmInput) {
+        emojiBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiPickerContainer.style.display = emojiPickerContainer.style.display === 'none' ? 'block' : 'none';
+        });
+
+        emojiPicker.addEventListener('emoji-click', event => {
+            pmInput.value += event.detail.unicode;
+            emojiPickerContainer.style.display = 'none';
+        });
+    }
 }
