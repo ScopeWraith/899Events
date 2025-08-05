@@ -201,20 +201,19 @@ export async function handleSendMessage(e, chatType) {
     const { currentUserData } = getState();
     if (!currentUserData) return;
 
-    // Determine the correct input element based on the chat type
-    const inputId = `${chatType.replace('_chat', '')}-chat-input`;
-    const input = document.getElementById(inputId);
+    // --- FIX: Directly target the one, consistent input ID ---
+    const input = document.getElementById('chat-input-main');
 
-    // This check prevents the error if the input is not found
     if (!input) {
-        console.error(`Could not find input element with ID: ${inputId}`);
+        console.error("Could not find the main chat input element.");
         return;
     }
 
     const text = input.value.trim();
     if (text === '') return;
-    input.value = ''; // Clear the input after getting the text
+    input.value = ''; // Clear the input
 
+    // Determine the correct database path for the message
     let collectionPath;
     switch (chatType) {
         case 'world_chat':
@@ -228,16 +227,8 @@ export async function handleSendMessage(e, chatType) {
             collectionPath = 'leadership_chat';
             break;
         default:
-            // Handle the new combined chat input form
-            const mainChatInput = document.getElementById('chat-input-main');
-            if (mainChatInput) {
-                const mainText = mainChatInput.value.trim();
-                if (mainText === '') return;
-                collectionPath = chatType; // The chatId is passed directly
-                mainChatInput.value = '';
-            } else {
-                return; // No valid chat type or input found
-            }
+            console.error("Invalid chat type for sending message:", chatType);
+            return;
     }
 
     const messageData = {
