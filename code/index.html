@@ -175,6 +175,7 @@
                 </div>
             </div>
 
+            <!-- Player Settings Modal -->
             <div id="player-settings-modal-container" class="modal-container">
                  <div class="glass-pane">
                     <div class="modal-content-wrapper">
@@ -183,7 +184,7 @@
                         </button>
                         <div class="modal-content-scroll">
                             <h2 class="text-2xl font-bold text-white text-center mb-2">Player Settings</h2>
-                            <p id="player-settings-username" class="text-center text-gray-400 mb-6"></p>
+                            <p id="player-settings-username" class="text-center text-gray-400 mb-6 font-semibold"></p>
                             <form id="player-settings-form">
                                  <div class="space-y-4">
                                     <div class="input-group"><i class="fas fa-star input-icon"></i>
@@ -204,8 +205,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="verification-toggle-container" class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg">
-                                        <label for="setting-verified" class="font-semibold text-white">Verified Status</label>
+                                    <div id="verification-toggle-container" class="flex items-center justify-between bg-black/20 p-3 rounded-lg border border-white/10">
+                                        <label for="setting-verified" class="font-semibold text-white flex items-center gap-3"><i class="fas fa-user-check text-blue-400"></i>Verified Status</label>
                                         <label class="toggle-switch">
                                             <input type="checkbox" id="setting-verified">
                                             <span class="slider"></span>
@@ -213,7 +214,7 @@
                                     </div>
                                 </div>
                                 <p id="player-settings-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                                <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Settings</button>
+                                <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6"><i class="fas fa-save mr-2"></i>Save Settings</button>
                             </form>
                         </div>
                     </div>
