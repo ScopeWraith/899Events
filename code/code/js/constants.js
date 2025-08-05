@@ -5,7 +5,14 @@
  * such as alliance names, ranks, post types, and styling information.
  * This centralization makes it easy to update these values in one place.
  */
-
+export const RANK_STYLES = {
+    ADMIN: { color: '#F87171', shadow: 'rgba(248, 113, 113, 0.5)' },
+    R5:    { color: '#FFD700', shadow: 'rgba(255, 215, 0, 0.5)' },
+    R4:    { color: '#9370DB', shadow: 'rgba(147, 112, 219, 0.5)' },
+    R3:    { color: '#00BFFF', shadow: 'rgba(0, 191, 255, 0.5)' },
+    R2:    { color: '#FFFFFF', shadow: 'rgba(255, 255, 255, 0.5)' },
+    R1:    { color: '#8b949e', shadow: 'rgba(139, 148, 158, 0.4)' }
+};
 export const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
 
 export const ALLIANCE_RANKS = [

@@ -15,6 +15,14 @@
     --post-color-wanted_boss: #DC143C;
     --post-color-campaign: #32CD32;
     --post-color-vs: #0077ff;
+
+    /* Rank Glow Colors */     
+    --rank-admin-color: #F87171;
+    --rank-r5-color: #FFD700;
+    --rank-r4-color: #9370DB;
+    --rank-r3-color: #00BFFF;
+    --rank-r2-color: #FFFFFF;
+    --rank-r1-color: #8b949e;
 }
 
 @keyframes pulse-border-horizontal { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -354,51 +362,70 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     flex-direction: column; /* This is the fix for the horizontal layout */
 }
 .chat-message {
-    padding: 0.5rem 1rem;
     display: flex;
     gap: 0.75rem;
-    align-items: flex-end; /* Changed from flex-start */
+    padding: 0.5rem 1rem;
     position: relative;
+    width: fit-content; /* Fit to content size */
+    max-width: 85%; /* Don't get too wide */
+    animation: slideInUp 0.3s ease-out;
 }
 .chat-message.self {
-    flex-direction: row-reverse;
+    margin-left: auto; /* This pushes the entire message to the right */
+    flex-direction: row-reverse; /* Avatar on the right */
 }
 .chat-message:hover .delete-message-btn {
     opacity: 1;
 }
 .chat-message-bubble {
-    max-width: 100%; /* Changed from 75% */
     padding: 0.75rem 1rem;
-    border-radius: 1.1rem;
-    background-color: #21262d; 
+    border-radius: 18px;
+    background-color: rgba(33, 38, 45, 0.6); /* Slightly transparent background */
+    border: 2px solid; /* The border will get its color from a class */
     word-wrap: break-word;
     position: relative;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+    cursor: pointer; /* For triggering reactions */
+    transition: background-color 0.2s ease;
 }
 
 .chat-message.self .chat-message-bubble {
     background-color: #005580; /* A custom blue for self messages */
     color: #E6EDF3;
 }
+.chat-message-bubble:hover {
+    background-color: rgba(48, 54, 61, 0.8); /* Lighten on hover */
+}
+/* --- Rank Border Colors --- */
+.rank-border-admin { border-color: var(--rank-admin-color); }
+.rank-border-r5 { border-color: var(--rank-r5-color); }
+.rank-border-r4 { border-color: var(--rank-r4-color); }
+.rank-border-r3 { border-color: var(--rank-r3-color); }
+.rank-border-r2 { border-color: var(--rank-r2-color); }
+.rank-border-r1 { border-color: var(--rank-r1-color); }
 
 .chat-message-author {
     font-weight: 700;
-    font-size: 0.9rem; /* Increased size */
+    font-size: 0.9rem;
     margin-bottom: 0.25rem;
-    display: block; /* Changed from flex */
-    color: var(--color-primary);
+    display: block;
 }
-
+/* Assign author name color based on rank */
+.rank-border-admin .chat-message-author { color: var(--rank-admin-color); }
+.rank-border-r5 .chat-message-author { color: var(--rank-r5-color); }
+.rank-border-r4 .chat-message-author { color: var(--rank-r4-color); }
+.rank-border-r3 .chat-message-author { color: var(--rank-r3-color); }
+.rank-border-r2 .chat-message-author { color: var(--rank-r2-color); }
+.rank-border-r1 .chat-message-author { color: var(--rank-r1-color); }
 /* Make self author name more subtle */
 .chat-message.self .chat-message-author {
     color: #a2a8b1;
 }
 
 /* Improve main message text typography */
-.chat-message-bubble p {
-    font-size: 1rem; /* Increased size */
+chat-message-bubble p {
+    font-size: 1rem;
     line-height: 1.5;
-    color: #e6edf3; /* Brighter text color */
+    color: #e6edf3;
 }
 
 .chat-message.self .chat-message-bubble p {
@@ -409,14 +436,13 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     flex-direction: column;
     align-items: center;
     gap: 0.25rem;
-    width: 60px; /* Fixed width for alignment */
+    width: 60px;
     flex-shrink: 0;
 }
 .chat-message-main {
     display: flex;
-    align-items: center; /* Vertically center bubble and actions */
-    gap: 0.5rem;
-    max-width: 85%;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 .chat-message-bubble-container {
     display: flex;
@@ -837,14 +863,10 @@ emoji-picker {
 
 .message-actions {
     display: flex;
-    gap: 8px; /* Added to space out the buttons */
-    background-color: #2c3440;
-    border-radius: 20px;
-    padding: 4px 8px; /* Adjusted padding slightly */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    gap: 0.5rem;
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
-    order: 1; 
+    margin-top: 4px; /* Space below the avatar */
 }
 
 .chat-message:hover .message-actions {
@@ -874,17 +896,33 @@ emoji-picker {
 }
 
 .message-action-btn {
-    background: none;
-    border: none;
+    background: rgba(48, 54, 61, 0.8);
+    border: 1px solid rgba(255,255,255,0.1);
     color: #8b949e;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 0.8rem;
-    transition: color 0.2s ease;
+    font-size: 0.7rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .message-action-btn:hover {
     color: white;
+    background: #485461;
 }
-
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 /* --- Private Message Modal Overhaul --- */
 
 /* Adjust the modal container itself */
