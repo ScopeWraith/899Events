@@ -138,15 +138,14 @@ export function renderMessages(messages, container, chatType) {
     const { currentUserData, allPlayers } = getState();
     if (!currentUserData || !container) return;
 
-    container.innerHTML = ''; // Clear "Loading..." text
-
+    container.innerHTML = ''; // Clear previous messages
     if (messages.length === 0) {
         container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
         return;
     }
 
-    // The query gets newest messages first. We MUST reverse the array here
-    // before rendering so the CSS 'column-reverse' displays them correctly.
+    // CRITICAL FIX: The query returns newest messages first. We MUST reverse this
+    // to get oldest-first before rendering. The CSS will then display it correctly.
     const orderedMessages = messages.reverse();
 
     orderedMessages.forEach(msg => {

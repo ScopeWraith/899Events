@@ -285,20 +285,43 @@ export function initializeAllEventListeners() {
         });
     }
     // Emoji Picker Logic
-    const emojiBtn = getElement('private-message-emoji-btn');
-    const emojiPickerContainer = getElement('emoji-picker-container');
-    const emojiPicker = document.querySelector('emoji-picker');
-    const pmInput = getElement('private-message-input');
+const emojiPickerContainer = getElement('emoji-picker-container');
+const emojiPicker = document.querySelector('emoji-picker');
 
-    if (emojiBtn && emojiPicker && pmInput) {
-        emojiBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            emojiPickerContainer.style.display = emojiPickerContainer.style.display === 'none' ? 'block' : 'none';
-        });
-
-        emojiPicker.addEventListener('emoji-click', event => {
+// For Private Messages
+const pmEmojiBtn = getElement('private-message-emoji-btn');
+const pmInput = getElement('private-message-input');
+if (pmEmojiBtn && emojiPicker && pmInput) {
+    pmEmojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        emojiPickerContainer.style.display = emojiPickerContainer.style.display === 'none' ? 'block' : 'none';
+    });
+    emojiPicker.addEventListener('emoji-click', event => {
+        if (document.getElementById('private-message-modal-container').classList.contains('visible')) {
             pmInput.value += event.detail.unicode;
-            emojiPickerContainer.style.display = 'none';
-        });
+        }
+    });
+}
+
+// --- ADD THIS NEW BLOCK for the main chat emoji button ---
+const mainChatEmojiBtn = getElement('main-chat-emoji-btn');
+const mainChatInput = getElement('chat-input-main');
+if (mainChatEmojiBtn && emojiPicker && mainChatInput) {
+    mainChatEmojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        emojiPickerContainer.style.display = emojiPickerContainer.style.display === 'none' ? 'block' : 'none';
+    });
+    emojiPicker.addEventListener('emoji-click', event => {
+        if (document.getElementById('page-social').style.display === 'block') {
+            mainChatInput.value += event.detail.unicode;
+        }
+    });
+}
+
+// Hide picker when clicking away
+window.addEventListener('click', () => {
+    if (emojiPickerContainer) {
+        emojiPickerContainer.style.display = 'none';
     }
+});
 }
