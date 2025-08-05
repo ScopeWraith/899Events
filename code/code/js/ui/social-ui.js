@@ -10,12 +10,15 @@ import { isUserLeader } from '../utils.js';
 import { autoLinkText, formatMessageTimestamp } from '../utils.js';
 
 export function renderMessages(messages, container, chatType) {
-    const { currentUserData, allPlayers, userSessions } = getState();
+    const { currentUserData, allPlayers } = getState();
     if (!currentUserData || !container) return;
 
-    // Scroll to bottom logic
-    const shouldScroll = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+    // --- Smart Scrolling Logic ---
+    // Check if the user is scrolled near the bottom before adding new messages.
+    // We consider "near" to be within 50 pixels.
+    const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
 
+    // --- Render Messages ---
     container.innerHTML = ''; // Clear previous messages
     if (messages.length === 0) {
         container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
@@ -24,14 +27,16 @@ export function renderMessages(messages, container, chatType) {
 
     messages.forEach(msg => {
         const isSelf = msg.authorUid === currentUserData.uid;
+        // Use a default '?' if username is missing, to prevent crashes
+        const authorUsername = msg.authorUsername || '?';
         const authorData = allPlayers.find(p => p.uid === msg.authorUid);
-        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(msg.authorUsername || '?').charAt(0).toUpperCase()}`;
+        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
         const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
 
-        // Determine message content (text, image, or both)
         let messageContent = '';
         if (msg.text) {
-            messageContent += `<p class="text-sm">${autoLinkText(msg.text)}</p>`;
+            // Use our existing autoLinkText utility
+            messageContent += `<p>${autoLinkText(msg.text)}</p>`;
         }
         if (msg.imageUrl) {
             messageContent += `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">`;
@@ -40,9 +45,9 @@ export function renderMessages(messages, container, chatType) {
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
         messageEl.innerHTML = `
-            <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0" alt="${msg.authorUsername}">
+            <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0" alt="${authorUsername}">
             <div class="chat-message-bubble">
-                <p class="chat-message-author">${msg.authorUsername}</p>
+                <p class="chat-message-author">${authorUsername}</p>
                 ${messageContent}
                 <p class="chat-message-timestamp">${timestamp}</p>
             </div>
@@ -50,8 +55,8 @@ export function renderMessages(messages, container, chatType) {
         container.appendChild(messageEl);
     });
 
-    // Ensure the most recent message is visible
-    if (shouldScroll) {
+    // --- Auto-scroll if the user was already at the bottom ---
+    if (isScrolledToBottom) {
         container.scrollTop = container.scrollHeight;
     }
 }

@@ -368,41 +368,57 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 }
 .chat-message-bubble {
     max-width: 75%;
-    padding: 0.6rem 1rem;
-    border-radius: 1rem;
-    background-color: #21262d;
+    padding: 0.75rem 1rem;
+    border-radius: 1.1rem;
+    /* New darker background for other users */
+    background-color: #21262d; 
     word-wrap: break-word;
-    position: relative; /* For timestamp positioning */
+    position: relative;
+    /* Softer shadow for depth */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
 }
 
 .chat-message.self .chat-message-bubble {
-    background-color: var(--color-primary);
-    color: #0D1117;
+    /* New lighter background for the current user */
+    background-color: #373E47;
+    color: #E6EDF3; /* Lighter text color for contrast */
 }
 
 .chat-message-author {
     font-weight: 700;
-    font-size: 0.8rem;
+    font-size: 0.85rem; /* Slightly larger author name */
     margin-bottom: 0.25rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    color: var(--color-primary); /* Use primary color for author name */
 }
 
+/* Make self author name more subtle */
 .chat-message.self .chat-message-author {
-    color: #0D1117;
+    color: #a2a8b1;
 }
 
-/* New Timestamp and Image Styles */
+/* Improve main message text typography */
+.chat-message-bubble p {
+    font-size: 0.95rem; /* Larger, more readable text */
+    line-height: 1.5;
+    color: #c9d1d9;
+}
+
+.chat-message.self .chat-message-bubble p {
+    color: #E6EDF3;
+}
+
 .chat-message-timestamp {
-    font-size: 0.65rem;
-    color: #8b949e;
-    margin-top: 0.3rem;
+    font-size: 0.7rem; /* Clearer timestamp */
+    color: #7d8590;
+    margin-top: 0.4rem;
     text-align: right;
 }
 
 .chat-message.self .chat-message-timestamp {
-    color: rgba(13, 17, 23, 0.7);
+    color: #9098a1;
 }
 
 .chat-message-image {
