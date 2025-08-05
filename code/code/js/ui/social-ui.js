@@ -134,5 +134,45 @@ export function renderFriendsList() {
 
 // Keep renderMessages, but we will no longer use renderFriendRequests or updateSocialUITabs
 export function renderMessages(messages, container, chatType) {
-    // ... (This function remains exactly the same as the last working version)
+    const { currentUserData, allPlayers } = getState();
+    if (!currentUserData || !container) return;
+
+    container.innerHTML = ''; // Clear "Loading..." text
+
+    if (messages.length === 0) {
+        container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
+        return;
+    }
+
+    // The query gets newest messages first. We MUST reverse the array here
+    // before rendering so the CSS 'column-reverse' displays them correctly.
+    const orderedMessages = messages.reverse();
+
+    orderedMessages.forEach(msg => {
+        const isSelf = msg.authorUid === currentUserData.uid;
+        const authorUsername = msg.authorUsername || '?';
+        const authorData = allPlayers.find(p => p.uid === msg.authorUid);
+        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
+        const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
+
+        let messageContent = '';
+        if (msg.text) {
+            messageContent += `<p>${autoLinkText(msg.text)}</p>`;
+        }
+        if (msg.imageUrl) {
+            messageContent += `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">`;
+        }
+
+        const messageEl = document.createElement('div');
+        messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
+        messageEl.innerHTML = `
+            <img src="${avatarUrl}" class="w-8 h-8 rounded-full flex-shrink-0" alt="${authorUsername}">
+            <div class="chat-message-bubble">
+                <p class="chat-message-author">${authorUsername}</p>
+                ${messageContent}
+                <p class="chat-message-timestamp">${timestamp}</p>
+            </div>
+        `;
+        container.appendChild(messageEl);
+    });
 }
