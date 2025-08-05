@@ -5,6 +5,13 @@
  * such as date formatting, image resizing, and calculating event statuses.
  * This keeps the main logic files cleaner and more focused.
  */
+export function positionEmojiPicker(button, pickerContainer) {
+    const buttonRect = button.getBoundingClientRect();
+    pickerContainer.style.position = 'absolute';
+    pickerContainer.style.top = `${buttonRect.top - pickerContainer.offsetHeight - 10}px`;
+    pickerContainer.style.left = `${buttonRect.left}px`;
+    pickerContainer.style.display = 'block';
+}
 
 export function formatTimeAgo(date) {
     if (!date) return '';

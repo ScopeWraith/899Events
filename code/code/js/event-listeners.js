@@ -16,13 +16,7 @@ import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSub
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { deletePost, handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners } from './firestore.js';
 import { activateChatChannel } from './ui/social-ui.js'; 
-function positionEmojiPicker(button, pickerContainer) {
-    const buttonRect = button.getBoundingClientRect();
-    pickerContainer.style.position = 'absolute';
-    pickerContainer.style.top = `${buttonRect.top - pickerContainer.offsetHeight - 10}px`;
-    pickerContainer.style.left = `${buttonRect.left}px`;
-    pickerContainer.style.display = 'block';
-}
+import { positionEmojiPicker } from '../utils.js';
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
 
@@ -291,37 +285,36 @@ export function initializeAllEventListeners() {
             }
         });
     }
-    // --- New, Robust Emoji Picker Logic ---
-const emojiPickerContainer = getElement('emoji-picker-container');
+// --- New, Robust Emoji Picker Logic ---
+const emojiPickerContainer = document.getElementById('emoji-picker-container');
 const emojiPicker = document.querySelector('emoji-picker');
-let activeEmojiInput = null; // Variable to track the currently active input
+let activeEmojiInput = null;
 
+// Setup for Private Message button ONLY
 const setupEmojiButton = (buttonId, inputId) => {
-    const button = getElement(buttonId);
-    const input = getElement(inputId);
+    const button = document.getElementById(buttonId);
+    const input = document.getElementById(inputId);
     if (button && input) {
         button.addEventListener('click', (e) => {
             e.stopPropagation();
-            activeEmojiInput = input; // Set the active input
+            activeEmojiInput = input;
             positionEmojiPicker(button, emojiPickerContainer);
         });
     }
 };
 
-// Initialize listeners for both emoji buttons
-setupEmojiButton('main-chat-emoji-btn', 'chat-input-main');
 setupEmojiButton('private-message-emoji-btn', 'private-message-input');
 
 if (emojiPicker) {
-    // One listener to handle all emoji clicks
     emojiPicker.addEventListener('emoji-click', event => {
         if (activeEmojiInput) {
-            activeEmojiInput.value += event.detail.unicode; // Insert emoji into the active input
+            activeEmojiInput.value += event.detail.unicode;
         }
-        emojiPickerContainer.style.display = 'none'; // Hide picker after selection
+        emojiPickerContainer.style.display = 'none';
     });
 }
 
+// This window listener remains unchanged
 // --- Smarter "Click Away" Listener ---
 window.addEventListener('click', (e) => {
     // Hide the picker only if the click is NOT on the picker itself or one of the emoji buttons
