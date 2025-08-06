@@ -37,7 +37,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .glass-pane { background: linear-gradient(rgb(26 31 39), rgb(13 17 23)); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
 
 /* --- HEADER AND NAVIGATION --- */
-.nav-link {
+.nav-link { 
     display: flex;
     align-items: center;
     padding: 0.5rem 1rem;
@@ -47,8 +47,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     transition: all 0.2s ease;
     height: 100%;
     width: 100%;
-    position: relative; /* Add this */
-    overflow: hidden;   /* Add this to hide the line when it's a dot */
 }
 .nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.05); }
 .nav-link.active { color: #fff; border-bottom: 2px solid; border-image: linear-gradient(to right, var(--color-primary), var(--color-highlight)) 1;
