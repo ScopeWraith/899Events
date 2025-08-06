@@ -58,7 +58,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     transform: translateX(-50%);
     width: 4px; /* Initial width of the dot */
     height: 4px; /* Initial height of the dot */
-    background-color: rgb(rgba(168, 168, 168, 0.117)); /* Start with no color */
+    background-color: rgb(rgb(168, 168, 168)); /* Start with no color */
     border-radius: 50%; /* Make it a circle */
     transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth transition */
 }
