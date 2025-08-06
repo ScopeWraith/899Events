@@ -534,8 +534,39 @@
                         </div>
                         <div id="sub-page-social-friends" class="sub-page" style="display: none;"></div>
                     </div>
-                    <div id="page-players" class="page-content" style="display: none;"></div>
-                    <div id="page-feed" class="page-content" style="display: none;"></div>
+                    <div id="page-players" class="page-content" style="display: none;">
+                        <div class="flex flex-col md:flex-row gap-4 mb-6">
+                            <div class="relative flex-grow">
+                                <i class="fas fa-search absolute top-1/2 left-4 -translate-y-1/2 text-gray-500"></i>
+                                <input type="text" id="player-search-input" placeholder="Search by player name..." class="form-input !pl-10 !rounded-full !bg-gray-900/70">
+                            </div>
+                            <div class="input-group md:w-64 !rounded-full !bg-gray-900/70">
+                                <i class="fas fa-shield-alt input-icon"></i>
+                                <div class="custom-select-container w-full" data-type="alliance-filter">
+                                    <input type="hidden" id="alliance-filter">
+                                    <button type="button" class="custom-select-value form-input"><span>All Alliances</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options">
+                                        <div class="options-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="player-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        </div>
+                    </div>
+                    <div id="page-feed" class="page-content" style="display: none;">
+                        <div id="feed-welcome-message" class="text-center mb-10"></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div class="lg:col-span-2">
+                                <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-primary);"><i class="fas fa-stream"></i><span>Recent Activity</span></h2>
+                                <div id="feed-activity-container" class="space-y-4"></div>
+                            </div>
+                            <div>
+                                <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-highlight);"><i class="fas fa-exclamation-triangle"></i><span>Pending Actions</span></h2>
+                                <div id="feed-action-container" class="space-y-4"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <footer class="text-center mt-12 py-4 border-t border-gray-800/50"><p class="text-gray-500">&copy; 2025 SWDesigns - 899 Community</p></footer>
             </div>
