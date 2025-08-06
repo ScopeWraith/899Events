@@ -91,10 +91,10 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .sub-nav-link.active { 
     background-color: rgba(67, 78, 92, 0.5);
     color: #fff;
-    border-color: var(--color-primary);
+    border-color: #8b949e;
     box-shadow: 0 0 15px -3px var(--color-primary-glow);
 }
-.sub-nav-link.active i { color: var(--color-bg); }
+.sub-nav-link.active i { color: #fff; }
 
 /* --- DROPDOWNS (Profile, Feed) --- */
 .dropdown-pane { position: absolute; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; z-index: 100; padding: 0.5rem; min-width: 180px; border-top: 2px solid var(--color-primary); background-color: var(--color-dropdown-bg); }
