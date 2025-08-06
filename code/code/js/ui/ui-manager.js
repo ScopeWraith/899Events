@@ -64,21 +64,41 @@ export function handleSubNavClick(subTargetId) {
             break;
     }
 }
+// NEW function to control the slide-out sub-menu
+export function toggleSubNav(activeSubmenuId) {
+    const subNavContainer = getElement('sub-nav-container');
+    if (!subNavContainer) return;
+
+    // Hide all individual sub-menu content blocks first
+    subNavContainer.querySelectorAll('.sub-nav-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+
+    if (activeSubmenuId) {
+        // If there's a submenu to show, find it and make it visible
+        const activeContent = getElement(activeSubmenuId);
+        if (activeContent) {
+            activeContent.classList.remove('hidden');
+            // Open the main slider container by adding the 'open' class
+            subNavContainer.classList.add('open');
+        }
+    } else {
+        // If no submenu is requested, just close the slider
+        subNavContainer.classList.remove('open');
+    }
+}
+
+// REVISED showPage function
 export function showPage(targetId) {
+    // This part remains the same: show/hide main page content
     querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';
     });
-    querySelectorAll('#main-nav .nav-link').forEach(link => {
-        const mainTarget = link.dataset.mainTarget;
-        link.classList.toggle('active', mainTarget === targetId);
-    });
-
-    // --- FIX: Add logic to render content for the default view of a page ---
+    
+    // This logic still correctly renders the default content for each page
     if (targetId === 'page-news') {
-        // This ensures the "ALL" filter for news is rendered by default
         renderNews('all');
-    }
-    else if (targetId === 'page-feed') {
+    } else if (targetId === 'page-feed') {
         const { currentUserData } = getState();
         const welcomeContainer = getElement('feed-welcome-message');
         
@@ -89,8 +109,7 @@ export function showPage(targetId) {
             `;
         }
         renderFeedActivity();
-    }
-    else if (targetId === 'page-social') {
+    } else if (targetId === 'page-social') {
         renderChatSelectors();
         renderFriendsList();
         activateChatChannel('world_chat');

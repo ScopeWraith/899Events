@@ -32,29 +32,26 @@ export function initializeAllEventListeners() {
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
+
+            // Get targets from the clicked link and its parent item
             const mainTarget = link.dataset.mainTarget;
             const navItem = link.closest('.nav-item');
+            const submenuId = navItem.dataset.submenuId || null;
 
-            if (mainTarget === 'page-feed') {
-                // This is the feed link, so we toggle its dropdown
-                document.querySelectorAll('.nav-item.open').forEach(item => {
-                    if (item !== navItem) item.classList.remove('open');
-                });
-                if (navItem) navItem.classList.toggle('open');
-            } else if (mainTarget) {
-                // This is any other nav link, so we switch the page
-                showPage(mainTarget);
-            }
+            // 1. Show the correct page content
+            showPage(mainTarget);
+
+            // 2. Toggle the sub-navigation menu based on the clicked item
+            toggleSubNav(submenuId);
+
+            // 3. Update the 'active' state for all main navigation links
+            document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
         });
     });
 
-    // Add a new listener for our "View All" link inside the dropdown
-    addListener('feed-dropdown-view-all', 'click', (e) => {
-        e.preventDefault();
-        showPage('page-feed');
-        document.querySelector('#feed-nav-item').classList.remove('open');
-    });
     // --- Sub Navigation ---
+    // (This block for sub-nav clicks should remain exactly as it is)
     document.querySelectorAll('.sub-nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
