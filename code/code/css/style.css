@@ -50,38 +50,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     position: relative; /* Add this */
     overflow: hidden;   /* Add this to hide the line when it's a dot */
 }
-.nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: 1rem; /* Adjust vertical position of the dot/line */
-    left: 52%;
-    transform: translateX(-50%);
-    width: 4px; /* Initial width of the dot */
-    height: 2px; /* Initial height of the dot */
-    background-color: rgb(rgb(168, 168, 168)); /* Start with no color */
-    border-radius: 50%; /* Make it a circle */
-    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth transition */
-}
-
-/* Animate on hover */
-.nav-link:hover::after {
-    width: 50%;
-    height: 2px; /* Thinner for the line */
-    border-radius: 1px; /* Slightly rounded corners for the line */
-    background-color: #8b949e; /* White on hover */
-}
-
-/* Style for the active link */
-.nav-link.active::after {
-    width: 50%;
-    height: 2px;
-    border-radius: 1px;
-    background-color: rgb(0, 170, 255); /* Blue when active */
-}
-
-/* Keep the text color change for the active link */
-.nav-link.active {
-    color: #fff;
+.nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.05); }
+.nav-link.active { color: #fff; border-bottom: 2px solid; border-image: linear-gradient(to right, var(--color-primary), var(--color-highlight)) 1;
 }
 .nav-item { position: relative; height:100%; }
 
