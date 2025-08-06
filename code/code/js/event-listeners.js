@@ -1,14 +1,9 @@
 // code/js/event-listeners.js
 
-/**
- * This module centralizes the setup of all major event listeners
- * for the application, keeping the main.js file cleaner.
- */
-
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, toggleSubNav } from './ui/ui-manager.js';
+import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, toggleSubNav, handleSubNavClick } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, renderPosts } from './ui/post-ui.js';
@@ -20,7 +15,6 @@ import { positionEmojiPicker } from './utils.js';
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
 
-    // --- Null-safe listener attachment function ---
     const addListener = (id, event, handler) => {
         const element = getElement(id);
         if (element) {
@@ -32,37 +26,33 @@ export function initializeAllEventListeners() {
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-
-            // Get targets from the clicked link and its parent item
             const mainTarget = link.dataset.mainTarget;
             const navItem = link.closest('.nav-item');
             const submenuId = navItem.dataset.submenuId || null;
 
-            // 1. Show the correct page content
             showPage(mainTarget);
-
-            // 2. Toggle the sub-navigation menu based on the clicked item
             toggleSubNav(submenuId);
 
-            // 3. Update the 'active' state for all main navigation links
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
         });
     });
 
     // --- Sub Navigation ---
-    // (This block for sub-nav clicks should remain exactly as it is)
     document.querySelectorAll('.sub-nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const subTarget = link.dataset.subTarget;
             if (subTarget) {
+                // De-activate other sub-nav links in the same group
+                link.closest('.sub-nav-content').querySelectorAll('.sub-nav-link').forEach(l => l.classList.remove('active'));
+                // Activate the clicked one
+                link.classList.add('active');
                 handleSubNavClick(subTarget);
             }
         });
     });
     
-
     // --- Modal Triggers & Closers ---
     addListener('login-btn', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
@@ -97,32 +87,27 @@ export function initializeAllEventListeners() {
     addListener('user-profile-button', 'click', (e) => {
         e.stopPropagation();
         const navItem = getElement('user-profile-nav-item');
-        // Close other dropdowns
         document.querySelectorAll('.nav-item.open').forEach(item => {
             if (item !== navItem) item.classList.remove('open');
         });
-        // Toggle this dropdown
         if(navItem) navItem.classList.toggle('open');
     });
 
     // --- Mobile Avatar Dropdown Listener ---
     addListener('user-avatar-mobile', 'click', (e) => {
-        e.stopPropagation(); // Prevent the window click listener from closing it immediately
+        e.stopPropagation();
         const navItem = getElement('user-profile-nav-item');
         const dropdown = getElement('player-profile-dropdown');
         const avatar = getElement('user-avatar-mobile');
 
         if (navItem && dropdown && avatar) {
-            // Toggle the dropdown's visibility
             const isOpen = navItem.classList.toggle('open');
-            
-            // If opening, position it correctly near the mobile avatar
             if (isOpen) {
                 const avatarRect = avatar.getBoundingClientRect();
-                dropdown.style.top = `${avatarRect.bottom + 10}px`; // 10px below the avatar
-                dropdown.style.right = '1rem'; // Align to the right edge of the screen
+                dropdown.style.top = `${avatarRect.bottom + 10}px`;
+                dropdown.style.right = '1rem';
                 dropdown.style.left = 'auto';
-                dropdown.style.transform = 'none'; // Reset any desktop transforms
+                dropdown.style.transform = 'none';
             }
         }
     });

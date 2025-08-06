@@ -64,4 +64,5 @@ document.addEventListener('DOMContentLoaded', () => {
     setupInitialUI();
     initializeAllEventListeners();
     showPage('page-news');
+    toggleSubNav('news-submenu'); 
 });
