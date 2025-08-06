@@ -73,7 +73,12 @@ export function showPage(targetId) {
         link.classList.toggle('active', mainTarget === targetId);
     });
 
-    if (targetId === 'page-feed') {
+    // --- FIX: Add logic to render content for the default view of a page ---
+    if (targetId === 'page-news') {
+        // This ensures the "ALL" filter for news is rendered by default
+        renderNews('all');
+    }
+    else if (targetId === 'page-feed') {
         const { currentUserData } = getState();
         const welcomeContainer = getElement('feed-welcome-message');
         
@@ -83,14 +88,11 @@ export function showPage(targetId) {
                 <p class="text-gray-400 mt-1">Here's what's happening in the community.</p>
             `;
         }
-        
-        // Call our new, comprehensive feed renderer
         renderFeedActivity();
     }
-    if (targetId === 'page-social') {
+    else if (targetId === 'page-social') {
         renderChatSelectors();
         renderFriendsList();
-        // Optionally activate the world chat by default
         activateChatChannel('world_chat');
         setupChatListeners('world_chat');
     }
