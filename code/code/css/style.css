@@ -49,7 +49,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     width: 100%;
 }
 .nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.05); }
-.nav-link.active { color: #fff;}
+.nav-link.active { color: #fff; border-bottom: 2px solid; border-image: linear-gradient(to right, var(--color-primary), var(--color-highlight)) 1;
+}
 .nav-item { position: relative; height:100%; }
 
 /* --- ATTACHED & CENTERED SUB-NAVIGATION TABS --- */
