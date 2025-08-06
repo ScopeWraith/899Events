@@ -27,7 +27,7 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
-    
+
     // --- Main Navigation & Page Switching ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -154,13 +154,6 @@ export function initializeAllEventListeners() {
     addListener('post-repeat-type', 'change', (e) => {
         const container = getElement('post-repeat-weeks-container');
         if (container) container.classList.toggle('hidden', e.target.value !== 'weekly');
-    });
-    
-    // --- Main Navigation & Page Switching ---
-    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-            if (link.dataset.mainTarget) showPage(link.dataset.mainTarget);
-        });
     });
     
     // --- Mobile Navigation ---
