@@ -53,8 +53,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .nav-link::after {
     content: '';
     position: absolute;
-    bottom: 0.5rem; /* Adjust vertical position of the dot/line */
-    left: 50%;
+    bottom: 1rem; /* Adjust vertical position of the dot/line */
+    left: 52%;
     transform: translateX(-50%);
     width: 4px; /* Initial width of the dot */
     height: 4px; /* Initial height of the dot */
@@ -65,7 +65,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 
 /* Animate on hover */
 .nav-link:hover::after {
-    width: 100%;
+    width: 700%;
     height: 2px; /* Thinner for the line */
     border-radius: 2px; /* Slightly rounded corners for the line */
     background-color: white; /* White on hover */
@@ -73,7 +73,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 
 /* Style for the active link */
 .nav-link.active::after {
-    width: 100%;
+    width: 70%;
     height: 2px;
     border-radius: 2px;
     background-color: rgb(0, 170, 255); /* Blue when active */
