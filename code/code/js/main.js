@@ -9,7 +9,7 @@
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { initializeAllEventListeners } from './event-listeners.js';
-import { setupInitialUI, showPage, buildMobileNav, updateUIForLoggedInUser, updateUIForLoggedOutUser, renderSkeletons } from './ui/ui-manager.js';
+import { setupInitialUI, showPage, buildMobileNav, updateUIForLoggedInUser, updateUIForLoggedOutUser, renderSkeletons, toggleSubNav } from './ui/ui-manager.js';
 import { setupAllListeners, detachAllListeners, fetchInitialData } from './firestore.js';
 import { setupPresenceManagement } from './presence.js';
 import { setCallbacks } from './state.js';
