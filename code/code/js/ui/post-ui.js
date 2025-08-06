@@ -311,47 +311,6 @@ function buildFilterControls(visiblePosts) {
     });
 }
 
-export function renderPosts() {
-    let { countdownInterval, allPosts, currentUserData, activeFilter } = getState();
-    const eventsSectionContainer = document.getElementById('events-section-container');
-    const announcementsContainer = document.getElementById('announcements-container');
-
-    if (countdownInterval) clearInterval(countdownInterval);
-    
-    let visiblePosts = allPosts.filter(post => {
-        if (!currentUserData) return post.visibility === 'public';
-        if (post.visibility === 'public') return true;
-        if (currentUserData.isAdmin) return true;
-        if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
-        return false;
-    });
-    
-    buildFilterControls(visiblePosts);
-
-    if (activeFilter !== 'all') {
-        visiblePosts = visiblePosts.filter(p => p.subType === activeFilter);
-    }
-
-    const announcements = visiblePosts
-        .filter(p => p.mainType === 'announcement')
-        .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-
-    const events = visiblePosts.filter(p => p.mainType === 'event');
-    
-    renderAnnouncements(announcements);
-    renderEvents(events);
-    
-    if (announcements.length === 0 && events.length > 0) {
-        eventsSectionContainer.style.marginTop = '0';
-    } else if (announcements.length > 0) {
-        eventsSectionContainer.style.marginTop = '2rem';
-    }
-
-    countdownInterval = setInterval(updateCountdowns, 1000 * 30);
-    updateState({ countdownInterval });
-    updateCountdowns();
-}
-
 // --- POST CREATION & EDITING ---
 
 export function initializePostStepper(mainType) {
