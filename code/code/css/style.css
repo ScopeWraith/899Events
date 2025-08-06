@@ -77,7 +77,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #8b949e;
-    background: linear-gradient(135deg, rgba(22, 27, 34, 0.6), rgba(22, 27, 34, 0.3)); 
+    background: linear-gradient(rgb(15 19 25 / 75%), rgb(50 59 71 / 35%)); 
     backdrop-filter: blur(20px); 
     -webkit-backdrop-filter: blur(20px);
     border-radius: 0px 0px 6px 6px;
