@@ -1,8 +1,9 @@
 import { getState, updateState } from '../state.js';
 import { isUserLeader } from '../utils.js';
-import { handleSendMessage } from '../firestore.js';
-import { formatMessageTimestamp, autoLinkText } from '../utils.js';
+import { handleSendMessage, fetchConversations, addFriend } from '../firestore.js'; // Modified import
+import { formatMessageTimestamp, autoLinkText, formatTimeAgo } from '../utils.js'; // Modified import
 import { canDeleteMessage } from '../utils.js';
+import { showPrivateMessageModal } from './ui-manager.js'; // Added import
 let currentSubmitHandler = null; // To manage the form's event listener
 // --- NEW CHAT MANAGEMENT SYSTEM ---
 
@@ -226,4 +227,128 @@ export function renderMessages(messages, container, chatType) {
     
     // Scroll to the bottom of the chat window
     container.scrollTop = container.scrollHeight;
+}
+export async function renderConversations() {
+    const container = document.getElementById('sub-page-social-convo');
+    if (!container) return;
+
+    // Add a header and a container for the list
+    container.innerHTML = `<h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6" style="text-shadow: 0 0 10px var(--color-primary);">Recent Interactions</h2><div id="convo-list" class="space-y-3 max-w-4xl mx-auto"></div>`;
+    const listContainer = document.getElementById('convo-list');
+    listContainer.innerHTML = `<p class="text-center text-gray-400 py-8">Loading conversations...</p>`;
+
+    const conversations = await fetchConversations();
+    const { allPlayers, userSessions } = getState();
+
+    if (conversations.length === 0) {
+        listContainer.innerHTML = `<p class="text-center text-gray-400 py-8">No recent conversations. Start one from the Players page!</p>`;
+        return;
+    }
+    
+    // Sort by the timestamp of the last message
+    conversations.sort((a, b) => b.lastMessage.timestamp.toDate() - a.lastMessage.timestamp.toDate());
+
+    listContainer.innerHTML = conversations.map(convo => {
+        const partnerData = allPlayers.find(p => p.uid === convo.partnerId);
+        if (!partnerData) return ''; // Skip if partner data isn't loaded yet
+
+        const session = userSessions[convo.partnerId];
+        const statusClass = session ? session.status : 'offline';
+        const avatarUrl = partnerData.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${partnerData.username.charAt(0).toUpperCase()}`;
+
+        let lastMessageText = convo.lastMessage.text;
+        if (convo.lastMessage.imageUrl && !lastMessageText) {
+            lastMessageText = '<i>[Image]</i>';
+        }
+        
+        return `
+            <div class="convo-item glass-pane p-4 flex items-center justify-between hover:bg-white/5 transition-colors duration-200 cursor-pointer rounded-lg" data-partner-uid="${partnerData.uid}">
+                <div class="flex items-center gap-4 overflow-hidden">
+                    <div class="relative flex-shrink-0">
+                        <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover">
+                        <span class="status-dot ${statusClass} absolute bottom-0 right-0 border-2 border-gray-800"></span>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h4 class="font-bold text-lg text-white">${partnerData.username}</h4>
+                        <p class="text-sm text-gray-400 truncate">${lastMessageText}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 flex-shrink-0">
+                    <span class="text-xs text-gray-500">${formatTimeAgo(convo.lastMessage.timestamp.toDate())}</span>
+                    <button class="text-gray-500 hover:text-yellow-400 transition-colors" title="Pin Conversation (coming soon)">
+                        <i class="fas fa-thumbtack"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Add event listeners to open the chat modal when an item is clicked
+    listContainer.querySelectorAll('.convo-item').forEach(el => {
+        el.addEventListener('click', () => {
+            const partnerId = el.dataset.partnerUid;
+            const partnerData = allPlayers.find(p => p.uid === partnerId);
+            if(partnerData) {
+                showPrivateMessageModal(partnerData);
+            }
+        });
+    });
+}
+
+// NEW: Renders the dedicated Friends page
+export function renderFriendsPage() {
+    const container = document.getElementById('sub-page-social-friends');
+    if (!container) return;
+
+    const { userFriends, allPlayers } = getState();
+
+    // Alphabetical sort
+    const friendsData = userFriends
+        .map(friendId => allPlayers.find(p => p.uid === friendId))
+        .filter(Boolean) // Remove any undefined friends
+        .sort((a, b) => a.username.localeCompare(b.username));
+
+    const friendsListHTML = friendsData.length > 0 ? friendsData.map(friend => {
+        const avatarUrl = friend.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${friend.username.charAt(0).toUpperCase()}`;
+        return `
+            <div class="glass-pane p-4 flex items-center justify-between rounded-lg">
+                <div class="flex items-center gap-4">
+                    <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover">
+                    <div>
+                        <p class="font-bold text-white">${friend.username}</p>
+                        <p class="text-xs text-gray-400">[${friend.alliance}] - ${friend.allianceRank}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                     <button class="message-player-btn text-gray-400 hover:text-white" data-uid="${friend.uid}" title="Message"><i class="fas fa-comment-dots"></i></button>
+                </div>
+            </div>
+        `
+    }).join('') : `<p class="text-center text-gray-500 py-8 col-span-full">Your friends list is empty. Add friends from the Players page.</p>`;
+
+    container.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold text-white tracking-wider" style="text-shadow: 0 0 10px var(--color-primary);">Friends</h2>
+            <button id="add-friend-main-btn" class="primary-btn rounded-lg px-4 py-2 flex items-center gap-2">
+                <i class="fas fa-user-plus"></i><span>Add Friend</span>
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="friends-page-list">
+            ${friendsListHTML}
+        </div>
+    `;
+
+    // Add listener for the main "Add Friend" button to navigate to the players page
+    document.getElementById('add-friend-main-btn').addEventListener('click', () => {
+        showPage('page-players');
+    });
+    
+    // Add listeners for the message buttons
+    document.getElementById('friends-page-list').addEventListener('click', (e) => {
+        const messageBtn = e.target.closest('.message-player-btn');
+        if(messageBtn) {
+            const partnerData = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
+            if(partnerData) showPrivateMessageModal(partnerData);
+        }
+    });
 }

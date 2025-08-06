@@ -17,13 +17,58 @@ import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.
 import { renderTodaysAllianceActivity } from './post-ui.js';
 import { renderFeedActivity } from './post-ui.js';
 import { renderChatSelectors, renderFriendsList, activateChatChannel } from './social-ui.js';
+import { renderNews, renderTodaysAllianceActivity, renderFeedActivity } from './post-ui.js'; // Modified import
+import { renderChatSelectors, renderFriendsList, activateChatChannel, renderConversations, renderFriendsPage } from './social-ui.js'; // Added new imports
+
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
 const querySelectorAll = (selector) => document.querySelectorAll(selector);
 
 // --- PAGE & MODAL MANAGEMENT ---
+export function handleSubNavClick(subTargetId) {
+    const allSubNavLinks = querySelectorAll('.sub-nav-link');
+    allSubNavLinks.forEach(link => {
+        link.classList.toggle('active', link.dataset.subTarget === subTargetId);
+    });
 
+    // Hide all sub-pages within the active main page
+    const activePage = querySelector('.page-content[style*="display: block"]');
+    if (activePage) {
+        activePage.querySelectorAll('.sub-page').forEach(page => {
+            page.style.display = 'none';
+        });
+    }
+
+    // Show the target sub-page
+    const targetSubPage = getElement(`sub-page-${subTargetId}`);
+    if (targetSubPage) {
+        targetSubPage.style.display = 'block';
+    } else {
+        console.warn(`Sub-page with id "sub-page-${subTargetId}" not found.`);
+    }
+
+    // Handle specific rendering logic for each sub-page
+    const [page, filter] = subTargetId.split('-');
+    
+    switch (page) {
+        case 'news':
+            renderNews(filter);
+            break;
+        case 'social':
+            if (filter === 'chat') {
+                renderChatSelectors();
+                renderFriendsList();
+                activateChatChannel('world_chat');
+                setupChatListeners('world_chat');
+            } else if (filter === 'convo') {
+                renderConversations();
+            } else if (filter === 'friends') {
+                renderFriendsPage();
+            }
+            break;
+    }
+}
 export function showPage(targetId) {
     querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';

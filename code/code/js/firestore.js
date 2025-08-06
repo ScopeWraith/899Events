@@ -388,5 +388,40 @@ export async function toggleReaction(chatType, messageId, emoji) {
         });
     } catch (error) {
         console.error("Transaction failed: ", error);
-    }
+    }   
+}
+// ... (existing code at the end of the file)
+
+export async function fetchConversations() {
+    const { currentUserData } = getState();
+    if (!currentUserData) return [];
+
+    const conversations = [];
+    const q = query(collection(db, 'private_chats'), where('participants', 'array-contains', currentUserData.uid));
+    const querySnapshot = await getDocs(q);
+
+    // Using Promise.all to fetch last messages concurrently for better performance
+    const conversationPromises = querySnapshot.docs.map(async (chatDoc) => {
+        const chatData = chatDoc.data();
+        const partnerId = chatData.participants.find(p => p !== currentUserData.uid);
+        
+        // Get the last message to display a snippet
+        const messagesQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), orderBy('timestamp', 'desc'), limit(1));
+        const lastMessageSnapshot = await getDocs(messagesQuery);
+        
+        if (!lastMessageSnapshot.empty) {
+            const lastMessage = lastMessageSnapshot.docs[0].data();
+            return { // Return the conversation object
+                chatId: chatDoc.id,
+                partnerId: partnerId,
+                lastMessage: lastMessage
+            };
+        }
+        return null; // Return null if no messages
+    });
+
+    const resolvedConversations = await Promise.all(conversationPromises);
+    
+    // Filter out any nulls (conversations with no messages) and return
+    return resolvedConversations.filter(convo => convo !== null);
 }

@@ -18,7 +18,107 @@ let postCreationData = {};
 let resizedThumbnailBlob = null;
 
 // --- RENDERING POSTS ---
+export function renderNews(filter = 'all') {
+    let { allPosts, currentUserData, countdownInterval } = getState();
+    const now = new Date();
 
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    // 1. Filter posts by user visibility
+    let visiblePosts = allPosts.filter(post => {
+        if (!currentUserData) return post.visibility === 'public';
+        if (post.visibility === 'public') return true;
+        if (currentUserData.isAdmin) return true;
+        if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true; //
+        return false;
+    });
+
+    let announcements = [];
+    let events = [];
+    let container;
+
+    // 2. Filter posts by the selected sub-nav filter and date ranges
+    switch (filter) {
+        case 'events':
+            const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+            events = visiblePosts.filter(post => {
+                if (post.mainType !== 'event') return false;
+                const status = getEventStatus(post);
+                const prospectiveStartTime = post.isRecurring ? getEventStatus(post).startTime : post.startTime?.toDate();
+                return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || post.startTime?.toDate()) <= thirtyDaysFromNow); //
+            });
+            container = document.getElementById('sub-page-news-events');
+            break;
+
+        case 'announcements':
+            const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            announcements = visiblePosts.filter(post => {
+                if (post.mainType !== 'announcement') return false;
+                const postDate = post.createdAt?.toDate();
+                return postDate >= sevenDaysAgo;
+            });
+            container = document.getElementById('sub-page-news-announcements');
+            break;
+
+        case 'all':
+        default:
+            const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+
+            events = visiblePosts.filter(post => {
+                if (post.mainType !== 'event') return false;
+                const status = getEventStatus(post);
+                const prospectiveStartTime = post.isRecurring ? getEventStatus(post).startTime : post.startTime?.toDate();
+                return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || post.startTime?.toDate()) <= sevenDaysFromNow); //
+            });
+
+            announcements = visiblePosts.filter(post => {
+                if (post.mainType !== 'announcement') return false;
+                const postDate = post.createdAt?.toDate();
+                return postDate >= threeDaysAgo;
+            });
+            container = document.getElementById('sub-page-news-all');
+            break;
+    }
+
+    if (!container) return;
+
+    // 3. Sort and Render Content
+    announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+    events.sort((a, b) => { /* ... sorting logic from getEventStatus ... */ return 0; });
+
+    let contentHTML = '';
+    if (announcements.length > 0) {
+        contentHTML += `
+            <div class="mb-8">
+                <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-highlight);"><i class="fas fa-bullhorn"></i><span>Announcements</span></h2>
+                <div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>
+            </div>`;
+    }
+    if (events.length > 0) {
+        contentHTML += `
+            <div>
+                <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-primary);"><i class="fas fa-calendar-alt"></i><span>Events</span></h2>
+                <div class="grid grid-cols-1 gap-4">${events.map(createCard).join('')}</div>
+            </div>`;
+    }
+
+    container.innerHTML = contentHTML || `<p class="text-center text-gray-400 py-8">No items to display.</p>`;
+
+    // 4. Restart countdown timer
+    countdownInterval = setInterval(updateCountdowns, 1000 * 30);
+    updateState({ countdownInterval });
+    updateCountdowns();
+}
+
+// Keep the old renderPosts function for now, but we will phase it out.
+// It is called by firestore.js and we don't want to break the initial load yet.
+export function renderPosts() {
+    const { activeFilter } = getState();
+    if(document.getElementById('page-news').style.display === 'block'){
+        renderNews(activeFilter === 'all' ? 'all' : activeFilter);
+    }
+}
 function createCard(post) {
     const { currentUserData } = getState();
     const style = POST_STYLES[post.subType] || {};

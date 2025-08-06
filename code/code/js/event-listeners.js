@@ -18,6 +18,27 @@ import { activateChatChannel } from './ui/social-ui.js';
 import { positionEmojiPicker } from './utils.js';
 
 export function initializeAllEventListeners() {
+    // --- Main Navigation & Page Switching ---
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const mainTarget = link.dataset.mainTarget;
+            if (mainTarget) {
+                showPage(mainTarget);
+            }
+        });
+    });
+
+    // --- Sub Navigation ---
+    document.querySelectorAll('.sub-nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const subTarget = link.dataset.subTarget;
+            if (subTarget) {
+                handleSubNavClick(subTarget);
+            }
+        });
+    });
     const getElement = (id) => document.getElementById(id);
 
     // --- Null-safe listener attachment function ---
