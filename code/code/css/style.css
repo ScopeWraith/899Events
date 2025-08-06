@@ -45,8 +45,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     font-size: 0.9rem;
     color: #8b949e;
     transition: all 0.2s ease;
-    height: 100%;
-    width: 100%;
+    height: 80%;
+    width: 80%;
 }
 .nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.05); }
 .nav-link.active { color: #fff; background-color: rgba(0, 191, 255, 0.1); box-shadow: inset 0 0 8px -4px var(--color-primary-glow); }
