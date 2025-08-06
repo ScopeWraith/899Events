@@ -9,6 +9,12 @@ import { getState } from '../state.js';
 import { canManageUser } from '../utils.js';
 
 export function applyPlayerFilters() {
+    const playerListContainer = document.getElementById('player-list-container');
+    // FIX: Add a guard clause to ensure the function only runs when the Players page is visible.
+    if (!playerListContainer) {
+        return;
+    }
+
     const { allPlayers } = getState();
     const searchTerm = document.getElementById('player-search-input').value.toLowerCase();
     const allianceFilter = document.getElementById('alliance-filter').value;

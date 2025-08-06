@@ -478,26 +478,28 @@ export function createSkeletonCard() {
 }
 
 export function renderSkeletons() {
-    const announcementsContainer = getElement('announcements-container');
-    const eventsSectionContainer = getElement('events-section-container');
-    announcementsContainer.innerHTML = `
-        <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
-            <i class="fas fa-bullhorn"></i>
-            <span class="flex-grow">Announcements</span>
+    // The new container for our default news/events view
+    const newsContainer = getElement('sub-page-news-all');
+    if (!newsContainer) return; // Exit if the container isn't there
+
+    // We'll create a combined skeleton view for the new layout
+    newsContainer.innerHTML = `
+        <div class="mb-8">
+            <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
+                <i class="fas fa-bullhorn"></i><span>Announcements</span>
+            </h2>
+            <div class="grid grid-cols-1 gap-4">
+                ${createSkeletonCard()}
+            </div>
         </div>
-        <div class="grid grid-cols-1 gap-4">
-            ${createSkeletonCard()}
-        </div>
-    `;
-    eventsSectionContainer.innerHTML = `
-        <div class="section-header text-xl font-bold mb-4">
-             <i class="fas fa-calendar-alt"></i>
-             <span class="flex-grow">Events</span>
-        </div>
-        <div class="grid grid-cols-1 gap-4">
-            ${createSkeletonCard()}
-            ${createSkeletonCard()}
-            ${createSkeletonCard()}
+        <div>
+            <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-primary);">
+                <i class="fas fa-calendar-alt"></i><span>Events</span>
+            </h2>
+            <div class="grid grid-cols-1 gap-4">
+                ${createSkeletonCard()}
+                ${createSkeletonCard()}
+            </div>
         </div>
     `;
 }
