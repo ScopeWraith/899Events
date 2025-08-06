@@ -85,8 +85,28 @@ export function renderNews(filter = 'all') {
 
     // 3. Sort and Render Content
     announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-    events.sort((a, b) => { /* ... sorting logic from getEventStatus ... */ return 0; });
+    
+    // Replace the existing events.sort with this more detailed logic
+    events.sort((a, b) => {
+        const statusA = getEventStatus(a);
+        const statusB = getEventStatus(b);
 
+        // Rule 1: Live events come before upcoming events
+        if (statusA.status === 'live' && statusB.status !== 'live') return -1;
+        if (statusA.status !== 'live' && statusB.status === 'live') return 1;
+
+        // Rule 2: If both are live, sort by the one ending soonest
+        if (statusA.status === 'live' && statusB.status === 'live') {
+            return statusA.timeDiff - statusB.timeDiff;
+        }
+
+        // Rule 3: If both are upcoming, sort by the one starting soonest
+        if (statusA.status === 'upcoming' && statusB.status === 'upcoming') {
+            return statusA.timeDiff - statusB.timeDiff;
+        }
+        
+        return 0; // Default case
+    });
     let contentHTML = '';
     if (announcements.length > 0) {
         contentHTML += `
