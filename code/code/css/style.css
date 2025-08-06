@@ -61,9 +61,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     padding-bottom: 0;
 }
 .sub-nav-slider.open {
-    max-height: 100px;
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+    max-height: 80px;
 }
 .sub-nav-content {
     display: flex;
