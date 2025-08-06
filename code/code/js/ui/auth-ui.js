@@ -268,7 +268,8 @@ export function updateAvatarDisplay(data) {
     document.getElementById('user-avatar-button').src = avatarUrl;
     document.getElementById('user-avatar-mobile').src = avatarUrl;
     // Add this line
-    document.getElementById('mobile-avatar-badge').textContent = `[${data.alliance}] ${data.allianceRank}`;
+    document.getElementById('mobile-avatar-alliance').textContent = `[${data.alliance}]`;
+    document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
 }
 
 export function updatePlayerProfileDropdown() {
