@@ -399,7 +399,6 @@
                 </div>
             </div>
         </div>
-
         <header id="app-header" class="sticky top-0 z-50">
             <div class="glass-pane !rounded-none !border-x-0 !border-t-0">
                 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -407,12 +406,23 @@
                         <div class="flex-shrink-0">
                             <img src="img/logo.png" alt="899Events Hub Logo" style="height: 40px;">
                         </div>
-                        <nav id="main-nav" class="hidden md:flex items-center space-x-4">
-                            <div class="nav-item" data-submenu-id="news-submenu">
+
+                        <nav id="main-nav" class="hidden md:flex items-center space-x-2">
+                            <div class="nav-item">
                                 <a href="#" class="nav-link active" data-main-target="page-news"><i class="fas fa-newspaper fa-fw mr-2"></i><span>News</span></a>
+                                <div class="sub-nav">
+                                    <a href="#" class="sub-nav-link active" data-sub-target="news-all"><i class="fas fa-grip-horizontal fa-fw w-6"></i> ALL</a>
+                                    <a href="#" class="sub-nav-link" data-sub-target="news-events"><i class="fas fa-calendar-alt fa-fw w-6"></i> Events</a>
+                                    <a href="#" class="sub-nav-link" data-sub-target="news-announcements"><i class="fas fa-bullhorn fa-fw w-6"></i> Announcements</a>
+                                </div>
                             </div>
-                            <div class="nav-item" data-submenu-id="social-submenu">
+                            <div class="nav-item">
                                 <a href="#" class="nav-link" data-main-target="page-social"><i class="fas fa-comments fa-fw mr-2"></i><span>Social</span></a>
+                                <div class="sub-nav">
+                                    <a href="#" class="sub-nav-link active" data-sub-target="social-chat"><i class="fas fa-comments fa-fw w-6"></i> Chat</a>
+                                    <a href="#" class="sub-nav-link" data-sub-target="social-convo"><i class="fas fa-user-secret fa-fw w-6"></i> Private</a>
+                                    <a href="#" class="sub-nav-link" data-sub-target="social-friends"><i class="fas fa-user-friends fa-fw w-6"></i> Friends</a>
+                                </div>
                             </div>
                             <div class="nav-item">
                                 <a href="#" class="nav-link" data-main-target="page-players"><i class="fas fa-users fa-fw mr-2"></i><span>Players</span></a>
@@ -422,63 +432,50 @@
                                 <div id="feed-dropdown" class="dropdown-menu dropdown-pane glass-pane"></div>
                             </div>
                         </nav>
+
                         <div class="flex items-center">
                             <div id="auth-container" class="hidden md:flex items-center">
-                                 <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
-                                 <div id="user-profile-nav-item" class="nav-item hidden">
+                                <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
+                                <div id="user-profile-nav-item" class="nav-item">
                                     <button id="user-profile-button" class="auth-button">
-                                         <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
+                                        <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
                                         <span id="username-display"></span>
                                         <i class="fas fa-caret-down ml-2 transition-transform"></i>
                                     </button>
                                     <div id="player-profile-dropdown" class="dropdown-menu dropdown-pane glass-pane">
-                                       <div class="p-2 mb-2 border-b border-white/10">
-                                           <p class="text-sm text-gray-400">Total Power</p>
-                                           <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
-                                       </div>
-                                       <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
-                                           <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
-                                           <span class="badge hidden">0</span>
-                                       </button>
-                                       <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
-                                           <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
-                                           <span class="badge hidden">0</span>
-                                       </button>
-                                       <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
-                                           <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
-                                       </button>
-                                       <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
-                                           <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
-                                       </button>
-                                       <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
-                                       <div class="p-1"><hr class="border-t border-white/10"></div>
-                                       <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
-                                           <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
-                                       </button>
+                                    <div class="p-2 mb-2 border-b border-white/10">
+                                        <p class="text-sm text-gray-400">Total Power</p>
+                                        <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
+                                    </div>
+                                    <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
+                                        <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
+                                        <span class="badge hidden">0</span>
+                                    </button>
+                                    <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
+                                        <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
+                                        <span class="badge hidden">0</span>
+                                    </button>
+                                    <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
+                                        <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
+                                    </button>
+                                    <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
+                                        <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
+                                    </button>
+                                    <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+                                    <div class="p-1"><hr class="border-t border-white/10"></div>
+                                    <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
+                                        <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
+                                    </button>
                                     </div>
                                 </div>
                             </div>
-                             <div id="mobile-controls-container" class="flex md:hidden items-center gap-4 ml-4">
+                            <div id="mobile-controls-container" class="flex md:hidden items-center gap-4 ml-4">
                                 <div id="mobile-auth-container" class="hidden">
-                                     <img id="user-avatar-mobile" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-8 h-8 rounded-full object-cover border-2 border-white/20" alt="User Avatar">
+                                    <img id="user-avatar-mobile" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-8 h-8 rounded-full object-cover border-2 border-white/20" alt="User Avatar">
                                 </div>
                                 <button id="open-mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-bars fa-lg"></i></button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div id="sub-nav-container" class="sub-nav-slider glass-pane !rounded-none !border-x-0">
-                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div id="news-submenu" class="sub-nav-content">
-                        <a href="#" class="sub-nav-link active" data-sub-target="news-all">ALL</a>
-                        <a href="#" class="sub-nav-link" data-sub-target="news-events">Events</a>
-                        <a href="#" class="sub-nav-link" data-sub-target="news-announcements">Announcements</a>
-                    </div>
-                    <div id="social-submenu" class="sub-nav-content hidden">
-                        <a href="#" class="sub-nav-link active" data-sub-target="social-chat">Chat</a>
-                        <a href="#" class="sub-nav-link" data-sub-target="social-convo">Private</a>
-                        <a href="#" class="sub-nav-link" data-sub-target="social-friends">Friends</a>
                     </div>
                 </div>
             </div>
