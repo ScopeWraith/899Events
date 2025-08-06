@@ -22,34 +22,20 @@ export function initializeAllEventListeners() {
         }
     };
 
-    // --- Main Navigation & Page Switching (NEW LOGIC for POP-OUT TABS) ---
+    // --- Main Navigation & Page Switching ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            e.stopPropagation(); // Prevent window click listener from closing it immediately
-
+            
             const mainTarget = link.dataset.mainTarget;
             const navItem = link.closest('.nav-item');
-            const hasSubNav = navItem.querySelector('.sub-nav');
+            const submenuId = navItem.dataset.submenuId || null;
 
-            // Switch page content regardless
             showPage(mainTarget);
+            toggleSubNav(submenuId);
 
-            // Deactivate all links and close all sub-menus first
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
-            document.querySelectorAll('#main-nav .nav-item').forEach(item => {
-                if (item !== navItem) { // Close other items
-                    item.classList.remove('open');
-                }
-            });
-
-            // Activate the clicked link
             link.classList.add('active');
-
-            // If it has a sub-nav, toggle its 'open' state
-            if (hasSubNav) {
-                navItem.classList.toggle('open');
-            }
         });
     });
 

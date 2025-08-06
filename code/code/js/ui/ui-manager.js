@@ -66,24 +66,20 @@ export function handleSubNavClick(subTargetId) {
 }
 // NEW function to control the slide-out sub-menu
 export function toggleSubNav(activeSubmenuId) {
-    const subNavContainer = getElement('sub-nav-container');
+    const subNavContainer = document.getElementById('sub-nav-container');
     if (!subNavContainer) return;
 
-    // Hide all individual sub-menu content blocks first
     subNavContainer.querySelectorAll('.sub-nav-content').forEach(content => {
         content.classList.add('hidden');
     });
 
     if (activeSubmenuId) {
-        // If there's a submenu to show, find it and make it visible
-        const activeContent = getElement(activeSubmenuId);
+        const activeContent = document.getElementById(activeSubmenuId);
         if (activeContent) {
             activeContent.classList.remove('hidden');
-            // Open the main slider container by adding the 'open' class
             subNavContainer.classList.add('open');
         }
     } else {
-        // If no submenu is requested, just close the slider
         subNavContainer.classList.remove('open');
     }
 }
