@@ -80,7 +80,10 @@ export function initializeAllEventListeners() {
         if (e.target === getElement('modal-backdrop')) {
             hideAllModals();
             const mobileNav = getElement('mobile-nav-menu');
-            if(mobileNav) mobileNav.classList.remove('open');
+            if (mobileNav.classList.contains('open')) {
+                mobileNav.classList.remove('open');
+                getElement('open-mobile-menu-btn').classList.remove('open'); // Also remove animation class here
+            }
         }
     });
 
@@ -153,13 +156,17 @@ export function initializeAllEventListeners() {
     });
     
     // --- Mobile Navigation ---
-    addListener('open-mobile-menu-btn', 'click', () => {
+    addListener('open-mobile-menu-btn', 'click', (e) => {
+        const button = e.currentTarget;
+        button.classList.add('open'); // Add class for animation
         getElement('mobile-nav-menu').classList.add('open');
         getElement('modal-backdrop').classList.add('visible');
     });
+
     addListener('close-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.remove('open');
         getElement('modal-backdrop').classList.remove('visible');
+        getElement('open-mobile-menu-btn').classList.remove('open'); // Remove animation class
     });
 
     // --- Filtering ---
