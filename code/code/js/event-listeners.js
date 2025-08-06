@@ -43,19 +43,26 @@ export function initializeAllEventListeners() {
     document.querySelectorAll('.sub-nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            e.stopPropagation(); // Stop the event from closing the menu immediately
+            e.stopPropagation(); 
             const subTarget = link.dataset.subTarget;
             
             if (subTarget) {
+                const parentSubNav = link.closest('.sub-nav');
+                const parentNavItem = link.closest('.nav-item');
+
                 // Update active state within this sub-menu
-                link.closest('.sub-nav').querySelectorAll('.sub-nav-link').forEach(l => l.classList.remove('active'));
+                if (parentSubNav) {
+                    parentSubNav.querySelectorAll('.sub-nav-link').forEach(l => l.classList.remove('active'));
+                }
                 link.classList.add('active');
                 
                 // Handle the content switch
                 handleSubNavClick(subTarget);
 
                 // Close the parent pop-out menu after selection
-                link.closest('.nav-item').classList.remove('open');
+                if (parentNavItem) {
+                    parentNavItem.classList.remove('open');
+                }
             }
         });
     });
