@@ -3,7 +3,7 @@
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, toggleSubNav, handleSubNavClick } from './ui/ui-manager.js';
+import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, handleSubNavClick } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, renderPosts } from './ui/post-ui.js';
@@ -22,19 +22,34 @@ export function initializeAllEventListeners() {
         }
     };
 
-    // --- Main Navigation & Page Switching ---
+    // --- Main Navigation & Page Switching (NEW LOGIC for POP-OUT TABS) ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation(); // Prevent window click listener from closing it immediately
+
             const mainTarget = link.dataset.mainTarget;
             const navItem = link.closest('.nav-item');
-            const submenuId = navItem.dataset.submenuId || null;
+            const hasSubNav = navItem.querySelector('.sub-nav');
 
+            // Switch page content regardless
             showPage(mainTarget);
-            toggleSubNav(submenuId);
 
+            // Deactivate all links and close all sub-menus first
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('#main-nav .nav-item').forEach(item => {
+                if (item !== navItem) { // Close other items
+                    item.classList.remove('open');
+                }
+            });
+
+            // Activate the clicked link
             link.classList.add('active');
+
+            // If it has a sub-nav, toggle its 'open' state
+            if (hasSubNav) {
+                navItem.classList.toggle('open');
+            }
         });
     });
 
@@ -42,13 +57,19 @@ export function initializeAllEventListeners() {
     document.querySelectorAll('.sub-nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation(); // Stop the event from closing the menu immediately
             const subTarget = link.dataset.subTarget;
+            
             if (subTarget) {
-                // De-activate other sub-nav links in the same group
-                link.closest('.sub-nav-content').querySelectorAll('.sub-nav-link').forEach(l => l.classList.remove('active'));
-                // Activate the clicked one
+                // Update active state within this sub-menu
+                link.closest('.sub-nav').querySelectorAll('.sub-nav-link').forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
+                
+                // Handle the content switch
                 handleSubNavClick(subTarget);
+
+                // Close the parent pop-out menu after selection
+                link.closest('.nav-item').classList.remove('open');
             }
         });
     });
@@ -314,10 +335,6 @@ export function initializeAllEventListeners() {
         if (!e.target.closest('.nav-item')) {
             document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));
         }
-        const userProfileNavItem = getElement('user-profile-nav-item');
-        if (userProfileNavItem && !e.target.closest('#user-profile-nav-item')) {
-             userProfileNavItem.classList.remove('open');
-        }
         if (!e.target.closest('.custom-select-container')) {
             document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
         }
@@ -328,7 +345,7 @@ export function initializeAllEventListeners() {
     });
 
     // --- Event/Announcement Creation Triggers ---
-    addListener('events-main-container', 'click', e => {
+    addListener('page-news', 'click', e => {
         const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
         const createEventBtn = e.target.closest('#create-event-btn');
         const actionsBtn = e.target.closest('.post-card-actions-trigger');
@@ -337,6 +354,7 @@ export function initializeAllEventListeners() {
         else if (createEventBtn) showCreatePostModal('event');
         else if (actionsBtn) showPostActionsModal(actionsBtn.dataset.postId);
     });
+
 
     // --- Attachment and Emoji Logic ---
     addListener('private-message-attach-btn', 'click', () => {
