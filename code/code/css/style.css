@@ -1067,3 +1067,42 @@ emoji-picker {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
+
+/* --- Sub Navigation --- */
+.sub-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out, padding-top 0.4s ease-in-out;
+}
+
+.nav-item:hover .sub-nav,
+.nav-item .nav-link.active + .sub-nav {
+    max-height: 80px; /* Adjust as needed */
+    opacity: 1;
+}
+
+.sub-nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #8b949e;
+    background-color: transparent;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.sub-nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.sub-nav-link.active {
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+}

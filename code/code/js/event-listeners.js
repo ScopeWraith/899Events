@@ -18,6 +18,16 @@ import { activateChatChannel } from './ui/social-ui.js';
 import { positionEmojiPicker } from './utils.js';
 
 export function initializeAllEventListeners() {
+    const getElement = (id) => document.getElementById(id);
+
+    // --- Null-safe listener attachment function ---
+    const addListener = (id, event, handler) => {
+        const element = getElement(id);
+        if (element) {
+            element.addEventListener(event, handler);
+        }
+    };
+    
     // --- Main Navigation & Page Switching ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -54,15 +64,7 @@ export function initializeAllEventListeners() {
             }
         });
     });
-    const getElement = (id) => document.getElementById(id);
-
-    // --- Null-safe listener attachment function ---
-    const addListener = (id, event, handler) => {
-        const element = getElement(id);
-        if (element) {
-            element.addEventListener(event, handler);
-        }
-    };
+    
 
     // --- Modal Triggers & Closers ---
     addListener('login-btn', 'click', () => showAuthModal('login'));
