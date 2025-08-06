@@ -62,6 +62,7 @@ export function renderChatSelectors() {
 }
 
 // Function to activate a specific chat
+// Function to activate a specific chat
 export function activateChatChannel(chatId) {
     const chatWindow = document.getElementById('chat-window-main');
     const chatInputForm = document.getElementById('chat-input-form');
@@ -80,19 +81,20 @@ export function activateChatChannel(chatId) {
     chatInputForm.style.display = 'flex';
     chatInput.placeholder = `Type a message in ${chatId.replace('_chat', '')}...`;
 
-    const newForm = chatInputForm.cloneNode(true);
-    chatInputForm.parentNode.replaceChild(newForm, chatInputForm);
-    newForm.addEventListener('submit', (e) => {
-        // Find the input within the newly cloned form
-        const input = newForm.querySelector('#chat-input-main');
-        const text = input.value;
+    // FIX: Remove the old event listener and add the new one to prevent duplicate IDs from cloneNode
+    if (currentSubmitHandler) {
+        chatInputForm.removeEventListener('submit', currentSubmitHandler);
+    }
 
-        // Pass the text to the handler
-        handleSendMessage(e, chatId, text);
+    // Define the new handler for the current chat channel
+    currentSubmitHandler = function(e) {
+        const text = chatInput.value;
+        handleSendMessage(e, chatId, text); // Pass the text to the handler
+        chatInput.value = ''; // Clear the input for the next message
+    };
 
-        // Clear the input for the next message
-        input.value = '';
-    });
+    // Add the new, specific event listener
+    chatInputForm.addEventListener('submit', currentSubmitHandler);
 }
 
 // --- EXISTING FUNCTIONS (Modified) ---

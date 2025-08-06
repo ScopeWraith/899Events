@@ -10,14 +10,11 @@ import { getState, updateState } from '../state.js';
 import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
-import { initializePostStepper, populatePostFormForEdit } from './post-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { renderTodaysAllianceActivity } from './post-ui.js';
-import { renderFeedActivity } from './post-ui.js';
+import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
 import { renderChatSelectors, renderFriendsList, activateChatChannel } from './social-ui.js';
-import { renderNews, renderTodaysAllianceActivity, renderFeedActivity } from './post-ui.js'; // Modified import
 import { renderChatSelectors, renderFriendsList, activateChatChannel, renderConversations, renderFriendsPage } from './social-ui.js'; // Added new imports
 
 // --- DOM ELEMENT GETTERS ---
