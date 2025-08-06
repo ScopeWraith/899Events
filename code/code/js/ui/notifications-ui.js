@@ -9,8 +9,14 @@ import { formatTimeAgo } from '../utils.js';
 
 export function renderNotifications(notifications) {
     const feedDropdown = document.getElementById('feed-dropdown');
-    const feedActionContainer = document.getElementById('feed-action-container'); // Changed from feed-page-container
+    const feedActionContainer = document.getElementById('feed-action-container');
     const notificationBadge = document.getElementById('notification-badge');
+
+    // FIX: Add null checks to prevent errors if the DOM is not ready.
+    if (!feedDropdown || !notificationBadge) {
+        console.warn("Notification UI elements not found, skipping render. This may be a timing issue on initial load.");
+        return;
+    }
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
     
@@ -33,6 +39,7 @@ export function renderNotifications(notifications) {
         n.type === 'friend_request' || n.type === 'verification_request'
     );
 
+    // The feedActionContainer is only on the 'Feed' page, so this check is also important.
     if (feedActionContainer) {
         if (actionableNotifications.length === 0) {
             feedActionContainer.innerHTML = '<p class="text-center text-gray-500 p-4">No pending actions.</p>';
