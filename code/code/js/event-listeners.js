@@ -70,6 +70,9 @@ export function initializeAllEventListeners() {
     addListener('mobile-auth-container', 'click', () => {
         showEditProfileModal();
     });
+    addListener('user-avatar-mobile' , 'click', () => {
+        showEditProfileModal();
+    });
     // --- Modal Triggers & Closers ---
     addListener('login-btn', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
