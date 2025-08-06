@@ -432,7 +432,31 @@
                                 <span id="username-display"></span>
                                 <i class="fas fa-caret-down ml-2 transition-transform"></i>
                             </button>
-                            <div id="player-profile-dropdown" class="dropdown-menu dropdown-pane glass-pane"></div>
+                            <div id="player-profile-dropdown" class="dropdown-menu dropdown-pane glass-pane">
+                                <div class="p-2 mb-2 border-b border-white/10">
+                                    <p class="text-sm text-gray-400">Total Power</p>
+                                    <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
+                                </div>
+                                <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
+                                    <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
+                                    <span class="badge hidden">0</span>
+                                </button>
+                                <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
+                                    <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
+                                    <span class="badge hidden">0</span>
+                                </button>
+                                <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
+                                    <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
+                                </button>
+                                <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
+                                    <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
+                                </button>
+                                <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+                                <div class="p-1"><hr class="border-t border-white/10"></div>
+                                <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
+                                    <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
+                                </button>
+                                </div>
                         </div>
                     </div>
                      <div id="mobile-controls-container" class="flex md:hidden items-center gap-4 ml-4">
