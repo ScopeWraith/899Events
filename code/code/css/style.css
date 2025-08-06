@@ -93,7 +93,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .sub-nav-link.active { 
     background: linear-gradient(135deg, rgba(43, 51, 63, 0.6), rgba(22, 27, 34, 0.3));
     color: #fff;
-    border-color: #8b949e;
     box-shadow: 0 0 15px -3px var(--color-primary-glow);
 }
 .sub-nav-link.active i { color: #fff; }
