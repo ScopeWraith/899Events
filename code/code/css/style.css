@@ -66,7 +66,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 /* Animate on hover */
 .nav-link:hover::after {
     width: 70%;
-    height: 3px; /* Thinner for the line */
+    height: 2px; /* Thinner for the line */
     border-radius: 1px; /* Slightly rounded corners for the line */
     background-color: white; /* White on hover */
 }
@@ -74,7 +74,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 /* Style for the active link */
 .nav-link.active::after {
     width: 70%;
-    height: 3px;
+    height: 2px;
     border-radius: 1px;
     background-color: rgb(0, 170, 255); /* Blue when active */
 }
