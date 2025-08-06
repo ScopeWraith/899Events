@@ -90,6 +90,14 @@ export function showPage(targetId) {
     querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';
     });
+
+    // NEW: Update mobile page title
+    const mobileTitleEl = getElement('mobile-page-title');
+    const activeNavLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
+    if (mobileTitleEl && activeNavLink) {
+        const titleText = activeNavLink.querySelector('span').textContent;
+        mobileTitleEl.textContent = titleText;
+    }
     
     // This logic still correctly renders the default content for each page
     if (targetId === 'page-news') {
@@ -335,9 +343,20 @@ export function buildMobileNav() {
             }
 
         } else {
-             newLink.addEventListener('click', (e) => {
+            newLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                showPage(link.dataset.mainTarget);
+                const mainTarget = link.dataset.mainTarget;
+                const parentNavItem = link.closest('.nav-item');
+                const submenuId = parentNavItem ? parentNavItem.dataset.submenuId : null;
+
+                showPage(mainTarget);
+                toggleSubNav(submenuId); // Show the correct sub-nav
+                
+                // Update the active link in the main desktop nav for consistency
+                document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                // Close the mobile menu
                 getElement('mobile-nav-menu').classList.remove('open');
                 getElement('modal-backdrop').classList.remove('visible');
             });
