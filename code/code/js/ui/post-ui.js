@@ -115,7 +115,10 @@ export function renderNews(filter = 'all') {
 // It is called by firestore.js and we don't want to break the initial load yet.
 export function renderPosts() {
     const { activeFilter } = getState();
-    if(document.getElementById('page-news').style.display === 'block'){
+    const newsPage = document.getElementById('page-news');
+
+    // FIX: Check if the newsPage element exists before accessing its style property.
+    if (newsPage && newsPage.style.display === 'block') {
         renderNews(activeFilter === 'all' ? 'all' : activeFilter);
     }
 }
