@@ -66,7 +66,10 @@ export function initializeAllEventListeners() {
             }
         });
     });
-    
+    // --- Mobile Avatar Click to Edit Profile ---
+    addListener('user-avatar-mobile', 'click', () => {
+        showEditProfileModal();
+    });
     // --- Modal Triggers & Closers ---
     addListener('login-btn', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
