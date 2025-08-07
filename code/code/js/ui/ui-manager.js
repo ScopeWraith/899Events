@@ -519,7 +519,7 @@ export function renderSkeletons() {
 
     // We'll create a combined skeleton view for the new layout
     newsContainer.innerHTML = `
-        <div class="mb-8">
+        <div class="mb-4">
             <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
                 <i class="fas fa-bullhorn"></i><span>Announcements</span>
             </h2>
