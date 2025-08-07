@@ -150,7 +150,6 @@ function createCard(post) {
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
 
-    // --- 1. Generate the correct category label (FIXED LOGIC) ---
     const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
     const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
 
@@ -164,7 +163,6 @@ function createCard(post) {
     }
 
     if (isEvent) {
-        // --- 2. Event Card HTML Structure ---
         const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
         return `
             <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
@@ -173,13 +171,11 @@ function createCard(post) {
                     <h3 class="post-card-title">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
                 </div>
-
                 <div class="post-card-image-col">
                      <div class="post-card-thumbnail-wrapper">
                         <div class="post-card-thumbnail" style="${headerStyle}"></div>
                     </div>
                 </div>
-
                 <div class="post-card-status">
                     <div class="status-content-wrapper"></div>
                     <div class="status-date"></div>
@@ -187,10 +183,11 @@ function createCard(post) {
                 ${actionsTriggerHTML}
             </div>
         `;
-    } else { // --- 3. Announcement Card HTML ---
+    } else { // Announcement
         const authorData = allPlayers.find(p => p.uid === post.authorUid);
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
         const postDate = post.createdAt?.toDate();
+        // --- START: CORRECTED ANNOUNCEMENT HTML ---
         return `
             <div class="post-card announcement-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
                 <div class="post-card-body">
@@ -199,17 +196,19 @@ function createCard(post) {
                         <div class="author-info">
                             <p class="author-name">${authorData?.username || 'Unknown'}</p>
                             <p class="author-meta">
-                                <span class="font-bold" style="color: ${color};">${categoryText}</span> &bull; 
+                                [${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; 
                                 ${postDate ? formatTimeAgo(postDate) : ''}
                             </p>
                         </div>
                     </div>
-                    <h3 class="post-card-title">${post.title}</h3>
+                    <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
+                    <h3 class="post-card-title !mb-2">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
                 </div>
                 ${actionsTriggerHTML}
             </div>
         `;
+        // --- END: CORRECTED ANNOUNCEMENT HTML ---
     }
 }
 
