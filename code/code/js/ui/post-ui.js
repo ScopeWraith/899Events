@@ -195,7 +195,8 @@ function createCard(post) {
     // --- END: NEW Thumbnail Logic ---
 
     return `
-        <div class="post-card announcement-card ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 15%), rgba(33, 40, 50, 1) 15%, rgba(33, 40, 50, 1) 100%);">
+        <div class="post-card announcement-card ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; 
+        background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 45%), rgba(33, 40, 50, 1) 10%, rgba(33, 40, 50, 1) 100%);">
             ${thumbnailHTML} 
             <div class="post-card-body">
                 <div class="post-card-header">
