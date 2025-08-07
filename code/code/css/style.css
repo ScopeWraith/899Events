@@ -342,7 +342,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     align-items: center; /* Changed from flex-end */
     justify-content: center;
     padding: 1rem;
-    padding-top: 0px;
 }
 .post-card-status .status-label { font-size: 0.75rem; font-weight: 100; text-transform: uppercase; color: #a0a8b1; letter-spacing: 0.5px; }
 .post-card-status .status-time { font-size: 1.5rem; font-weight: 500; color: #fff; line-height: 1; }
