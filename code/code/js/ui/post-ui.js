@@ -149,10 +149,10 @@ function createCard(post) {
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
-    
-    // --- 1. Generate the correct category label ---
-    const postTypeInfo = POST_TYPES[`${post.subType}_${post.mainType}`] || {};
-    const categoryText = isEvent ? `${postTypeInfo.text || post.subType}` : `${postTypeInfo.text || post.subType}`;
+
+    // --- 1. Generate the correct category label (FIXED LOGIC) ---
+    const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
+    const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
 
     let actionsTriggerHTML = '';
     if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
@@ -164,7 +164,7 @@ function createCard(post) {
     }
 
     if (isEvent) {
-        // --- 2. New Event Card HTML Structure ---
+        // --- 2. Event Card HTML Structure ---
         const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
         return `
             <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
@@ -187,7 +187,7 @@ function createCard(post) {
                 ${actionsTriggerHTML}
             </div>
         `;
-    } else { // --- 3. Updated Announcement Card HTML ---
+    } else { // --- 3. Announcement Card HTML ---
         const authorData = allPlayers.find(p => p.uid === post.authorUid);
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
         const postDate = post.createdAt?.toDate();
