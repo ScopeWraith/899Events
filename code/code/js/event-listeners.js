@@ -366,6 +366,9 @@ export function initializeAllEventListeners() {
         else if (actionsBtn) showPostActionsModal(actionsBtn.dataset.postId);
     });
 
+    addListener('admin-create-event-btn', 'click', () => showCreatePostModal('event'));
+    addListener('admin-create-announcement-btn', 'click', () => showCreatePostModal('announcement'));
+
 
     // --- Attachment and Emoji Logic ---
     addListener('private-message-attach-btn', 'click', () => {
