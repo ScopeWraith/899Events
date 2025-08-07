@@ -274,21 +274,12 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
         padding: 1rem; /* Add padding for breathing room */
     }
 
-    .event-card .post-card-content {
-       grid-column: 1 / -1;
-       padding: 0; /* Remove padding as it's now on the parent */
-    }
-
     .event-card .post-card-status {
         grid-column: 1 / -1;
         background: none; /* No background on mobile for a cleaner overlap */
         justify-content: center; /* Center the status items */
         gap: 0.5rem;
         min-width:120px;
-    }
-
-    .status-date {
-         display: none; /* Hide the verbose date on small screens */
     }
 }
 
