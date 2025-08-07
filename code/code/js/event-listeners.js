@@ -90,7 +90,6 @@ export function initializeAllEventListeners() {
                 mobileNav.classList.remove('open');
                 // Change icon back to 'bars'
                 const icon = getElement('open-mobile-menu-btn').querySelector('i');
-                if (icon) icon.className = 'fas fa-bars fa-lg';
             }
         }
     });
@@ -169,7 +168,6 @@ export function initializeAllEventListeners() {
         getElement('modal-backdrop').classList.add('visible');
         // Change icon to 'X'
         const icon = getElement('open-mobile-menu-btn').querySelector('i');
-        if (icon) icon.className = 'fas fa-times fa-lg';
     });
 
     addListener('close-mobile-menu-btn', 'click', () => {
@@ -177,7 +175,6 @@ export function initializeAllEventListeners() {
         getElement('modal-backdrop').classList.remove('visible');
         // Change icon back to 'bars'
         const icon = getElement('open-mobile-menu-btn').querySelector('i');
-        if (icon) icon.className = 'fas fa-bars fa-lg';
     });
 
     // --- Filtering ---
