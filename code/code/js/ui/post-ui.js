@@ -167,7 +167,7 @@ function createCard(post) {
   mask-image: linear-gradient(90deg, black, transparent);` : '';
 
     return `
-        <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 65%), rgba(33, 40, 50, 1) 10%, rgba(33, 40, 50, 1) 100%);">
+        <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; background: linear-gradient(180deg, color-mix(in srgb, var(--post-color-vs), black 65%), rgba(33, 40, 50, 1) 50%, rgba(33, 40, 50, 1) 100%);">
             <div class="event-card-background" style="${backgroundStyle}"></div>
 
             <div class="post-card-content">
@@ -196,7 +196,7 @@ function createCard(post) {
 
     return `
         <div class="post-card announcement-card ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; 
-        background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 65%), rgba(33, 40, 50, 1) 10%, rgba(33, 40, 50, 1) 100%);">
+        background: linear-gradient(180deg, color-mix(in srgb, var(--post-color-alliance), black 70%), rgba(33, 40, 50, 1) 10%, rgba(33, 40, 50, 1) 100%);">
             ${thumbnailHTML} 
             <div class="post-card-body">
                 <div class="post-card-header">
