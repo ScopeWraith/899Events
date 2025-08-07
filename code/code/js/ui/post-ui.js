@@ -163,7 +163,8 @@ function createCard(post) {
     }
 
     if (isEvent) {
-    const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');` : '';
+    const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');-webkit-mask-image: linear-gradient(black, transparent);
+  mask-image: linear-gradient(black, transparent);` : '';
 
     return `
         <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
