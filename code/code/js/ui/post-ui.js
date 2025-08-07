@@ -167,7 +167,7 @@ function createCard(post) {
   mask-image: linear-gradient(90deg, black, transparent);` : '';
 
     return `
-        <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+        <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 65%), rgba(33, 40, 50, 1) 10%, rgba(33, 40, 50, 1) 100%);">
             <div class="event-card-background" style="${backgroundStyle}"></div>
 
             <div class="post-card-content">
@@ -209,8 +209,8 @@ function createCard(post) {
                         </p>
                     </div>
                 </div>
-                <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
                 <h3 class="post-card-title !mb-2">${post.title}</h3>
+                <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
                 <p class="post-card-details">${post.details}</p>
             </div>
             ${actionsTriggerHTML}
