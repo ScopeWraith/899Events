@@ -176,7 +176,7 @@ function createCard(post) {
                 <p class="post-card-details">${post.details}</p>
             </div>
 
-            <div class="post-card-status" style="padding-top: 0px;">
+            <div class="post-card-status">
                 <div class="status-content-wrapper"></div>
                 <div class="status-date"></div>
             </div>
