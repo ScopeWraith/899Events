@@ -34,7 +34,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .spinner { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite; }
 #app-container { display: none; }
 #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-.glass-pane { background: rgb(12 16 22); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+.glass-pane { background: rgba(12, 16, 22, .6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
 
 /* --- HEADER AND NAVIGATION --- */
 .nav-link { 
