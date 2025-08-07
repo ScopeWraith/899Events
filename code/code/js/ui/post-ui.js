@@ -184,32 +184,38 @@ function createCard(post) {
         </div>
     `;
 } else { // Announcement
-        const authorData = allPlayers.find(p => p.uid === post.authorUid);
-        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
-        const postDate = post.createdAt?.toDate();
-        // --- START: CORRECTED ANNOUNCEMENT HTML ---
-        return `
-            <div class="post-card announcement-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
-                <div class="post-card-body">
-                    <div class="post-card-header">
-                        <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || 'Unknown'}">
-                        <div class="author-info">
-                            <p class="author-name">${authorData?.username || 'Unknown'}</p>
-                            <p class="author-meta">
-                                [${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; 
-                                ${postDate ? formatTimeAgo(postDate) : ''}
-                            </p>
-                        </div>
+    const authorData = allPlayers.find(p => p.uid === post.authorUid);
+    const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
+    const postDate = post.createdAt?.toDate();
+
+    // --- START: NEW Thumbnail Logic ---
+    const hasThumbnail = !!post.thumbnailUrl;
+    const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="post-card-thumbnail" alt="Announcement Image">` : '';
+    const hasThumbnailClass = hasThumbnail ? 'has-thumbnail' : '';
+    // --- END: NEW Thumbnail Logic ---
+
+    return `
+        <div class="post-card announcement-card ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+            ${thumbnailHTML} 
+            <div class="post-card-body">
+                <div class="post-card-header">
+                    <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || 'Unknown'}">
+                    <div class="author-info">
+                        <p class="author-name">${authorData?.username || 'Unknown'}</p>
+                        <p class="author-meta">
+                            [${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; 
+                            ${postDate ? formatTimeAgo(postDate) : ''}
+                        </p>
                     </div>
-                    <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
-                    <h3 class="post-card-title !mb-2">${post.title}</h3>
-                    <p class="post-card-details">${post.details}</p>
                 </div>
-                ${actionsTriggerHTML}
+                <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
+                <h3 class="post-card-title !mb-2">${post.title}</h3>
+                <p class="post-card-details">${post.details}</p>
             </div>
-        `;
-        // --- END: CORRECTED ANNOUNCEMENT HTML ---
-    }
+            ${actionsTriggerHTML}
+        </div>
+    `;
+}
 }
 
 function renderAnnouncements(announcements) {
