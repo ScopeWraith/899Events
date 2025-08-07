@@ -317,9 +317,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     transition: transform 0.3s ease;
 }
 
-.announcement-card:hover .post-card-thumbnail {
-    transform: scale(1.05);
-}
 
 /* Adjust the header to make space for the thumbnail */
 .announcement-card.has-thumbnail .post-card-header {
