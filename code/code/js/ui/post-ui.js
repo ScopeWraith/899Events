@@ -196,7 +196,7 @@ function createCard(post) {
 
     return `
         <div class="post-card announcement-card ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; 
-        background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 70%), rgba(33, 40, 50, 0.25) 10%, rgba(19, 24, 32, 0.25) 100%);">
+        background: linear-gradient(180deg, color-mix(in srgb, var(--post-color-alliance), black 70%), rgb(33 40 50 / 65%) 10%, rgb(19 24 32 / 84%) 100%)">
             ${thumbnailHTML} 
             <div class="post-card-body">
                 <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
