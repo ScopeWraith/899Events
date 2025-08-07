@@ -73,6 +73,7 @@ export function fetchInitialData() {
             updateState({ allPlayers });
             applyPlayerFilters();
             renderFriendsList();
+            renderPosts(); 
         }, (error) => console.error("Error with users listener:", error));
     }
     
