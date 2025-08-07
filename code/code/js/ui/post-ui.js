@@ -163,7 +163,7 @@ function createCard(post) {
     }
 
     if (isEvent) {
-    const backgroundStyle = post.thumbnailUrl ? `background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 65%), rgba(33, 40, 50, 1) 10%, rgba(33, 40, 50, 1) 100%); background-image: url('${post.thumbnailUrl}');-webkit-mask-image: linear-gradient(90deg, black, transparent);
+    const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');-webkit-mask-image: linear-gradient(90deg, black, transparent);
   mask-image: linear-gradient(90deg, black, transparent);` : '';
 
     return `
