@@ -200,7 +200,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .filter-btn.active { color: #fff; border-color: var(--glow-color, var(--color-primary)); background-color: var(--glow-color-bg, rgba(0, 191, 255, 0.1)); box-shadow: 0 0 8px -2px var(--glow-color, var(--color-primary)); }
 .post-card { display: flex; flex-direction: column; background: linear-gradient(145deg, #212832, #161B22); border-radius: 8px; position: relative; overflow: hidden; animation: fadeIn 0.5s ease-out; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.3s ease, box-shadow 0.3s ease; }
 .post-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-.post-card-body { padding: 1rem; }
+.post-card-body { padding: .5rem 1rem; }
 .post-card.announcement-card .post-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
 /* --- NEW & UPDATED POST CARD STYLES --- */
 
