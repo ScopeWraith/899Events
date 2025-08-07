@@ -221,7 +221,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     grid-template-columns: 1fr auto; /* Two main columns: content and status */
     align-items: center;
     overflow: hidden; /* Hides any background overflow */
-    min-height: 120px; /* Ensures a consistent minimum height */
+    min-height: 80px; /* Ensures a consistent minimum height */
 }
 
 .event-card-background {
