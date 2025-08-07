@@ -66,3 +66,9 @@ export const POST_STYLES = {
     campaign: { color: 'var(--post-color-campaign)', icon: 'fas fa-map-marked-alt', bgColor: 'rgba(50, 205, 50, 0.1)'},
     vs: { color: 'var(--post-color-vs)', icon: 'fas fa-fist-raised', bgColor: 'rgba(255, 165, 0, 0.1)'},
 };
+
+export const ANNOUNCEMENT_EXPIRATION_DAYS = [
+    { value: '1', text: '1 Day' },
+    { value: '2', text: '2 Days' },
+    { value: '3', text: '3 Days' }
+];

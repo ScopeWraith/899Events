@@ -7,7 +7,7 @@
  */
 
 import { getState, updateState } from '../state.js';
-import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
+import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
@@ -408,7 +408,8 @@ function setupCustomSelects() {
         else if (type === 'day-of-week') sourceData = DAYS_OF_WEEK;
         else if (type === 'hour-of-day') sourceData = HOURS_OF_DAY;
         else if (type === 'repeat-type') sourceData = REPEAT_TYPES;
-        
+        else if (type === 'announcement-expiration') sourceData = ANNOUNCEMENT_EXPIRATION_DAYS;
+
         const isSearchable = searchInput && type === 'alliance';
         if(searchInput && !isSearchable) searchInput.style.display = 'none';
 
@@ -519,7 +520,7 @@ export function renderSkeletons() {
 
     // We'll create a combined skeleton view for the new layout
     newsContainer.innerHTML = `
-        <div class="mb-4">
+        <div class="mb-8">
             <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
                 <i class="fas fa-bullhorn"></i><span>Announcements</span>
             </h2>

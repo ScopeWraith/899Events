@@ -104,13 +104,27 @@ export function calculateNextDateTime(dayOfWeek, hour) {
     const now = new Date();
     
     let resultDate = new Date();
-    resultDate.setDate(now.getDate() + (targetDay - now.getDay() + 7) % 7);
+    
+    // Set the time for the target day
     resultDate.setHours(targetHour, 0, 0, 0);
 
-    if (resultDate < now) {
-        resultDate.setDate(resultDate.getDate() + 7);
+    // --- START: NEW LOGIC ---
+    const currentDay = now.getDay();
+    let dayDifference = targetDay - currentDay;
+
+    // If the target day is in the past (e.g., today is Thurs[4] and target is Tues[2]),
+    // this will be negative. Add 7 to move to next week.
+    if (dayDifference < 0) {
+        dayDifference += 7;
+    } 
+    // If it's the same day, but the target hour is in the past, also move to next week.
+    else if (dayDifference === 0 && targetHour < now.getHours()) {
+        dayDifference += 7;
     }
     
+    resultDate.setDate(now.getDate() + dayDifference);
+    // --- END: NEW LOGIC ---
+
     return resultDate;
 }
 

@@ -176,7 +176,7 @@ function createCard(post) {
                 <p class="post-card-details">${post.details}</p>
             </div>
 
-            <div class="post-card-status">
+            <div class="post-card-status" style="padding-top: 0px;">
                 <div class="status-content-wrapper"></div>
                 <div class="status-date"></div>
             </div>
@@ -444,6 +444,9 @@ function showPostStep(stepIndex) {
         } else {
             allianceGroup.classList.add('hidden');
         }
+        const expirationGroup = document.getElementById('post-expiration-group');
+        const isAnnouncement = postCreationData.mainType === 'announcement';
+        expirationGroup.classList.toggle('hidden', !isAnnouncement);
     }
 }
 
@@ -535,7 +538,7 @@ export async function handlePostSubmit(e) {
             finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
         }
     } else { // Announcement
-        finalPostData.expirationDays = 1; // Default expiration
+        finalPostData.expirationDays = parseInt(document.getElementById('post-expiration-days').value, 10) || 1;
     }
     
     try {
