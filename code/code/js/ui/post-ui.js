@@ -307,17 +307,16 @@ function updateCountdowns() {
 
         el.classList.remove('live', 'ended', 'upcoming');
         
-        // Use the corrected startTime from the statusInfo object
-         if (statusInfo.status === 'live' && statusInfo.endTime) {
-            // For live events, show the end time
+        // --- START: CORRECTED DATE LOGIC ---
+        // This block implements the exact logic you requested.
+        if (statusInfo.status === 'live') {
+            // If the event is live, show its END time.
             dateEl.textContent = formatEventDateTime(statusInfo.endTime);
-        } else if (statusInfo.startTime) {
-            // For upcoming and ended events, show the start time
-            dateEl.textContent = formatEventDateTime(statusInfo.startTime);
         } else {
-            // Fallback for events without a valid date
-            dateEl.textContent = '';
+            // Otherwise (for upcoming or ended events), show its START time.
+            dateEl.textContent = formatEventDateTime(statusInfo.startTime);
         }
+        // --- END: CORRECTED DATE LOGIC ---
 
         switch(statusInfo.status) {
             case 'upcoming':
