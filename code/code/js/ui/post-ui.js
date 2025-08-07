@@ -308,11 +308,15 @@ function updateCountdowns() {
         el.classList.remove('live', 'ended', 'upcoming');
         
         // Use the corrected startTime from the statusInfo object
-        if (statusInfo.startTime) {
+         if (statusInfo.status === 'live' && statusInfo.endTime) {
+            // For live events, show the end time
+            dateEl.textContent = formatEventDateTime(statusInfo.endTime);
+        } else if (statusInfo.startTime) {
+            // For upcoming and ended events, show the start time
             dateEl.textContent = formatEventDateTime(statusInfo.startTime);
         } else {
-            const originalStartTime = post.startTime?.toDate();
-            dateEl.textContent = originalStartTime ? formatEventDateTime(originalStartTime) : '';
+            // Fallback for events without a valid date
+            dateEl.textContent = '';
         }
 
         switch(statusInfo.status) {

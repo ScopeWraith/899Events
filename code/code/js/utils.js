@@ -92,7 +92,7 @@ export function getEventStatus(event) {
     if (startTime > now) {
         return { status: 'upcoming', timeDiff: startTime - now, startTime: startTime };
     } else if (startTime <= now && endTime > now) {
-        return { status: 'live', timeDiff: endTime - now, startTime: startTime };
+        return { status: 'live', timeDiff: endTime - now, startTime: startTime, endTime: endTime };
     } else {
         return { status: 'ended', endedDate: endTime, startTime: startTime };
     }
