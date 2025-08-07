@@ -114,7 +114,7 @@ export function renderNews(filter = 'all') {
     let contentHTML = '';
     if (announcements.length > 0) {
         contentHTML += `
-            <div class="mb-8">
+            <div class="mb-4">
                 <div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>
             </div>`;
     }
