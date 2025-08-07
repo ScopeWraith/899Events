@@ -312,7 +312,15 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .event-card .post-card-category { color: #ffffff; padding: 0.2rem 0.5rem; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 4px; display: inline-block; margin-bottom: 0.5rem; }
 .event-card .post-card-title { font-size: 1.3rem; font-weight: 700; color: #fff; line-height: 1.2; }
 .event-card .post-card-details { display: block; font-size: 0.95rem; color: #a0a8b1; margin-top: 0.25rem; line-height: 1.4; max-height: 2.8em; overflow: hidden; text-overflow: ellipsis; }
-.post-card-status { text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; padding: 1rem; }
+.post-card-status {
+    text-align: center; /* Changed from right */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Changed from flex-end */
+    justify-content: center;
+    padding: 1rem;
+}
 .post-card-status .status-label { font-size: 0.75rem; font-weight: 100; text-transform: uppercase; color: #a0a8b1; letter-spacing: 0.5px; }
 .post-card-status .status-time { font-size: 1.5rem; font-weight: 500; color: #fff; line-height: 1; }
 .status-date { font-size: 0.7rem; color: #8b949e; margin-top: 0.1rem; font-weight: 600; }
