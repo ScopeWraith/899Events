@@ -287,6 +287,19 @@ export function updateUIForLoggedInUser() {
     getElement('login-btn').classList.add('hidden');
     getElement('user-profile-nav-item').classList.remove('hidden');
     getElement('mobile-auth-container').classList.add('logged-in');
+
+    const adminActionsContainer = getElement('admin-actions-container');
+    if (adminActionsContainer) {
+        if (currentUserData.isAdmin) {
+            // This is the key change:
+            // We ensure it's displayed as a flex container on medium screens and up.
+            adminActionsContainer.classList.remove('hidden');
+            adminActionsContainer.classList.add('md:flex');
+        } else {
+            adminActionsContainer.classList.add('hidden');
+            adminActionsContainer.classList.remove('md:flex');
+        }
+    }
 }
 
 export function updateUIForLoggedOutUser() {
