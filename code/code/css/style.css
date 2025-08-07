@@ -8,13 +8,13 @@
     
     /* Post/Event Theme Colors */
     --post-color-server: #ff00d0;
-    --post-color-seasonal: #9370DB;
-    --post-color-leadership: #C0C0C0;
-    --post-color-alliance: #00BFFF;
-    --post-color-hot_deals: #FF6347;
-    --post-color-wanted_boss: #DC143C;
-    --post-color-campaign: #32CD32;
-    --post-color-vs: #0077ff;
+    --post-color-seasonal: #8522ff;
+    --post-color-leadership: #ffbf00;
+    --post-color-alliance: #fff262;
+    --post-color-hot_deals: #ff501f;
+    --post-color-wanted_boss: #b10023;
+    --post-color-campaign: #47ff81;
+    --post-color-vs: #0051ff;
 
     /* Rank Glow Colors */     
     --rank-admin-color: #f200ff;
