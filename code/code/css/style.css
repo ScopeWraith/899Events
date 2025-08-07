@@ -282,7 +282,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     .event-card .post-card-status {
         grid-column: 1 / -1;
         background: none; /* No background on mobile for a cleaner overlap */
-        padding: 0.5rem 0 0 0;
         justify-content: center; /* Center the status items */
         gap: 0.5rem;
         min-width:100px;
