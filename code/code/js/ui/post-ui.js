@@ -199,6 +199,7 @@ function createCard(post) {
         background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 70%), rgba(33, 40, 50, 1) 10%, rgba(33, 40, 50, 1) 100%);">
             ${thumbnailHTML} 
             <div class="post-card-body">
+                <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
                 <div class="post-card-header">
                     <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || 'Unknown'}">
                     <div class="author-info">
@@ -210,7 +211,7 @@ function createCard(post) {
                     </div>
                 </div>
                 <h3 class="post-card-title !mb-2">${post.title}</h3>
-                <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
+                
                 <p class="post-card-details">${post.details}</p>
             </div>
             ${actionsTriggerHTML}
