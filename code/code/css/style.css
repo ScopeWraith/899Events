@@ -309,8 +309,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     position: absolute;
     top: 1rem; /* Match the body padding */
     right: 1rem; /* Match the body padding */
-    width: 80px;
-    height: 80px;
+    width: 140px;
+    height: 74px;
     object-fit: cover;
     border-radius: 0.5rem;
     border: 2px solid rgba(255, 255, 255, 0.1);
