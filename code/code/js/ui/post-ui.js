@@ -163,33 +163,16 @@ function createCard(post) {
     }
 
     if (isEvent) {
-    // --- START: NEW LOGIC FOR THUMBNAILS ---
-    let headerStyle = '';
-    let thumbnailContent = '';
+    const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');` : '';
 
-    if (post.thumbnailUrl) {
-        // If an image exists, use it as the background
-        headerStyle = `background-image: url('${post.thumbnailUrl}');`;
-    } else {
-        // Otherwise, create a themed icon as a fallback
-        const iconClass = style.icon || 'fas fa-calendar-alt';
-        headerStyle = `display: flex; align-items: center; justify-content: center;`; // Center the icon
-        thumbnailContent = `<i class="${iconClass} fa-3x" style="color: ${color}; text-shadow: 0 0 10px ${color}60;"></i>`;
-    }
-    // --- END: NEW LOGIC FOR THUMBNAILS ---
-    
     return `
         <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+            <div class="event-card-background" style="${backgroundStyle}"></div>
+
             <div class="post-card-content">
                 <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
                 <h3 class="post-card-title">${post.title}</h3>
                 <p class="post-card-details">${post.details}</p>
-            </div>
-
-            <div class="post-card-image-col">
-                 <div class="post-card-thumbnail-wrapper">
-                    <div class="post-card-thumbnail" style="${headerStyle}">${thumbnailContent}</div>
-                </div>
             </div>
 
             <div class="post-card-status">
@@ -199,7 +182,7 @@ function createCard(post) {
             ${actionsTriggerHTML}
         </div>
     `;
-        } else { // Announcement
+} else { // Announcement
         const authorData = allPlayers.find(p => p.uid === post.authorUid);
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
         const postDate = post.createdAt?.toDate();
