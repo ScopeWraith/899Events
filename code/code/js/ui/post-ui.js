@@ -51,11 +51,13 @@ export function renderNews(filter = 'all') {
             break;
 
         case 'announcements':
-            const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             announcements = visiblePosts.filter(post => {
                 if (post.mainType !== 'announcement') return false;
                 const postDate = post.createdAt?.toDate();
-                return postDate >= sevenDaysAgo;
+                if (!postDate) return false;
+                const expirationDays = post.expirationDays || 1;
+                const expirationDate = new Date(postDate.getTime() + expirationDays * 24 * 60 * 60 * 1000);
+                return expirationDate > now;
             });
             container = document.getElementById('sub-page-news-announcements');
             break;
@@ -63,8 +65,7 @@ export function renderNews(filter = 'all') {
         case 'all':
         default:
             const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-            const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-
+            
             events = visiblePosts.filter(post => {
                 if (post.mainType !== 'event') return false;
                 const status = getEventStatus(post);
@@ -75,7 +76,10 @@ export function renderNews(filter = 'all') {
             announcements = visiblePosts.filter(post => {
                 if (post.mainType !== 'announcement') return false;
                 const postDate = post.createdAt?.toDate();
-                return postDate >= threeDaysAgo;
+                if (!postDate) return false;
+                const expirationDays = post.expirationDays || 1;
+                const expirationDate = new Date(postDate.getTime() + expirationDays * 24 * 60 * 60 * 1000);
+                return expirationDate > now;
             });
             container = document.getElementById('sub-page-news-all');
             break;
@@ -141,15 +145,11 @@ export function renderPosts() {
     }
 }
 function createCard(post) {
-    const { currentUserData } = getState();
+    const { currentUserData, allPlayers } = getState();
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
-    const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
-    const postDate = post.createdAt?.toDate();
-    const timestamp = postDate ? formatTimeAgo(postDate) : '...';
-    const postTypeText = POST_TYPES[`${post.subType}_${post.mainType}`]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
-
+    
     let actionsTriggerHTML = '';
     if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
         actionsTriggerHTML = `
@@ -159,39 +159,46 @@ function createCard(post) {
         `;
     }
 
-    let statusContentHTML = '';
     if (isEvent) {
-        statusContentHTML = `<div class="status-content-wrapper"></div><div class="status-date"></div>`; 
-    } else {
-        statusContentHTML = `
-            <div class="status-content-wrapper">
-                <div class="status-label" title="${postDate?.toLocaleString() || ''}">Posted</div>
-                <div class="status-time">${timestamp}</div>
-            </div>
-            <div class="status-date">${postDate ? formatEventDateTime(postDate) : ''}</div>
-        `;
-    }
-
-    return `
-        <div class="post-card ${isEvent ? 'event-card' : 'announcement-card'}" data-post-id="${post.id}" style="--glow-color: ${color};">
-            <div class="post-card-thumbnail-wrapper">
-                <div class="post-card-thumbnail" style="${headerStyle}"></div>
+        const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
+        return `
+            <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color};">
+                <div class="post-card-content">
+                    <span class="post-card-category" style="background-color: ${color};">${POST_TYPES[`${post.subType}_event`]?.text || post.subType.replace(/_/g, ' ').toUpperCase()}</span>
+                    <h3 class="post-card-title">${post.title}</h3>
+                    <p class="post-card-details">${post.details}</p>
+                </div>
+                <div class="post-card-thumbnail-wrapper">
+                    <div class="post-card-thumbnail" style="${headerStyle}"></div>
+                </div>
+                <div class="post-card-status">
+                    <div class="status-content-wrapper"></div>
+                    <div class="status-date"></div>
+                </div>
                 ${actionsTriggerHTML}
             </div>
-            <div class="post-card-body">
-                <div class="post-card-content">
+        `;
+    } else { // Announcement
+        const authorData = allPlayers.find(p => p.uid === post.authorUid);
+        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
+        const postDate = post.createdAt?.toDate();
+        return `
+            <div class="post-card announcement-card" data-post-id="${post.id}">
+                <div class="post-card-body">
                     <div class="post-card-header">
-                        <span class="post-card-category" style="background-color: ${color};">${postTypeText}</span>
+                        <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || 'Unknown'}">
+                        <div class="author-info">
+                            <p class="author-name">${authorData?.username || 'Unknown'}</p>
+                            <p class="author-meta">[${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; ${postDate ? formatTimeAgo(postDate) : ''}</p>
+                        </div>
                     </div>
                     <h3 class="post-card-title">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
                 </div>
-                <div class="post-card-status">
-                    ${statusContentHTML}
-                </div>
+                ${actionsTriggerHTML}
             </div>
-        </div>
-    `;
+        `;
+    }
 }
 
 function renderAnnouncements(announcements) {
@@ -491,10 +498,10 @@ export async function handlePostSubmit(e) {
         authorUsername: currentUserData.username,
         alliance: alliance,
         visibility: postCreationData.visibility,
-        isRecurring: document.getElementById('post-repeat-type').value === 'weekly',
     };
 
     if (postCreationData.mainType === 'event') {
+        finalPostData.isRecurring = document.getElementById('post-repeat-type').value === 'weekly';
         const startDay = document.getElementById('post-start-day').value;
         const startHour = document.getElementById('post-start-hour').value;
         const endDay = document.getElementById('post-end-day').value;
@@ -510,6 +517,8 @@ export async function handlePostSubmit(e) {
         if (finalPostData.isRecurring) {
             finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
         }
+    } else { // Announcement
+        finalPostData.expirationDays = 1; // Default expiration
     }
     
     try {
