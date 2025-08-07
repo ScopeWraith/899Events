@@ -206,7 +206,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 
 .post-card {
     /* ... existing styles ... */
-    border-top: 4px solid transparent; /* ADD this line for the new accent */
+    border-top: 3px solid transparent; /* ADD this line for the new accent */
 }
 
 .announcement-card .post-card-title {
