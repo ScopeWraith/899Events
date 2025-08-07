@@ -393,3 +393,16 @@ emoji-picker { width: 100%; height: 100%; }
     color: var(--color-primary);
     text-shadow: 0 0 10px var(--color-primary-glow);
 }
+
+/* --- MOBILE UX FIXES --- */
+body {
+    /* Disables double-tap to zoom */
+    touch-action: manipulation;
+}
+
+@media (max-width: 767px) {
+    /* Prevents iOS zoom on focus by ensuring font size is at least 16px */
+    .form-input, .form-textarea, .custom-select-value, .custom-select-search {
+        font-size: 16px;
+    }
+}
