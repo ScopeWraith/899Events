@@ -195,16 +195,15 @@ function createCard(post) {
     // --- END: NEW Thumbnail Logic ---
 
     return `
-        <div class="post-card announcement-card ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};background: rgba(33, 40, 50, 1) 15%; background: -webkit-linear-gradient(180deg, ${color}, rgba(33, 40, 50, 1) 15%, rgba(33, 40, 50, 1) 100%); background: -moz-linear-gradient(180deg, ${color}, rgba(33, 40, 50, 1) 15%, rgba(33, 40, 50, 1) 100%); background: linear-gradient(180deg, ${color}, rgba(33, 40, 50, 1) 15%, rgba(33, 40, 50, 1) 100%); filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="${color}", endColorstr="#212832", GradientType=0);">
+    <div class="post-card announcement-card ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 15%), rgba(33, 40, 50, 1) 15%, rgba(33, 40, 50, 1) 100%);">
             ${thumbnailHTML} 
             <div class="post-card-body">
                 <div class="post-card-header">
-                    <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || 'Unknown'}">
+                    <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || "Unknown"}">
                     <div class="author-info">
-                        <p class="author-name">${authorData?.username || 'Unknown'}</p>
-                        <p class="author-meta">
-                            [${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; 
-                            ${postDate ? formatTimeAgo(postDate) : ''}
+                        <p class="author-name">${authorData?.username || "Unknown"}</p>
+                        <p class="author-meta">[${authorData?.alliance || "N/A"}] ${authorData?.allianceRank || ""} &bull; 
+                            ${postDate ? formatTimeAgo(postDate) : ""}
                         </p>
                     </div>
                 </div>
@@ -215,8 +214,7 @@ function createCard(post) {
             ${actionsTriggerHTML}
         </div>
     `;
-}
-}
+    }
 
 function renderAnnouncements(announcements) {
     const { currentUserData } = getState();
