@@ -150,6 +150,10 @@ function createCard(post) {
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
     
+    // --- 1. Generate the correct category label ---
+    const postTypeInfo = POST_TYPES[`${post.subType}_${post.mainType}`] || {};
+    const categoryText = isEvent ? `${postTypeInfo.text || post.subType}` : `${postTypeInfo.text || post.subType}`;
+
     let actionsTriggerHTML = '';
     if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
         actionsTriggerHTML = `
@@ -160,17 +164,22 @@ function createCard(post) {
     }
 
     if (isEvent) {
+        // --- 2. New Event Card HTML Structure ---
         const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
         return `
-            <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color};">
+            <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
                 <div class="post-card-content">
-                    <span class="post-card-category" style="background-color: ${color};">${POST_TYPES[`${post.subType}_event`]?.text || post.subType.replace(/_/g, ' ').toUpperCase()}</span>
+                    <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
                     <h3 class="post-card-title">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
                 </div>
-                <div class="post-card-thumbnail-wrapper">
-                    <div class="post-card-thumbnail" style="${headerStyle}"></div>
+
+                <div class="post-card-image-col">
+                     <div class="post-card-thumbnail-wrapper">
+                        <div class="post-card-thumbnail" style="${headerStyle}"></div>
+                    </div>
                 </div>
+
                 <div class="post-card-status">
                     <div class="status-content-wrapper"></div>
                     <div class="status-date"></div>
@@ -178,18 +187,21 @@ function createCard(post) {
                 ${actionsTriggerHTML}
             </div>
         `;
-    } else { // Announcement
+    } else { // --- 3. Updated Announcement Card HTML ---
         const authorData = allPlayers.find(p => p.uid === post.authorUid);
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
         const postDate = post.createdAt?.toDate();
         return `
-            <div class="post-card announcement-card" data-post-id="${post.id}">
+            <div class="post-card announcement-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
                 <div class="post-card-body">
                     <div class="post-card-header">
                         <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || 'Unknown'}">
                         <div class="author-info">
                             <p class="author-name">${authorData?.username || 'Unknown'}</p>
-                            <p class="author-meta">[${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; ${postDate ? formatTimeAgo(postDate) : ''}</p>
+                            <p class="author-meta">
+                                <span class="font-bold" style="color: ${color};">${categoryText}</span> &bull; 
+                                ${postDate ? formatTimeAgo(postDate) : ''}
+                            </p>
                         </div>
                     </div>
                     <h3 class="post-card-title">${post.title}</h3>

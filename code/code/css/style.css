@@ -202,6 +202,68 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .post-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
 .post-card-body { padding: 1rem; }
 .post-card.announcement-card .post-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+/* --- NEW & UPDATED POST CARD STYLES --- */
+
+.post-card {
+    /* ... existing styles ... */
+    border-top: 4px solid transparent; /* ADD this line for the new accent */
+}
+
+.announcement-card .post-card-title {
+    color: var(--glow-color, var(--color-primary)); /* ADD this for colorized titles */
+}
+
+/* Updated Event Card Layout */
+.post-card.event-card {
+    flex-direction: row;
+    align-items: stretch; /* Change from 'center' */
+    padding: 0;
+    display: grid; /* Use Grid for layout */
+    grid-template-columns: 1fr auto 1fr; /* Info | Image | Status */
+}
+
+.event-card .post-card-content {
+    padding: 1rem;
+    flex-grow: 1;
+    grid-column: 1 / 2; /* Place in the first column */
+}
+
+/* New Image Wrapper for Events */
+.event-card .post-card-image-col {
+    grid-column: 2 / 3; /* Place in the middle column */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 150px; /* Define a fixed width */
+}
+
+.event-card .post-card-thumbnail-wrapper {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0.5; /* Set the opacity */
+    /* Add the gradient mask */
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%);
+}
+
+.event-card .post-card-thumbnail {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.4s ease;
+}
+
+.event-card:hover .post-card-thumbnail {
+    transform: scale(1.1);
+}
+
+.event-card .post-card-status {
+    grid-column: 3 / 4; /* Place in the third column */
+    background-color: rgba(0,0,0,0.2);
+    border-left: 1px solid rgba(255,255,255,0.05);
+}
 .announcement-card .author-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); }
 .announcement-card .author-info { flex-grow: 1; }
 .announcement-card .author-name { font-weight: 700; color: #fff; }
