@@ -340,7 +340,20 @@ export function initializeAllEventListeners() {
             }
         });
     }
+// Add this new listener inside initializeAllEventListeners()
 
+addListener('player-profile-dropdown', 'click', (e) => {
+    const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
+    const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
+
+    if (createEventBtn) {
+        getElement('user-profile-nav-item').classList.remove('open');
+        showCreatePostModal('event');
+    } else if (createAnnouncementBtn) {
+        getElement('user-profile-nav-item').classList.remove('open');
+        showCreatePostModal('announcement');
+    }
+});
     // --- General UI ---
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.nav-item')) {
@@ -365,10 +378,6 @@ export function initializeAllEventListeners() {
         else if (createEventBtn) showCreatePostModal('event');
         else if (actionsBtn) showPostActionsModal(actionsBtn.dataset.postId);
     });
-
-    addListener('admin-create-event-btn', 'click', () => showCreatePostModal('event'));
-    addListener('admin-create-announcement-btn', 'click', () => showCreatePostModal('announcement'));
-
 
     // --- Attachment and Emoji Logic ---
     addListener('private-message-attach-btn', 'click', () => {

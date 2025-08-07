@@ -316,6 +316,7 @@ export function buildMobileNav() {
     mobileNavLinksContainer.innerHTML = '';
     const desktopNav = getElement('main-nav');
 
+    // --- Main Page Links ---
     desktopNav.querySelectorAll('.nav-item').forEach(item => {
         const link = item.querySelector('.nav-link');
         const newLink = document.createElement('a');
@@ -323,64 +324,50 @@ export function buildMobileNav() {
         newLink.className = 'mobile-nav-link';
         newLink.innerHTML = `<i class="${link.querySelector('i').className} w-6 text-center mr-3"></i>${link.querySelector('span').textContent}`;
         
-        const dropdown = item.querySelector('.dropdown-menu');
-        if (dropdown) {
-            newLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                const subMenu = newLink.nextElementSibling;
-                if (subMenu) {
-                    subMenu.style.display = subMenu.style.display === 'block' ? 'none' : 'block';
-                }
-            });
-            mobileNavLinksContainer.appendChild(newLink);
+        newLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const mainTarget = link.dataset.mainTarget;
+            const parentNavItem = link.closest('.nav-item');
+            const submenuId = parentNavItem ? parentNavItem.dataset.submenuId : null;
 
-            const subMenuContainer = document.createElement('div');
-            subMenuContainer.style.display = 'none';
-            subMenuContainer.className = 'ml-8';
-            const dropdownLinks = dropdown.querySelectorAll('.dropdown-link');
-            if (dropdownLinks.length > 0) {
-                dropdownLinks.forEach(ddLink => {
-                    const newDdLink = document.createElement('a');
-                    newDdLink.href = '#';
-                    newDdLink.className = 'mobile-nav-link !py-2 !text-base';
-                    newDdLink.textContent = ddLink.textContent;
-                    newDdLink.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        showPage(ddLink.dataset.target);
-                        getElement('mobile-nav-menu').classList.remove('open');
-                        getElement('modal-backdrop').classList.remove('visible');
-                    });
-                    subMenuContainer.appendChild(newDdLink);
-                });
-                mobileNavLinksContainer.appendChild(subMenuContainer);
-            }
+            showPage(mainTarget);
+            toggleSubNav(submenuId);
+            
+            document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
 
-        } else {
-            newLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                const mainTarget = link.dataset.mainTarget;
-                const parentNavItem = link.closest('.nav-item');
-                const submenuId = parentNavItem ? parentNavItem.dataset.submenuId : null;
-
-                showPage(mainTarget);
-                toggleSubNav(submenuId); // Show the correct sub-nav
-                
-                // Update the active link in the main desktop nav for consistency
-                document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-
-                // Close the mobile menu
-                getElement('mobile-nav-menu').classList.remove('open');
-                getElement('modal-backdrop').classList.remove('visible');
-            });
-            mobileNavLinksContainer.appendChild(newLink);
-        }
+            getElement('mobile-nav-menu').classList.remove('open');
+            getElement('modal-backdrop').classList.remove('visible');
+        });
+        mobileNavLinksContainer.appendChild(newLink);
     });
 
     const divider = document.createElement('hr');
-    divider.className = 'border-t border-white/10 my-4';
+    divider.className = 'border-t border-white/10 my-2';
     mobileNavLinksContainer.appendChild(divider);
 
+    // --- Admin Links ---
+    if (currentUserData && currentUserData.isAdmin) {
+        const createEventLink = document.createElement('a');
+        createEventLink.href = '#';
+        createEventLink.className = 'mobile-nav-link';
+        createEventLink.innerHTML = `<i class="fas fa-calendar-plus fa-fw w-6 text-center mr-3"></i>Create Event`;
+        createEventLink.onclick = (e) => { e.preventDefault(); getElement('mobile-nav-menu').classList.remove('open'); showCreatePostModal('event'); };
+        mobileNavLinksContainer.appendChild(createEventLink);
+
+        const createAnnouncementLink = document.createElement('a');
+        createAnnouncementLink.href = '#';
+        createAnnouncementLink.className = 'mobile-nav-link';
+        createAnnouncementLink.innerHTML = `<i class="fas fa-bullhorn fa-fw w-6 text-center mr-3"></i>Create Announcement`;
+        createAnnouncementLink.onclick = (e) => { e.preventDefault(); getElement('mobile-nav-menu').classList.remove('open'); showCreatePostModal('announcement'); };
+        mobileNavLinksContainer.appendChild(createAnnouncementLink);
+
+        const adminDivider = document.createElement('hr');
+        adminDivider.className = 'border-t border-white/10 my-2';
+        mobileNavLinksContainer.appendChild(adminDivider);
+    }
+    
+    // --- User-Specific Links ---
     if (currentUserData) {
         const editProfileMobile = document.createElement('a');
         editProfileMobile.href = '#';
@@ -393,7 +380,7 @@ export function buildMobileNav() {
         logoutMobile.href = '#';
         logoutMobile.className = 'mobile-nav-link';
         logoutMobile.innerHTML = `<i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>Logout`;
-        logoutMobile.onclick = (e) => { e.preventDefault(); auth.signOut(); };
+        logoutMobile.onclick = (e) => { e.preventDefault(); auth.signOut(); }; // Assuming auth is available here
         mobileNavLinksContainer.appendChild(logoutMobile);
     } else {
         const loginMobile = document.createElement('a');
@@ -404,7 +391,6 @@ export function buildMobileNav() {
         mobileNavLinksContainer.appendChild(loginMobile);
     }
 }
-
 function setupCustomSelects() {
     querySelectorAll('.custom-select-container').forEach(container => {
         const type = container.dataset.type;

@@ -276,12 +276,59 @@ export function updatePlayerProfileDropdown() {
     const { currentUserData, userNotifications } = getState();
     if (!currentUserData) return;
 
+    const dropdownContainer = document.getElementById('player-profile-dropdown');
+    if (!dropdownContainer) return;
+
+    // Clear previous content
+    dropdownContainer.innerHTML = `
+        <div class="p-2 mb-2 border-b border-white/10">
+            <p class="text-sm text-gray-400">Total Power</p>
+            <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
+        </div>
+        <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
+            <span class="badge hidden">0</span>
+        </button>
+        <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
+            <span class="badge hidden">0</span>
+        </button>
+        <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
+        </button>
+        <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
+        </button>
+        <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+        <div class="p-1"><hr class="border-t border-white/10"></div>
+        <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
+            <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
+        </button>
+    `;
+
+    // --- Add Admin Buttons if user is an admin ---
+    if (currentUserData.isAdmin) {
+        const adminActionsHTML = `
+            <div class="p-1"><hr class="border-t border-white/10"></div>
+            <button id="admin-create-event-dropdown-btn" class="dropdown-link profile-menu-link w-full text-left">
+                <span><i class="fas fa-calendar-plus fa-fw w-6 text-center mr-2"></i>Create Event</span>
+            </button>
+            <button id="admin-create-announcement-dropdown-btn" class="dropdown-link profile-menu-link w-full text-left">
+                <span><i class="fas fa-bullhorn fa-fw w-6 text-center mr-2"></i>Create Announcement</span>
+            </button>
+        `;
+        // Insert admin buttons before the final divider and logout button
+        const logoutButton = dropdownContainer.querySelector('#profile-dropdown-logout');
+        logoutButton.parentElement.previousElementSibling.insertAdjacentHTML('beforebegin', adminActionsHTML);
+    }
+
+    // Update power and notification badges
     document.getElementById('profile-dropdown-power').textContent = (currentUserData.power || 0).toLocaleString();
-     
+    
     const friendRequests = userNotifications.filter(n => n.type === 'friend_request' && !n.isRead);
     const friendReqBtn = document.getElementById('profile-dropdown-friends');
     const friendReqBadge = friendReqBtn.querySelector('.badge');
-     
+    
     if (friendRequests.length > 0) {
         friendReqBadge.textContent = friendRequests.length;
         friendReqBadge.classList.remove('hidden');
@@ -290,8 +337,8 @@ export function updatePlayerProfileDropdown() {
         friendReqBadge.classList.add('hidden');
         friendReqBtn.disabled = true;
     }
-     
-    // This is correctly a placeholder for now
+    
+    // Placeholder for messages
     const messagesBtn = document.getElementById('profile-dropdown-messages');
     messagesBtn.disabled = true;
 }
