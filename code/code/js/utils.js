@@ -77,7 +77,7 @@ export function getEventStatus(event) {
     let endTime = event.endTime?.toDate();
 
     if (!startTime || !endTime) {
-        return { status: 'ended' }; 
+        return { status: 'ended', startTime: null }; 
     }
 
     if (event.isRecurring) {
@@ -90,11 +90,11 @@ export function getEventStatus(event) {
     }
 
     if (startTime > now) {
-        return { status: 'upcoming', timeDiff: startTime - now };
+        return { status: 'upcoming', timeDiff: startTime - now, startTime: startTime };
     } else if (startTime <= now && endTime > now) {
-        return { status: 'live', timeDiff: endTime - now };
+        return { status: 'live', timeDiff: endTime - now, startTime: startTime };
     } else {
-        return { status: 'ended', endedDate: endTime };
+        return { status: 'ended', endedDate: endTime, startTime: startTime };
     }
 }
 
