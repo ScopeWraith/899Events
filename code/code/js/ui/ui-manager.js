@@ -66,6 +66,52 @@ export function handleSubNavClick(subTargetId) {
             break;
     }
 }
+export function showViewPostModal(post) {
+    if (!post) return;
+
+    // --- Populate Header ---
+    const categoryStyle = POST_STYLES[post.subType] || {};
+    // FIX: A typo in finding category info, was using `_` instead of combining main and sub types.
+    const postTypeKey = Object.keys(POST_TYPES).find(key => 
+        POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType
+    );
+    const categoryInfo = POST_TYPES[postTypeKey] || {};
+
+    document.getElementById('view-post-title').textContent = post.title;
+    const categoryEl = document.getElementById('view-post-category');
+    categoryEl.textContent = categoryInfo.text || 'Post';
+    categoryEl.style.color = categoryStyle.color || 'var(--color-primary)';
+
+    // --- Populate Author Info ---
+    const { allPlayers } = getState();
+    const author = allPlayers.find(p => p.uid === post.authorUid);
+    const authorSection = document.getElementById('view-post-author-section');
+
+    if (author && post.mainType === 'announcement') {
+        authorSection.style.display = 'flex';
+        document.getElementById('view-post-author-avatar').src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
+        document.getElementById('view-post-author-username').textContent = author.username;
+        const postDate = post.createdAt ? formatTimeAgo(post.createdAt.toDate()) : '';
+        document.getElementById('view-post-author-meta').textContent = `[${author.alliance || 'N/A'}] - ${author.allianceRank || 'Member'} • ${postDate}`;
+    } else {
+        authorSection.style.display = 'none';
+    }
+
+    // --- Populate Thumbnail ---
+    const thumbnailSection = document.getElementById('view-post-thumbnail-section');
+    if (post.thumbnailUrl) {
+        thumbnailSection.style.display = 'block';
+        document.getElementById('view-post-thumbnail').src = post.thumbnailUrl;
+    } else {
+        thumbnailSection.style.display = 'none';
+    }
+
+    // --- Populate Details ---
+    // Use a utility to safely convert newlines and linkify URLs
+    document.getElementById('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
+
+    showModal(document.getElementById('view-post-modal-container'));
+}
 // NEW function to control the slide-out sub-menu
 export function toggleSubNav(activeSubmenuId) {
     const subNavContainer = document.getElementById('sub-nav-container');
