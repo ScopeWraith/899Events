@@ -367,7 +367,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     color: #8b949e;
 }
 .announcement-card .post-card-category {
-    align-self: flex-start; /* Aligns to the left under author */
+    align-self: flex-end; /* Aligns to the left under author */
 }
 .announcement-main-content {
     padding: 0 .4rem; /* Match horizontal padding of body */
@@ -973,7 +973,6 @@ body {
     .post-card.event-card {
         grid-template-columns: 1fr;
         text-align: center;
-        padding: 1rem;
     }
 
     .event-card .post-card-status {
