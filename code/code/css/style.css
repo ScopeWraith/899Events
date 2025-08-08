@@ -617,3 +617,23 @@ body {
 .avatar-skin-r3 { background-color: var(--rank-r3-color); }
 .avatar-skin-r2 { background-color: var(--rank-r2-color); }
 .avatar-skin-r1 { background-color: var(--rank-r1-color); }
+
+.coming-soon-overlay {
+    position: relative;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.coming-soon-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    white-space: nowrap;
+}

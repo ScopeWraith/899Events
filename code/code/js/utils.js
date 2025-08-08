@@ -201,3 +201,10 @@ export function getAvatarSkinClass(player) {
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return `avatar-skin-${rank}`;
 }
+export function getRankBorderClass(player) {
+    if (!player) return 'rank-border-r1'; // Default
+    if (player.isAdmin) return 'rank-border-admin';
+    
+    const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
+    return `rank-border-${rank}`;
+}

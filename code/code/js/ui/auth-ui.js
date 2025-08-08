@@ -10,7 +10,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswor
 import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from '../state.js';
-import { resizeImage , getAvatarSkinClass } from '../utils.js';
+import { resizeImage , getAvatarSkinClass, getRankBorderClass} from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 
@@ -26,28 +26,16 @@ export function initializeRegistrationStepper() {
     document.getElementById('registration-success').style.display = 'none';
 }
 function buildSkinSelectors() {
-    // Build Avatar Border options
-    const avatarBorderSelector = document.getElementById('avatar-border-selector');
-    if (avatarBorderSelector) {
-        avatarBorderSelector.innerHTML = AVATAR_BORDERS.map(border => `
-            <button class="skin-select-btn" data-value="${border.value}">
-                <div class="preview ${border.value}"></div>
-                <span>${border.text}</span>
-            </button>
+    // Build Rank Color Legend
+    const rankLegend = document.getElementById('rank-color-legend');
+    if(rankLegend) {
+        rankLegend.innerHTML = Object.entries(RANK_STYLES).map(([rank, style]) => `
+            <div class="rank-legend-item">
+                <div class="rank-legend-color" style="background-color: ${style.color};"></div>
+                <span class="font-semibold text-white">${rank}</span>
+            </div>
         `).join('');
     }
-
-    // Build Chat Bubble Border options
-    const chatBubbleBorderSelector = document.getElementById('chat-bubble-border-selector');
-    if (chatBubbleBorderSelector) {
-        chatBubbleBorderSelector.innerHTML = CHAT_BUBBLE_BORDERS.map(border => `
-            <button class="skin-select-btn" data-value="${border.value}">
-                <div class="preview-chat-bubble ${border.value}"></div>
-                <span>${border.text}</span>
-            </button>
-        `).join('');
-    }
-    // ... (keep the Rank Color Legend builder)
 }
 function showRegStep(stepIndex) {
     const registrationFlow = document.getElementById('registration-flow');
@@ -217,9 +205,8 @@ export function handleForgotPassword(e) {
 export function populateEditForm() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
-
-    // Build the dynamic skin selectors first
-    buildSkinSelectors();
+    
+    buildSkinSelectors(); // Still need this for the legend
 
     // -- Populate Stats Tab --
     document.getElementById('edit-username').value = currentUserData.username;
@@ -270,9 +257,6 @@ export async function handleEditProfileSubmit(e) {
         tankPower: parsePower(document.getElementById('edit-tank-power').value),
         airPower: parsePower(document.getElementById('edit-air-power').value),
         missilePower: parsePower(document.getElementById('edit-missile-power').value),
-        // Read values from the hidden inputs in the skin tab
-        avatarBorder: document.getElementById('edit-avatar-border').value,
-        chatBubbleBorder: document.getElementById('edit-chat-bubble-border').value,
     };
 
     if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
@@ -312,17 +296,16 @@ export async function handleAvatarUpload(e) {
 
 export function updateAvatarDisplay(data) {
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-    const avatarBorder = data.avatarBorder || 'avatar-border-none';
-    const avatarSkin = getAvatarSkinClass(data); // Use the helper function
-    
-    // Wrap the avatar image in a div that will hold the skin color
-    const userAvatarButtonWrapper = document.getElementById('user-profile-button').querySelector('.avatar-wrapper');
-    userAvatarButtonWrapper.className = `avatar-wrapper w-6 h-6 rounded-full mr-2 ${avatarSkin} ${avatarBorder}`;
-    userAvatarButtonWrapper.querySelector('img').src = avatarUrl;
-    
-    const userAvatarMobileWrapper = document.getElementById('mobile-auth-container').querySelector('.avatar-wrapper');
-    userAvatarMobileWrapper.className = `avatar-wrapper w-8 h-8 rounded-full ${avatarSkin} ${avatarBorder}`;
-    userAvatarMobileWrapper.querySelector('img').src = avatarUrl;
+    const rankBorder = getRankBorderClass(data); // Use the new helper
+
+    const userAvatarButton = document.getElementById('user-avatar-button');
+    userAvatarButton.src = avatarUrl;
+    // This now just uses the rank border, no custom skin
+    userAvatarButton.className = `w-6 h-6 rounded-full object-cover ${rankBorder}`; 
+
+    const userAvatarMobile = document.getElementById('user-avatar-mobile');
+    userAvatarMobile.src = avatarUrl;
+    userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${rankBorder}`;
 
     document.getElementById('mobile-avatar-alliance').textContent = `[${data.alliance}]`;
     document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
