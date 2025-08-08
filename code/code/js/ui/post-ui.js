@@ -163,61 +163,56 @@ function createCard(post) {
     }
 
     if (isEvent) {
-    const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');-webkit-mask-image: linear-gradient(90deg, black, transparent);
-  mask-image: linear-gradient(90deg, black, transparent);` : '';
+        const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');` : '';
 
-    return `
-        <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 65%), rgba(33, 40, 50, 1) 50%, rgba(33, 40, 50, 1) 100%);">
-            <div class="event-card-background" style="${backgroundStyle}"></div>
+        return `
+            <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+                <div class="event-card-background" style="${backgroundStyle}"></div>
 
-            <div class="post-card-content">
-                <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
-                <h3 class="post-card-title">${post.title}</h3>
-                <p class="post-card-details">${post.details}</p>
-            </div>
-
-            <div class="post-card-status">
-                <div class="status-content-wrapper"></div>
-                <div class="status-date"></div>
-            </div>
-            ${actionsTriggerHTML}
-        </div>
-    `;
-} else { // Announcement
-    const authorData = allPlayers.find(p => p.uid === post.authorUid);
-    const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
-    const postDate = post.createdAt?.toDate();
-
-    // --- START: NEW Thumbnail Logic ---
-    const hasThumbnail = !!post.thumbnailUrl;
-    const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="post-card-thumbnail" alt="Announcement Image">` : '';
-    const hasThumbnailClass = hasThumbnail ? 'has-thumbnail' : '';
-    // --- END: NEW Thumbnail Logic ---
-
-    return `
-        <div class="post-card announcement-card ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color}; 
-        background: linear-gradient(180deg, color-mix(in srgb, ${color}, black 70%), rgb(33 40 50 / 65%) 10%, rgb(19 24 32 / 84%) 100%)">
-            ${thumbnailHTML} 
-            <div class="post-card-body">
-                <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
-                <div class="post-card-header">
-                    <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || 'Unknown'}">
-                    <div class="author-info">
-                        <p class="author-name">${authorData?.username || 'Unknown'}</p>
-                        <p class="author-meta">
-                            [${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; 
-                            ${postDate ? formatTimeAgo(postDate) : ''}
-                        </p>
-                    </div>
+                <div class="post-card-content">
+                    <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
+                    <h3 class="post-card-title">${post.title}</h3>
+                    <p class="post-card-details">${post.details}</p>
                 </div>
-                <h3 class="post-card-title !mb-2">${post.title}</h3>
-                
-                <p class="post-card-details">${post.details}</p>
+
+                <div class="post-card-status">
+                    <div class="status-content-wrapper"></div>
+                    <div class="status-date"></div>
+                </div>
+                ${actionsTriggerHTML}
             </div>
-            ${actionsTriggerHTML}
-        </div>
-    `;
-}
+        `;
+    } else { // Announcement
+        const authorData = allPlayers.find(p => p.uid === post.authorUid);
+        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
+        const postDate = post.createdAt?.toDate();
+        const hasThumbnail = !!post.thumbnailUrl;
+        const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="post-card-thumbnail" alt="Announcement Image">` : '';
+        const hasThumbnailClass = hasThumbnail ? 'has-thumbnail' : '';
+
+        return `
+            <div class="post-card announcement-card ${hasThumbnailClass} cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+                ${thumbnailHTML}
+                <div class="post-card-body">
+                    <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
+                    <div class="post-card-header">
+                        <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || 'Unknown'}">
+                        <div class="author-info">
+                            <p class="author-name">${authorData?.username || 'Unknown'}</p>
+                            <p class="author-meta">
+                                [${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; 
+                                ${postDate ? formatTimeAgo(postDate) : ''}
+                            </p>
+                        </div>
+                    </div>
+                    <h3 class="post-card-title !mb-2">${post.title}</h3>
+                    
+                    <p class="post-card-details">${post.details}</p>
+                </div>
+                ${actionsTriggerHTML}
+            </div>
+        `;
+    }
 }
 
 function renderAnnouncements(announcements) {

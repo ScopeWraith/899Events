@@ -213,51 +213,57 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     color: var(--glow-color, var(--color-primary)); /* ADD this for colorized titles */
 }
 
-/* Updated Event Card Layout */
-/* --- REVISED EVENT CARD STYLES --- */
 .post-card.event-card {
-    position: relative; /* This is crucial for positioning the background */
+    position: relative;
     display: grid;
     grid-template-columns: 1fr auto; /* Two main columns: content and status */
-    align-items: center;
-    overflow: hidden; /* Hides any background overflow */
-    min-height: 80px; /* Ensures a consistent minimum height */
+    align-items: stretch; /* Stretch items to fill height */
+    overflow: hidden;
+    min-height: 120px;
 }
 
 .event-card-background {
     position: absolute;
     top: 0;
     left: 0;
-    width: 69%;
+    width: 60%;
     height: 100%;
     background-size: cover;
     background-position: center;
-    opacity: 0.35; /* A subtle background opacity */
-    z-index: 0; /* Sits behind the content */
+    opacity: 0.15;
+    z-index: 0;
     transition: transform 0.4s ease, opacity 0.4s ease;
+    -webkit-mask-image: linear-gradient(90deg, black 60%, transparent 100%);
+    mask-image: linear-gradient(90deg, black 60%, transparent 100%);
 }
 
 .event-card:hover .event-card-background {
-    transform: scale(1.05);
-    opacity: 0.2; /* Slightly more visible on hover */
+    transform: scale(1.03);
+    opacity: 0.25;
 }
 
 .event-card .post-card-content,
 .event-card .post-card-status {
-    position: relative; /* Ensures content sits above the background */
+    position: relative;
     z-index: 1;
+    height: 100%; /* Make sure they take full height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically */
 }
 
 .event-card .post-card-content {
     grid-column: 1 / 2;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
 }
 
 .event-card .post-card-status {
     grid-column: 2 / 3;
     padding: 1rem;
-    background: rgba(0,0,0,0.2);
-    height: 100%;
+    background: rgba(0,0,0,0.3);
+    border-left: 1px solid rgba(255,255,255,0.1);
+    min-width: 150px; /* Ensure status has enough space */
+    text-align: center;
 }
 
 /* Remove the now-unused image column */
@@ -749,4 +755,70 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     background-color: rgba(13, 17, 23, 0.8);
     flex-shrink: 0;
+}
+
+
+#view-post-header {
+    background-color: rgba(33, 38, 45, 0.7);
+}
+
+#view-post-category {
+    color: var(--post-color, var(--color-primary));
+}
+
+#view-post-content::-webkit-scrollbar {
+    width: 10px;
+}
+#view-post-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+#view-post-content::-webkit-scrollbar-thumb {
+    background-color: #373E47;
+    border-radius: 10px;
+    border: 2px solid #161B22;
+}
+#view-post-content {
+    scrollbar-width: thin;
+    scrollbar-color: #373E47 transparent;
+}
+
+.prose {
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.prose-invert {
+    color: #c9d1d9;
+}
+
+.prose-invert h1, .prose-invert h2, .prose-invert h3, .prose-invert h4 {
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 0.5rem;
+}
+
+.prose-invert p {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.prose-invert a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.prose-invert a:hover {
+    color: #fff;
+}
+
+.prose-invert blockquote {
+    border-left: 4px solid var(--color-primary);
+    padding-left: 1rem;
+    color: #8b949e;
+    font-style: italic;
+}
+
+.prose-invert ul > li::before {
+    background-color: var(--color-primary);
 }
