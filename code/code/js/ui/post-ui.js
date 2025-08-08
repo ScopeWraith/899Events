@@ -1,181 +1,625 @@
-:root {
-    --color-bg: #0D1117;
-    --color-primary: #00BFFF;
-    --color-primary-glow: rgba(0, 191, 255, 0.5);
-    --color-highlight: #F87171;
-    --color-glass-bg: rgba(22, 27, 34, 0.6);
-    --color-dropdown-bg: rgb(22, 27, 34);
-    --post-color-server: #e600ff;
-    --post-color-seasonal: #8522ff;
-    --post-color-leadership: #ffbf00;
-    --post-color-alliance: #00a1e1;
-    --post-color-hot_deals: #ff501f;
-    --post-color-wanted_boss: #b10023;
-    --post-color-campaign: #47ff81;
-    --post-color-vs: #0041cd;
-    --rank-admin-color: #f200ff;
-    --rank-r5-color: #ffbb00;
-    --rank-r4-color: #8400ff;
-    --rank-r3-color: #007bff;
-    --rank-r2-color: #c1c1c1;
-    --rank-r1-color: #696969;
+// code/js/ui/post-ui.js
+
+/**
+ * This module manages the UI for creating, editing, and displaying posts.
+ * It includes the multi-step post creation form and renders the post cards.
+ */
+
+import { db, storage } from '../firebase-config.js';
+import { doc, addDoc, updateDoc, collection, serverTimestamp, writeBatch, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+import { getState, updateState } from '../state.js';
+import { POST_TYPES, POST_STYLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
+import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage, getRankBorderClass, formatPostTimestamp } from '../utils.js';
+import { hideAllModals, showModal, setCustomSelectValue } from './ui-manager.js';
+
+let currentPostStep = 1;
+let postCreationData = {};
+let resizedThumbnailBlob = null;
+
+// --- RENDERING POSTS ---
+export function renderNews(filter = 'all') {
+    let { allPosts, currentUserData, countdownInterval } = getState();
+    const now = new Date();
+
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    // 1. Filter posts by user visibility
+    let visiblePosts = allPosts.filter(post => {
+        if (!currentUserData) return post.visibility === 'public';
+        if (currentUserData.isAdmin) return true;
+        if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
+        if (post.visibility === 'public') return true;
+        return false;
+    });
+
+    let announcements = [];
+    let events = [];
+    let container;
+
+    // 2. Determine time window and container based on filter
+    let timeWindow;
+    switch (filter) {
+        case 'events':
+            timeWindow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+            container = document.getElementById('sub-page-news-events');
+            break;
+        case 'announcements':
+            container = document.getElementById('sub-page-news-announcements');
+            break;
+        case 'all':
+        default:
+            timeWindow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+            container = document.getElementById('sub-page-news-all');
+            break;
+    }
+    
+    // 3. Filter announcements if needed
+    if (filter === 'announcements' || filter === 'all') {
+        announcements = visiblePosts.filter(post => {
+            if (post.mainType !== 'announcement') return false;
+            const postDate = post.createdAt?.toDate();
+            if (!postDate) return false;
+            const expirationDays = post.expirationDays || 1;
+            const expirationDate = new Date(postDate.getTime() + expirationDays * 24 * 60 * 60 * 1000);
+            return expirationDate > now;
+        });
+    }
+
+    // 4. Filter events if needed (using the new robust logic)
+    if (filter === 'events' || filter === 'all') {
+        events = visiblePosts.filter(post => {
+            if (post.mainType !== 'event') return false;
+            const statusInfo = getEventStatus(post);
+            if (statusInfo.status === 'live') return true;
+            if (statusInfo.status === 'upcoming' && statusInfo.startTime <= timeWindow) return true;
+            return false;
+        });
+    }
+    
+    if (!container) return;
+
+    // 5. Sort and Render Content
+    announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+    
+    events.sort((a, b) => {
+        const statusA = getEventStatus(a);
+        const statusB = getEventStatus(b);
+        if (statusA.status === 'live' && statusB.status !== 'live') return -1;
+        if (statusA.status !== 'live' && statusB.status === 'live') return 1;
+        if (statusA.status === 'live' && statusB.status === 'live') return statusA.timeDiff - statusB.timeDiff;
+        if (statusA.status === 'upcoming' && statusB.status === 'upcoming') return statusA.timeDiff - statusB.timeDiff;
+        return 0;
+    });
+
+    let contentHTML = '';
+    if (announcements.length > 0) {
+        contentHTML += `<div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>`;
+    }
+    if (events.length > 0) {
+        if (announcements.length > 0) {
+            contentHTML += `<hr class="border-t border-white/10 my-6">`;
+        }
+        contentHTML += `<div class="grid grid-cols-1 gap-4">${events.map(createCard).join('')}</div>`;
+    }
+
+    container.innerHTML = contentHTML || `<p class="text-center text-gray-400 py-8">No items to display.</p>`;
+
+    // 6. Restart countdown timer
+    countdownInterval = setInterval(updateCountdowns, 1000 * 30);
+    updateState({ countdownInterval });
+    updateCountdowns();
 }
 
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes reaction-pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.3) rotate(-8deg); }
-    100% { transform: scale(1); }
+export function renderPosts() {
+    const { activeFilter } = getState();
+    const newsPage = document.getElementById('page-news');
+
+    if (newsPage && newsPage.style.display === 'block') {
+        renderNews(activeFilter === 'all' ? 'all' : activeFilter);
+    }
 }
 
-html { font-size: 90%; scroll-behavior: smooth; }
-body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); color: #c9d1d9; overflow-x: hidden; }
-#app-preloader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--color-bg); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
-.spinner { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite; }
-#app-container { display: none; }
-#particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-.glass-pane { background: rgba(12, 16, 22, .6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+function createCard(post) {
+    const { currentUserData, allPlayers } = getState();
+    const style = POST_STYLES[post.subType] || {};
+    const isEvent = post.mainType === 'event';
+    const color = style.color || 'var(--color-primary)';
 
-/* --- HEADER AND NAVIGATION --- */
-.nav-link { display: flex; align-items: center; padding: 0.5rem 1rem; font-weight: 600; font-size: 0.9rem; margin-right: 1rem; color: #8b949e; transition: all 0.2s ease; border-radius: 4px; }
-.nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.05); }
-.nav-link.active { color: #fff; border-top: 2px solid rgb(0, 170, 255); background: linear-gradient( rgb(0 166 255 / 44%), rgba(17, 21, 27, 0.649));}
-.nav-item { position: relative; }
+    const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
+    const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
 
-/* --- ATTACHED & CENTERED SUB-NAVIGATION TABS --- */
-.sub-nav-slider { background-color: rgba(255, 255, 255, 0); max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out; padding-top: 0; padding-bottom: 0; }
-.sub-nav-slider.open { max-height: 80px; }
-.sub-nav-content { display: flex; justify-content: center; gap: 0.75rem; }
-.sub-nav-link { display: flex; align-items: center; padding: 0.6rem 1.2rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e; background: linear-gradient(rgb(12 16 22), rgb(25 31 39 / 60%)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(2px); border-radius: 0px 0px 6px 6px; transition: all 0.2s ease; white-space: nowrap; border-bottom: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.1); }
-.sub-nav-link i { color: #6e7681; transition: color 0.2s ease; }
-.sub-nav-link:hover { background-color: rgba(48, 54, 61, 0.7); color: #fff; }
-.sub-nav-link:hover i { color: #fff; }
-.sub-nav-link.active { background: linear-gradient(rgb(17 21 27), rgb(0 166 255 / 44%)); color: #fff; border-bottom: 2px solid rgb(0, 170, 255); }
-.sub-nav-link.active i { color: #fff; }
+    let actionsTriggerHTML = '';
+    if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
+        actionsTriggerHTML = `
+            <button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options">
+                <i class="fas fa-cog"></i>
+            </button>
+        `;
+    }
 
-/* --- DROPDOWNS --- */
-.dropdown-pane { position: absolute; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; z-index: 100; padding: 0.5rem; min-width: 180px; border-top: 2px solid var(--color-primary); background-color: var(--color-dropdown-bg); }
-.dropdown-menu { top: calc(100% + 12px); right: 0; left: auto; transform: translateY(-10px); }
-.nav-item.open .dropdown-menu { transform: translateY(0); opacity: 1; visibility: visible; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0s; }
-.dropdown-link { display: block; padding: 0.6rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; color: #c9d1d9; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
-.dropdown-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
+    if (isEvent) {
+        const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');` : '';
 
-/* --- FORMS & MODALS --- */
-.auth-button { padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem; color: #c9d1d9; background-color: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
-.auth-button:hover { color: #fff; background-color: rgba(0, 191, 255, 0.1); border-color: var(--color-primary); }
-.section-container { padding: 1.25rem; }
-.modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 1000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
-.modal-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); z-index: 1001; width: 90%; max-width: 450px; opacity: 0; transition: all 0.3s ease; pointer-events: none; max-height: 85vh; display: flex; }
-.modal-post-category { color: #ffffff !important; padding: 0.2rem 0.5rem; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 4px; display: inline-block; text-shadow: 0px 0px 5px #000000; min-width: 60px; text-align: center; }
-.modal-container .glass-pane { display: flex; flex-direction: column; overflow: hidden; width: 100%; }
-.modal-backdrop.visible, .modal-container.visible { opacity: 1; pointer-events: auto; }
-.modal-container.visible { transform: translate(-50%, -50%) scale(1); }
-.auth-form { display: none; animation: fadeIn 0.5s forwards; }
-.auth-form.active { display: block; }
-.modal-content-wrapper { padding: 1.5rem; display: flex; flex-direction: column; overflow-y: auto; flex-grow: 1; }
-.modal-content-wrapper::-webkit-scrollbar { width: 8px; }
-.modal-content-wrapper::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
-.modal-content-wrapper::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
-.modal-content-wrapper::-webkit-scrollbar-thumb:hover { background: #00a9e0; }
-.input-group { position: relative; display: flex; align-items: center; background-color: rgba(13, 17, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
-.input-group:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-glow), inset 0 1px 2px rgba(0,0,0,0.5); }
-.input-icon { padding: 0 0.75rem; color: #667; border-right: 1px solid rgba(255, 255, 255, 0.1); }
-.input-group:focus-within .input-icon { color: var(--color-primary); }
-.form-input, .form-textarea { background-color: transparent; border: none; color: #c9d1d9; padding: 0.75rem; width: 100%; }
-.form-input:focus, .form-textarea:focus { outline: none; box-shadow: none; }
-.form-textarea { min-height: 100px; resize: vertical; }
-.primary-btn { background: linear-gradient(to right, #00BFFF, #1E90FF); color: white; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2); }
-.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 191, 255, 0.3); }
-.primary-btn:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.6; }
-.secondary-btn { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #c9d1d9; font-weight: 600; transition: all 0.3s ease; }
-.secondary-btn:hover { background-color: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
-.form-error { min-height: 20px; }
+        return `
+            <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+                <div class="event-card-background" style="${backgroundStyle}"></div>
 
-/* --- POST CARD STYLES --- */
-.post-card { display: flex; flex-direction: column; background: linear-gradient(145deg, #212832, #161B22); border-radius: 8px; position: relative; overflow: hidden; animation: fadeIn 0.5s ease-out; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.3s ease, box-shadow 0.3s ease; border-top: 3px solid transparent; }
-.post-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-.post-card-body { padding: 1rem; }
-.post-card-category { color: #ffffff; padding: 0.2rem 0.5rem; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 4px; display: inline-block; text-shadow: 0px 0px 5px #000000; min-width: 60px; text-align: center; }
-.post-card-actions-trigger { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; background-color: rgba(0, 0, 0, 0.6); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; opacity: 0; transform: scale(0.8); z-index: 10; }
-.post-card:hover .post-card-actions-trigger { opacity: 1; transform: scale(1); }
-.post-card-actions-trigger:hover { background-color: rgba(0, 0, 0, 0.8); transform: scale(1.1); }
+                <div class="post-card-content">
+                    <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
+                    <h3 class="post-card-title">${post.title}</h3>
+                    <p class="post-card-details">${post.details}</p>
+                </div>
 
-/* --- EVENT CARD STYLES --- */
-.post-card.event-card { background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 65%), rgba(33, 40, 50, 1) 50%, rgba(33, 40, 50, 1) 100%); flex-direction: row; align-items: center; padding: 0; }
-.event-card .post-card-content { flex-grow: 1; padding: .4rem; position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; }
-.event-card .post-card-content .post-card-category { align-self: center; }
-.event-card .post-card-title { font-size: 1.3rem; font-weight: 700; color: #fff; line-height: 1.2; }
-.event-card .post-card-details { display: block; font-size: 0.95rem; color: #a0a8b1; margin-top: 0.25rem; line-height: 1.4; max-height: 2.8em; overflow: hidden; text-overflow: ellipsis; }
-.event-card-background { position: absolute; top: 0; left: 0; width: 60%; height: 100%; background-size: cover; background-position: center; opacity: 0.15; z-index: 0; transition: transform 0.4s ease, opacity 0.4s ease; -webkit-mask-image: linear-gradient(90deg, black 60%, transparent 100%); mask-image: linear-gradient(90deg, black 60%, transparent 100%); }
-.event-card:hover .event-card-background { transform: scale(1.03); opacity: 0.25; }
-.post-card-status { text-align: center; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; position: relative; z-index: 1; background: rgba(0,0,0,0.3); min-width: 150px; border-left: 1px solid rgba(255,255,255,0.1); }
-.post-card-status .status-label { font-size: 0.75rem; font-weight: 100; text-transform: uppercase; color: #a0a8b1; letter-spacing: 0.5px; }
-.post-card-status .status-time { font-size: 1.5rem; font-weight: 500; color: #fff; line-height: 1; }
-.status-date { font-size: 0.7rem; color: #8b949e; margin-top: 0.1rem; font-weight: 600; }
-.event-card.live .post-card-status .status-time { text-shadow: 0 0 8px var(--glow-color); }
-.event-card.upcoming { filter: grayscale(100%); opacity: .45; }
-.event-card.ended { background: linear-gradient(145deg, #2a2f37, #1e2229); }
+                <div class="post-card-status">
+                    <div class="status-content-wrapper"></div>
+                    <div class="status-date"></div>
+                </div>
+                ${actionsTriggerHTML}
+            </div>
+        `;
+    } else { // Announcement
+        const authorData = allPlayers.find(p => p.uid === post.authorUid);
+        const rankBorder = getRankBorderClass(authorData);
+        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
+        const postDate = post.createdAt?.toDate();
+        const hasThumbnail = !!post.thumbnailUrl;
+        const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="post-card-thumbnail" alt="Announcement Image">` : '';
+        const hasThumbnailClass = hasThumbnail ? 'has-thumbnail' : '';
 
-/* --- ANNOUNCEMENT CARD STYLES (REVISED) --- */
-.post-card.announcement-card { background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 70%), rgb(33 40 50 / 65%) 10%, rgb(19 24 32 / 84%) 100%); }
-.announcement-card .post-card-body { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.5rem; }
-.announcement-card .post-card-header { display: flex; align-items: center; gap: 0.75rem; justify-content: center; }
-.announcement-card .author-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-.announcement-card .author-info { text-align: left; min-width: 0; }
-.announcement-card .author-name { font-size: 1.1rem; font-weight: 700; color: #fff; }
-.announcement-card .author-meta { font-size: 0.8rem; color: #8b949e; }
-.announcement-card .post-card-category { align-self: center; margin: 0; }
-.announcement-card .post-card-title { font-size: 1.75rem; font-weight: 700; color: var(--glow-color, var(--color-primary)); line-height: 1.2; text-align: center; }
-.announcement-card .post-card-thumbnail { width: 100%; height: auto; aspect-ratio: 16 / 8; object-fit: cover; border-radius: 0.5rem; margin: 0; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
-.announcement-card .post-card-details { font-size: 1rem; color: #a0a8b1; line-height: 1.6; text-align: center; }
-.announcement-card .post-card-timestamp { font-size: 0.75rem; color: #8b949e; text-align: center; margin-top: 0.5rem; }
-
-/* --- RANK BORDER STYLES --- */
-.rank-border-admin { border: 3px solid var(--rank-admin-color); box-shadow: 0 0 10px -2px var(--rank-admin-color); }
-.rank-border-r5 { border: 3px solid var(--rank-r5-color); box-shadow: 0 0 10px -2px var(--rank-r5-color); }
-.rank-border-r4 { border: 3px solid var(--rank-r4-color); box-shadow: 0 0 10px -2px var(--rank-r4-color); }
-.rank-border-r3 { border: 3px solid var(--rank-r3-color); box-shadow: 0 0 10px -2px var(--rank-r3-color); }
-.rank-border-r2 { border: 3px solid var(--rank-r2-color); box-shadow: 0 0 10px -2px var(--rank-r2-color); }
-.rank-border-r1 { border: 3px solid var(--rank-r1-color); box-shadow: 0 0 10px -2px var(--rank-r1-color); }
-
-/* --- VIEW POST MODAL --- */
-#view-post-author-section .w-16 { border: 3px solid rgba(255,255,255,0.8); }
-.prose { font-size: 1rem; line-height: 1.7; }
-.prose-invert { color: #c9d1d9; }
-.prose-invert h1, .prose-invert h2, .prose-invert h3, .prose-invert h4 { color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
-.prose-invert p { margin-top: 1em; margin-bottom: 1em; }
-.prose-invert a { color: var(--color-primary); text-decoration: none; transition: color 0.2s; }
-.prose-invert a:hover { color: #fff; }
-.prose-invert blockquote { border-left: 4px solid var(--color-primary); padding-left: 1rem; color: #8b949e; font-style: italic; }
-.prose-invert ul > li::before { background-color: var(--color-primary); }
-#view-post-title { line-height: 1.2; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-#view-post-thumbnail { box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
-.post-reaction-btn { display: flex; align-items: center; gap: 0.5rem; background-color: rgba(255, 255, 255, 0.1); color: #c9d1d9; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; transition: all 0.2s ease; }
-.post-reaction-btn:hover { background-color: rgba(255, 255, 255, 0.2); color: #fff; }
-.post-reaction-btn.reacted { background-color: var(--color-primary); color: #fff; box-shadow: 0 0 10px var(--color-primary-glow); animation: reaction-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.post-reaction-btn.reacted .far { font-family: "Font Awesome 5 Free"; font-weight: 900; }
-#view-post-content { text-align: center; }
-#view-post-details { text-align: left; margin-top: 1.5rem; }
-#view-post-footer { background-color: rgba(13, 17, 23, 0.7); }
-#view-post-author-meta { color: #8b949e; }
-#view-post-category { color: #ffffff !important; }
-
-/* --- MOBILE STYLES --- */
-@media (max-width: 767px) {
-    .header-main { justify-content: space-between; }
-    #mobile-auth-container.logged-in { display: flex; }
-    #text-logo div { font-size: 1.0rem; }
-    #logo-subtitle { display: none; }
-    .form-input, .form-textarea, .custom-select-value, .custom-select-search { font-size: 16px; }
-    .post-card.event-card { grid-template-columns: 1fr; text-align: center; padding: 1rem; }
-    .event-card .post-card-status { grid-column: 1 / -1; background: none; justify-content: center; min-width:120px; }
-    .post-card.event-card .post-card-category { min-width: 120px; }
+        return `
+            <div class="post-card announcement-card ${hasThumbnailClass} cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+                <div class="post-card-body">
+                    <div class="post-card-header">
+                        <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
+                        <div class="author-info">
+                            <p class="author-name">${authorData?.username || 'Unknown'}</p>
+                            <p class="author-meta">${postDate ? formatTimeAgo(postDate) : ''}</p>
+                        </div>
+                    </div>
+                    <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
+                    <h3 class="post-card-title">${post.title}</h3>
+                    ${thumbnailHTML}
+                    <p class="post-card-details">${post.details}</p>
+                    <p class="post-card-timestamp">${formatPostTimestamp(postDate)}</p>
+                </div>
+                ${actionsTriggerHTML}
+            </div>
+        `;
+    }
 }
 
-@media (max-width: 400px) {
-    .header-main { justify-content: space-between; }
-    #mobile-auth-container.logged-in { display: flex; }
-    #text-logo div { font-size: 1rem; }
-    #logo-subtitle { display: none; }
+
+function updateCountdowns() {
+    const { allPosts } = getState();
+    document.querySelectorAll('.event-card').forEach(el => {
+        const postId = el.dataset.postId;
+        const post = allPosts.find(p => p.id === postId);
+        if (!post) return;
+
+        const statusInfo = getEventStatus(post);
+        const statusEl = el.querySelector('.status-content-wrapper');
+        const dateEl = el.querySelector('.status-date'); 
+
+        if (!statusEl || !dateEl) return;
+
+        el.classList.remove('live', 'ended', 'upcoming');
+        
+        if (statusInfo.status === 'live') {
+            dateEl.textContent = formatEventDateTime(statusInfo.endTime);
+        } else {
+            dateEl.textContent = formatEventDateTime(statusInfo.startTime);
+        }
+
+        switch(statusInfo.status) {
+            case 'upcoming':
+                el.classList.add('upcoming');
+                statusEl.innerHTML = `<div class="status-label">STARTS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
+                break;
+            case 'live':
+                el.classList.add('live');
+                statusEl.innerHTML = `<div class="status-label">ENDS IN</div><div class="status-time">${formatDuration(statusInfo.timeDiff)}</div>`;
+                break;
+            case 'ended':
+                el.classList.add('ended');
+                statusEl.innerHTML = `<div class="status-label">ENDED</div><div class="status-time">${statusInfo.endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
+                break;
+        }
+    });
+}
+
+function getAvailablePostTypes(mainType) {
+    const { currentUserData } = getState();
+    return Object.entries(POST_TYPES).filter(([key, type]) => {
+        if (type.mainType !== mainType) return false;
+        if (!currentUserData) return false;
+        if (type.isAdminOnly) return currentUserData.isAdmin;
+        if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
+        if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
+        return true;
+    });
+}
+
+export function initializePostStepper(mainType) {
+    document.getElementById('create-post-form').reset();
+    postCreationData = {};
+    resizedThumbnailBlob = null;
+    
+    const dropzone = document.getElementById('post-thumbnail-dropzone');
+    if (dropzone) {
+        dropzone.classList.remove('has-thumbnail');
+        dropzone.style.backgroundImage = 'none';
+    }
+    
+    postCreationData.mainType = mainType;
+    currentPostStep = 2; // Start at sub-type selection
+    populateSubTypeSelection();
+    showPostStep(currentPostStep);
+    
+    const backBtn = document.getElementById('post-back-btn');
+    const nextBtn = document.getElementById('post-next-btn');
+    if (backBtn) backBtn.classList.remove('hidden');
+    if (nextBtn) nextBtn.classList.remove('hidden');
+}
+
+function populateSubTypeSelection() {
+    const container = document.getElementById('post-subtype-selection-container');
+    const header = document.getElementById('post-subtype-header');
+    
+    if (!container || !header) return;
+
+    header.textContent = `Select ${postCreationData.mainType.charAt(0).toUpperCase() + postCreationData.mainType.slice(1)} Type`;
+    container.innerHTML = '';
+    
+    const availableSubTypes = getAvailablePostTypes(postCreationData.mainType);
+
+    availableSubTypes.forEach(([key, type]) => {
+        const style = POST_STYLES[type.subType];
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.key = key;
+        button.className = 'type-selection-card w-full p-4 rounded-lg text-left flex items-center gap-4';
+        button.innerHTML = `
+            <i class="${style.icon} fa-2x w-10 text-center" style="color: ${style.color};"></i>
+            <div>
+                <h3 class="font-bold text-lg text-white">${type.text}</h3>
+                <p class="text-sm text-gray-500">Create a new ${type.subType.replace('_', ' ')} ${type.mainType}.</p>
+            </div>
+        `;
+        button.addEventListener('click', () => {
+            Object.assign(postCreationData, type);
+            currentPostStep++;
+            showPostStep(currentPostStep);
+        });
+        container.appendChild(button);
+    });
+}
+
+function showPostStep(stepIndex) {
+    const postFlow = document.getElementById('post-creation-flow');
+    if (!postFlow) return;
+
+    const postFormSlides = postFlow.querySelectorAll('.form-slide');
+    const postBackBtn = document.getElementById('post-back-btn');
+    const postNextBtn = document.getElementById('post-next-btn');
+    const postSubmitBtn = document.getElementById('post-submit-btn');
+    const { editingPostId } = getState();
+
+    postFormSlides.forEach(slide => slide.classList.remove('active'));
+    const currentSlide = postFlow.querySelector(`.form-slide[data-slide="${stepIndex}"]`);
+    if (currentSlide) currentSlide.classList.add('active');
+    
+    const isEvent = postCreationData.mainType === 'event';
+    const totalSteps = isEvent ? 4 : 3;
+
+    if (postBackBtn) postBackBtn.style.visibility = stepIndex === 2 ? 'hidden' : 'visible';
+    if (postNextBtn) postNextBtn.classList.toggle('hidden', stepIndex >= totalSteps);
+    if (postSubmitBtn) postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
+    
+    if (stepIndex === 3) {
+        const header = document.getElementById('post-content-header');
+        if (header) header.textContent = editingPostId ? `Edit ${postCreationData.text}` : `New ${postCreationData.text}`;
+        
+        const allianceGroup = document.getElementById('post-alliance-group');
+        const { currentUserData } = getState();
+        if (allianceGroup && currentUserData) {
+            if (currentUserData.isAdmin && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership')) {
+                allianceGroup.classList.remove('hidden');
+            } else {
+                allianceGroup.classList.add('hidden');
+            }
+        }
+        
+        const expirationGroup = document.getElementById('post-expiration-group');
+        if (expirationGroup) {
+            const isAnnouncement = postCreationData.mainType === 'announcement';
+            expirationGroup.classList.toggle('hidden', !isAnnouncement);
+        }
+    }
+}
+
+
+function validatePostStep(stepIndex) {
+    const createPostError = document.getElementById('create-post-error');
+    if (createPostError) createPostError.textContent = '';
+    
+    if (stepIndex === 3) {
+         if (!document.getElementById('post-title').value || !document.getElementById('post-details').value) {
+            if (createPostError) createPostError.textContent = 'Title and details are required.';
+            return false;
+        }
+    } else if (stepIndex === 4 && postCreationData.mainType === 'event') {
+        if (!document.getElementById('post-start-day').value || !document.getElementById('post-start-hour').value ||
+            !document.getElementById('post-end-day').value || !document.getElementById('post-end-hour').value) {
+            if (createPostError) createPostError.textContent = 'Please select a start/end day and hour for the event.';
+            return false;
+        }
+    }
+    return true;
+}
+
+export function handlePostNext() {
+    if (validatePostStep(currentPostStep)) {
+        currentPostStep++;
+        showPostStep(currentPostStep);
+    }
+}
+
+export function handlePostBack() {
+    if (currentPostStep === 2) {
+        hideAllModals();
+        return;
+    }
+    currentPostStep--;
+    showPostStep(currentPostStep);
+}
+
+export async function handleThumbnailSelection(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    resizedThumbnailBlob = await resizeImage(file, { maxWidth: 1024, maxHeight: 1024 });
+    
+    const dropzone = document.getElementById('post-thumbnail-dropzone');
+    if (dropzone) {
+        dropzone.style.backgroundImage = `url('${URL.createObjectURL(resizedThumbnailBlob)}')`;
+        dropzone.classList.add('has-thumbnail');
+    }
+}
+
+export async function handlePostSubmit(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById('post-submit-btn');
+    const createPostError = document.getElementById('create-post-error');
+    const { currentUserData, editingPostId } = getState();
+
+    if (!currentUserData) {
+        if (createPostError) createPostError.textContent = 'You must be logged in to post.';
+        return;
+    }
+    
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+    }
+
+    let alliance = (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership') 
+        ? (currentUserData.isAdmin ? document.getElementById('post-alliance').value : currentUserData.alliance)
+        : null;
+    
+    const finalPostData = {
+        mainType: postCreationData.mainType,
+        subType: postCreationData.subType,
+        title: document.getElementById('post-title').value,
+        details: document.getElementById('post-details').value,
+        authorUid: currentUserData.uid,
+        authorUsername: currentUserData.username,
+        alliance: alliance,
+        visibility: postCreationData.visibility,
+    };
+
+    if (postCreationData.mainType === 'event') {
+        finalPostData.isRecurring = document.getElementById('post-repeat-type').value === 'weekly';
+        const startDay = document.getElementById('post-start-day').value;
+        const startHour = document.getElementById('post-start-hour').value;
+        const endDay = document.getElementById('post-end-day').value;
+        const endHour = document.getElementById('post-end-hour').value;
+
+        finalPostData.startTime = calculateNextDateTime(startDay, startHour);
+        finalPostData.endTime = calculateNextDateTime(endDay, endHour);
+
+        if (finalPostData.endTime < finalPostData.startTime) {
+            finalPostData.endTime.setDate(finalPostData.endTime.getDate() + 7);
+        }
+        
+        if (finalPostData.isRecurring) {
+            finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
+        }
+    } else {
+        finalPostData.expirationDays = parseInt(document.getElementById('post-expiration-days').value, 10) || 1;
+    }
+    
+    try {
+        let postDocRef;
+        if (editingPostId) {
+            postDocRef = doc(db, 'posts', editingPostId);
+            if (resizedThumbnailBlob) {
+                const thumbnailRef = ref(storage, `post_thumbnails/${editingPostId}`);
+                await uploadBytes(thumbnailRef, resizedThumbnailBlob);
+                finalPostData.thumbnailUrl = await getDownloadURL(thumbnailRef);
+            }
+            await updateDoc(postDocRef, finalPostData);
+        } else {
+            finalPostData.createdAt = serverTimestamp();
+            postDocRef = await addDoc(collection(db, 'posts'), finalPostData);
+            if (resizedThumbnailBlob) {
+                const thumbnailRef = ref(storage, `post_thumbnails/${postDocRef.id}`);
+                await uploadBytes(thumbnailRef, resizedThumbnailBlob);
+                const downloadURL = await getDownloadURL(thumbnailRef);
+                await updateDoc(postDocRef, { thumbnailUrl: downloadURL });
+            }
+        }
+        
+        if (finalPostData.subType === 'alliance' && finalPostData.mainType === 'announcement' && !editingPostId) {
+            const membersQuery = query(collection(db, 'users'), where('alliance', '==', finalPostData.alliance));
+            const membersSnapshot = await getDocs(membersQuery);
+            const batch = writeBatch(db);
+            membersSnapshot.forEach(memberDoc => {
+                if (memberDoc.id === currentUserData.uid) return;
+                const notificationRef = doc(collection(db, 'notifications'));
+                batch.set(notificationRef, {
+                    recipientUid: memberDoc.id,
+                    senderUid: currentUserData.uid,
+                    senderUsername: currentUserData.username,
+                    type: 'alliance_announcement',
+                    message: `New announcement in your alliance: "${finalPostData.title}"`,
+                    relatedId: postDocRef.id,
+                    isRead: false,
+                    timestamp: serverTimestamp()
+                });
+            });
+            await batch.commit();
+        }
+
+        hideAllModals();
+    } catch (error) {
+        console.error("Error saving post: ", error);
+        if (createPostError) createPostError.textContent = `Failed to save post: ${error.message}`; 
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = editingPostId 
+                ? '<i class="fas fa-save mr-2"></i>Save Changes' 
+                : '<i class="fas fa-check-circle mr-2"></i>Create Post';
+        }
+    }
+}
+
+export async function populatePostFormForEdit(postId) {
+    const { allPosts } = getState();
+    const post = allPosts.find(p => p.id === postId);
+    if (!post) {
+        console.error("Post not found for editing:", postId);
+        return;
+    }
+
+    updateState({ editingPostId: postId });
+    const postTypeKey = Object.keys(POST_TYPES).find(key => POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType);
+    postCreationData = { ...POST_TYPES[postTypeKey] };
+
+    document.getElementById('create-post-form').reset();
+    
+    document.getElementById('post-content-header').textContent = `Edit ${postCreationData.text}`;
+    const submitBtn = document.getElementById('post-submit-btn');
+    submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
+
+    document.getElementById('post-nav-container').style.display = 'none';
+    document.querySelectorAll('.form-slide').forEach(s => s.classList.remove('active'));
+    document.querySelector('.form-slide[data-slide="3"]').classList.add('active');
+    if (post.mainType === 'event') {
+        document.querySelector('.form-slide[data-slide="4"]').classList.add('active');
+    }
+    
+    document.getElementById('post-title').value = post.title;
+    document.getElementById('post-details').value = post.details;
+    const dropzone = document.getElementById('post-thumbnail-dropzone');
+    if (post.thumbnailUrl) {
+        dropzone.style.backgroundImage = `url('${post.thumbnailUrl}')`;
+        dropzone.classList.add('has-thumbnail');
+    } else {
+        dropzone.style.backgroundImage = 'none';
+        dropzone.classList.remove('has-thumbnail');
+    }
+    
+    if (post.mainType === 'event' && post.startTime) {
+        const startDate = post.startTime.toDate();
+        const endDate = post.endTime.toDate();
+
+        setCustomSelectValue(document.querySelector('#post-start-day').closest('.custom-select-container'), startDate.getDay().toString(), DAYS_OF_WEEK[startDate.getDay()].text);
+        setCustomSelectValue(document.querySelector('#post-start-hour').closest('.custom-select-container'), startDate.getHours().toString(), HOURS_OF_DAY[startDate.getHours()].text);
+        setCustomSelectValue(document.querySelector('#post-end-day').closest('.custom-select-container'), endDate.getDay().toString(), DAYS_OF_WEEK[endDate.getDay()].text);
+        setCustomSelectValue(document.querySelector('#post-end-hour').closest('.custom-select-container'), endDate.getHours().toString(), HOURS_OF_DAY[endDate.getHours()].text);
+        
+        const repeatType = post.isRecurring ? 'weekly' : 'none';
+        setCustomSelectValue(document.querySelector('#post-repeat-type').closest('.custom-select-container'), repeatType, REPEAT_TYPES.find(rt => rt.value === repeatType).text);
+        document.getElementById('post-repeat-weeks-container').classList.toggle('hidden', !post.isRecurring);
+        if (post.isRecurring) {
+            document.getElementById('post-repeat-weeks').value = post.repeatWeeks || 1;
+        }
+    }
+    
+    showModal(document.getElementById('create-post-modal-container'));
+    submitBtn.classList.remove('hidden');
+}
+export function renderFeedActivity() {
+    const { allPosts, userNotifications, currentUserData } = getState();
+    const container = document.getElementById('feed-activity-container');
+
+    if (!container) return;
+
+    // Step 1: Get Admin Announcements (server-wide)
+    const adminAnnouncements = allPosts
+        .filter(post => post.subType === 'server' && post.mainType === 'announcement')
+        .map(post => {
+            const style = POST_STYLES[post.subType] || {};
+            return {
+                date: post.createdAt?.toDate() || new Date(0),
+                style: style,
+                icon: style.icon || 'fas fa-bullhorn',
+                title: post.title,
+                text: `New Server Announcement`
+            };
+        });
+
+    // Step 2: Get the user's specific Alliance Announcements and Events
+    const allianceActivity = currentUserData ? allPosts
+        .filter(post => post.alliance === currentUserData.alliance && (post.subType === 'alliance' || post.subType === 'leadership'))
+        .map(post => {
+            const style = POST_STYLES[post.subType] || {};
+            return {
+                date: post.createdAt?.toDate() || new Date(0),
+                style: style,
+                icon: style.icon || 'fas fa-shield-alt',
+                title: post.title,
+                text: `New ${post.mainType === 'event' ? 'Alliance Event' : 'Alliance Announcement'}`
+            };
+        }) : [];
+
+    // Step 3: Get verification records for the user's alliance
+    const verificationActivities = currentUserData ? userNotifications
+        .filter(n => n.type === 'user_verified_record' && n.alliance === currentUserData.alliance)
+        .map(n => {
+            return {
+                date: n.timestamp?.toDate() || new Date(0),
+                style: { color: 'var(--post-color-alliance)' },
+                icon: 'fas fa-user-check',
+                title: 'Alliance Member Verified',
+                text: n.message
+            };
+        }) : [];
+
+    // Step 4: Combine, sort, and get the most recent items
+    const feedItems = [...adminAnnouncements, ...allianceActivity, ...verificationActivities];
+    feedItems.sort((a, b) => b.date - a.date);
+    const recentFeedItems = feedItems.slice(0, 20); // Show up to 20 recent items
+
+    if (recentFeedItems.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-4">No recent activity.</p>';
+        return;
+    }
+
+    // Step 5: Render the combined list
+    container.innerHTML = recentFeedItems.map(item => {
+        const timeAgo = formatTimeAgo(item.date);
+        return `
+            <div class="feed-item-compact" style="--glow-color: ${item.style.color || 'var(--color-primary)'};">
+                <div class="feed-item-icon">
+                    <i class="${item.icon}"></i>
+                </div>
+                <div class="feed-item-content">
+                    <h4>${item.title}</h4>
+                    <p>${item.text} &bull; ${timeAgo}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
