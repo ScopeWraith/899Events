@@ -282,17 +282,15 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     background-color: rgba(0,0,0,0.2);
     border-left: 1px solid rgba(255,255,255,0.05);
 }
-.announcement-card .author-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-.announcement-card .author-info { flex-grow: 1; }
+.announcement-card .author-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.announcement-card .author-info { flex-grow: 1; min-width: 0; } /* Allow info to take up space and push thumbnail */
 .announcement-card .author-name { font-weight: 700; color: #fff; }
 .announcement-card .author-meta { font-size: 0.75rem; color: #8b949e; }
 .announcement-card .post-card-title { font-size: 1.25rem; font-weight: 700; color: #fff; line-height: 1.3; margin-bottom: 0.5rem; }
 .announcement-card .post-card-details { font-size: 0.95rem; color: #a0a8b1; line-height: 1.5; }
 
+/* NEW styles for thumbnail inside the header */
 .announcement-card .post-card-thumbnail {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
     width: 140px;
     height: 74px;
     object-fit: cover;
@@ -300,14 +298,13 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     border: 2px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     transition: transform 0.3s ease;
+    flex-shrink: 0; /* Prevent image from shrinking */
 }
+
 #view-post-author-section .w-16 {
     border: 3px solid rgba(255,255,255,0.8);
 }
 
-.announcement-card.has-thumbnail .post-card-header {
-    padding-right: 100px;
-}
 .post-card.event-card { flex-direction: row; align-items: center; padding: 0; }
 .event-card .post-card-content { flex-grow: 1; padding: .4rem; }
 .event-card .post-card-thumbnail-wrapper { flex-shrink: 0; width: 150px; height: 100%; position: relative; overflow: hidden; order: 1; margin-left: auto; }

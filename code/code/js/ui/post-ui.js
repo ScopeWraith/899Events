@@ -172,7 +172,6 @@ function createCard(post) {
 
         return `
             <div class="post-card announcement-card ${hasThumbnailClass} cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
-                ${thumbnailHTML}
                 <div class="post-card-body">
                     <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
                     <div class="post-card-header">
@@ -184,6 +183,7 @@ function createCard(post) {
                                 ${postDate ? formatTimeAgo(postDate) : ''}
                             </p>
                         </div>
+                        ${thumbnailHTML}
                     </div>
                     <h3 class="post-card-title !mb-2">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
