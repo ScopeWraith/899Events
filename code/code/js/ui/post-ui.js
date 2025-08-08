@@ -185,7 +185,7 @@ function createCard(post) {
                         </div>
                         ${thumbnailHTML}
                     </div>
-                    <h3 class="post-card-title !mb-2">${post.title}</h3>
+                    <h3 class="post-card-title">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
                 </div>
                 ${actionsTriggerHTML}
