@@ -213,13 +213,11 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     color: var(--glow-color, var(--color-primary)); /* ADD this for colorized titles */
 }
 
+.post-card.announcement-card {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 70%), rgb(33 40 50 / 65%) 10%, rgb(19 24 32 / 84%) 100%);
+}
 .post-card.event-card {
-    position: relative;
-    display: grid;
-    grid-template-columns: 1fr auto; /* Two main columns: content and status */
-    align-items: stretch; /* Stretch items to fill height */
-    overflow: hidden;
-    min-height: 120px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 65%), rgba(33, 40, 50, 1) 50%, rgba(33, 40, 50, 1) 100%);
 }
 
 .event-card-background {
@@ -773,6 +771,8 @@ body {
 
 #view-post-header {
     background-color: rgba(33, 38, 45, 0.7);
+    padding-bottom: 1rem; /* Add padding to make space for the tag */
+    position: relative;
 }
 
 #view-post-category {
@@ -834,4 +834,32 @@ body {
 
 .prose-invert ul > li::before {
     background-color: var(--color-primary);
+}
+
+.modal-post-category {
+    position: absolute;
+    bottom: -14px;
+    left: 1.5rem;
+    color: #ffffff;
+    padding: 0.3rem 0.8rem;
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 6px;
+    text-shadow: 0px 0px 5px #000000;
+}
+
+#view-post-thumbnail {
+    display: block;
+    max-width: 70%; /* Makes image 30% smaller than container */
+    margin: 0 auto; /* Centers the image */
+}
+
+/* Themed container for the details text */
+#view-post-details {
+    background-color: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
 }

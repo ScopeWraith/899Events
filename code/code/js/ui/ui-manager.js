@@ -72,7 +72,6 @@ export function showViewPostModal(post) {
 
     // --- Populate Header ---
     const categoryStyle = POST_STYLES[post.subType] || {};
-    // FIX: A typo in finding category info, was using `_` instead of combining main and sub types.
     const postTypeKey = Object.keys(POST_TYPES).find(key => 
         POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType
     );
@@ -81,7 +80,8 @@ export function showViewPostModal(post) {
     document.getElementById('view-post-title').textContent = post.title;
     const categoryEl = document.getElementById('view-post-category');
     categoryEl.textContent = categoryInfo.text || 'Post';
-    categoryEl.style.color = categoryStyle.color || 'var(--color-primary)';
+    // Set the background color for the themed tag
+    categoryEl.style.backgroundColor = categoryStyle.color || 'var(--color-primary)';
 
     // --- Populate Author Info ---
     const { allPlayers } = getState();
@@ -108,7 +108,6 @@ export function showViewPostModal(post) {
     }
 
     // --- Populate Details ---
-    // Use a utility to safely convert newlines and linkify URLs
     document.getElementById('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
 
     showModal(document.getElementById('view-post-modal-container'));
