@@ -129,6 +129,19 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     max-height: 85vh;
     display: flex;
 }
+.modal-post-category {
+    color: #ffffff !important; /* Ensure text is always white */
+    padding: 0.2rem 0.5rem;
+    font-size: .6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 4px;
+    display: inline-block;
+    text-shadow: 0px 0px 5px #000000;
+    min-width: 60px;
+    text-align: center;
+}
 .modal-container .glass-pane {
     display: flex;
     flex-direction: column;

@@ -70,24 +70,23 @@ export function handleSubNavClick(subTargetId) {
 export function showViewPostModal(post) {
     if (!post) return;
     const { allPlayers, currentUserData } = getState();
-    updateState({ actionPostId: post.id }); // Keep track of the open post's ID
+    updateState({ actionPostId: post.id });
 
-    // --- Populate Header ---
+    // --- Author & Footer Info ---
     const author = allPlayers.find(p => p.uid === post.authorUid);
     const authorSection = getElement('view-post-author-section');
     if (author) {
         authorSection.style.display = 'flex';
         const rankBorder = getRankBorderClass(author);
         getElement('view-post-author-avatar').src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
-        getElement('view-post-author-avatar').className = `w-12 h-12 rounded-full object-cover ${rankBorder}`;
+        getElement('view-post-author-avatar').className = `w-10 h-10 rounded-full object-cover ${rankBorder}`;
         getElement('view-post-author-username').textContent = author.username;
-        const timestampText = post.createdAt ? formatTimeAgo(post.createdAt.toDate()) : '';
-        getElement('view-post-author-meta').textContent = `Posted ${timestampText}`;
+        getElement('view-post-author-meta').textContent = `Posted ${post.createdAt ? formatTimeAgo(post.createdAt.toDate()) : ''}`;
     } else {
         authorSection.style.display = 'none';
     }
 
-    // --- Populate Content ---
+    // --- Main Content ---
     const categoryStyle = POST_STYLES[post.subType] || {};
     const postTypeKey = Object.keys(POST_TYPES).find(key => POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType);
     const categoryInfo = POST_TYPES[postTypeKey] || {};
@@ -95,6 +94,7 @@ export function showViewPostModal(post) {
     categoryEl.textContent = categoryInfo.text || 'Post';
     categoryEl.style.backgroundColor = categoryStyle.color || 'var(--color-primary)';
     
+    getElement('view-post-timestamp').textContent = post.createdAt ? formatPostTimestamp(post.createdAt.toDate()) : '';
     getElement('view-post-title').textContent = post.title;
     
     const thumbnailSection = getElement('view-post-thumbnail-section');
@@ -106,16 +106,40 @@ export function showViewPostModal(post) {
     }
     getElement('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
 
-    // --- Populate Footer & Reactions ---
+    // --- Reactions ---
     const likeBtn = document.querySelector('.post-reaction-btn[data-reaction="like"]');
     const heartBtn = document.querySelector('.post-reaction-btn[data-reaction="heart"]');
-    
     likeBtn.querySelector('.reaction-count').textContent = post.likes || 0;
     heartBtn.querySelector('.reaction-count').textContent = post.hearts || 0;
-    
     if (currentUserData) {
         likeBtn.classList.toggle('reacted', post.likedBy && post.likedBy.includes(currentUserData.uid));
         heartBtn.classList.toggle('reacted', post.heartedBy && post.heartedBy.includes(currentUserData.uid));
+    }
+
+    // --- Conditional Delete Button ---
+    const deleteBtn = getElement('view-post-delete-btn');
+    if (canDeletePost(currentUserData, post)) {
+        deleteBtn.style.display = 'block';
+        const newDeleteBtn = deleteBtn.cloneNode(true);
+        deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+        newDeleteBtn.addEventListener('click', () => {
+            hideAllModals();
+            showConfirmationModal(
+                'Delete Post?',
+                `Are you sure you want to permanently delete "${post.title}"?`,
+                async () => {
+                    try {
+                        await deleteDoc(doc(db, 'posts', post.id));
+                        hideAllModals();
+                    } catch (error) {
+                        console.error("Error deleting post:", error);
+                        alert("Failed to delete post.");
+                    }
+                }
+            );
+        });
+    } else {
+        deleteBtn.style.display = 'none';
     }
 
     showModal(getElement('view-post-modal-container'));
