@@ -72,3 +72,19 @@ export const ANNOUNCEMENT_EXPIRATION_DAYS = [
     { value: '2', text: '2 Days' },
     { value: '3', text: '3 Days' }
 ];
+
+export const AVATAR_BORDERS = [
+    { value: 'avatar-border-common', text: 'Common' },
+    { value: 'avatar-border-uncommon', text: 'Uncommon' },
+    { value: 'avatar-border-rare', text: 'Rare' },
+    { value: 'avatar-border-epic', text: 'Epic' },
+    { value: 'avatar-border-legendary', text: 'Legendary' },
+];
+
+export const CHAT_BUBBLE_BORDERS = [
+    { value: 'chat-bubble-border-common', text: 'Common' },
+    { value: 'chat-bubble-border-uncommon', text: 'Uncommon' },
+    { value: 'chat-bubble-border-rare', text: 'Rare' },
+    { value: 'chat-bubble-border-epic', text: 'Epic' },
+    { value: 'chat-bubble-border-legendary', text: 'Legendary' },
+];

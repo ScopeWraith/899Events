@@ -176,7 +176,9 @@ export function renderMessages(messages, container, chatType) {
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
         const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
         const borderClass = getRankBorderClass(authorData);
-        
+        const avatarBorder = authorData?.avatarBorder || 'avatar-border-common';
+        const chatBubbleBorder = authorData?.chatBubbleBorder || 'chat-bubble-border-common';
+    
         // --- Determine which action buttons to show ---
         const canEdit = isSelf;
         const canDelete = canDeleteMessage(currentUserData, authorData);
@@ -210,15 +212,15 @@ export function renderMessages(messages, container, chatType) {
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
         messageEl.innerHTML = `
             <div class="chat-message-identity">
-                 <div class="avatar-container">
-                    <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover" alt="${authorUsername}">
-                    <div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>                
+                <div class="avatar-container">
+                    <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${avatarBorder}" alt="${authorUsername}">
+                    <div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>
                 </div>
-                 <p class="chat-message-timestamp">${timestamp}</p>
-                 ${messageActionsHTML}
+                <p class="chat-message-timestamp">${timestamp}</p>
+                ${messageActionsHTML}
             </div>
             <div class="chat-message-main">
-                <div class="chat-message-bubble ${borderClass}" data-message-id="${msg.id}" data-chat-type="${chatType}">
+                <div class="chat-message-bubble ${borderClass} ${chatBubbleBorder}" data-message-id="${msg.id}" data-chat-type="${chatType}">
                     ${messageContent}
                 </div>
                 <div class="chat-reactions-container">${reactionPillsHTML}</div>

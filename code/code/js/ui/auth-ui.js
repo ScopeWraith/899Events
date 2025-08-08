@@ -12,7 +12,7 @@ import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/fireba
 import { getState, updateState } from '../state.js';
 import { resizeImage } from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
-import { ALLIANCE_RANKS } from '../constants.js';
+import { ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 
 let currentRegStep = 1;
 let resizedAvatarBlob = null;
@@ -202,6 +202,15 @@ export function populateEditForm() {
     const rankData = ALLIANCE_RANKS.find(r => r.value === currentUserData.allianceRank);
     setCustomSelectValue(editRankSelect, currentUserData.allianceRank, rankData ? rankData.text : currentUserData.allianceRank);
     
+    const avatarBorderSelect = document.getElementById('edit-avatar-border').closest('.custom-select-container');
+    const chatBubbleBorderSelect = document.getElementById('edit-chat-bubble-border').closest('.custom-select-container');
+
+    const avatarBorderData = AVATAR_BORDERS.find(b => b.value === currentUserData.avatarBorder);
+    setCustomSelectValue(avatarBorderSelect, currentUserData.avatarBorder, avatarBorderData ? avatarBorderData.text : 'Common');
+
+    const chatBubbleBorderData = CHAT_BUBBLE_BORDERS.find(b => b.value === currentUserData.chatBubbleBorder);
+    setCustomSelectValue(chatBubbleBorderSelect, currentUserData.chatBubbleBorder, chatBubbleBorderData ? chatBubbleBorderData.text : 'Common');
+
     document.getElementById('edit-power').value = (currentUserData.power || 0).toLocaleString();
     document.getElementById('edit-tank-power').value = (currentUserData.tankPower || 0).toLocaleString();
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
@@ -227,6 +236,8 @@ export async function handleEditProfileSubmit(e) {
         tankPower: parsePower(document.getElementById('edit-tank-power').value),
         airPower: parsePower(document.getElementById('edit-air-power').value),
         missilePower: parsePower(document.getElementById('edit-missile-power').value),
+        avatarBorder: document.getElementById('edit-avatar-border').value,
+        chatBubbleBorder: document.getElementById('edit-chat-bubble-border').value,
     };
 
     if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
@@ -265,9 +276,16 @@ export async function handleAvatarUpload(e) {
 
 export function updateAvatarDisplay(data) {
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-    document.getElementById('user-avatar-button').src = avatarUrl;
-    document.getElementById('user-avatar-mobile').src = avatarUrl;
-    // Add this line
+    const avatarBorder = data.avatarBorder || 'avatar-border-common';
+
+    const userAvatarButton = document.getElementById('user-avatar-button');
+    userAvatarButton.src = avatarUrl;
+    userAvatarButton.className = `w-6 h-6 rounded-full mr-2 object-cover ${avatarBorder}`;
+
+    const userAvatarMobile = document.getElementById('user-avatar-mobile');
+    userAvatarMobile.src = avatarUrl;
+    userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${avatarBorder}`;
+
     document.getElementById('mobile-avatar-alliance').textContent = `[${data.alliance}]`;
     document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
 }
