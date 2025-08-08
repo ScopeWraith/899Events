@@ -174,11 +174,11 @@ function createCard(post) {
                         <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
                         <div class="author-info">
                             <p class="author-name">${authorData?.username || 'Unknown'}</p>
-                            <p class="author-meta">${formatTimeAgo(postDate)}</p>
+                            <p class="author-meta">${postDate ? formatTimeAgo(postDate) : ''}</p>
                         </div>
                     </div>
                     <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
-                    <h3 class="post-card-title !mb-2">${post.title}</h3>
+                    <h3 class="post-card-title">${post.title}</h3>
                     ${thumbnailHTML}
                     <p class="post-card-details">${post.details}</p>
                     <p class="post-card-timestamp">${formatPostTimestamp(postDate)}</p>
