@@ -24,7 +24,6 @@ export function renderNews(filter = 'all') {
 
     if (countdownInterval) clearInterval(countdownInterval);
 
-    // 1. Filter posts by user visibility
     let visiblePosts = allPosts.filter(post => {
         if (!currentUserData) return post.visibility === 'public';
         if (currentUserData.isAdmin) return true;
@@ -36,25 +35,22 @@ export function renderNews(filter = 'all') {
     let announcements = [];
     let events = [];
     let container;
-
-    // 2. Determine time window and container based on filter
     let timeWindow;
+
     switch (filter) {
         case 'events':
-            timeWindow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+            timeWindow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
             container = document.getElementById('sub-page-news-events');
             break;
         case 'announcements':
             container = document.getElementById('sub-page-news-announcements');
             break;
-        case 'all':
         default:
-            timeWindow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+            timeWindow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
             container = document.getElementById('sub-page-news-all');
             break;
     }
     
-    // 3. Filter announcements if needed
     if (filter === 'announcements' || filter === 'all') {
         announcements = visiblePosts.filter(post => {
             if (post.mainType !== 'announcement') return false;
@@ -66,22 +62,17 @@ export function renderNews(filter = 'all') {
         });
     }
 
-    // 4. Filter events if needed (using the new robust logic)
     if (filter === 'events' || filter === 'all') {
         events = visiblePosts.filter(post => {
             if (post.mainType !== 'event') return false;
             const statusInfo = getEventStatus(post);
-            if (statusInfo.status === 'live') return true;
-            if (statusInfo.status === 'upcoming' && statusInfo.startTime <= timeWindow) return true;
-            return false;
+            return statusInfo.status === 'live' || (statusInfo.status === 'upcoming' && statusInfo.startTime <= timeWindow);
         });
     }
     
     if (!container) return;
 
-    // 5. Sort and Render Content
     announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-    
     events.sort((a, b) => {
         const statusA = getEventStatus(a);
         const statusB = getEventStatus(b);
@@ -105,7 +96,6 @@ export function renderNews(filter = 'all') {
 
     container.innerHTML = contentHTML || `<p class="text-center text-gray-400 py-8">No items to display.</p>`;
 
-    // 6. Restart countdown timer
     countdownInterval = setInterval(updateCountdowns, 1000 * 30);
     updateState({ countdownInterval });
     updateCountdowns();
@@ -114,7 +104,6 @@ export function renderNews(filter = 'all') {
 export function renderPosts() {
     const { activeFilter } = getState();
     const newsPage = document.getElementById('page-news');
-
     if (newsPage && newsPage.style.display === 'block') {
         renderNews(activeFilter === 'all' ? 'all' : activeFilter);
     }
@@ -125,32 +114,24 @@ function createCard(post) {
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
-
     const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
     const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
-
     let actionsTriggerHTML = '';
+
     if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
-        actionsTriggerHTML = `
-            <button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options">
-                <i class="fas fa-cog"></i>
-            </button>
-        `;
+        actionsTriggerHTML = `<button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options"><i class="fas fa-cog"></i></button>`;
     }
 
     if (isEvent) {
         const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');` : '';
-
         return `
             <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
                 <div class="event-card-background" style="${backgroundStyle}"></div>
-
                 <div class="post-card-content">
                     <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
                     <h3 class="post-card-title">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
                 </div>
-
                 <div class="post-card-status">
                     <div class="status-content-wrapper"></div>
                     <div class="status-date"></div>
@@ -200,7 +181,6 @@ function updateCountdowns() {
         const statusInfo = getEventStatus(post);
         const statusEl = el.querySelector('.status-content-wrapper');
         const dateEl = el.querySelector('.status-date'); 
-
         if (!statusEl || !dateEl) return;
 
         el.classList.remove('live', 'ended', 'upcoming');
