@@ -173,7 +173,7 @@ function createCard(post) {
         return `
             <div class="post-card announcement-card ${hasThumbnailClass} cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
                 <div class="post-card-body">
-                    <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
+                    <span class="post-card-category mb-1" style="background-color: ${color};">${categoryText}</span>
                     <div class="post-card-header">
                         <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
                         <div class="author-info">
