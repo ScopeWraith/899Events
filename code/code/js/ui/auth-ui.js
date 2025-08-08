@@ -10,7 +10,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswor
 import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from '../state.js';
-import { resizeImage } from '../utils.js';
+import { resizeImage , getAvatarSkinClass } from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 
@@ -26,17 +26,6 @@ export function initializeRegistrationStepper() {
     document.getElementById('registration-success').style.display = 'none';
 }
 function buildSkinSelectors() {
-    // Build Avatar Skin options from RANK_STYLES
-    const avatarSkinSelector = document.getElementById('avatar-skin-selector');
-    if (avatarSkinSelector) {
-        avatarSkinSelector.innerHTML = Object.entries(RANK_STYLES).map(([rank, style]) => `
-            <button class="skin-select-btn" data-value="avatar-skin-${rank.toLowerCase()}">
-                <div class="preview" style="background-color: ${style.color}; box-shadow: 0 0 8px ${style.shadow};"></div>
-                <span>${rank}</span>
-            </button>
-        `).join('');
-    }
-
     // Build Avatar Border options
     const avatarBorderSelector = document.getElementById('avatar-border-selector');
     if (avatarBorderSelector) {
@@ -58,17 +47,7 @@ function buildSkinSelectors() {
             </button>
         `).join('');
     }
-
-    // Build Rank Color Legend
-    const rankLegend = document.getElementById('rank-color-legend');
-    if(rankLegend) {
-        rankLegend.innerHTML = Object.entries(RANK_STYLES).map(([rank, style]) => `
-            <div class="rank-legend-item">
-                <div class="rank-legend-color" style="background-color: ${style.color};"></div>
-                <span class="font-semibold text-white">${rank}</span>
-            </div>
-        `).join('');
-    }
+    // ... (keep the Rank Color Legend builder)
 }
 function showRegStep(stepIndex) {
     const registrationFlow = document.getElementById('registration-flow');
@@ -254,20 +233,6 @@ export function populateEditForm() {
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
 
     // -- Populate Skin Tab --
-    // Helper to set active button and hidden input
-    const setActiveSkin = (containerId, inputId, value, defaultValue) => {
-        const finalValue = value || defaultValue;
-        const container = document.getElementById(containerId);
-        const input = document.getElementById(inputId);
-        if(container && input) {
-            input.value = finalValue;
-            container.querySelectorAll('.skin-select-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.value === finalValue);
-            });
-        }
-    };
-    
-    setActiveSkin('avatar-skin-selector', 'edit-avatar-skin', currentUserData.avatarSkin, 'avatar-skin-r1');
     setActiveSkin('avatar-border-selector', 'edit-avatar-border', currentUserData.avatarBorder, 'avatar-border-common');
     setActiveSkin('chat-bubble-border-selector', 'edit-chat-bubble-border', currentUserData.chatBubbleBorder, 'chat-bubble-border-common');
 }
@@ -292,7 +257,6 @@ export async function handleEditProfileSubmit(e) {
         airPower: parsePower(document.getElementById('edit-air-power').value),
         missilePower: parsePower(document.getElementById('edit-missile-power').value),
         // Read values from the hidden inputs in the skin tab
-        avatarSkin: document.getElementById('edit-avatar-skin').value,
         avatarBorder: document.getElementById('edit-avatar-border').value,
         chatBubbleBorder: document.getElementById('edit-chat-bubble-border').value,
     };
@@ -334,19 +298,17 @@ export async function handleAvatarUpload(e) {
 
 export function updateAvatarDisplay(data) {
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-    const avatarBorder = data.avatarBorder || 'avatar-border-common';
-    const avatarSkin = data.avatarSkin || 'avatar-skin-r1';
+    const avatarBorder = data.avatarBorder || 'avatar-border-none';
+    const avatarSkin = getAvatarSkinClass(data); // Use the helper function
     
-    const userAvatarButton = document.getElementById('user-avatar-button');
-    userAvatarButton.src = avatarUrl;
-    // The classList needs to be managed carefully to replace old borders/skins
-    userAvatarButton.className = 'w-6 h-6 rounded-full mr-2 object-cover';
-    userAvatarButton.classList.add(avatarBorder, avatarSkin);
-
-    const userAvatarMobile = document.getElementById('user-avatar-mobile');
-    userAvatarMobile.src = avatarUrl;
-    userAvatarMobile.className = 'w-8 h-8 rounded-full object-cover';
-    userAvatarMobile.classList.add(avatarBorder, avatarSkin);
+    // Wrap the avatar image in a div that will hold the skin color
+    const userAvatarButtonWrapper = document.getElementById('user-profile-button').querySelector('.avatar-wrapper');
+    userAvatarButtonWrapper.className = `avatar-wrapper w-6 h-6 rounded-full mr-2 ${avatarSkin} ${avatarBorder}`;
+    userAvatarButtonWrapper.querySelector('img').src = avatarUrl;
+    
+    const userAvatarMobileWrapper = document.getElementById('mobile-auth-container').querySelector('.avatar-wrapper');
+    userAvatarMobileWrapper.className = `avatar-wrapper w-8 h-8 rounded-full ${avatarSkin} ${avatarBorder}`;
+    userAvatarMobileWrapper.querySelector('img').src = avatarUrl;
 
     document.getElementById('mobile-avatar-alliance').textContent = `[${data.alliance}]`;
     document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
