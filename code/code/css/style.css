@@ -901,3 +901,48 @@ body {
     padding: 1.5rem;
     border-radius: 0.75rem;
 }
+
+/* --- NEW PROFESSIONAL MODAL STYLES --- */
+#view-post-header {
+    background-color: rgba(22, 27, 34, 0.8);
+    align-items: flex-start;
+}
+
+#view-post-content {
+    background-color: #0D1117; /* Darker background for content focus */
+}
+
+/* Remove old category styling as it's now integrated */
+.modal-post-category {
+    display: none;
+}
+
+#view-post-author-meta {
+    /* Style for the 'Category • Timestamp' line */
+    font-weight: 600;
+}
+
+#view-post-title {
+    /* Give the title more presence */
+    line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+#view-post-thumbnail {
+    /* Remove max-width for a full-width hero image */
+    width: 100%;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+#view-post-details {
+    /* Remove the dark box around the text for a cleaner look */
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin-top: 1.5rem; /* Add space between image and text */
+}
+
+/* Remove old overlay styles as they are no longer used */
+.thumbnail-overlay {
+    display: none;
+}
