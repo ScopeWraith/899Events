@@ -83,14 +83,19 @@ export function showViewPostModal(post) {
     // Set the background color for the themed tag
     categoryEl.style.backgroundColor = categoryStyle.color || 'var(--color-primary)';
 
+
     // --- Populate Author Info ---
     const { allPlayers } = getState();
     const author = allPlayers.find(p => p.uid === post.authorUid);
     const authorSection = document.getElementById('view-post-author-section');
 
     if (author && post.mainType === 'announcement') {
+        const rankBorder = getRankBorderClass(author); // Get the border class
+        const authorAvatarEl = document.getElementById('view-post-author-avatar');
+
         authorSection.style.display = 'flex';
-        document.getElementById('view-post-author-avatar').src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
+        authorAvatarEl.src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
+        authorAvatarEl.className = `w-12 h-12 rounded-full object-cover ${rankBorder}`; // Apply the class
         document.getElementById('view-post-author-username').textContent = author.username;
         const postDate = post.createdAt ? formatTimeAgo(post.createdAt.toDate()) : '';
         document.getElementById('view-post-author-meta').textContent = `[${author.alliance || 'N/A'}] - ${author.allianceRank || 'Member'} • ${postDate}`;
