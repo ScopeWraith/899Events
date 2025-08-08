@@ -3,7 +3,7 @@
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav } from './ui/ui-manager.js';
+import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, renderPosts } from './ui/post-ui.js';
@@ -407,10 +407,24 @@ addListener('player-profile-dropdown', 'click', (e) => {
         const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
         const createEventBtn = e.target.closest('#create-event-btn');
         const actionsBtn = e.target.closest('.post-card-actions-trigger');
+        const announcementCard = e.target.closest('.announcement-card');
 
-        if (createAnnouncementBtn) showCreatePostModal('announcement');
-        else if (createEventBtn) showCreatePostModal('event');
-        else if (actionsBtn) showPostActionsModal(actionsBtn.dataset.postId);
+        if (createAnnouncementBtn) {
+            showCreatePostModal('announcement');
+        } else if (createEventBtn) {
+            showCreatePostModal('event');
+        } else if (actionsBtn) {
+            // Prevent card click from firing when clicking the options button
+            e.stopPropagation(); 
+            showPostActionsModal(actionsBtn.dataset.postId);
+        } else if (announcementCard) {
+            // This is the logic that opens the modal
+            const { allPosts } = getState();
+            const post = allPosts.find(p => p.id === announcementCard.dataset.postId);
+            if (post) {
+                showViewPostModal(post);
+            }
+        }
     });
 
     // --- Attachment and Emoji Logic ---
