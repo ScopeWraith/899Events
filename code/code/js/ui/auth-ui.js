@@ -213,10 +213,11 @@ export function handleForgotPassword(e) {
         .catch((error) => alert(error.message));
 }
 
+/* code/js/ui/auth-ui.js */
 export function populateEditForm() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
-    
+
     // Build the dynamic skin selectors first
     buildSkinSelectors();
 
@@ -233,8 +234,21 @@ export function populateEditForm() {
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
 
     // -- Populate Skin Tab --
-    setActiveSkin('avatar-border-selector', 'edit-avatar-border', currentUserData.avatarBorder, 'avatar-border-common');
-    setActiveSkin('chat-bubble-border-selector', 'edit-chat-bubble-border', currentUserData.chatBubbleBorder, 'chat-bubble-border-common');
+    // Helper to set active button and hidden input
+    const setActiveSkin = (containerId, inputId, value, defaultValue) => {
+        const finalValue = value || defaultValue;
+        const container = document.getElementById(containerId);
+        const input = document.getElementById(inputId);
+        if (container && input) {
+            input.value = finalValue;
+            container.querySelectorAll('.skin-select-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === finalValue);
+            });
+        }
+    };
+
+    setActiveSkin('avatar-border-selector', 'edit-avatar-border', currentUserData.avatarBorder, 'avatar-border-none');
+    setActiveSkin('chat-bubble-border-selector', 'edit-chat-bubble-border', currentUserData.chatBubbleBorder, 'chat-bubble-border-none');
 }
 
 export async function handleEditProfileSubmit(e) {
