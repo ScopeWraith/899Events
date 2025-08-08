@@ -10,7 +10,7 @@ import { doc, addDoc, updateDoc, collection, serverTimestamp, writeBatch, query,
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from '../state.js';
 import { POST_TYPES, POST_STYLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
-import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage, getRankBorderClass } from '../utils.js';
+import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage, getRankBorderClass, formatPostTimestamp } from '../utils.js';
 import { hideAllModals, showModal, setCustomSelectValue } from './ui-manager.js';
 
 let currentPostStep = 1;
@@ -97,7 +97,6 @@ export function renderNews(filter = 'all') {
         contentHTML += `<div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>`;
     }
     if (events.length > 0) {
-        // Add a visual separator if there are also announcements
         if (announcements.length > 0) {
             contentHTML += `<hr class="border-t border-white/10 my-6">`;
         }
@@ -112,17 +111,15 @@ export function renderNews(filter = 'all') {
     updateCountdowns();
 }
 
-// Keep the old renderPosts function for now, but we will phase it out.
-// It is called by firestore.js and we don't want to break the initial load yet.
 export function renderPosts() {
     const { activeFilter } = getState();
     const newsPage = document.getElementById('page-news');
 
-    // FIX: Check if the newsPage element exists before accessing its style property.
     if (newsPage && newsPage.style.display === 'block') {
         renderNews(activeFilter === 'all' ? 'all' : activeFilter);
     }
 }
+
 function createCard(post) {
     const { currentUserData, allPlayers } = getState();
     const style = POST_STYLES[post.subType] || {};
@@ -173,7 +170,7 @@ function createCard(post) {
         return `
             <div class="post-card announcement-card ${hasThumbnailClass} cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
                 <div class="post-card-body">
-                    <span class="post-card-category mb-1" style="background-color: ${color};">${categoryText}</span>
+                    <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
                     <div class="post-card-header">
                         <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
                         <div class="author-info">
@@ -185,8 +182,9 @@ function createCard(post) {
                         </div>
                         ${thumbnailHTML}
                     </div>
-                    <h3 class="post-card-title">${post.title}</h3>
-                    <p class="post-card-details mb-2">${post.details}</p>
+                    <h3 class="post-card-title !mb-2">${post.title}</h3>
+                    <p class="post-card-details">${post.details}</p>
+                    <p class="text-xs text-gray-500 mt-3 text-right">${formatPostTimestamp(postDate)}</p>
                 </div>
                 ${actionsTriggerHTML}
             </div>
@@ -194,80 +192,6 @@ function createCard(post) {
     }
 }
 
-
-function renderAnnouncements(announcements) {
-    const { currentUserData } = getState();
-    const announcementsContainer = document.getElementById('announcements-container');
-    let createBtnHTML = '';
-    if (currentUserData && getAvailablePostTypes('announcement').length > 0) {
-        createBtnHTML = `<button id="create-announcement-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Announcement"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
-    }
-
-    const contentHTML = announcements.length > 0
-        ? `<div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>`
-        : `<p class="text-center text-gray-500 py-4">No announcements to display.</p>`;
-
-    announcementsContainer.innerHTML = `
-        <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
-            <i class="fas fa-bullhorn"></i>
-            <span class="flex-grow">Announcements</span>
-            ${createBtnHTML}
-        </div>
-        ${contentHTML}
-    `;
-}
-
-function renderEvents(events) {
-    const { currentUserData } = getState();
-    const eventsSectionContainer = document.getElementById('events-section-container');
-    const announcementsContainer = document.getElementById('announcements-container');
-    const now = new Date();
-    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-    let displayableEvents = events.filter(event => {
-        const status = getEventStatus(event);
-        const prospectiveStartTime = event.isRecurring ? getEventStatus(event).startTime : event.startTime?.toDate();
-        return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || event.startTime?.toDate()) <= sevenDaysFromNow);
-    });
-
-    displayableEvents.sort((a, b) => {
-        const statusA = getEventStatus(a);
-        const statusB = getEventStatus(b);
-        if (statusA.status === 'live' && statusB.status !== 'live') return -1;
-        if (statusA.status !== 'live' && statusB.status === 'live') return 1;
-        if (statusA.status === 'live' && statusB.status === 'live') {
-            return statusA.timeDiff - statusB.timeDiff;
-        }
-        if (statusA.status === 'upcoming' && statusB.status === 'upcoming') {
-            if (statusA.timeDiff !== statusB.timeDiff) {
-                return statusA.timeDiff - statusB.timeDiff;
-            }
-            return a.title.localeCompare(b.title);
-        }
-        return 0;
-    });
-    
-    let createBtnHTML = '';
-    if (currentUserData && getAvailablePostTypes('event').length > 0) {
-        createBtnHTML = `<button id="create-event-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Event"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
-    }
-
-    const headerHTML = announcementsContainer.innerHTML.trim() === '' ? '' : '<div></div>';
-    
-    const contentHTML = displayableEvents.length > 0
-        ? `<div class="grid grid-cols-1 gap-4">${displayableEvents.map(createCard).join('')}</div>`
-        : `<p class="text-center text-gray-500 py-4">No upcoming events in the next 7 days.</p>`;
-
-    eventsSectionContainer.innerHTML = `
-        ${headerHTML}
-        <div class="section-header text-xl font-bold mb-4">
-            <i class="fas fa-calendar-alt"></i>
-            <span class="flex-grow">Events</span>
-            ${createBtnHTML}
-        </div>
-        ${contentHTML}
-    `;
-}
 
 function updateCountdowns() {
     const { allPosts } = getState();
@@ -284,16 +208,11 @@ function updateCountdowns() {
 
         el.classList.remove('live', 'ended', 'upcoming');
         
-        // --- START: CORRECTED DATE LOGIC ---
-        // This block implements the exact logic you requested.
         if (statusInfo.status === 'live') {
-            // If the event is live, show its END time.
             dateEl.textContent = formatEventDateTime(statusInfo.endTime);
         } else {
-            // Otherwise (for upcoming or ended events), show its START time.
             dateEl.textContent = formatEventDateTime(statusInfo.startTime);
         }
-        // --- END: CORRECTED DATE LOGIC ---
 
         switch(statusInfo.status) {
             case 'upcoming':
@@ -312,53 +231,6 @@ function updateCountdowns() {
     });
 }
 
-function buildFilterControls(visiblePosts) {
-    const filterContainer = document.getElementById('filter-container');
-    const availableSubTypes = [...new Set(visiblePosts.map(p => p.subType))];
-    
-    filterContainer.innerHTML = ''; // Clear previous buttons
-    
-    const allBtn = document.createElement('button');
-    allBtn.className = 'filter-btn active';
-    allBtn.textContent = 'All';
-    allBtn.dataset.filter = 'all';
-    allBtn.style.setProperty('--glow-color', 'var(--color-primary)');
-    allBtn.style.setProperty('--glow-color-bg', 'rgba(0, 191, 255, 0.1)');
-    filterContainer.appendChild(allBtn);
-
-    availableSubTypes.forEach(subType => {
-        const style = POST_STYLES[subType] || {};
-        const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === subType);
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.textContent = postTypeInfo ? postTypeInfo.text : subType.replace('_', ' ');
-        btn.dataset.filter = subType;
-        btn.style.setProperty('--glow-color', style.color || 'var(--color-primary)');
-        btn.style.setProperty('--glow-color-bg', style.bgColor || 'rgba(0, 191, 255, 0.1)');
-        filterContainer.appendChild(btn);
-    });
-}
-
-// --- POST CREATION & EDITING ---
-
-export function initializePostStepper(mainType) {
-    document.getElementById('create-post-form').reset();
-    postCreationData = {};
-    resizedThumbnailBlob = null;
-    document.getElementById('post-thumbnail-preview').src = 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
-    const dropzone = document.getElementById('post-thumbnail-dropzone');
-    dropzone.classList.remove('has-thumbnail');
-    dropzone.style.backgroundImage = 'none';
-    
-    postCreationData.mainType = mainType;
-    currentPostStep = 2; // Start at sub-type selection
-    populateSubTypeSelection();
-    showPostStep(currentPostStep);
-    
-    document.getElementById('post-back-btn').classList.remove('hidden');
-    document.getElementById('post-next-btn').classList.remove('hidden');
-}
-
 function getAvailablePostTypes(mainType) {
     const { currentUserData } = getState();
     return Object.entries(POST_TYPES).filter(([key, type]) => {
@@ -371,9 +243,34 @@ function getAvailablePostTypes(mainType) {
     });
 }
 
+export function initializePostStepper(mainType) {
+    document.getElementById('create-post-form').reset();
+    postCreationData = {};
+    resizedThumbnailBlob = null;
+    
+    const dropzone = document.getElementById('post-thumbnail-dropzone');
+    if (dropzone) {
+        dropzone.classList.remove('has-thumbnail');
+        dropzone.style.backgroundImage = 'none';
+    }
+    
+    postCreationData.mainType = mainType;
+    currentPostStep = 2; // Start at sub-type selection
+    populateSubTypeSelection();
+    showPostStep(currentPostStep);
+    
+    const backBtn = document.getElementById('post-back-btn');
+    const nextBtn = document.getElementById('post-next-btn');
+    if (backBtn) backBtn.classList.remove('hidden');
+    if (nextBtn) nextBtn.classList.remove('hidden');
+}
+
 function populateSubTypeSelection() {
     const container = document.getElementById('post-subtype-selection-container');
     const header = document.getElementById('post-subtype-header');
+    
+    if (!container || !header) return;
+
     header.textContent = `Select ${postCreationData.mainType.charAt(0).toUpperCase() + postCreationData.mainType.slice(1)} Type`;
     container.innerHTML = '';
     
@@ -403,6 +300,8 @@ function populateSubTypeSelection() {
 
 function showPostStep(stepIndex) {
     const postFlow = document.getElementById('post-creation-flow');
+    if (!postFlow) return;
+
     const postFormSlides = postFlow.querySelectorAll('.form-slide');
     const postBackBtn = document.getElementById('post-back-btn');
     const postNextBtn = document.getElementById('post-next-btn');
@@ -411,43 +310,51 @@ function showPostStep(stepIndex) {
 
     postFormSlides.forEach(slide => slide.classList.remove('active'));
     const currentSlide = postFlow.querySelector(`.form-slide[data-slide="${stepIndex}"]`);
-    if(currentSlide) currentSlide.classList.add('active');
+    if (currentSlide) currentSlide.classList.add('active');
     
     const isEvent = postCreationData.mainType === 'event';
     const totalSteps = isEvent ? 4 : 3;
 
-    postBackBtn.style.visibility = stepIndex === 2 ? 'hidden' : 'visible'; // Hide on first selection step
-    postNextBtn.classList.toggle('hidden', stepIndex >= totalSteps);
-    postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
+    if (postBackBtn) postBackBtn.style.visibility = stepIndex === 2 ? 'hidden' : 'visible';
+    if (postNextBtn) postNextBtn.classList.toggle('hidden', stepIndex >= totalSteps);
+    if (postSubmitBtn) postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
     
-    if(stepIndex === 3) {
+    if (stepIndex === 3) {
         const header = document.getElementById('post-content-header');
-        header.textContent = editingPostId ? `Edit ${postCreationData.text}` : `New ${postCreationData.text}`;
+        if (header) header.textContent = editingPostId ? `Edit ${postCreationData.text}` : `New ${postCreationData.text}`;
+        
         const allianceGroup = document.getElementById('post-alliance-group');
         const { currentUserData } = getState();
-        if(currentUserData.isAdmin && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership')) {
-            allianceGroup.classList.remove('hidden');
-        } else {
-            allianceGroup.classList.add('hidden');
+        if (allianceGroup && currentUserData) {
+            if (currentUserData.isAdmin && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership')) {
+                allianceGroup.classList.remove('hidden');
+            } else {
+                allianceGroup.classList.add('hidden');
+            }
         }
+        
         const expirationGroup = document.getElementById('post-expiration-group');
-        const isAnnouncement = postCreationData.mainType === 'announcement';
-        expirationGroup.classList.toggle('hidden', !isAnnouncement);
+        if (expirationGroup) {
+            const isAnnouncement = postCreationData.mainType === 'announcement';
+            expirationGroup.classList.toggle('hidden', !isAnnouncement);
+        }
     }
 }
 
+
 function validatePostStep(stepIndex) {
     const createPostError = document.getElementById('create-post-error');
-    createPostError.textContent = '';
+    if (createPostError) createPostError.textContent = '';
+    
     if (stepIndex === 3) {
          if (!document.getElementById('post-title').value || !document.getElementById('post-details').value) {
-            createPostError.textContent = 'Title and details are required.';
+            if (createPostError) createPostError.textContent = 'Title and details are required.';
             return false;
         }
     } else if (stepIndex === 4 && postCreationData.mainType === 'event') {
         if (!document.getElementById('post-start-day').value || !document.getElementById('post-start-hour').value ||
             !document.getElementById('post-end-day').value || !document.getElementById('post-end-hour').value) {
-            createPostError.textContent = 'Please select a start/end day and hour for the event.';
+            if (createPostError) createPostError.textContent = 'Please select a start/end day and hour for the event.';
             return false;
         }
     }
@@ -474,10 +381,12 @@ export async function handleThumbnailSelection(e) {
     const file = e.target.files[0];
     if (!file) return;
     resizedThumbnailBlob = await resizeImage(file, { maxWidth: 1024, maxHeight: 1024 });
-    document.getElementById('post-thumbnail-preview').src = URL.createObjectURL(resizedThumbnailBlob);
+    
     const dropzone = document.getElementById('post-thumbnail-dropzone');
-    dropzone.style.backgroundImage = `url('${URL.createObjectURL(resizedThumbnailBlob)}')`;
-    dropzone.classList.add('has-thumbnail');
+    if (dropzone) {
+        dropzone.style.backgroundImage = `url('${URL.createObjectURL(resizedThumbnailBlob)}')`;
+        dropzone.classList.add('has-thumbnail');
+    }
 }
 
 export async function handlePostSubmit(e) {
@@ -487,12 +396,14 @@ export async function handlePostSubmit(e) {
     const { currentUserData, editingPostId } = getState();
 
     if (!currentUserData) {
-        createPostError.textContent = 'You must be logged in to post.';
+        if (createPostError) createPostError.textContent = 'You must be logged in to post.';
         return;
     }
     
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+    }
 
     let alliance = (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership') 
         ? (currentUserData.isAdmin ? document.getElementById('post-alliance').value : currentUserData.alliance)
@@ -526,7 +437,7 @@ export async function handlePostSubmit(e) {
         if (finalPostData.isRecurring) {
             finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
         }
-    } else { // Announcement
+    } else {
         finalPostData.expirationDays = parseInt(document.getElementById('post-expiration-days').value, 10) || 1;
     }
     
@@ -575,14 +486,14 @@ export async function handlePostSubmit(e) {
         hideAllModals();
     } catch (error) {
         console.error("Error saving post: ", error);
-         // Provide a more descriptive error message
-        createPostError.textContent = `Failed to save post: ${error.message}`; 
+        if (createPostError) createPostError.textContent = `Failed to save post: ${error.message}`; 
     } finally {
-        submitBtn.disabled = false;
-        // Reset button text based on context
-        submitBtn.innerHTML = editingPostId 
-            ? '<i class="fas fa-save mr-2"></i>Save Changes' 
-            : '<i class="fas fa-check-circle mr-2"></i>Create Post';
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = editingPostId 
+                ? '<i class="fas fa-save mr-2"></i>Save Changes' 
+                : '<i class="fas fa-check-circle mr-2"></i>Create Post';
+        }
     }
 }
 
@@ -613,7 +524,14 @@ export async function populatePostFormForEdit(postId) {
     
     document.getElementById('post-title').value = post.title;
     document.getElementById('post-details').value = post.details;
-    document.getElementById('post-thumbnail-preview').src = post.thumbnailUrl || 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
+    const dropzone = document.getElementById('post-thumbnail-dropzone');
+    if (post.thumbnailUrl) {
+        dropzone.style.backgroundImage = `url('${post.thumbnailUrl}')`;
+        dropzone.classList.add('has-thumbnail');
+    } else {
+        dropzone.style.backgroundImage = 'none';
+        dropzone.classList.remove('has-thumbnail');
+    }
     
     if (post.mainType === 'event' && post.startTime) {
         const startDate = post.startTime.toDate();
@@ -635,33 +553,6 @@ export async function populatePostFormForEdit(postId) {
     showModal(document.getElementById('create-post-modal-container'));
     submitBtn.classList.remove('hidden');
 }
-export function renderTodaysAllianceActivity() {
-    const { allPosts, currentUserData } = getState();
-    const container = document.getElementById('feed-alliance-activity-container');
-    
-    if (!container || !currentUserData || !currentUserData.alliance) {
-        if (container) container.innerHTML = '<p class="text-center text-gray-500 py-4">Join an alliance to see its activity.</p>';
-        return;
-    }
-
-    const now = new Date();
-    const todayStart = new Date(now.setHours(0, 0, 0, 0));
-
-    const todaysAlliancePosts = allPosts.filter(post => {
-        const postDate = post.createdAt?.toDate();
-        return post.alliance === currentUserData.alliance &&
-               post.visibility === 'alliance' &&
-               postDate >= todayStart;
-    });
-
-    if (todaysAlliancePosts.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-500 py-4">No alliance activity today.</p>';
-    } else {
-        container.innerHTML = `<div class="grid grid-cols-1 gap-4">${todaysAlliancePosts.map(createCard).join('')}</div>`;
-        updateCountdowns(); // We need to call this to make sure event timers are updated
-    }
-}
-// --- NEW FUNCTION for the redesigned Feed Page ---
 export function renderFeedActivity() {
     const { allPosts, userNotifications, currentUserData } = getState();
     const container = document.getElementById('feed-activity-container');
