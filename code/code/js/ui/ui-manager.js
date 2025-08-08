@@ -69,36 +69,32 @@ export function handleSubNavClick(subTargetId) {
 }
 export function showViewPostModal(post) {
     if (!post) return;
-    const { allPlayers } = getState();
+    const { allPlayers, currentUserData } = getState();
+    updateState({ actionPostId: post.id }); // Keep track of the open post's ID
 
     // --- Populate Header ---
     const author = allPlayers.find(p => p.uid === post.authorUid);
     const authorSection = getElement('view-post-author-section');
-    
     if (author) {
         authorSection.style.display = 'flex';
         const rankBorder = getRankBorderClass(author);
-        const authorAvatarEl = getElement('view-post-author-avatar');
-
-        authorAvatarEl.src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
-        authorAvatarEl.className = `w-16 h-16 rounded-full object-cover ${rankBorder}`;
-        
+        getElement('view-post-author-avatar').src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
+        getElement('view-post-author-avatar').className = `w-12 h-12 rounded-full object-cover ${rankBorder}`;
         getElement('view-post-author-username').textContent = author.username;
-        
-        // Combine Category and Timestamp into meta line
-        const categoryStyle = POST_STYLES[post.subType] || {};
-        const postTypeKey = Object.keys(POST_TYPES).find(key => POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType);
-        const categoryInfo = POST_TYPES[postTypeKey] || {};
-        const categoryText = `<span style="color: ${categoryStyle.color || 'var(--color-primary)'}">${categoryInfo.text || 'Post'}</span>`;
         const timestampText = post.createdAt ? formatTimeAgo(post.createdAt.toDate()) : '';
-        
-        getElement('view-post-author-meta').innerHTML = `${categoryText} &bull; ${timestampText}`;
-
+        getElement('view-post-author-meta').textContent = `Posted ${timestampText}`;
     } else {
         authorSection.style.display = 'none';
     }
 
     // --- Populate Content ---
+    const categoryStyle = POST_STYLES[post.subType] || {};
+    const postTypeKey = Object.keys(POST_TYPES).find(key => POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType);
+    const categoryInfo = POST_TYPES[postTypeKey] || {};
+    const categoryEl = getElement('view-post-category');
+    categoryEl.textContent = categoryInfo.text || 'Post';
+    categoryEl.style.backgroundColor = categoryStyle.color || 'var(--color-primary)';
+    
     getElement('view-post-title').textContent = post.title;
     
     const thumbnailSection = getElement('view-post-thumbnail-section');
@@ -108,8 +104,19 @@ export function showViewPostModal(post) {
     } else {
         thumbnailSection.style.display = 'none';
     }
-
     getElement('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
+
+    // --- Populate Footer & Reactions ---
+    const likeBtn = document.querySelector('.post-reaction-btn[data-reaction="like"]');
+    const heartBtn = document.querySelector('.post-reaction-btn[data-reaction="heart"]');
+    
+    likeBtn.querySelector('.reaction-count').textContent = post.likes || 0;
+    heartBtn.querySelector('.reaction-count').textContent = post.hearts || 0;
+    
+    if (currentUserData) {
+        likeBtn.classList.toggle('reacted', post.likedBy && post.likedBy.includes(currentUserData.uid));
+        heartBtn.classList.toggle('reacted', post.heartedBy && post.heartedBy.includes(currentUserData.uid));
+    }
 
     showModal(getElement('view-post-modal-container'));
 }
