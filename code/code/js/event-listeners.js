@@ -28,7 +28,7 @@ export function initializeAllEventListeners() {
         const reactionType = reactionBtn.dataset.reaction;
         togglePostReaction(actionPostId, reactionType);
     }
-    });
+});
     // --- Main Navigation & Page Switching ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
