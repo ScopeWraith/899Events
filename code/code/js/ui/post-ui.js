@@ -371,6 +371,9 @@ export function initializePostStepper(mainType) {
     postCreationData = {};
     resizedThumbnailBlob = null;
     document.getElementById('post-thumbnail-preview').src = 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
+    const dropzone = document.getElementById('post-thumbnail-dropzone');
+    dropzone.classList.remove('has-thumbnail');
+    dropzone.style.backgroundImage = 'none';
     
     postCreationData.mainType = mainType;
     currentPostStep = 2; // Start at sub-type selection
@@ -497,6 +500,9 @@ export async function handleThumbnailSelection(e) {
     if (!file) return;
     resizedThumbnailBlob = await resizeImage(file, { maxWidth: 1024, maxHeight: 1024 });
     document.getElementById('post-thumbnail-preview').src = URL.createObjectURL(resizedThumbnailBlob);
+    const dropzone = document.getElementById('post-thumbnail-dropzone');
+    dropzone.style.backgroundImage = `url('${URL.createObjectURL(resizedThumbnailBlob)}')`;
+    dropzone.classList.add('has-thumbnail');
 }
 
 export async function handlePostSubmit(e) {

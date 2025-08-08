@@ -637,3 +637,116 @@ body {
     border-radius: 0.5rem;
     white-space: nowrap;
 }
+
+/* --- REVAMPED CREATE POST MODAL STYLES --- */
+#create-post-modal-container .modal-content-wrapper {
+    padding: 0; /* Remove padding to allow for full-height sections */
+}
+
+.create-post-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.create-post-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+#post-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding: 0.5rem 0; /* Simpler padding */
+    height: auto;
+}
+
+#post-details {
+    padding: 0.5rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* Remove borders from input-group for a cleaner look inside the modal */
+#create-post-modal-container .input-group {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+}
+
+#create-post-modal-container .input-group:focus-within {
+    box-shadow: none;
+    border-color: transparent;
+}
+
+#create-post-modal-container .input-group .input-icon {
+    border: none;
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    color: #6e7681;
+}
+
+/* New Thumbnail Drop Zone */
+#post-thumbnail-dropzone {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #8b949e;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 150px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+#post-thumbnail-dropzone:hover {
+    border-color: var(--color-primary);
+    background-color: rgba(0, 191, 255, 0.05);
+}
+
+#post-thumbnail-dropzone .dropzone-text {
+    transition: opacity 0.2s ease;
+}
+
+#post-thumbnail-dropzone .dropzone-text i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+/* State when an image has been loaded */
+#post-thumbnail-dropzone.has-thumbnail .dropzone-text {
+    opacity: 0; /* Hide the placeholder text */
+}
+
+#post-thumbnail-dropzone.has-thumbnail::after {
+    content: 'Click to change image';
+    position: absolute;
+    bottom: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#post-thumbnail-dropzone.has-thumbnail:hover::after {
+    opacity: 1; /* Show the change image text on hover */
+}
+
+.create-post-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(13, 17, 23, 0.8);
+    flex-shrink: 0;
+}

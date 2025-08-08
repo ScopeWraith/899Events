@@ -247,132 +247,73 @@
             </div>
 
             <div id="create-post-modal-container" class="modal-container">
-                 <div class="glass-pane">
-                    <div class="modal-content-wrapper">
-                        <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                            <i class="fas fa-times fa-lg"></i>
-                        </button>
-                        <div>
-                            <form id="create-post-form">
-                                <div id="post-creation-flow">
-                                     <div class="form-slide" data-slide="1">
-                                        <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
-                                        <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
-                                        <div id="post-main-type-selection-container" class="space-y-4">
-                                           </div>
-                                    </div>
-                                    <div class="form-slide" data-slide="2">
-                                        <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
-                                        <p class="text-center text-gray-400 mb-6">Select a category.</p>
-                                        <div id="post-subtype-selection-container" class="space-y-3">
-                                           </div>
-                                    </div>
-                                    <div class="form-slide" data-slide="3">
-                                        <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
-                                        <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
-                                        <div class="space-y-4">
-                                            <div id="post-alliance-group" class="input-group hidden"><i class="fas fa-shield-alt input-icon"></i>
-                                                 <div class="custom-select-container w-full" data-type="alliance">
-                                                    <input type="hidden" id="post-alliance" name="post-alliance">
-                                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                                    <div class="custom-select-options">
-                                                        <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                                        <div class="options-list"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="input-group"><i class="fas fa-heading input-icon"></i><input type="text" id="post-title" placeholder="Title" class="form-input" required></div>
-                                            <div class="input-group !items-start"><i class="fas fa-align-left input-icon pt-3"></i><textarea id="post-details" placeholder="Details..." class="form-textarea" required></textarea></div>
-                                            <div>
-                                                <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
-                                                <div class="flex items-center gap-4">
-                                                    <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=PREVIEW" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
-                                                    <button type="button" id="post-thumbnail-btn" class="flex-grow p-3 rounded-lg secondary-btn">
-                                                        <i class="fas fa-upload mr-2"></i> Choose Image
-                                                    </button>
-                                                    <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
-                                                </div>
-                                            </div>
-                                            <div class="space-y-4">
-                                            <div id="post-expiration-group" class="input-group hidden">
-                                                <i class="fas fa-clock input-icon"></i>
-                                                <div class="custom-select-container" data-type="announcement-expiration">
-                                                    <input type="hidden" id="post-expiration-days" value="1">
-                                                    <button type="button" class="custom-select-value form-input">
-                                                        <span>Expires In: 1 Day</span><i class="fas fa-chevron-down text-xs"></i>
-                                                    </button>
-                                                    <div class="custom-select-options">
-                                                        <div class="options-list"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                     <div class="form-slide" data-slide="4">
-                                        <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
-                                        <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
-                                        <div id="post-timing-group" class="space-y-4">
-                                             <div>
-                                                <label class="text-sm font-semibold text-gray-400 mb-1 block">Start Time</label>
-                                                <div class="flex gap-2">
-                                                    <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
-                                                        <div class="custom-select-container" data-type="day-of-week">
-                                                            <input type="hidden" id="post-start-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
-                                                        <div class="custom-select-container" data-type="hour-of-day">
-                                                            <input type="hidden" id="post-start-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label class="text-sm font-semibold text-gray-400 mb-1 block">End Time</label>
-                                                <div class="flex gap-2">
-                                                     <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
-                                                        <div class="custom-select-container" data-type="day-of-week">
-                                                            <input type="hidden" id="post-end-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
-                                                        <div class="custom-select-container" data-type="hour-of-day">
-                                                            <input type="hidden" id="post-end-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                             <div>
-                                                <label class="text-sm font-semibold text-gray-400 mb-1 block">Repetition</label>
-                                                <div class="flex gap-2">
-                                                     <div class="input-group w-1/2"><i class="fas fa-redo-alt input-icon"></i>
-                                                        <div class="custom-select-container" data-type="repeat-type">
-                                                            <input type="hidden" id="post-repeat-type" value="none" required><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                    <div id="post-repeat-weeks-container" class="input-group w-1/2 hidden"><i class="fas fa-hashtag input-icon"></i>
-                                                        <input type="number" id="post-repeat-weeks" class="form-input" min="1" value="1" placeholder="Weeks">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <p class="text-xs text-center text-gray-400">Times are based on your local timezone.</p>
-                                        </div>
+    <div class="glass-pane">
+        <div class="modal-content-wrapper">
+            <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+            <form id="create-post-form" class="flex flex-col h-full">
+                <div id="post-creation-flow" class="flex flex-col flex-grow min-h-0">
+                    <div class="form-slide" data-slide="1"> ... </div>
+                    <div class="form-slide" data-slide="2"> ... </div>
+
+                    <div class="form-slide flex flex-col flex-grow min-h-0" data-slide="3">
+                        <div class="create-post-header">
+                            <h2 id="post-content-header" class="text-xl font-bold text-white">New Post</h2>
+                            <p class="text-gray-400 text-sm">Provide the details for your post.</p>
+                        </div>
+                        <div class="create-post-content space-y-6">
+                            <div class="input-group">
+                                <i class="fas fa-heading input-icon"></i>
+                                <input type="text" id="post-title" placeholder="Title" class="form-input" required>
+                            </div>
+                            <div class="input-group !items-start">
+                                <i class="fas fa-align-left input-icon pt-1"></i>
+                                <textarea id="post-details" placeholder="Details..." class="form-textarea" rows="5" required></textarea>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
+                                <div id="post-thumbnail-dropzone">
+                                    <div class="dropzone-text">
+                                        <i class="fas fa-image"></i>
+                                        <p class="font-semibold">Click to upload or drag & drop</p>
+                                        <p class="text-xs">PNG, JPG, or GIF (1024x1024 recommended)</p>
                                     </div>
                                 </div>
-                                <p id="create-post-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                                 <div id="post-nav-container" class="flex items-center mt-6">
-                                    <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
-                                    <div class="flex-grow flex justify-center">
-                                        <button type="button" id="post-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button>
-                                        <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
+                                <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
+                            </div>
+                            <div id="post-expiration-group" class="input-group hidden">
+                                <i class="fas fa-clock input-icon"></i>
+                                <div class="custom-select-container" data-type="announcement-expiration">
+                                    <input type="hidden" id="post-expiration-days" value="1">
+                                    <button type="button" class="custom-select-value form-input">
+                                        <span>Expires In: 1 Day</span><i class="fas fa-chevron-down text-xs"></i>
+                                    </button>
+                                    <div class="custom-select-options">
+                                        <div class="options-list"></div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-slide" data-slide="4"> ... </div>
+                </div>
+
+                <div id="post-nav-container" class="create-post-footer">
+                    <p id="create-post-error" class="text-red-400 text-center text-sm mb-3 form-error"></p>
+                    <div class="flex items-center">
+                        <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
+                        <div class="flex-grow flex justify-end">
+                            <button type="button" id="post-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button>
+                            <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </form>
+        </div>
+    </div>
+</div>
 
             <div id="confirmation-modal-container" class="modal-container">
                 <div class="glass-pane">
