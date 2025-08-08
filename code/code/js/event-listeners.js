@@ -73,6 +73,43 @@ export function initializeAllEventListeners() {
     addListener('user-avatar-mobile' , 'click', () => {
         showEditProfileModal();
     });
+    // --- Edit Profile Modal Tabs and Skin Selectors ---
+    const editProfileModal = getElement('edit-profile-modal-container');
+    if (editProfileModal) {
+        editProfileModal.addEventListener('click', (e) => {
+            // Tab switching logic
+            const tabBtn = e.target.closest('.modal-tab-btn');
+            if (tabBtn) {
+                e.preventDefault();
+                const tabName = tabBtn.dataset.tab;
+                
+                // Update button active state
+                editProfileModal.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
+                tabBtn.classList.add('active');
+
+                // Update pane visibility
+                editProfileModal.querySelectorAll('.modal-tab-pane').forEach(pane => {
+                    pane.classList.toggle('active', pane.id === `edit-profile-tab-${tabName}`);
+                });
+            }
+            
+            // Skin/Border selection logic
+            const skinBtn = e.target.closest('.skin-select-btn');
+            if (skinBtn) {
+                e.preventDefault();
+                const parentContainer = skinBtn.parentElement;
+                const targetInputId = parentContainer.id.replace('-selector', '');
+                const targetInput = getElement(`edit-${targetInputId}`);
+                
+                // Update hidden input and button active state
+                if (targetInput) {
+                    targetInput.value = skinBtn.dataset.value;
+                    parentContainer.querySelectorAll('.skin-select-btn').forEach(btn => btn.classList.remove('active'));
+                    skinBtn.classList.add('active');
+                }
+            }
+        });
+    }
     // --- Modal Triggers & Closers ---
     addListener('login-btn', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);

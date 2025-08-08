@@ -12,7 +12,7 @@ import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/fireba
 import { getState, updateState } from '../state.js';
 import { resizeImage } from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
-import { ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
+import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 
 let currentRegStep = 1;
 let resizedAvatarBlob = null;
@@ -25,7 +25,51 @@ export function initializeRegistrationStepper() {
     document.getElementById('registration-flow').style.display = 'block';
     document.getElementById('registration-success').style.display = 'none';
 }
+function buildSkinSelectors() {
+    // Build Avatar Skin options from RANK_STYLES
+    const avatarSkinSelector = document.getElementById('avatar-skin-selector');
+    if (avatarSkinSelector) {
+        avatarSkinSelector.innerHTML = Object.entries(RANK_STYLES).map(([rank, style]) => `
+            <button class="skin-select-btn" data-value="avatar-skin-${rank.toLowerCase()}">
+                <div class="preview" style="background-color: ${style.color}; box-shadow: 0 0 8px ${style.shadow};"></div>
+                <span>${rank}</span>
+            </button>
+        `).join('');
+    }
 
+    // Build Avatar Border options
+    const avatarBorderSelector = document.getElementById('avatar-border-selector');
+    if (avatarBorderSelector) {
+        avatarBorderSelector.innerHTML = AVATAR_BORDERS.map(border => `
+            <button class="skin-select-btn" data-value="${border.value}">
+                <div class="preview ${border.value}"></div>
+                <span>${border.text}</span>
+            </button>
+        `).join('');
+    }
+
+    // Build Chat Bubble Border options
+    const chatBubbleBorderSelector = document.getElementById('chat-bubble-border-selector');
+    if (chatBubbleBorderSelector) {
+        chatBubbleBorderSelector.innerHTML = CHAT_BUBBLE_BORDERS.map(border => `
+            <button class="skin-select-btn" data-value="${border.value}">
+                <div class="preview-chat-bubble ${border.value}"></div>
+                <span>${border.text}</span>
+            </button>
+        `).join('');
+    }
+
+    // Build Rank Color Legend
+    const rankLegend = document.getElementById('rank-color-legend');
+    if(rankLegend) {
+        rankLegend.innerHTML = Object.entries(RANK_STYLES).map(([rank, style]) => `
+            <div class="rank-legend-item">
+                <div class="rank-legend-color" style="background-color: ${style.color};"></div>
+                <span class="font-semibold text-white">${rank}</span>
+            </div>
+        `).join('');
+    }
+}
 function showRegStep(stepIndex) {
     const registrationFlow = document.getElementById('registration-flow');
     const regFormSlides = registrationFlow.querySelectorAll('.form-slide');
@@ -193,36 +237,39 @@ export function handleForgotPassword(e) {
 export function populateEditForm() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
-
-    // Populate standard profile fields
-    document.getElementById('edit-username').value = currentUserData.username;
     
+    // Build the dynamic skin selectors first
+    buildSkinSelectors();
+
+    // -- Populate Stats Tab --
+    document.getElementById('edit-username').value = currentUserData.username;
     const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
     const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
-    
     setCustomSelectValue(editAllianceSelect, currentUserData.alliance, currentUserData.alliance);
     const rankData = ALLIANCE_RANKS.find(r => r.value === currentUserData.allianceRank);
     setCustomSelectValue(editRankSelect, currentUserData.allianceRank, rankData ? rankData.text : currentUserData.allianceRank);
-    
     document.getElementById('edit-power').value = (currentUserData.power || 0).toLocaleString();
     document.getElementById('edit-tank-power').value = (currentUserData.tankPower || 0).toLocaleString();
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
-    
-    // Populate border selection fields with null checks
-    const avatarBorderInput = document.getElementById('edit-avatar-border');
-    if (avatarBorderInput) {
-        const avatarBorderSelect = avatarBorderInput.closest('.custom-select-container');
-        const avatarBorderData = AVATAR_BORDERS.find(b => b.value === currentUserData.avatarBorder);
-        setCustomSelectValue(avatarBorderSelect, currentUserData.avatarBorder, avatarBorderData ? avatarBorderData.text : 'Common');
-    }
 
-    const chatBubbleBorderInput = document.getElementById('edit-chat-bubble-border');
-    if (chatBubbleBorderInput) {
-        const chatBubbleBorderSelect = chatBubbleBorderInput.closest('.custom-select-container');
-        const chatBubbleBorderData = CHAT_BUBBLE_BORDERS.find(b => b.value === currentUserData.chatBubbleBorder);
-        setCustomSelectValue(chatBubbleBorderSelect, currentUserData.chatBubbleBorder, chatBubbleBorderData ? chatBubbleBorderData.text : 'Common');
-    }
+    // -- Populate Skin Tab --
+    // Helper to set active button and hidden input
+    const setActiveSkin = (containerId, inputId, value, defaultValue) => {
+        const finalValue = value || defaultValue;
+        const container = document.getElementById(containerId);
+        const input = document.getElementById(inputId);
+        if(container && input) {
+            input.value = finalValue;
+            container.querySelectorAll('.skin-select-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === finalValue);
+            });
+        }
+    };
+    
+    setActiveSkin('avatar-skin-selector', 'edit-avatar-skin', currentUserData.avatarSkin, 'avatar-skin-r1');
+    setActiveSkin('avatar-border-selector', 'edit-avatar-border', currentUserData.avatarBorder, 'avatar-border-common');
+    setActiveSkin('chat-bubble-border-selector', 'edit-chat-bubble-border', currentUserData.chatBubbleBorder, 'chat-bubble-border-common');
 }
 
 export async function handleEditProfileSubmit(e) {
@@ -244,6 +291,8 @@ export async function handleEditProfileSubmit(e) {
         tankPower: parsePower(document.getElementById('edit-tank-power').value),
         airPower: parsePower(document.getElementById('edit-air-power').value),
         missilePower: parsePower(document.getElementById('edit-missile-power').value),
+        // Read values from the hidden inputs in the skin tab
+        avatarSkin: document.getElementById('edit-avatar-skin').value,
         avatarBorder: document.getElementById('edit-avatar-border').value,
         chatBubbleBorder: document.getElementById('edit-chat-bubble-border').value,
     };
@@ -260,6 +309,7 @@ export async function handleEditProfileSubmit(e) {
         errorElement.textContent = "Failed to update profile.";
     }
 }
+
 
 export async function handleAvatarUpload(e) {
     const file = e.target.files[0];
@@ -285,14 +335,18 @@ export async function handleAvatarUpload(e) {
 export function updateAvatarDisplay(data) {
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
     const avatarBorder = data.avatarBorder || 'avatar-border-common';
-
+    const avatarSkin = data.avatarSkin || 'avatar-skin-r1';
+    
     const userAvatarButton = document.getElementById('user-avatar-button');
     userAvatarButton.src = avatarUrl;
-    userAvatarButton.className = `w-6 h-6 rounded-full mr-2 object-cover ${avatarBorder}`;
+    // The classList needs to be managed carefully to replace old borders/skins
+    userAvatarButton.className = 'w-6 h-6 rounded-full mr-2 object-cover';
+    userAvatarButton.classList.add(avatarBorder, avatarSkin);
 
     const userAvatarMobile = document.getElementById('user-avatar-mobile');
     userAvatarMobile.src = avatarUrl;
-    userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${avatarBorder}`;
+    userAvatarMobile.className = 'w-8 h-8 rounded-full object-cover';
+    userAvatarMobile.classList.add(avatarBorder, avatarSkin);
 
     document.getElementById('mobile-avatar-alliance').textContent = `[${data.alliance}]`;
     document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;

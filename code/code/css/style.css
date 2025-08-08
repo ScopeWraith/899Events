@@ -535,3 +535,111 @@ body {
 /* Keyframe animations for pulsing borders */
 @keyframes pulse-gold { 0% { box-shadow: 0 0 12px #ffd700; } 50% { box-shadow: 0 0 20px #ffd700; } 100% { box-shadow: 0 0 12px #ffd700; } }
 @keyframes pulse-legendary { 0% { filter: brightness(1); } 50% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
+
+/* --- MODAL TAB STYLES --- */
+.modal-tab-nav {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin: -1.5rem -1.5rem 1.5rem -1.5rem; /* Extend to edges of modal padding */
+}
+
+.modal-tab-btn {
+    flex-grow: 1;
+    padding: 1rem;
+    font-weight: 600;
+    color: #8b949e;
+    background-color: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.modal-tab-btn:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.modal-tab-btn.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+.modal-tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-tab-pane.active {
+    display: block;
+}
+
+/* --- SKIN SELECTION BUTTONS --- */
+.skin-select-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.75rem;
+}
+
+.skin-select-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0.5rem;
+    border-radius: 0.5rem;
+    background-color: rgba(13, 17, 23, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.skin-select-btn:hover {
+    transform: translateY(-2px);
+    border-color: #fff;
+}
+
+.skin-select-btn.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary-glow);
+    background-color: rgba(0, 191, 255, 0.1);
+}
+
+.skin-select-btn .preview {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* For border-image */
+}
+
+.skin-select-btn .preview-chat-bubble {
+    width: 100%;
+    height: 32px;
+    border-radius: 12px;
+}
+
+.skin-select-btn span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #c9d1d9;
+}
+
+/* --- RANK COLOR LEGEND --- */
+.rank-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background-color: rgba(13, 17, 23, 0.5);
+    border-radius: 6px;
+}
+
+.rank-legend-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
