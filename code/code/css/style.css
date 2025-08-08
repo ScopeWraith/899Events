@@ -896,24 +896,27 @@ body {
         min-width: 120px;
     }
 
+     /* REVISED: New Grid Layout for Announcement Cards on Mobile */
     .post-card.announcement-card.has-thumbnail {
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: 1fr auto; /* Main content | Thumbnail */
         align-items: center;
-        gap: 0 1rem;
+        gap: 0 1rem; /* Add a gap between content and thumbnail */
     }
 
+    /* Assigns the body content to the first column */
+    .post-card.announcement-card.has-thumbnail .post-card-body {
+        grid-column: 1 / 2;
+    }
+
+    /* Assigns the thumbnail to the second column */
     .announcement-card .post-card-thumbnail {
+        grid-column: 2 / 3;
         position: static;
-        order: 0;
         width: 90px;
         height: 90px;
         margin: 0;
         border-radius: 0.75rem;
-    }
-    
-    .announcement-card.has-thumbnail .post-card-header {
-        padding-right: 0;
     }
 }
 
