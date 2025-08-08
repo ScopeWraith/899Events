@@ -337,8 +337,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     align-items: flex-start;
 }
 .announcement-thumbnail {
-    width: 120px;
-    height: 68px;
+    width: 130px;
+    height: 78px;
     object-fit: cover;
     border-radius: 0.5rem;
     flex-shrink: 0;
