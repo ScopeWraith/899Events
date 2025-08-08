@@ -1,7 +1,7 @@
 import { getState, updateState } from '../state.js';
 import { isUserLeader } from '../utils.js';
 import { handleSendMessage, fetchConversations, addFriend } from '../firestore.js'; // Modified import
-import { formatMessageTimestamp, autoLinkText, formatTimeAgo } from '../utils.js'; // Modified import
+import { formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarSkinClass } from '../utils.js'; // Modified import
 import { canDeleteMessage } from '../utils.js';
 import { showPrivateMessageModal } from './ui-manager.js'; // Added import
 let currentSubmitHandler = null; // To manage the form's event listener
@@ -178,6 +178,7 @@ export function renderMessages(messages, container, chatType) {
         const borderClass = getRankBorderClass(authorData);
         const avatarBorder = authorData?.avatarBorder || 'avatar-border-common';
         const chatBubbleBorder = authorData?.chatBubbleBorder || 'chat-bubble-border-common';
+        const avatarSkin = getAvatarSkinClass(authorData);
     
         // --- Determine which action buttons to show ---
         const canEdit = isSelf;
@@ -211,11 +212,13 @@ export function renderMessages(messages, container, chatType) {
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
         messageEl.innerHTML = `
-            <div class="chat-message-identity">
-                <div class="avatar-container">
-                    <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${avatarBorder}" alt="${authorUsername}">
-                    <div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>
+        <div class="chat-message-identity">
+             <div class="avatar-container">
+                <div class="w-10 h-10 rounded-full ${avatarSkin} ${avatarBorder} p-0.5">
+                    <img src="${avatarUrl}" class="w-full h-full rounded-full object-cover" alt="${authorUsername}">
                 </div>
+                <div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>                
+            </div>
                 <p class="chat-message-timestamp">${timestamp}</p>
                 ${messageActionsHTML}
             </div>
