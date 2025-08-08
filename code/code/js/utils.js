@@ -194,3 +194,10 @@ export function autoLinkText(text) {
         return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${url}</a>`;
     });
 }
+export function getAvatarSkinClass(player) {
+    if (!player) return 'avatar-skin-r1'; // Default
+    if (player.isAdmin) return 'avatar-skin-admin';
+    
+    const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
+    return `avatar-skin-${rank}`;
+}

@@ -74,17 +74,31 @@ export const ANNOUNCEMENT_EXPIRATION_DAYS = [
 ];
 
 export const AVATAR_BORDERS = [
-    { value: 'avatar-border-common', text: 'Common' },
-    { value: 'avatar-border-uncommon', text: 'Uncommon' },
-    { value: 'avatar-border-rare', text: 'Rare' },
-    { value: 'avatar-border-epic', text: 'Epic' },
-    { value: 'avatar-border-legendary', text: 'Legendary' },
+    { value: 'avatar-border-none', text: 'None' },
+    { value: 'avatar-border-sentinel', text: 'Sentinel' },
+    { value: 'avatar-border-cobalt', text: 'Cobalt' },
+    { value: 'avatar-border-solar', text: 'Solar Flare' },
+    { value: 'avatar-border-amethyst', text: 'Amethyst' },
+    { value: 'avatar-border-cyber', text: 'Cybernetic' },
+    { value: 'avatar-border-crimson', text: 'Crimson' },
+    { value: 'avatar-border-glacial', text: 'Glacial' },
+    { value: 'avatar-border-venom', text: 'Venom' },
+    { value: 'avatar-border-ares', text: 'Ares' },
+    { value: 'avatar-border-nebula', text: 'Nebula' },
+    { value: 'avatar-border-chroma', text: 'Chroma' },
 ];
 
 export const CHAT_BUBBLE_BORDERS = [
-    { value: 'chat-bubble-border-common', text: 'Common' },
-    { value: 'chat-bubble-border-uncommon', text: 'Uncommon' },
-    { value: 'chat-bubble-border-rare', text: 'Rare' },
-    { value: 'chat-bubble-border-epic', text: 'Epic' },
-    { value: 'chat-bubble-border-legendary', text: 'Legendary' },
+    { value: 'chat-bubble-border-none', text: 'None' },
+    { value: 'chat-bubble-border-sentinel', text: 'Sentinel' },
+    { value: 'chat-bubble-border-cobalt', text: 'Cobalt' },
+    { value: 'chat-bubble-border-solar', text: 'Solar Flare' },
+    { value: 'chat-bubble-border-amethyst', text: 'Amethyst' },
+    { value: 'chat-bubble-border-cyber', text: 'Cybernetic' },
+    { value: 'chat-bubble-border-crimson', text: 'Crimson' },
+    { value: 'chat-bubble-border-glacial', text: 'Glacial' },
+    { value: 'chat-bubble-border-venom', text: 'Venom' },
+    { value: 'chat-bubble-border-ares', text: 'Ares' },
+    { value: 'chat-bubble-border-nebula', text: 'Nebula' },
+    { value: 'chat-bubble-border-chroma', text: 'Chroma' },
 ];
