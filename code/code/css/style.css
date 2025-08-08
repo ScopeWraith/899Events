@@ -312,19 +312,91 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 /* ... (rest of CSS is unchanged, only announcement card styles are modified) ... */
 
 /* --- ANNOUNCEMENT CARD STYLES (REVISED) --- */
+.post-card.announcement-card {
+    display: flex; /* Changed to flex to control footer */
+    flex-direction: column;
+}
 .post-card.announcement-card .post-card-body {
+    padding: 1rem 1.5rem;
     display: flex;
     flex-direction: column;
 }
-.announcement-card .post-card-category {
-    align-self: center; /* Center the category tag */
+.post-card.announcement-card .post-card-body,
+.post-card.announcement-card .announcement-main-content {
+    flex-grow: 1; /* Allows content to push footer down */
 }
-.announcement-card .author-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-.announcement-card .author-info { flex-grow: 1; min-width: 0; }
-.announcement-card .author-name { font-weight: 700; color: #fff; }
-.announcement-card .author-meta { font-size: 0.75rem; color: #8b949e; }
-.announcement-card .post-card-title { font-size: 1.25rem; font-weight: 700; color: #fff; line-height: 1.3; margin-bottom: 0.15rem; }
-.announcement-card .post-card-details { font-size: 0.95rem; color: #a0a8b1; line-height: 1.5; }
+.announcement-top-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+.announcement-author-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.announcement-thumbnail {
+    width: 120px;
+    height: 68px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.announcement-card .post-card-header {
+    margin-bottom: 0.75rem;
+}
+.announcement-card .author-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.announcement-card .author-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+.announcement-card .author-name {
+    font-weight: 700;
+    color: #fff;
+}
+.announcement-card .author-meta {
+    font-size: 0.75rem;
+    color: #8b949e;
+}
+.announcement-card .post-card-category {
+    align-self: flex-start; /* Aligns to the left under author */
+}
+.announcement-main-content {
+    padding: 0 1.5rem; /* Match horizontal padding of body */
+}
+.announcement-card .post-card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+.announcement-card .post-card-details {
+    font-size: 0.95rem;
+    color: #a0a8b1;
+    line-height: 1.6;
+}
+.post-card-footer {
+    padding: 0.75rem 1rem;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: auto; /* Pushes to bottom */
+    background-color: rgba(0,0,0,0.2);
+}
+.post-card-timestamp-footer {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #8b949e;
+}
 .announcement-card .post-card-thumbnail {
     width: 140px;
     height: 74px;

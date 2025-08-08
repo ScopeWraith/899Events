@@ -140,29 +140,37 @@ function createCard(post) {
             </div>
         `;
     } else { // Announcement
-        const authorData = allPlayers.find(p => p.uid === post.authorUid);
-        const rankBorder = getRankBorderClass(authorData);
-        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
-        const postDate = post.createdAt?.toDate();
-        const hasThumbnail = !!post.thumbnailUrl;
-        const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="post-card-thumbnail" alt="Announcement Image">` : '';
-        const hasThumbnailClass = hasThumbnail ? 'has-thumbnail' : '';
+    const authorData = allPlayers.find(p => p.uid === post.authorUid);
+    const rankBorder = getRankBorderClass(authorData);
+    const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
+    const postDate = post.createdAt?.toDate();
+    const hasThumbnail = !!post.thumbnailUrl;
+    const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="announcement-thumbnail" alt="Announcement Image">` : '';
 
         return `
-            <div class="post-card announcement-card ${hasThumbnailClass} cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+            <div class="post-card announcement-card cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
                 <div class="post-card-body">
-                    <div class="post-card-header">
-                        <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
-                        <div class="author-info">
-                            <p class="author-name">${authorData?.username || 'Unknown'}</p>
-                            <p class="author-meta">${formatTimeAgo(postDate)}</p>
+                    <div class="announcement-top-section">
+                        <div class="announcement-author-content">
+                            <div class="post-card-header">
+                                <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
+                                <div class="author-info">
+                                    <p class="author-name">${authorData?.username || 'Unknown'}</p>
+                                    <p class="author-meta">${formatTimeAgo(postDate)}</p>
+                                </div>
+                            </div>
+                            <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
                         </div>
+                        ${thumbnailHTML}
                     </div>
-                    <p class="post-card-timestamp">${formatPostTimestamp(postDate)}</p>
-                    <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
-                    <h3 class="post-card-title !mb-2">${post.title}</h3>
-                    ${thumbnailHTML}
-                    <p class="post-card-details">${post.details}</p>
+
+                    <div class="announcement-main-content">
+                        <h3 class="post-card-title">${post.title}</h3>
+                        <p class="post-card-details">${post.details}</p>
+                    </div>
+                </div>
+                <div class="post-card-footer">
+                    <p class="post-card-timestamp-footer">${formatPostTimestamp(postDate)}</p>
                 </div>
                 ${actionsTriggerHTML}
             </div>
