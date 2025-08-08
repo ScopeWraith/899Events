@@ -195,26 +195,30 @@ export function populateEditForm() {
     if (!currentUserData) return;
     document.getElementById('edit-username').value = currentUserData.username;
     
-    const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
-    const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
-    
     setCustomSelectValue(editAllianceSelect, currentUserData.alliance);
     const rankData = ALLIANCE_RANKS.find(r => r.value === currentUserData.allianceRank);
     setCustomSelectValue(editRankSelect, currentUserData.allianceRank, rankData ? rankData.text : currentUserData.allianceRank);
-    
-    const avatarBorderSelect = document.getElementById('edit-avatar-border').closest('.custom-select-container');
-    const chatBubbleBorderSelect = document.getElementById('edit-chat-bubble-border').closest('.custom-select-container');
-
-    const avatarBorderData = AVATAR_BORDERS.find(b => b.value === currentUserData.avatarBorder);
-    setCustomSelectValue(avatarBorderSelect, currentUserData.avatarBorder, avatarBorderData ? avatarBorderData.text : 'Common');
-
-    const chatBubbleBorderData = CHAT_BUBBLE_BORDERS.find(b => b.value === currentUserData.chatBubbleBorder);
-    setCustomSelectValue(chatBubbleBorderSelect, currentUserData.chatBubbleBorder, chatBubbleBorderData ? chatBubbleBorderData.text : 'Common');
 
     document.getElementById('edit-power').value = (currentUserData.power || 0).toLocaleString();
     document.getElementById('edit-tank-power').value = (currentUserData.tankPower || 0).toLocaleString();
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
+    
+    // --- (Robost Border Population Logic) ---
+    const avatarBorderInput = document.getElementById('edit-avatar-border');
+    const chatBubbleBorderInput = document.getElementById('edit-chat-bubble-border');
+
+    if (avatarBorderInput) {
+        const avatarBorderSelect = avatarBorderInput.closest('.custom-select-container');
+        const avatarBorderData = AVATAR_BORDERS.find(b => b.value === currentUserData.avatarBorder);
+        setCustomSelectValue(avatarBorderSelect, currentUserData.avatarBorder, avatarBorderData ? avatarBorderData.text : 'Common');
+    }
+
+    if (chatBubbleBorderInput) {
+        const chatBubbleBorderSelect = chatBubbleBorderInput.closest('.custom-select-container');
+        const chatBubbleBorderData = CHAT_BUBBLE_BORDERS.find(b => b.value === currentUserData.chatBubbleBorder);
+        setCustomSelectValue(chatBubbleBorderSelect, currentUserData.chatBubbleBorder, chatBubbleBorderData ? chatBubbleBorderData.text : 'Common');
+    }
 }
 
 export async function handleEditProfileSubmit(e) {
