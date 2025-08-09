@@ -372,12 +372,31 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .chat-message:hover .delete-message-btn { opacity: 1; }
 .chat-message-bubble { padding: 0.5rem .75rem; border-radius: 18px; background-color: rgba(33, 38, 45, 0.6); border: 2px solid; word-wrap: break-word; position: relative; cursor: pointer; transition: background-color 0.2s ease; }
 .chat-message-bubble:hover { background-color: rgba(48, 54, 61, 0.8); }
-.rank-border-admin { border-color: var(--rank-admin-color); box-shadow: 0 0 10px -2px var(--rank-admin-color); }
-.rank-border-r5 { border-color: var(--rank-r5-color); box-shadow: 0 0 10px -2px var(--rank-r5-color); }
-.rank-border-r4 { border-color: var(--rank-r4-color); box-shadow: 0 0 10px -2px var(--rank-r4-color); }
-.rank-border-r3 { border-color: var(--rank-r3-color); box-shadow: 0 0 10px -2px var(--rank-r3-color); }
-.rank-border-r2 { border-color: var(--rank-r2-color); box-shadow: 0 0 10px -2px var(--rank-r2-color); }
-.rank-border-r1 { border-color: var(--rank-r1-color); box-shadow: 0 0 10px -2px var(--rank-r1-color); }
+/* --- RANK BORDER STYLES (Corrected) --- */
+.rank-border-admin { 
+    border: 3px solid var(--rank-admin-color); 
+    box-shadow: 0 0 10px -2px var(--rank-admin-color); 
+}
+.rank-border-r5 { 
+    border: 3px solid var(--rank-r5-color); 
+    box-shadow: 0 0 10px -2px var(--rank-r5-color); 
+}
+.rank-border-r4 { 
+    border: 3px solid var(--rank-r4-color); 
+    box-shadow: 0 0 10px -2px var(--rank-r4-color); 
+}
+.rank-border-r3 { 
+    border: 3px solid var(--rank-r3-color); 
+    box-shadow: 0 0 10px -2px var(--rank-r3-color); 
+}
+.rank-border-r2 { 
+    border: 3px solid var(--rank-r2-color); 
+    box-shadow: 0 0 10px -2px var(--rank-r2-color); 
+}
+.rank-border-r1 { 
+    border: 3px solid var(--rank-r1-color); 
+    box-shadow: 0 0 10px -2px var(--rank-r1-color); 
+}
 .chat-message-author { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem; display: block; }
 .rank-border-admin .chat-message-author { color: var(--rank-admin-color); }
 .rank-border-r5 .chat-message-author { color: var(--rank-r5-color); }
