@@ -729,40 +729,6 @@ body {
     color: #6e7681;
 }
 
-/* New Thumbnail Drop Zone */
-#post-thumbnail-dropzone {
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 0.75rem;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: #8b949e;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-height: 150px; /* This was reduced */
-    background-size: cover;
-    background-position: center;
-    position: relative;
-}
-
-#post-thumbnail-dropzone:hover {
-    border-color: var(--color-primary);
-    background-color: rgba(0, 191, 255, 0.05);
-}
-
-#post-thumbnail-dropzone .dropzone-text {
-    transition: opacity 0.2s ease;
-}
-
-#post-thumbnail-dropzone .dropzone-text i {
-    font-size: 2rem; /* This was reduced */
-    margin-bottom: 0.75rem;
-}
-
-/* State when an image has been loaded */
 #post-thumbnail-dropzone.has-thumbnail .dropzone-text {
     opacity: 0; /* Hide the placeholder text */
 }
@@ -786,7 +752,6 @@ body {
 #post-thumbnail-dropzone.has-thumbnail:hover::after {
     opacity: 1; /* Show the change image text on hover */
 }
-
 .create-post-footer {
     padding: 1rem 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -924,7 +889,7 @@ body {
   display: inline-block;
   cursor: pointer;
   width: 35px; /* Adjust as needed */
-  height: 35px; /* Adjust as needed */
+  height: 100px; /* Adjust as needed */
   border-radius: 50%;
   border: 2px solid #ffbf00;
 }
