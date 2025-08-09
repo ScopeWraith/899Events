@@ -146,15 +146,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     overflow-y: auto; /* ADD THIS */
     flex-grow: 1;     /* ADD THIS */
 }
-.announcement-card-thumb {
-    width: 100%;
-    min-height: 150px; /* Ensures a minimum height */
-    aspect-ratio: 16 / 9; /* Reserves space with a 16:9 ratio */
-    background-size: cover;
-    background-position: center;
-    background-color: #161B22; /* Adds a placeholder color */
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
+
 /* --- REUSABLE THEMED SCROLLBAR --- */
 .themed-scrollbar::-webkit-scrollbar {
     width: 10px;
