@@ -21,14 +21,7 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
-    addListener('view-post-modal-container', 'click', (e) => {
-    const reactionBtn = e.target.closest('.post-reaction-btn');
-    if (reactionBtn) {
-        const { actionPostId } = getState();
-        const reactionType = reactionBtn.dataset.reaction;
-        togglePostReaction(actionPostId, reactionType);
-    }
-    });
+
     // --- Main Navigation & Page Switching ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -121,7 +114,6 @@ export function initializeAllEventListeners() {
     addListener('login-btn', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
     addListener('close-edit-modal-btn', 'click', hideAllModals);
-    addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
     addListener('close-private-message-modal-btn', 'click', hideAllModals);
