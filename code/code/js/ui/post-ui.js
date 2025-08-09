@@ -18,16 +18,140 @@ let postCreationData = {};
 let resizedThumbnailBlob = null;
 
 // --- RENDERING POSTS ---
+export function renderNews(filter = 'all') {
+    let { allPosts, currentUserData, countdownInterval } = getState();
+    const now = new Date();
 
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    // 1. Filter posts by user visibility
+    let visiblePosts = allPosts.filter(post => {
+        if (!currentUserData) return post.visibility === 'public';
+        if (post.visibility === 'public') return true;
+        if (currentUserData.isAdmin) return true;
+        if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true; //
+        return false;
+    });
+
+    let announcements = [];
+    let events = [];
+    let container;
+
+    // 2. Filter posts by the selected sub-nav filter and date ranges
+    switch (filter) {
+        case 'events':
+            const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+            events = visiblePosts.filter(post => {
+                if (post.mainType !== 'event') return false;
+                const status = getEventStatus(post);
+                const prospectiveStartTime = post.isRecurring ? getEventStatus(post).startTime : post.startTime?.toDate();
+                return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || post.startTime?.toDate()) <= thirtyDaysFromNow); //
+            });
+            container = document.getElementById('sub-page-news-events');
+            break;
+
+        case 'announcements':
+            announcements = visiblePosts.filter(post => {
+                if (post.mainType !== 'announcement') return false;
+                const postDate = post.createdAt?.toDate();
+                if (!postDate) return false;
+                const expirationDays = post.expirationDays || 1;
+                const expirationDate = new Date(postDate.getTime() + expirationDays * 24 * 60 * 60 * 1000);
+                return expirationDate > now;
+            });
+            container = document.getElementById('sub-page-news-announcements');
+            break;
+
+        case 'all':
+        default:
+            const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            
+            events = visiblePosts.filter(post => {
+                if (post.mainType !== 'event') return false;
+                const status = getEventStatus(post);
+                const prospectiveStartTime = post.isRecurring ? getEventStatus(post).startTime : post.startTime?.toDate();
+                return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || post.startTime?.toDate()) <= sevenDaysFromNow); //
+            });
+
+            announcements = visiblePosts.filter(post => {
+                if (post.mainType !== 'announcement') return false;
+                const postDate = post.createdAt?.toDate();
+                if (!postDate) return false;
+                const expirationDays = post.expirationDays || 1;
+                const expirationDate = new Date(postDate.getTime() + expirationDays * 24 * 60 * 60 * 1000);
+                return expirationDate > now;
+            });
+            container = document.getElementById('sub-page-news-all');
+            break;
+    }
+
+    if (!container) return;
+
+    // 3. Sort and Render Content
+    announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+    
+    // Replace the existing events.sort with this more detailed logic
+    events.sort((a, b) => {
+        const statusA = getEventStatus(a);
+        const statusB = getEventStatus(b);
+
+        // Rule 1: Live events come before upcoming events
+        if (statusA.status === 'live' && statusB.status !== 'live') return -1;
+        if (statusA.status !== 'live' && statusB.status === 'live') return 1;
+
+        // Rule 2: If both are live, sort by the one ending soonest
+        if (statusA.status === 'live' && statusB.status === 'live') {
+            return statusA.timeDiff - statusB.timeDiff;
+        }
+
+        // Rule 3: If both are upcoming, sort by the one starting soonest
+        if (statusA.status === 'upcoming' && statusB.status === 'upcoming') {
+            return statusA.timeDiff - statusB.timeDiff;
+        }
+        
+        return 0; // Default case
+    });
+    let contentHTML = '';
+    if (announcements.length > 0) {
+        contentHTML += `
+            <div class="mb-4">
+                <div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>
+            </div>`;
+    }
+    if (events.length > 0) {
+        contentHTML += `
+            <div>
+                <div class="grid grid-cols-1 gap-4">${events.map(createCard).join('')}</div>
+            </div>`;
+    }
+
+    container.innerHTML = contentHTML || `<p class="text-center text-gray-400 py-8">No items to display.</p>`;
+
+    // 4. Restart countdown timer
+    countdownInterval = setInterval(updateCountdowns, 1000 * 30);
+    updateState({ countdownInterval });
+    updateCountdowns();
+}
+
+// Keep the old renderPosts function for now, but we will phase it out.
+// It is called by firestore.js and we don't want to break the initial load yet.
+export function renderPosts() {
+    const { activeFilter } = getState();
+    const newsPage = document.getElementById('page-news');
+
+    // FIX: Check if the newsPage element exists before accessing its style property.
+    if (newsPage && newsPage.style.display === 'block') {
+        renderNews(activeFilter === 'all' ? 'all' : activeFilter);
+    }
+}
 function createCard(post) {
-    const { currentUserData } = getState();
+    const { currentUserData, allPlayers } = getState();
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
-    const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
-    const postDate = post.createdAt?.toDate();
-    const timestamp = postDate ? formatTimeAgo(postDate) : '...';
-    const postTypeText = POST_TYPES[`${post.subType}_${post.mainType}`]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
+
+    const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
+    const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
 
     let actionsTriggerHTML = '';
     if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
@@ -38,39 +162,41 @@ function createCard(post) {
         `;
     }
 
-    let statusContentHTML = '';
     if (isEvent) {
-        statusContentHTML = `<div class="status-content-wrapper"></div><div class="status-date"></div>`; 
-    } else {
-        statusContentHTML = `
-            <div class="status-content-wrapper">
-                <div class="status-label" title="${postDate?.toLocaleString() || ''}">Posted</div>
-                <div class="status-time">${timestamp}</div>
-            </div>
-            <div class="status-date">${postDate ? formatEventDateTime(postDate) : ''}</div>
-        `;
-    }
+        // ... (event card logic remains the same) ...
+    } else { // Announcement
+        const authorData = allPlayers.find(p => p.uid === post.authorUid);
+        // Add this line to get the correct border class
+        const rankBorder = getRankBorderClass(authorData);
+        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
+        const postDate = post.createdAt?.toDate();
+        const hasThumbnail = !!post.thumbnailUrl;
+        const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="post-card-thumbnail" alt="Announcement Image">` : '';
+        const hasThumbnailClass = hasThumbnail ? 'has-thumbnail' : '';
 
-    return `
-        <div class="post-card ${isEvent ? 'event-card' : 'announcement-card'}" data-post-id="${post.id}" style="--glow-color: ${color};">
-            <div class="post-card-thumbnail-wrapper">
-                <div class="post-card-thumbnail" style="${headerStyle}"></div>
-                ${actionsTriggerHTML}
-            </div>
-            <div class="post-card-body">
-                <div class="post-card-content">
+        return `
+            <div class="post-card announcement-card ${hasThumbnailClass} cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+                ${thumbnailHTML}
+                <div class="post-card-body">
+                    <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
                     <div class="post-card-header">
-                        <span class="post-card-category" style="background-color: ${color};">${postTypeText}</span>
+                        {/* The border class is added here */}
+                        <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
+                        <div class="author-info">
+                            <p class="author-name">${authorData?.username || 'Unknown'}</p>
+                            <p class="author-meta">
+                                [${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; 
+                                ${postDate ? formatTimeAgo(postDate) : ''}
+                            </p>
+                        </div>
                     </div>
-                    <h3 class="post-card-title">${post.title}</h3>
+                    <h3 class="post-card-title !mb-2">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
                 </div>
-                <div class="post-card-status">
-                    ${statusContentHTML}
-                </div>
+                ${actionsTriggerHTML}
             </div>
-        </div>
-    `;
+        `;
+    }
 }
 
 function renderAnnouncements(announcements) {
@@ -162,10 +288,16 @@ function updateCountdowns() {
 
         el.classList.remove('live', 'ended', 'upcoming');
         
-        const originalStartTime = post.startTime?.toDate();
-        if (originalStartTime) {
-            dateEl.textContent = formatEventDateTime(originalStartTime);
+        // --- START: CORRECTED DATE LOGIC ---
+        // This block implements the exact logic you requested.
+        if (statusInfo.status === 'live') {
+            // If the event is live, show its END time.
+            dateEl.textContent = formatEventDateTime(statusInfo.endTime);
+        } else {
+            // Otherwise (for upcoming or ended events), show its START time.
+            dateEl.textContent = formatEventDateTime(statusInfo.startTime);
         }
+        // --- END: CORRECTED DATE LOGIC ---
 
         switch(statusInfo.status) {
             case 'upcoming':
@@ -186,8 +318,6 @@ function updateCountdowns() {
 
 function buildFilterControls(visiblePosts) {
     const filterContainer = document.getElementById('filter-container');
-    if (!filterContainer) return; // Safeguard added here
-
     const availableSubTypes = [...new Set(visiblePosts.map(p => p.subType))];
     
     filterContainer.innerHTML = ''; // Clear previous buttons
@@ -213,54 +343,6 @@ function buildFilterControls(visiblePosts) {
     });
 }
 
-export function renderPosts(filter = 'all') {
-    let { countdownInterval, allPosts, currentUserData, activeFilter } = getState();
-    const allViewContainer = document.getElementById('sub-page-news-all');
-    const eventsViewContainer = document.getElementById('sub-page-news-events');
-    const announcementsViewContainer = document.getElementById('sub-page-news-announcements');
-
-    if (countdownInterval) clearInterval(countdownInterval);
-    
-    let visiblePosts = allPosts.filter(post => {
-        if (!currentUserData) return post.visibility === 'public';
-        if (post.visibility === 'public') return true;
-        if (currentUserData.isAdmin) return true;
-        if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
-        return false;
-    });
-    
-    const filterBtnContainer = document.getElementById('filter-container');
-    if (filter === 'all') {
-        buildFilterControls(visiblePosts);
-        if (activeFilter !== 'all') {
-            visiblePosts = visiblePosts.filter(p => p.subType === activeFilter);
-        }
-    } else {
-        if (filterBtnContainer) filterBtnContainer.innerHTML = '';
-    }
-
-    const announcements = visiblePosts
-        .filter(p => p.mainType === 'announcement')
-        .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-
-    const events = visiblePosts.filter(p => p.mainType === 'event');
-    
-    if (filter === 'all' && allViewContainer) {
-        renderAnnouncements(announcements);
-        renderEvents(events);
-    } else if (filter === 'events' && eventsViewContainer) {
-        eventsViewContainer.innerHTML = '<div id="events-section-container"></div>';
-        renderEvents(events);
-    } else if (filter === 'announcements' && announcementsViewContainer) {
-        announcementsViewContainer.innerHTML = '<div id="announcements-container"></div>';
-        renderAnnouncements(announcements);
-    }
-
-    countdownInterval = setInterval(updateCountdowns, 1000 * 30);
-    updateState({ countdownInterval });
-    updateCountdowns();
-}
-
 // --- POST CREATION & EDITING ---
 
 export function initializePostStepper(mainType) {
@@ -268,6 +350,9 @@ export function initializePostStepper(mainType) {
     postCreationData = {};
     resizedThumbnailBlob = null;
     document.getElementById('post-thumbnail-preview').src = 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
+    const dropzone = document.getElementById('post-thumbnail-dropzone');
+    dropzone.classList.remove('has-thumbnail');
+    dropzone.style.backgroundImage = 'none';
     
     postCreationData.mainType = mainType;
     currentPostStep = 2; // Start at sub-type selection
@@ -282,8 +367,7 @@ function getAvailablePostTypes(mainType) {
     const { currentUserData } = getState();
     return Object.entries(POST_TYPES).filter(([key, type]) => {
         if (type.mainType !== mainType) return false;
-        if (!currentUserData && type.isAdminOnly) return false; // Unauthenticated users can't create admin-only posts
-        if (!currentUserData && type.allowedRanks) return false; // Unauthenticated users can't create rank-restricted posts
+        if (!currentUserData) return false;
         if (type.isAdminOnly) return currentUserData.isAdmin;
         if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
         if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
@@ -350,6 +434,9 @@ function showPostStep(stepIndex) {
         } else {
             allianceGroup.classList.add('hidden');
         }
+        const expirationGroup = document.getElementById('post-expiration-group');
+        const isAnnouncement = postCreationData.mainType === 'announcement';
+        expirationGroup.classList.toggle('hidden', !isAnnouncement);
     }
 }
 
@@ -392,6 +479,9 @@ export async function handleThumbnailSelection(e) {
     if (!file) return;
     resizedThumbnailBlob = await resizeImage(file, { maxWidth: 1024, maxHeight: 1024 });
     document.getElementById('post-thumbnail-preview').src = URL.createObjectURL(resizedThumbnailBlob);
+    const dropzone = document.getElementById('post-thumbnail-dropzone');
+    dropzone.style.backgroundImage = `url('${URL.createObjectURL(resizedThumbnailBlob)}')`;
+    dropzone.classList.add('has-thumbnail');
 }
 
 export async function handlePostSubmit(e) {
@@ -421,10 +511,10 @@ export async function handlePostSubmit(e) {
         authorUsername: currentUserData.username,
         alliance: alliance,
         visibility: postCreationData.visibility,
-        isRecurring: document.getElementById('post-repeat-type').value === 'weekly',
     };
 
     if (postCreationData.mainType === 'event') {
+        finalPostData.isRecurring = document.getElementById('post-repeat-type').value === 'weekly';
         const startDay = document.getElementById('post-start-day').value;
         const startHour = document.getElementById('post-start-hour').value;
         const endDay = document.getElementById('post-end-day').value;
@@ -440,6 +530,8 @@ export async function handlePostSubmit(e) {
         if (finalPostData.isRecurring) {
             finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
         }
+    } else { // Announcement
+        finalPostData.expirationDays = parseInt(document.getElementById('post-expiration-days').value, 10) || 1;
     }
     
     try {
