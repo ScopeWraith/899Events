@@ -69,57 +69,54 @@ export function handleSubNavClick(subTargetId) {
 }
 export function showViewPostModal(post) {
     if (!post) return;
-    const { allPlayers } = getState();
+    const { allPlayers, currentUserData } = getState();
+    updateState({ actionPostId: post.id }); // Keep track of the open post's ID
 
     // --- Populate Header ---
-    const categoryStyle = POST_STYLES[post.subType] || {};
-    const postTypeKey = Object.keys(POST_TYPES).find(key => 
-        POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType
-    );
-    const categoryInfo = POST_TYPES[postTypeKey] || {};
-
-    getElement('view-post-title').textContent = post.title;
-    const categoryEl = getElement('view-post-category');
-    categoryEl.textContent = categoryInfo.text || 'Post';
-    categoryEl.style.backgroundColor = categoryStyle.color || 'var(--color-primary)';
-
-    // Populate timestamp
-    const timestampEl = getElement('view-post-timestamp');
-    if (post.createdAt) {
-        timestampEl.textContent = formatEventDateTime(post.createdAt.toDate());
-    } else {
-        timestampEl.textContent = '';
-    }
-
-    // --- Populate Thumbnail & Author Info ---
-    const thumbnailSection = getElement('view-post-thumbnail-section');
-    const authorSection = getElement('view-post-author-section');
     const author = allPlayers.find(p => p.uid === post.authorUid);
-
-    if (post.thumbnailUrl) {
-        thumbnailSection.style.display = 'block';
-        getElement('view-post-thumbnail').src = post.thumbnailUrl;
-        
-        // Show and populate author info only if there's a thumbnail
-        if (author && post.mainType === 'announcement') {
-            const rankBorder = getRankBorderClass(author);
-            authorSection.style.display = 'flex';
-            const authorAvatarEl = getElement('view-post-author-avatar');
-            authorAvatarEl.src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
-            authorAvatarEl.className = `w-16 h-16 rounded-full object-cover mb-2 ${rankBorder}`;
-            getElement('view-post-author-username').textContent = author.username;
-            getElement('view-post-author-meta').textContent = `[${author.alliance || 'N/A'}] - ${author.allianceRank || 'Member'}`;
-        } else {
-            authorSection.style.display = 'none';
-        }
-
+    const authorSection = getElement('view-post-author-section');
+    if (author) {
+        authorSection.style.display = 'flex';
+        const rankBorder = getRankBorderClass(author);
+        getElement('view-post-author-avatar').src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
+        getElement('view-post-author-avatar').className = `w-12 h-12 rounded-full object-cover ${rankBorder}`;
+        getElement('view-post-author-username').textContent = author.username;
+        const timestampText = post.createdAt ? formatTimeAgo(post.createdAt.toDate()) : '';
+        getElement('view-post-author-meta').textContent = `Posted ${timestampText}`;
     } else {
-        thumbnailSection.style.display = 'none';
         authorSection.style.display = 'none';
     }
 
-    // --- Populate Details ---
+    // --- Populate Content ---
+    const categoryStyle = POST_STYLES[post.subType] || {};
+    const postTypeKey = Object.keys(POST_TYPES).find(key => POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType);
+    const categoryInfo = POST_TYPES[postTypeKey] || {};
+    const categoryEl = getElement('view-post-category');
+    categoryEl.textContent = categoryInfo.text || 'Post';
+    categoryEl.style.backgroundColor = categoryStyle.color || 'var(--color-primary)';
+    
+    getElement('view-post-title').textContent = post.title;
+    
+    const thumbnailSection = getElement('view-post-thumbnail-section');
+    if (post.thumbnailUrl) {
+        thumbnailSection.style.display = 'block';
+        getElement('view-post-thumbnail').src = post.thumbnailUrl;
+    } else {
+        thumbnailSection.style.display = 'none';
+    }
     getElement('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
+
+    // --- Populate Footer & Reactions ---
+    const likeBtn = document.querySelector('.post-reaction-btn[data-reaction="like"]');
+    const heartBtn = document.querySelector('.post-reaction-btn[data-reaction="heart"]');
+    
+    likeBtn.querySelector('.reaction-count').textContent = post.likes || 0;
+    heartBtn.querySelector('.reaction-count').textContent = post.hearts || 0;
+    
+    if (currentUserData) {
+        likeBtn.classList.toggle('reacted', post.likedBy && post.likedBy.includes(currentUserData.uid));
+        heartBtn.classList.toggle('reacted', post.heartedBy && post.heartedBy.includes(currentUserData.uid));
+    }
 
     showModal(getElement('view-post-modal-container'));
 }

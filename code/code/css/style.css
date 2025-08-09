@@ -27,6 +27,11 @@
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes reaction-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3) rotate(-8deg); }
+    100% { transform: scale(1); }
+}
 
 html { font-size: 90%; scroll-behavior: smooth; }
 body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); color: #c9d1d9; overflow-x: hidden; }
@@ -309,25 +314,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     border: 2px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     transition: transform 0.3s ease;
-}
-.thumbnail-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 0.5rem; /* Match image rounding */
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
-}
-#view-post-author-section {
-    /* New styles for centering the author info */
-    position: absolute;
-    bottom: 1.5rem; /* Position at the bottom of the container */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    text-align: center;
-    text-shadow: 0 1px 5px rgba(0,0,0,0.7);
 }
 #view-post-author-section .w-16 {
     border: 3px solid rgba(255,255,255,0.8);
@@ -809,15 +795,6 @@ body {
 }
 
 
-#view-post-header {
-    background-color: rgba(33, 38, 45, 0.7);
-    align-items: flex-start; /* Align items to the top */
-}
-
-#view-post-category {
-    color: var(--post-color, var(--color-primary));
-}
-
 #view-post-content::-webkit-scrollbar {
     width: 10px;
 }
@@ -875,29 +852,64 @@ body {
     background-color: var(--color-primary);
 }
 
-.modal-post-category {
-    /* Removed absolute positioning */
-    display: inline-block;
-    color: #ffffff; /* Explicitly set font color to white */
-    padding: 0.3rem 0.8rem;
-    font-size: .7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: 6px;
-    text-shadow: 0px 0px 5px #000000;
+#view-post-title {
+    /* Give the title more presence */
+    line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 #view-post-thumbnail {
-    display: block;
-    max-width: 60%; /* Made image smaller */
-    margin: 0 auto;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
-/* Themed container for the details text */
+/* --- NEW REACTION BUTTON STYLES --- */
+.post-reaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #c9d1d9;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.post-reaction-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.post-reaction-btn.reacted {
+    background-color: var(--color-primary);
+    color: #fff;
+    box-shadow: 0 0 10px var(--color-primary-glow);
+    animation: reaction-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.post-reaction-btn.reacted .far {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900; 
+}
+
+/* --- VIEW POST MODAL REVAMP --- */
+#view-post-content {
+    text-align: center;
+}
+
 #view-post-details {
-    background-color: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.05);
-    padding: 1.5rem;
-    border-radius: 0.75rem;
+    text-align: left; 
+    margin-top: 1.5rem;
+}
+
+#view-post-footer {
+    background-color: rgba(13, 17, 23, 0.7);
+}
+
+#view-post-author-meta {
+    color: #8b949e; 
+}
+
+#view-post-category {
+    color: #ffffff !important;
 }

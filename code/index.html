@@ -28,36 +28,46 @@
         </div>
 
         <div id="modal-container-all">
-            <div id="view-post-modal-container" class="modal-container !p-0" style="max-width: 650px; height: 90vh; max-height: 800px;">
-                <div class="glass-pane flex flex-col h-full overflow-hidden">
-                    <div id="view-post-header" class="flex items-start justify-between p-4 border-b border-white/10 flex-shrink-0">
-                        <div>
-                            <span id="view-post-category" class="modal-post-category">Category</span>
-                            <h2 id="view-post-title" class="text-xl font-bold text-white mt-1">Post Title</h2>
-                        </div>
-                        <div class="flex items-center gap-4 text-right">
-                            <span id="view-post-timestamp" class="text-xs text-gray-500 whitespace-nowrap"></span>
-                            <button id="close-view-post-modal-btn" class="text-gray-500 hover:text-white transition-colors">
-                                <i class="fas fa-times fa-lg"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="view-post-content" class="flex-grow p-6 overflow-y-auto">
-                        <div id="view-post-thumbnail-section" class="mb-6 relative" style="display: none;">
-                            <img id="view-post-thumbnail" src="" class="w-full h-auto rounded-lg">
-                            <div class="thumbnail-overlay"></div>
-                            <div id="view-post-author-section" class="flex flex-col items-center">
-                                <img id="view-post-author-avatar" src="https://placehold.co/64x64/161B22/FFFFFF?text=?" class="w-16 h-16 rounded-full object-cover mb-2">
-                                <div>
-                                    <p id="view-post-author-username" class="font-bold text-white text-lg">Username</p>
-                                    <p id="view-post-author-meta" class="text-sm text-gray-300">Meta Info</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="view-post-details" class="prose prose-invert max-w-none">
-                            </div>
-                    </div>
+            <div id="view-post-modal-container" class="modal-container !p-0" style="max-width: 550px; height: 90vh; max-height: 750px;">
+    <div class="glass-pane flex flex-col h-full overflow-hidden">
+        
+        <button id="close-view-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+            <i class="fas fa-times fa-lg"></i>
+        </button>
+
+        <div id="view-post-content" class="flex-grow p-6 pt-10 overflow-y-auto text-center">
+            <span id="view-post-category" class="modal-post-category">Category</span>
+            <h2 id="view-post-title" class="text-3xl font-bold text-white mt-2 mb-5">Post Title</h2>
+            
+            <div id="view-post-thumbnail-section" class="mb-6" style="display: none;">
+                <img id="view-post-thumbnail" src="" class="max-w-[80%] mx-auto h-auto object-cover rounded-lg shadow-lg">
+            </div>
+
+            <div id="view-post-details" class="prose prose-invert max-w-none text-left">
                 </div>
+        </div>
+        
+        <div id="view-post-footer" class="flex-shrink-0 p-3 border-t border-white/10 bg-black/30 flex items-center justify-between gap-4">
+             <div id="view-post-author-section" class="flex items-center gap-3" style="display: none;">
+                <img id="view-post-author-avatar" src="https://placehold.co/64x64/161B22/FFFFFF?text=?" class="w-10 h-10 rounded-full object-cover">
+                <div>
+                    <p id="view-post-author-username" class="font-bold text-white text-sm leading-tight">Username</p>
+                    <p id="view-post-author-meta" class="text-xs text-gray-400 leading-tight">Meta Info</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-3">
+                <button class="post-reaction-btn" data-reaction="like">
+                    <i class="far fa-thumbs-up"></i>
+                    <span class="reaction-count">0</span>
+                </button>
+                <button class="post-reaction-btn" data-reaction="heart">
+                    <i class="far fa-heart"></i>
+                    <span class="reaction-count">0</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
             </div>
             <div id="emoji-picker-container" class="absolute z-[2000]" style="display: none;">
                 <emoji-picker class="light"></emoji-picker>
