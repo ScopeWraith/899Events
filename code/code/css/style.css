@@ -923,8 +923,8 @@ body {
   text-decoration: none;
   display: inline-block;
   cursor: pointer;
-  width: 100px; /* Adjust as needed */
-  height: 100px; /* Adjust as needed */
+  width: 35px; /* Adjust as needed */
+  height: 35px; /* Adjust as needed */
   border-radius: 50%;
   border: 2px solid #ffbf00;
 }
