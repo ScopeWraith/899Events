@@ -114,6 +114,7 @@ export function initializeAllEventListeners() {
     addListener('login-btn', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
     addListener('close-edit-modal-btn', 'click', hideAllModals);
+    addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
     addListener('close-private-message-modal-btn', 'click', hideAllModals);

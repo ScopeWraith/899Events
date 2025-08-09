@@ -15,7 +15,7 @@ import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
 import { renderChatSelectors, renderFriendsList, activateChatChannel, renderConversations, renderFriendsPage } from './social-ui.js';
-import { formatTimeAgo, autoLinkText, getRankBorderClass } from '../utils.js';
+import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
 
 
 // --- DOM ELEMENT GETTERS ---
@@ -69,6 +69,7 @@ export function handleSubNavClick(subTargetId) {
 }
 export function showViewPostModal(post) {
     if (!post) return;
+    const { allPlayers } = getState();
 
     // --- Populate Header ---
     const categoryStyle = POST_STYLES[post.subType] || {};
@@ -77,45 +78,50 @@ export function showViewPostModal(post) {
     );
     const categoryInfo = POST_TYPES[postTypeKey] || {};
 
-    document.getElementById('view-post-title').textContent = post.title;
-    const categoryEl = document.getElementById('view-post-category');
+    getElement('view-post-title').textContent = post.title;
+    const categoryEl = getElement('view-post-category');
     categoryEl.textContent = categoryInfo.text || 'Post';
-    // Set the background color for the themed tag
     categoryEl.style.backgroundColor = categoryStyle.color || 'var(--color-primary)';
 
-
-    // --- Populate Author Info ---
-    const { allPlayers } = getState();
-    const author = allPlayers.find(p => p.uid === post.authorUid);
-    const authorSection = document.getElementById('view-post-author-section');
-
-    if (author && post.mainType === 'announcement') {
-        const rankBorder = getRankBorderClass(author); // Get the border class
-        const authorAvatarEl = document.getElementById('view-post-author-avatar');
-
-        authorSection.style.display = 'flex';
-        authorAvatarEl.src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
-        authorAvatarEl.className = `w-12 h-12 rounded-full object-cover ${rankBorder}`; // Apply the class
-        document.getElementById('view-post-author-username').textContent = author.username;
-        const postDate = post.createdAt ? formatTimeAgo(post.createdAt.toDate()) : '';
-        document.getElementById('view-post-author-meta').textContent = `[${author.alliance || 'N/A'}] - ${author.allianceRank || 'Member'} • ${postDate}`;
+    // Populate timestamp
+    const timestampEl = getElement('view-post-timestamp');
+    if (post.createdAt) {
+        timestampEl.textContent = formatEventDateTime(post.createdAt.toDate());
     } else {
+        timestampEl.textContent = '';
+    }
+
+    // --- Populate Thumbnail & Author Info ---
+    const thumbnailSection = getElement('view-post-thumbnail-section');
+    const authorSection = getElement('view-post-author-section');
+    const author = allPlayers.find(p => p.uid === post.authorUid);
+
+    if (post.thumbnailUrl) {
+        thumbnailSection.style.display = 'block';
+        getElement('view-post-thumbnail').src = post.thumbnailUrl;
+        
+        // Show and populate author info only if there's a thumbnail
+        if (author && post.mainType === 'announcement') {
+            const rankBorder = getRankBorderClass(author);
+            authorSection.style.display = 'flex';
+            const authorAvatarEl = getElement('view-post-author-avatar');
+            authorAvatarEl.src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
+            authorAvatarEl.className = `w-16 h-16 rounded-full object-cover mb-2 ${rankBorder}`;
+            getElement('view-post-author-username').textContent = author.username;
+            getElement('view-post-author-meta').textContent = `[${author.alliance || 'N/A'}] - ${author.allianceRank || 'Member'}`;
+        } else {
+            authorSection.style.display = 'none';
+        }
+
+    } else {
+        thumbnailSection.style.display = 'none';
         authorSection.style.display = 'none';
     }
 
-    // --- Populate Thumbnail ---
-    const thumbnailSection = document.getElementById('view-post-thumbnail-section');
-    if (post.thumbnailUrl) {
-        thumbnailSection.style.display = 'block';
-        document.getElementById('view-post-thumbnail').src = post.thumbnailUrl;
-    } else {
-        thumbnailSection.style.display = 'none';
-    }
-
     // --- Populate Details ---
-    document.getElementById('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
+    getElement('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
 
-    showModal(document.getElementById('view-post-modal-container'));
+    showModal(getElement('view-post-modal-container'));
 }
 // NEW function to control the slide-out sub-menu
 export function toggleSubNav(activeSubmenuId) {
