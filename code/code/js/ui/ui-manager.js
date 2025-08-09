@@ -107,16 +107,16 @@ export function showViewPostModal(post) {
     getElement('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
 
     // --- Populate Footer & Reactions ---
-    const likeBtn = document.querySelector('.post-reaction-btn[data-reaction="like"]');
-    const heartBtn = document.querySelector('.post-reaction-btn[data-reaction="heart"]');
-    
-    likeBtn.querySelector('.reaction-count').textContent = post.likes || 0;
-    heartBtn.querySelector('.reaction-count').textContent = post.hearts || 0;
-    
-    if (currentUserData) {
-        likeBtn.classList.toggle('reacted', post.likedBy && post.likedBy.includes(currentUserData.uid));
-        heartBtn.classList.toggle('reacted', post.heartedBy && post.heartedBy.includes(currentUserData.uid));
-    }
+const likeBtn = document.querySelector('.post-reaction-btn[data-reaction="like"]');
+const heartBtn = document.querySelector('.post-reaction-btn[data-reaction="heart"]');
+
+likeBtn.querySelector('.reaction-count').textContent = post.likes || 0;
+heartBtn.querySelector('.reaction-count').textContent = post.hearts || 0;
+
+if (currentUserData) {
+    likeBtn.classList.toggle('reacted', post.likedBy && post.likedBy.includes(currentUserData.uid));
+    heartBtn.classList.toggle('reacted', post.heartedBy && post.heartedBy.includes(currentUserData.uid));
+}
 
     showModal(getElement('view-post-modal-container'));
 }
