@@ -163,11 +163,27 @@ function createCard(post) {
     }
 
     if (isEvent) {
-        // ... (event card logic remains the same) ...
+        const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');` : '';
+
+        return `
+            <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+                <div class="event-card-background" style="${backgroundStyle}"></div>
+
+                <div class="post-card-content">
+                    <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
+                    <h3 class="post-card-title">${post.title}</h3>
+                    <p class="post-card-details">${post.details}</p>
+                </div>
+
+                <div class="post-card-status">
+                    <div class="status-content-wrapper"></div>
+                    <div class="status-date"></div>
+                </div>
+                ${actionsTriggerHTML}
+            </div>
+        `;
     } else { // Announcement
         const authorData = allPlayers.find(p => p.uid === post.authorUid);
-        // Add this line to get the correct border class
-        const rankBorder = getRankBorderClass(authorData);
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
         const postDate = post.createdAt?.toDate();
         const hasThumbnail = !!post.thumbnailUrl;
@@ -180,8 +196,7 @@ function createCard(post) {
                 <div class="post-card-body">
                     <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
                     <div class="post-card-header">
-                        {/* The border class is added here */}
-                        <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
+                        <img src="${avatarUrl}" class="author-avatar" alt="${authorData?.username || 'Unknown'}">
                         <div class="author-info">
                             <p class="author-name">${authorData?.username || 'Unknown'}</p>
                             <p class="author-meta">
@@ -191,6 +206,7 @@ function createCard(post) {
                         </div>
                     </div>
                     <h3 class="post-card-title !mb-2">${post.title}</h3>
+                    
                     <p class="post-card-details">${post.details}</p>
                 </div>
                 ${actionsTriggerHTML}

@@ -31,20 +31,6 @@ export function canDeleteMessage(currentUser, messageAuthor) {
     if (isUserLeader(currentUser) && currentUser.alliance === messageAuthor.alliance) return true;
     return false;
 }
-export function canDeletePost(currentUser, post) {
-    if (!currentUser || !post) return false;
-    if (currentUser.isAdmin) return true;
-    if (currentUser.uid === post.authorUid) return true;
-    return false;
-}
-
-// Add this function
-export function formatPostTimestamp(date) {
-    if (!date || isNaN(date.getTime())) return 'N/A';
-    // Format: August 8, 2025 at 2:08 PM
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) + ' at ' +
-           date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-}
 export function formatTimeAgo(date) {
     if (!date) return '';
     const now = new Date();

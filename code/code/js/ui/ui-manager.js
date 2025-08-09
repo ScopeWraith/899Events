@@ -7,117 +7,121 @@
  */
 
 import { getState, updateState } from '../state.js';
-import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
+import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
-import { initializePostStepper, populatePostFormForEdit, renderNewsContent } from './post-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { renderFeedActivity } from './post-ui.js';
-import { renderChatSelectors, renderFriendsList, activateChatChannel } from './social-ui.js';
-import { applyPlayerFilters } from './players-ui.js';
+import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
+import { renderChatSelectors, renderFriendsList, activateChatChannel, renderConversations, renderFriendsPage } from './social-ui.js';
+
 
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
 const querySelectorAll = (selector) => document.querySelectorAll(selector);
 
+// --- PAGE & MODAL MANAGEMENT ---
+export function handleSubNavClick(subTargetId) {
+    const allSubNavLinks = querySelectorAll('.sub-nav-link');
+    allSubNavLinks.forEach(link => {
+        link.classList.toggle('active', link.dataset.subTarget === subTargetId);
+    });
 
-// --- PAGE & SUB-NAV MANAGEMENT ---
-function renderPageContent() {
-    const { activeMainCategory } = getState();
-    switch(activeMainCategory) {
+    // Hide all sub-pages within the active main page
+    const activePage = querySelector('.page-content[style*="display: block"]');
+    if (activePage) {
+        activePage.querySelectorAll('.sub-page').forEach(page => {
+            page.style.display = 'none';
+        });
+    }
+
+    // Show the target sub-page
+    const targetSubPage = getElement(`sub-page-${subTargetId}`);
+    if (targetSubPage) {
+        targetSubPage.style.display = 'block';
+    } else {
+        console.warn(`Sub-page with id "sub-page-${subTargetId}" not found.`);
+    }
+
+    // Handle specific rendering logic for each sub-page
+    const [page, filter] = subTargetId.split('-');
+    
+    switch (page) {
         case 'news':
-            renderNewsContent();
+            renderNews(filter);
             break;
         case 'social':
-            renderChatSelectors(); 
-            renderFriendsList();
-            activateChatChannel('world_chat');
-            setupChatListeners('world_chat');
-            break;
-        case 'players':
-            applyPlayerFilters();
-            break;
-        case 'feed':
-            const { currentUserData } = getState();
-            const welcomeContainer = getElement('feed-welcome-message');
-            
-            if (currentUserData && welcomeContainer) {
-                welcomeContainer.innerHTML = `
-                    <h2 class="text-3xl font-bold text-white tracking-wider">Welcome Back, <span style="color: var(--color-primary);">${currentUserData.username}</span>!</h2>
-                    <p class="text-gray-400 mt-1">Here's what's happening in the community.</p>
-                `;
+            if (filter === 'chat') {
+                renderChatSelectors();
+                renderFriendsList();
+                activateChatChannel('world_chat');
+                setupChatListeners('world_chat');
+            } else if (filter === 'convo') {
+                renderConversations();
+            } else if (filter === 'friends') {
+                renderFriendsPage();
             }
-            renderFeedActivity();
             break;
     }
 }
+// NEW function to control the slide-out sub-menu
+export function toggleSubNav(activeSubmenuId) {
+    const subNavContainer = document.getElementById('sub-nav-container');
+    if (!subNavContainer) return;
 
-export function renderSubNav() {
-    const { activeMainCategory, activeNewsSubCategory, activeSocialSubCategory } = getState();
-    const subNavContainer = getElement('sub-nav-container');
-    subNavContainer.innerHTML = '';
-    let buttons = [];
+    subNavContainer.querySelectorAll('.sub-nav-content').forEach(content => {
+        content.classList.add('hidden');
+    });
 
-    if (activeMainCategory === 'news') {
-        buttons = [
-            { text: 'All', filter: 'all' },
-            { text: 'Announcements', filter: 'announcements' },
-            { text: 'Events', filter: 'events' },
-        ];
-        const activeFilter = activeNewsSubCategory;
-        buttons.forEach(btnInfo => {
-            const btn = document.createElement('button');
-            btn.className = 'sub-nav-btn';
-            btn.textContent = btnInfo.text;
-            btn.dataset.filter = btnInfo.filter;
-            if (btnInfo.filter === activeFilter) {
-                btn.classList.add('active');
-            }
-            subNavContainer.appendChild(btn);
-        });
-        subNavContainer.classList.add('visible');
-    } else if (activeMainCategory === 'social') {
-        // Future implementation for Social sub-nav
-        // For now, ensure it's hidden
-        subNavContainer.classList.remove('visible');
+    if (activeSubmenuId) {
+        const activeContent = document.getElementById(activeSubmenuId);
+        if (activeContent) {
+            activeContent.classList.remove('hidden');
+            subNavContainer.classList.add('open');
+        }
     } else {
-        // Hide for Players and Feed
-        subNavContainer.classList.remove('visible');
+        subNavContainer.classList.remove('open');
     }
 }
 
-export function showPage(pageId) {
-    const mainCategory = pageId.replace('page-', '');
-    updateState({ activeMainCategory: mainCategory });
-
-    // Reset sub-category when changing main category
-    if (mainCategory === 'news') {
-        updateState({ activeNewsSubCategory: 'all' });
-    }
-
-    // Show the correct page content div
+// REVISED showPage function
+export function showPage(targetId) {
+    // This part remains the same: show/hide main page content
     querySelectorAll('.page-content').forEach(page => {
-        page.style.display = page.id === pageId ? 'block' : 'none';
+        page.style.display = page.id === targetId ? 'block' : 'none';
     });
 
-    // Update main nav active class
-    querySelectorAll('#main-nav .nav-link').forEach(link => {
-        const mainTarget = link.dataset.mainTarget;
-        link.classList.toggle('active', mainTarget === pageId);
-    });
-
-    // Render the sub-nav based on the new page
-    renderSubNav();
+    // NEW: Update mobile page title
+    const mobileTitleEl = getElement('mobile-page-title');
+    const activeNavLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
+    if (mobileTitleEl && activeNavLink) {
+        const titleText = activeNavLink.querySelector('span').textContent;
+        mobileTitleEl.textContent = titleText;
+    }
     
-    // Render the content for that page
-    renderPageContent();
+    // This logic still correctly renders the default content for each page
+    if (targetId === 'page-news') {
+        renderNews('all');
+    } else if (targetId === 'page-feed') {
+        const { currentUserData } = getState();
+        const welcomeContainer = getElement('feed-welcome-message');
+        
+        if (currentUserData && welcomeContainer) {
+            welcomeContainer.innerHTML = `
+                <h2 class="text-3xl font-bold text-white tracking-wider">Welcome Back, <span style="color: var(--color-primary);">${currentUserData.username}</span>!</h2>
+                <p class="text-gray-400 mt-1">Here's what's happening in the community.</p>
+            `;
+        }
+        renderFeedActivity();
+    } else if (targetId === 'page-social') {
+        renderChatSelectors();
+        renderFriendsList();
+        activateChatChannel('world_chat');
+        setupChatListeners('world_chat');
+    }
 }
-
-
-// --- MODAL MANAGEMENT ---
 
 export function showModal(modal) {
     hideAllModals();
@@ -198,6 +202,8 @@ export function showPostActionsModal(postId) {
     // Add new listener for the EDIT button
     newEditBtn.addEventListener('click', () => {
         hideAllModals();
+        // We are importing a function from post-ui.js that is not yet exported.
+        // We will add this export in the next step.
         populatePostFormForEdit(postId); 
     });
 
@@ -226,22 +232,27 @@ export function showPostActionsModal(postId) {
     showModal(document.getElementById('post-actions-modal-container'));
 }
 
+// Add async here
+// Add async to the function definition
 export async function showPrivateMessageModal(targetPlayer) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
 
     try {
+        // 1. Calculate the ID and ensure the chat document exists.
         const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
         const chatDocRef = doc(db, 'private_chats', chatId);
         await setDoc(chatDocRef, {
             participants: [currentUserData.uid, targetPlayer.uid]
         }, { merge: true });
 
+        // 2. Update the state with BOTH the partner info and the calculated ID.
         updateState({
             activePrivateChatPartner: targetPlayer,
-            activePrivateChatId: chatId
+            activePrivateChatId: chatId // This is the critical fix
         });
 
+        // 3. Populate the UI header.
         const session = userSessions[targetPlayer.uid];
         const status = session ? session.status : 'offline';
         getElement('private-message-username').textContent = targetPlayer.username;
@@ -250,7 +261,10 @@ export async function showPrivateMessageModal(targetPlayer) {
         getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
         getElement('private-message-window').innerHTML = '';
 
+        // 4. Show the modal.
         showModal(getElement('private-message-modal-container'));
+
+        // 5. Call the listener and PASS THE CHAT ID DIRECTLY as an argument.
         setupPrivateChatListener(chatId);
 
     } catch (error) {
@@ -275,6 +289,19 @@ export function updateUIForLoggedInUser() {
     getElement('login-btn').classList.add('hidden');
     getElement('user-profile-nav-item').classList.remove('hidden');
     getElement('mobile-auth-container').classList.add('logged-in');
+
+    const adminActionsContainer = getElement('admin-actions-container');
+    if (adminActionsContainer) {
+        if (currentUserData.isAdmin) {
+            // This is the key change:
+            // We ensure it's displayed as a flex container on medium screens and up.
+            adminActionsContainer.classList.remove('hidden');
+            adminActionsContainer.classList.add('md:flex');
+        } else {
+            adminActionsContainer.classList.add('hidden');
+            adminActionsContainer.classList.remove('md:flex');
+        }
+    }
 }
 
 export function updateUIForLoggedOutUser() {
@@ -291,6 +318,7 @@ export function buildMobileNav() {
     mobileNavLinksContainer.innerHTML = '';
     const desktopNav = getElement('main-nav');
 
+    // --- Main Page Links ---
     desktopNav.querySelectorAll('.nav-item').forEach(item => {
         const link = item.querySelector('.nav-link');
         const newLink = document.createElement('a');
@@ -298,53 +326,50 @@ export function buildMobileNav() {
         newLink.className = 'mobile-nav-link';
         newLink.innerHTML = `<i class="${link.querySelector('i').className} w-6 text-center mr-3"></i>${link.querySelector('span').textContent}`;
         
-        const dropdown = item.querySelector('.dropdown-menu');
-        if (dropdown) {
-            newLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                const subMenu = newLink.nextElementSibling;
-                if (subMenu) {
-                    subMenu.style.display = subMenu.style.display === 'block' ? 'none' : 'block';
-                }
-            });
-            mobileNavLinksContainer.appendChild(newLink);
+        newLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const mainTarget = link.dataset.mainTarget;
+            const parentNavItem = link.closest('.nav-item');
+            const submenuId = parentNavItem ? parentNavItem.dataset.submenuId : null;
 
-            const subMenuContainer = document.createElement('div');
-            subMenuContainer.style.display = 'none';
-            subMenuContainer.className = 'ml-8';
-            const dropdownLinks = dropdown.querySelectorAll('.dropdown-link');
-            if (dropdownLinks.length > 0) {
-                dropdownLinks.forEach(ddLink => {
-                    const newDdLink = document.createElement('a');
-                    newDdLink.href = '#';
-                    newDdLink.className = 'mobile-nav-link !py-2 !text-base';
-                    newDdLink.textContent = ddLink.textContent;
-                    newDdLink.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        showPage(ddLink.dataset.target);
-                        getElement('mobile-nav-menu').classList.remove('open');
-                        getElement('modal-backdrop').classList.remove('visible');
-                    });
-                    subMenuContainer.appendChild(newDdLink);
-                });
-                mobileNavLinksContainer.appendChild(subMenuContainer);
-            }
+            showPage(mainTarget);
+            toggleSubNav(submenuId);
+            
+            document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
 
-        } else {
-             newLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showPage(link.dataset.mainTarget);
-                getElement('mobile-nav-menu').classList.remove('open');
-                getElement('modal-backdrop').classList.remove('visible');
-            });
-            mobileNavLinksContainer.appendChild(newLink);
-        }
+            getElement('mobile-nav-menu').classList.remove('open');
+            getElement('modal-backdrop').classList.remove('visible');
+        });
+        mobileNavLinksContainer.appendChild(newLink);
     });
 
     const divider = document.createElement('hr');
-    divider.className = 'border-t border-white/10 my-4';
+    divider.className = 'border-t border-white/10 my-2';
     mobileNavLinksContainer.appendChild(divider);
 
+    // --- Admin Links ---
+    if (currentUserData && currentUserData.isAdmin) {
+        const createEventLink = document.createElement('a');
+        createEventLink.href = '#';
+        createEventLink.className = 'mobile-nav-link';
+        createEventLink.innerHTML = `<i class="fas fa-calendar-plus fa-fw w-6 text-center mr-3"></i>Create Event`;
+        createEventLink.onclick = (e) => { e.preventDefault(); getElement('mobile-nav-menu').classList.remove('open'); showCreatePostModal('event'); };
+        mobileNavLinksContainer.appendChild(createEventLink);
+
+        const createAnnouncementLink = document.createElement('a');
+        createAnnouncementLink.href = '#';
+        createAnnouncementLink.className = 'mobile-nav-link';
+        createAnnouncementLink.innerHTML = `<i class="fas fa-bullhorn fa-fw w-6 text-center mr-3"></i>Create Announcement`;
+        createAnnouncementLink.onclick = (e) => { e.preventDefault(); getElement('mobile-nav-menu').classList.remove('open'); showCreatePostModal('announcement'); };
+        mobileNavLinksContainer.appendChild(createAnnouncementLink);
+
+        const adminDivider = document.createElement('hr');
+        adminDivider.className = 'border-t border-white/10 my-2';
+        mobileNavLinksContainer.appendChild(adminDivider);
+    }
+    
+    // --- User-Specific Links ---
     if (currentUserData) {
         const editProfileMobile = document.createElement('a');
         editProfileMobile.href = '#';
@@ -357,7 +382,7 @@ export function buildMobileNav() {
         logoutMobile.href = '#';
         logoutMobile.className = 'mobile-nav-link';
         logoutMobile.innerHTML = `<i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>Logout`;
-        logoutMobile.onclick = (e) => { e.preventDefault(); auth.signOut(); };
+        logoutMobile.onclick = (e) => { e.preventDefault(); auth.signOut(); }; // Assuming auth is available here
         mobileNavLinksContainer.appendChild(logoutMobile);
     } else {
         const loginMobile = document.createElement('a');
@@ -368,7 +393,6 @@ export function buildMobileNav() {
         mobileNavLinksContainer.appendChild(loginMobile);
     }
 }
-
 function setupCustomSelects() {
     querySelectorAll('.custom-select-container').forEach(container => {
         const type = container.dataset.type;
@@ -380,13 +404,16 @@ function setupCustomSelects() {
         
         let sourceData = [];
         if (type === 'alliance') sourceData = ALLIANCES.map(a => ({value: a, text: a}));
+        else if (type === 'avatar-border') sourceData = AVATAR_BORDERS;
+        else if (type === 'chat-bubble-border') sourceData = CHAT_BUBBLE_BORDERS;
         else if (type === 'rank') sourceData = ALLIANCE_RANKS;
         else if (type === 'role') sourceData = ALLIANCE_ROLES;
         else if (type === 'alliance-filter') sourceData = [{value: '', text: 'All Alliances'}, ...ALLIANCES.map(a => ({value: a, text: a}))];
         else if (type === 'day-of-week') sourceData = DAYS_OF_WEEK;
         else if (type === 'hour-of-day') sourceData = HOURS_OF_DAY;
         else if (type === 'repeat-type') sourceData = REPEAT_TYPES;
-        
+        else if (type === 'announcement-expiration') sourceData = ANNOUNCEMENT_EXPIRATION_DAYS;
+
         const isSearchable = searchInput && type === 'alliance';
         if(searchInput && !isSearchable) searchInput.style.display = 'none';
 
@@ -491,26 +518,30 @@ export function createSkeletonCard() {
 }
 
 export function renderSkeletons() {
-    const announcementsContainer = getElement('announcements-container');
-    const eventsSectionContainer = getElement('events-section-container');
-    announcementsContainer.innerHTML = `
-        <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
-            <i class="fas fa-bullhorn"></i>
-            <span class="flex-grow">Announcements</span>
+    // The new container for our default news/events view
+    const newsContainer = getElement('sub-page-news-all');
+    if (!newsContainer) return; // Exit if the container isn't there
+
+    // We'll create a combined skeleton view for the new layout
+    newsContainer.innerHTML = `
+        <div class="mb-8">
+            <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
+                <i class="fas fa-bullhorn"></i><span>Announcements</span>
+            </h2>
+            <div class="grid grid-cols-1 gap-4">
+                ${createSkeletonCard()}
+            </div>
         </div>
-        <div class="grid grid-cols-1 gap-4">
-            ${createSkeletonCard()}
-        </div>
-    `;
-    eventsSectionContainer.innerHTML = `
-        <div class="section-header text-xl font-bold mb-4">
-             <i class="fas fa-calendar-alt"></i>
-             <span class="flex-grow">Events</span>
-        </div>
-        <div class="grid grid-cols-1 gap-4">
-            ${createSkeletonCard()}
-            ${createSkeletonCard()}
-            ${createSkeletonCard()}
+        <div>
+            <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-primary);">
+                <i class="fas fa-calendar-alt"></i><span>Events</span>
+            </h2>
+            <div class="grid grid-cols-1 gap-4">
+                ${createSkeletonCard()}
+                ${createSkeletonCard()}
+            </div>
         </div>
     `;
 }
+
+

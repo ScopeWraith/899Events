@@ -100,17 +100,26 @@ export function activateChatChannel(chatId) {
 // --- EXISTING FUNCTIONS (Modified) ---
 
 export function renderFriendsList() {
+    // This now specifically targets the new sidebar on the social page
     const container = document.getElementById('friends-list-social-page');
     const { currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed } = getState();
 
+    // Add this block to handle the initial collapsed state
     const friendsContainer = document.getElementById('friends-list-container-social');
     if (friendsContainer) {
         friendsContainer.classList.toggle('collapsed', isFriendsListCollapsed);
     }
 
     if (!container) return;
-    if (!currentUserData) { /* ... */ return; }
-    if (userFriends.length === 0) { /* ... */ return; }
+
+    if (!currentUserData) {
+        container.innerHTML = '<p class="text-gray-400 text-center p-4">You must be logged in to see friends.</p>';
+        return;
+    }
+    if (userFriends.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center p-4">You haven\'t added any friends yet.</p>';
+        return;
+    }
 
     container.innerHTML = '';
     userFriends.forEach(friendId => {
@@ -120,16 +129,13 @@ export function renderFriendsList() {
         const session = userSessions[friendId];
         const statusClass = session ? session.status : 'offline';
         const avatarUrl = friendData.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${friendData.username.charAt(0).toUpperCase()}`;
-        // Add this line to get the correct border class
-        const rankBorder = getRankBorderClass(friendData);
 
         const friendEl = document.createElement('div');
-        friendEl.className = 'friend-list-item';
+        friendEl.className = 'friend-list-item'; // You already have styles for this
         friendEl.innerHTML = `
             <div class="flex items-center gap-3">
                 <div class="relative">
-                    {/* The border class is added here */}
-                    <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder}">
+                    <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover">
                     <span class="status-dot ${statusClass} absolute bottom-0 right-0 border-2 border-gray-800"></span>
                 </div>
                 <div>

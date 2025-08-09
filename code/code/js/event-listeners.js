@@ -3,7 +3,7 @@
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
+import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, renderPosts } from './ui/post-ui.js';
@@ -21,14 +21,7 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
-    addListener('view-post-modal-container', 'click', (e) => {
-    const reactionBtn = e.target.closest('.post-reaction-btn');
-    if (reactionBtn) {
-        const { actionPostId } = getState();
-        const reactionType = reactionBtn.dataset.reaction;
-        togglePostReaction(actionPostId, reactionType);
-    }
-});
+
     // --- Main Navigation & Page Switching ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -121,7 +114,6 @@ export function initializeAllEventListeners() {
     addListener('login-btn', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
     addListener('close-edit-modal-btn', 'click', hideAllModals);
-    addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
     addListener('close-private-message-modal-btn', 'click', hideAllModals);
@@ -393,7 +385,7 @@ addListener('player-profile-dropdown', 'click', (e) => {
         showCreatePostModal('event');
     } else if (createAnnouncementBtn) {
         getElement('user-profile-nav-item').classList.remove('open');
-        showCreateAnnouncementModal();
+        showCreatePostModal('announcement');
     }
 });
     // --- General UI ---
@@ -415,24 +407,10 @@ addListener('player-profile-dropdown', 'click', (e) => {
         const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
         const createEventBtn = e.target.closest('#create-event-btn');
         const actionsBtn = e.target.closest('.post-card-actions-trigger');
-        const announcementCard = e.target.closest('.announcement-card');
 
-        if (createAnnouncementBtn) {
-            showCreatePostModal('announcement');
-        } else if (createEventBtn) {
-            showCreatePostModal('event');
-        } else if (actionsBtn) {
-            // Prevent card click from firing when clicking the options button
-            e.stopPropagation(); 
-            showPostActionsModal(actionsBtn.dataset.postId);
-        } else if (announcementCard) {
-            // This is the logic that opens the modal
-            const { allPosts } = getState();
-            const post = allPosts.find(p => p.id === announcementCard.dataset.postId);
-            if (post) {
-                showViewPostModal(post);
-            }
-        }
+        if (createAnnouncementBtn) showCreatePostModal('announcement');
+        else if (createEventBtn) showCreatePostModal('event');
+        else if (actionsBtn) showPostActionsModal(actionsBtn.dataset.postId);
     });
 
     // --- Attachment and Emoji Logic ---
