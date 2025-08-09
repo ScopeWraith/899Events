@@ -12,8 +12,6 @@ import { getState, updateState } from '../state.js';
 import { POST_TYPES, POST_STYLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
 import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage } from '../utils.js';
 import { hideAllModals, showModal, setCustomSelectValue } from './ui-manager.js';
-import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
-
 
 let currentPostStep = 1;
 let postCreationData = {};
