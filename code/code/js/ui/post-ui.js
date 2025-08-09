@@ -186,6 +186,8 @@ function updateCountdowns() {
 
 function buildFilterControls(visiblePosts) {
     const filterContainer = document.getElementById('filter-container');
+    if (!filterContainer) return; // Safeguard added here
+
     const availableSubTypes = [...new Set(visiblePosts.map(p => p.subType))];
     
     filterContainer.innerHTML = ''; // Clear previous buttons

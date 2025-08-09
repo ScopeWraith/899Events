@@ -576,6 +576,7 @@ export function renderSkeletons() {
     if (!newsContainer) return;
 
     newsContainer.innerHTML = `
+        <div id="filter-container" class="filter-btn-group mb-6"></div>
         <div class="mb-8">
             <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
                 <i class="fas fa-bullhorn"></i><span>Announcements</span>
@@ -595,5 +596,3 @@ export function renderSkeletons() {
         </div>
     `;
 }
-
-
