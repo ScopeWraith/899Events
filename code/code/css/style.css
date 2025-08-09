@@ -742,7 +742,7 @@ body {
     color: #8b949e;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-height: 150px;
+    min-height: 150px; /* This was reduced */
     background-size: cover;
     background-position: center;
     position: relative;
@@ -758,7 +758,7 @@ body {
 }
 
 #post-thumbnail-dropzone .dropzone-text i {
-    font-size: 2rem;
+    font-size: 2rem; /* This was reduced */
     margin-bottom: 0.75rem;
 }
 
