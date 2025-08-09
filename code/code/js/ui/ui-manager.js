@@ -51,7 +51,7 @@ export function handleSubNavClick(subTargetId) {
     
     switch (page) {
         case 'news':
-            renderNews(filter);
+            renderPosts(filter);
             break;
         case 'social':
             if (filter === 'chat') {
@@ -157,7 +157,7 @@ export function showPage(targetId) {
     
     // This logic still correctly renders the default content for each page
     if (targetId === 'page-news') {
-        renderNews('all');
+        renderPosts('all');
     } else if (targetId === 'page-feed') {
         const { currentUserData } = getState();
         const welcomeContainer = getElement('feed-welcome-message');
