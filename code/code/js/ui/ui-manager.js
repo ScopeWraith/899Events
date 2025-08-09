@@ -7,7 +7,7 @@
  */
 
 import { getState, updateState } from '../state.js';
-import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS } from '../constants.js';
+import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
@@ -15,6 +15,7 @@ import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
 import { renderChatSelectors, renderFriendsList, activateChatChannel, renderConversations, renderFriendsPage } from './social-ui.js';
+import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
 
 
 // --- DOM ELEMENT GETTERS ---
@@ -65,6 +66,59 @@ export function handleSubNavClick(subTargetId) {
             }
             break;
     }
+}
+export function showViewPostModal(post) {
+    if (!post) return;
+    const { allPlayers, currentUserData } = getState();
+    updateState({ actionPostId: post.id }); // Keep track of the open post's ID
+
+    // --- Populate Header ---
+    const author = allPlayers.find(p => p.uid === post.authorUid);
+    const authorSection = getElement('view-post-author-section');
+    if (author) {
+        authorSection.style.display = 'flex';
+        const rankBorder = getRankBorderClass(author);
+        getElement('view-post-author-avatar').src = author.avatarUrl || `https://placehold.co/64x64/161B22/FFFFFF?text=${author.username.charAt(0).toUpperCase()}`;
+        getElement('view-post-author-avatar').className = `w-12 h-12 rounded-full object-cover ${rankBorder}`;
+        getElement('view-post-author-username').textContent = author.username;
+        const timestampText = post.createdAt ? formatTimeAgo(post.createdAt.toDate()) : '';
+        getElement('view-post-author-meta').textContent = `Posted ${timestampText}`;
+    } else {
+        authorSection.style.display = 'none';
+    }
+
+    // --- Populate Content ---
+    const categoryStyle = POST_STYLES[post.subType] || {};
+    const postTypeKey = Object.keys(POST_TYPES).find(key => POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType);
+    const categoryInfo = POST_TYPES[postTypeKey] || {};
+    const categoryEl = getElement('view-post-category');
+    categoryEl.textContent = categoryInfo.text || 'Post';
+    categoryEl.style.backgroundColor = categoryStyle.color || 'var(--color-primary)';
+    
+    getElement('view-post-title').textContent = post.title;
+    
+    const thumbnailSection = getElement('view-post-thumbnail-section');
+    if (post.thumbnailUrl) {
+        thumbnailSection.style.display = 'block';
+        getElement('view-post-thumbnail').src = post.thumbnailUrl;
+    } else {
+        thumbnailSection.style.display = 'none';
+    }
+    getElement('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
+
+    // --- Populate Footer & Reactions ---
+    const likeBtn = document.querySelector('.post-reaction-btn[data-reaction="like"]');
+    const heartBtn = document.querySelector('.post-reaction-btn[data-reaction="heart"]');
+    
+    likeBtn.querySelector('.reaction-count').textContent = post.likes || 0;
+    heartBtn.querySelector('.reaction-count').textContent = post.hearts || 0;
+    
+    if (currentUserData) {
+        likeBtn.classList.toggle('reacted', post.likedBy && post.likedBy.includes(currentUserData.uid));
+        heartBtn.classList.toggle('reacted', post.heartedBy && post.heartedBy.includes(currentUserData.uid));
+    }
+
+    showModal(getElement('view-post-modal-container'));
 }
 // NEW function to control the slide-out sub-menu
 export function toggleSubNav(activeSubmenuId) {
