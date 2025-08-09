@@ -6,7 +6,7 @@ import { getState, updateState } from './state.js';
 import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
-import { handlePostBack, handleThumbnailSelection, handlePostSubmit, renderPosts } from './ui/post-ui.js';
+import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction  } from './firestore.js';
 import { activateChatChannel } from './ui/social-ui.js';
