@@ -24,7 +24,6 @@ export function renderNews(filter = 'all') {
 
     if (countdownInterval) clearInterval(countdownInterval);
 
-    // 1. Filter posts by user visibility
     let visiblePosts = allPosts.filter(post => {
         if (!currentUserData) return post.visibility === 'public';
         if (currentUserData.isAdmin) return true;
@@ -36,25 +35,22 @@ export function renderNews(filter = 'all') {
     let announcements = [];
     let events = [];
     let container;
-
-    // 2. Determine time window and container based on filter
     let timeWindow;
+
     switch (filter) {
         case 'events':
-            timeWindow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+            timeWindow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
             container = document.getElementById('sub-page-news-events');
             break;
         case 'announcements':
             container = document.getElementById('sub-page-news-announcements');
             break;
-        case 'all':
         default:
-            timeWindow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+            timeWindow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
             container = document.getElementById('sub-page-news-all');
             break;
     }
     
-    // 3. Filter announcements if needed
     if (filter === 'announcements' || filter === 'all') {
         announcements = visiblePosts.filter(post => {
             if (post.mainType !== 'announcement') return false;
@@ -66,22 +62,17 @@ export function renderNews(filter = 'all') {
         });
     }
 
-    // 4. Filter events if needed (using the new robust logic)
     if (filter === 'events' || filter === 'all') {
         events = visiblePosts.filter(post => {
             if (post.mainType !== 'event') return false;
             const statusInfo = getEventStatus(post);
-            if (statusInfo.status === 'live') return true;
-            if (statusInfo.status === 'upcoming' && statusInfo.startTime <= timeWindow) return true;
-            return false;
+            return statusInfo.status === 'live' || (statusInfo.status === 'upcoming' && statusInfo.startTime <= timeWindow);
         });
     }
     
     if (!container) return;
 
-    // 5. Sort and Render Content
     announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-    
     events.sort((a, b) => {
         const statusA = getEventStatus(a);
         const statusB = getEventStatus(b);
@@ -105,7 +96,6 @@ export function renderNews(filter = 'all') {
 
     container.innerHTML = contentHTML || `<p class="text-center text-gray-400 py-8">No items to display.</p>`;
 
-    // 6. Restart countdown timer
     countdownInterval = setInterval(updateCountdowns, 1000 * 30);
     updateState({ countdownInterval });
     updateCountdowns();
@@ -114,7 +104,6 @@ export function renderNews(filter = 'all') {
 export function renderPosts() {
     const { activeFilter } = getState();
     const newsPage = document.getElementById('page-news');
-
     if (newsPage && newsPage.style.display === 'block') {
         renderNews(activeFilter === 'all' ? 'all' : activeFilter);
     }
@@ -125,32 +114,24 @@ function createCard(post) {
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
-
     const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
     const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
-
     let actionsTriggerHTML = '';
+
     if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
-        actionsTriggerHTML = `
-            <button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options">
-                <i class="fas fa-cog"></i>
-            </button>
-        `;
+        actionsTriggerHTML = `<button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options"><i class="fas fa-cog"></i></button>`;
     }
 
     if (isEvent) {
         const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');` : '';
-
         return `
             <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
                 <div class="event-card-background" style="${backgroundStyle}"></div>
-
                 <div class="post-card-content">
                     <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
                     <h3 class="post-card-title">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
                 </div>
-
                 <div class="post-card-status">
                     <div class="status-content-wrapper"></div>
                     <div class="status-date"></div>
@@ -159,40 +140,109 @@ function createCard(post) {
             </div>
         `;
     } else { // Announcement
-        const authorData = allPlayers.find(p => p.uid === post.authorUid);
-        const rankBorder = getRankBorderClass(authorData);
-        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
-        const postDate = post.createdAt?.toDate();
-        const hasThumbnail = !!post.thumbnailUrl;
-        const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="post-card-thumbnail" alt="Announcement Image">` : '';
-        const hasThumbnailClass = hasThumbnail ? 'has-thumbnail' : '';
+    const authorData = allPlayers.find(p => p.uid === post.authorUid);
+    const color = POST_STYLES[post.subType]?.color || 'var(--color-primary)';
+    const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
+    const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
 
-        return `
-            <div class="post-card announcement-card ${hasThumbnailClass} cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
-                <div class="post-card-body">
-                    <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
-                    <div class="post-card-header">
-                        <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
-                        <div class="author-info">
-                            <p class="author-name">${authorData?.username || 'Unknown'}</p>
-                            <p class="author-meta">
-                                [${authorData?.alliance || 'N/A'}] ${authorData?.allianceRank || ''} &bull; 
-                                ${postDate ? formatTimeAgo(postDate) : ''}
-                            </p>
-                        </div>
-                        ${thumbnailHTML}
-                    </div>
-                    <h3 class="post-card-title !mb-2">${post.title}</h3>
-                    <p class="post-card-details">${post.details}</p>
-                    <p class="text-xs text-gray-500 mt-3 text-right">${formatPostTimestamp(postDate)}</p>
-                </div>
-                ${actionsTriggerHTML}
-            </div>
-        `;
+    const rankBorder = getRankBorderClass(authorData);
+    const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
+    const postDate = post.createdAt?.toDate();
+    const hasThumbnail = !!post.thumbnailUrl;
+    const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="announcement-thumbnail" alt="Announcement Image">` : '';
+
+    // Safely create the rank and alliance HTML
+    let rankAndAllianceHTML = '';
+    if (authorData) {
+        const rankText = authorData.isAdmin ? '(ADMIN)' : `(${authorData.allianceRank || 'N/A'})`;
+        const allianceText = `[${authorData.alliance || 'N/A'}]`;
+        rankAndAllianceHTML = `<p class="author-rank-alliance">${rankText} ${allianceText}</p>`;
     }
+
+    let actionsTriggerHTML = '';
+    if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
+        actionsTriggerHTML = `<button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options"><i class="fas fa-cog"></i></button>`;
+    }
+
+    return `
+        <div class="post-card announcement-card cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+            <div class="post-card-body">
+                <div class="announcement-top-section">
+                    <div class="announcement-author-content">
+                        <div class="post-card-header">
+                            <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
+                            <div class="author-info">
+                                ${rankAndAllianceHTML}
+                                <p class="author-name">${authorData?.username || 'Unknown'}</p>
+                                <p class="author-meta">${formatTimeAgo(postDate)}</p>
+                            </div>
+                        </div>
+                        <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
+                    </div>
+                    ${thumbnailHTML}
+                </div>
+
+                <div class="announcement-main-content">
+                    <h3 class="post-card-title">${post.title}</h3>
+                    <p class="post-card-details">${post.details}</p>
+                </div>
+            </div>
+            <div class="post-card-footer">
+                <p class="post-card-timestamp-footer">${formatPostTimestamp(postDate)}</p>
+            </div>
+            ${actionsTriggerHTML}
+        </div>
+    `;
+}
 }
 
+// --- NEW DEDICATED ANNOUNCEMENT MODAL FUNCTIONS ---
 
+export function showCreateAnnouncementModal() {
+    document.getElementById('create-announcement-form').reset();
+    const expirationSelect = document.getElementById('announcement-expiration-days').closest('.custom-select-container');
+    setCustomSelectValue(expirationSelect, '1', 'Expires In: 1 Day');
+    showModal(document.getElementById('create-announcement-modal-container'));
+}
+
+export async function handleAnnouncementSubmit(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById('create-announcement-submit-btn');
+    const errorElement = document.getElementById('create-announcement-error');
+    const { currentUserData } = getState();
+
+    if (!currentUserData) {
+        errorElement.textContent = 'You must be logged in to post.';
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
+    errorElement.textContent = '';
+
+    const announcementData = {
+        mainType: 'announcement',
+        subType: 'server_announcement', // Defaulting to a server announcement
+        title: document.getElementById('announcement-title').value,
+        details: document.getElementById('announcement-details').value,
+        expirationDays: parseInt(document.getElementById('announcement-expiration-days').value, 10) || 1,
+        authorUid: currentUserData.uid,
+        authorUsername: currentUserData.username,
+        visibility: 'public', // Or determine based on admin/leader status
+        createdAt: serverTimestamp(),
+    };
+
+    try {
+        await addDoc(collection(db, 'posts'), announcementData);
+        hideAllModals();
+    } catch (error) {
+        console.error("Error creating announcement:", error);
+        errorElement.textContent = 'Failed to create announcement.';
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Post Announcement';
+    }
+}
 function updateCountdowns() {
     const { allPosts } = getState();
     document.querySelectorAll('.event-card').forEach(el => {
@@ -203,7 +253,6 @@ function updateCountdowns() {
         const statusInfo = getEventStatus(post);
         const statusEl = el.querySelector('.status-content-wrapper');
         const dateEl = el.querySelector('.status-date'); 
-
         if (!statusEl || !dateEl) return;
 
         el.classList.remove('live', 'ended', 'upcoming');
@@ -228,18 +277,6 @@ function updateCountdowns() {
                 statusEl.innerHTML = `<div class="status-label">ENDED</div><div class="status-time">${statusInfo.endedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>`;
                 break;
         }
-    });
-}
-
-function getAvailablePostTypes(mainType) {
-    const { currentUserData } = getState();
-    return Object.entries(POST_TYPES).filter(([key, type]) => {
-        if (type.mainType !== mainType) return false;
-        if (!currentUserData) return false;
-        if (type.isAdminOnly) return currentUserData.isAdmin;
-        if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
-        if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
-        return true;
     });
 }
 

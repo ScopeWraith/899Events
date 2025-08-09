@@ -393,7 +393,7 @@ addListener('player-profile-dropdown', 'click', (e) => {
         showCreatePostModal('event');
     } else if (createAnnouncementBtn) {
         getElement('user-profile-nav-item').classList.remove('open');
-        showCreatePostModal('announcement');
+        showCreateAnnouncementModal();
     }
 });
     // --- General UI ---
