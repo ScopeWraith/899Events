@@ -869,3 +869,77 @@ body {
   border-radius: 50%;
   border: 2px solid #ffbf00;
 }
+
+/* --- REVAMPED CREATE POST MODAL STYLES --- */
+#create-post-modal-container .modal-content-wrapper {
+    padding: 0; /* Remove padding to allow for full-height sections */
+}
+
+.create-post-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.create-post-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.create-post-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(13, 17, 23, 0.8);
+    flex-shrink: 0;
+}
+
+/* Type Selection Cards */
+.type-selection-card {
+    background-color: rgba(33, 38, 45, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.type-selection-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--card-color, var(--color-primary));
+    transition: height 0.3s ease;
+}
+
+.type-selection-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--card-color, var(--color-primary));
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.type-selection-card:hover:before {
+    height: 100%;
+    opacity: 0.1;
+}
+
+.type-selection-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Form slide transitions */
+#post-creation-flow .form-slide {
+    display: none;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+#post-creation-flow .form-slide.active {
+    display: flex; /* Use flex for vertical layout */
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
