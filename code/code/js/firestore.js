@@ -66,7 +66,7 @@ export function setupAllListeners(user) {
         if (userDoc.exists()) {
             updateState({ currentUserData: { uid: user.uid, ...userDoc.data() } });
             getState().callbacks.onAuthChange(user);
-            renderPosts(); 
+            renderNews(); 
             applyPlayerFilters();
             setupChatListeners();
         }
@@ -102,7 +102,7 @@ export function fetchInitialData() {
             const allPosts = [];
             querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
             updateState({ allPosts });
-            renderPosts();
+            renderNews();
         }, (error) => console.error("Error with posts listener:", error));
     }
 
@@ -114,7 +114,7 @@ export function fetchInitialData() {
             updateState({ allPlayers });
             applyPlayerFilters();
             renderFriendsList();
-            renderPosts(); 
+            renderNews(); 
         }, (error) => console.error("Error with users listener:", error));
     }
     
