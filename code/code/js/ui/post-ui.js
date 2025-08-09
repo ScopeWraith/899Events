@@ -211,10 +211,11 @@ function buildFilterControls(visiblePosts) {
     });
 }
 
-export function renderPosts() {
+export function renderPosts(filter = 'all') {
     let { countdownInterval, allPosts, currentUserData, activeFilter } = getState();
-    const eventsSectionContainer = document.getElementById('events-section-container');
-    const announcementsContainer = document.getElementById('announcements-container');
+    const allViewContainer = document.getElementById('sub-page-news-all');
+    const eventsViewContainer = document.getElementById('sub-page-news-events');
+    const announcementsViewContainer = document.getElementById('sub-page-news-announcements');
 
     if (countdownInterval) clearInterval(countdownInterval);
     
@@ -226,10 +227,14 @@ export function renderPosts() {
         return false;
     });
     
-    buildFilterControls(visiblePosts);
-
-    if (activeFilter !== 'all') {
-        visiblePosts = visiblePosts.filter(p => p.subType === activeFilter);
+    const filterBtnContainer = document.getElementById('filter-container');
+    if (filter === 'all') {
+        buildFilterControls(visiblePosts);
+        if (activeFilter !== 'all') {
+            visiblePosts = visiblePosts.filter(p => p.subType === activeFilter);
+        }
+    } else {
+        if (filterBtnContainer) filterBtnContainer.innerHTML = '';
     }
 
     const announcements = visiblePosts
@@ -238,13 +243,15 @@ export function renderPosts() {
 
     const events = visiblePosts.filter(p => p.mainType === 'event');
     
-    renderAnnouncements(announcements);
-    renderEvents(events);
-    
-    if (announcements.length === 0 && events.length > 0) {
-        eventsSectionContainer.style.marginTop = '0';
-    } else if (announcements.length > 0) {
-        eventsSectionContainer.style.marginTop = '2rem';
+    if (filter === 'all' && allViewContainer) {
+        renderAnnouncements(announcements);
+        renderEvents(events);
+    } else if (filter === 'events' && eventsViewContainer) {
+        eventsViewContainer.innerHTML = '<div id="events-section-container"></div>';
+        renderEvents(events);
+    } else if (filter === 'announcements' && announcementsViewContainer) {
+        announcementsViewContainer.innerHTML = '<div id="announcements-container"></div>';
+        renderAnnouncements(announcements);
     }
 
     countdownInterval = setInterval(updateCountdowns, 1000 * 30);
