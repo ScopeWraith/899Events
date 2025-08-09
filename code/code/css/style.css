@@ -213,11 +213,13 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     color: var(--glow-color, var(--color-primary)); /* ADD this for colorized titles */
 }
 
-.post-card.announcement-card {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 70%), rgb(33 40 50 / 65%) 10%, rgb(19 24 32 / 84%) 100%);
-}
 .post-card.event-card {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 65%), rgba(33, 40, 50, 1) 50%, rgba(33, 40, 50, 1) 100%);
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto; /* Two main columns: content and status */
+    align-items: stretch; /* Stretch items to fill height */
+    overflow: hidden;
+    min-height: 120px;
 }
 
 .event-card-background {
@@ -291,7 +293,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     background-color: rgba(0,0,0,0.2);
     border-left: 1px solid rgba(255,255,255,0.05);
 }
-.announcement-card .author-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.announcement-card .author-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); }
 .announcement-card .author-info { flex-grow: 1; }
 .announcement-card .author-name { font-weight: 700; color: #fff; }
 .announcement-card .author-meta { font-size: 0.75rem; color: #8b949e; }
@@ -310,28 +312,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     transition: transform 0.3s ease;
 }
-.thumbnail-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 0.5rem; /* Match image rounding */
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
-}
-#view-post-author-section {
-    /* New styles for centering the author info */
-    position: absolute;
-    bottom: 1.5rem; /* Position at the bottom of the container */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    text-align: center;
-    text-shadow: 0 1px 5px rgba(0,0,0,0.7);
-}
-#view-post-author-section .w-16 {
-    border: 3px solid rgba(255,255,255,0.8);
-}
+
 
 /* Adjust the header to make space for the thumbnail */
 .announcement-card.has-thumbnail .post-card-header {
@@ -393,31 +374,12 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .chat-message:hover .delete-message-btn { opacity: 1; }
 .chat-message-bubble { padding: 0.5rem .75rem; border-radius: 18px; background-color: rgba(33, 38, 45, 0.6); border: 2px solid; word-wrap: break-word; position: relative; cursor: pointer; transition: background-color 0.2s ease; }
 .chat-message-bubble:hover { background-color: rgba(48, 54, 61, 0.8); }
-/* --- RANK BORDER STYLES (Corrected) --- */
-.rank-border-admin { 
-    border: 3px solid var(--rank-admin-color); 
-    box-shadow: 0 0 10px -2px var(--rank-admin-color); 
-}
-.rank-border-r5 { 
-    border: 3px solid var(--rank-r5-color); 
-    box-shadow: 0 0 10px -2px var(--rank-r5-color); 
-}
-.rank-border-r4 { 
-    border: 3px solid var(--rank-r4-color); 
-    box-shadow: 0 0 10px -2px var(--rank-r4-color); 
-}
-.rank-border-r3 { 
-    border: 3px solid var(--rank-r3-color); 
-    box-shadow: 0 0 10px -2px var(--rank-r3-color); 
-}
-.rank-border-r2 { 
-    border: 3px solid var(--rank-r2-color); 
-    box-shadow: 0 0 10px -2px var(--rank-r2-color); 
-}
-.rank-border-r1 { 
-    border: 3px solid var(--rank-r1-color); 
-    box-shadow: 0 0 10px -2px var(--rank-r1-color); 
-}
+.rank-border-admin { border-color: var(--rank-admin-color); box-shadow: 0 0 10px -2px var(--rank-admin-color); }
+.rank-border-r5 { border-color: var(--rank-r5-color); box-shadow: 0 0 10px -2px var(--rank-r5-color); }
+.rank-border-r4 { border-color: var(--rank-r4-color); box-shadow: 0 0 10px -2px var(--rank-r4-color); }
+.rank-border-r3 { border-color: var(--rank-r3-color); box-shadow: 0 0 10px -2px var(--rank-r3-color); }
+.rank-border-r2 { border-color: var(--rank-r2-color); box-shadow: 0 0 10px -2px var(--rank-r2-color); }
+.rank-border-r1 { border-color: var(--rank-r1-color); box-shadow: 0 0 10px -2px var(--rank-r1-color); }
 .chat-message-author { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem; display: block; }
 .rank-border-admin .chat-message-author { color: var(--rank-admin-color); }
 .rank-border-r5 .chat-message-author { color: var(--rank-r5-color); }
@@ -811,7 +773,6 @@ body {
 
 #view-post-header {
     background-color: rgba(33, 38, 45, 0.7);
-    align-items: flex-start; /* Align items to the top */
 }
 
 #view-post-category {
@@ -873,31 +834,4 @@ body {
 
 .prose-invert ul > li::before {
     background-color: var(--color-primary);
-}
-
-.modal-post-category {
-    /* Removed absolute positioning */
-    display: inline-block;
-    color: #ffffff; /* Explicitly set font color to white */
-    padding: 0.3rem 0.8rem;
-    font-size: .7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: 6px;
-    text-shadow: 0px 0px 5px #000000;
-}
-
-#view-post-thumbnail {
-    display: block;
-    max-width: 60%; /* Made image smaller */
-    margin: 0 auto;
-}
-
-/* Themed container for the details text */
-#view-post-details {
-    background-color: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.05);
-    padding: 1.5rem;
-    border-radius: 0.75rem;
 }
