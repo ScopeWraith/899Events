@@ -8,7 +8,7 @@ import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handle
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, renderPosts } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
-import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction } from './firestore.js';
+import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction  } from './firestore.js';
 import { activateChatChannel } from './ui/social-ui.js';
 import { positionEmojiPicker } from './utils.js';
 
