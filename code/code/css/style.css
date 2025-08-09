@@ -381,27 +381,27 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .chat-message-bubble:hover { background-color: rgba(48, 54, 61, 0.8); }
 /* --- RANK BORDER STYLES (Corrected) --- */
 .rank-border-admin { 
-    border: 3px solid var(--rank-admin-color); 
+    border: 2px solid var(--rank-admin-color); 
     box-shadow: 0 0 10px -2px var(--rank-admin-color); 
 }
 .rank-border-r5 { 
-    border: 3px solid var(--rank-r5-color); 
+    border: 2px solid var(--rank-r5-color); 
     box-shadow: 0 0 10px -2px var(--rank-r5-color); 
 }
 .rank-border-r4 { 
-    border: 3px solid var(--rank-r4-color); 
+    border: 2px solid var(--rank-r4-color); 
     box-shadow: 0 0 10px -2px var(--rank-r4-color); 
 }
 .rank-border-r3 { 
-    border: 3px solid var(--rank-r3-color); 
+    border: 2px solid var(--rank-r3-color); 
     box-shadow: 0 0 10px -2px var(--rank-r3-color); 
 }
 .rank-border-r2 { 
-    border: 3px solid var(--rank-r2-color); 
+    border: 2px solid var(--rank-r2-color); 
     box-shadow: 0 0 10px -2px var(--rank-r2-color); 
 }
 .rank-border-r1 { 
-    border: 3px solid var(--rank-r1-color); 
+    border: 2px solid var(--rank-r1-color); 
     box-shadow: 0 0 10px -2px var(--rank-r1-color); 
 }
 .chat-message-author { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem; display: block; }
