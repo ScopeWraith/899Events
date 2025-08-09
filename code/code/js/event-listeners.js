@@ -228,7 +228,7 @@ export function initializeAllEventListeners() {
             updateState({ activeFilter: e.target.dataset.filter });
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
-            renderPosts();
+            renderNews(e.target.dataset.filter);
         }
     });
     addListener('player-search-input', 'input', () => applyPlayerFilters());

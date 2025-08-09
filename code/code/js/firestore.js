@@ -9,7 +9,7 @@ import { db, storage } from './firebase-config.js';
 import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from './state.js';
-import { renderPosts } from './ui/post-ui.js';
+import { renderNews } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { renderFriendsList, renderMessages } from './ui/social-ui.js';
 import { renderNotifications } from './ui/notifications-ui.js';
