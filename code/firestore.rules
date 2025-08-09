@@ -33,27 +33,7 @@ service cloud.firestore {
     function isMemberOf(allianceId) {
         return isSignedIn() && getUserData(request.auth.uid).alliance == allianceId;
     }
-    // NEW HELPER FUNCTION
-    function isUpdatingReactionsOnly() {
-      // The set of fields a user is allowed to modify for reactions.
-      let allowedFields = ['likes', 'hearts', 'likedBy', 'heartedBy'];
-      // The set of fields included in the user's request.
-      let requestKeys = request.resource.data.keys();
-      // The set of fields that existed on the document before the change.
-      let resourceKeys = resource.data.keys();
-      
-      // Allow update if the keys being changed are a subset of the allowed fields.
-      return requestKeys.removeAll(resourceKeys).hasOnly(allowedFields);
-    }
 
-    // --- POSTS (ANNOUNCEMENTS & EVENTS) ---
-    match /posts/{postId} {
-      allow read: if true;
-      allow create: if canCreatePost(request.resource.data);
-      // UPDATED RULE
-      allow update: if (isOwner(resource.data.authorUid) || isAdmin()) || (isSignedIn() && isUpdatingReactionsOnly());
-      allow delete: if isOwner(resource.data.authorUid) || isAdmin();
-    }
     // --- USER DATA, FRIENDS & PRESENCE ---
     match /users/{userId} {
       allow read: if isSignedIn();
