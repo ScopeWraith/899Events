@@ -239,7 +239,7 @@ function populateSubTypeSelection() {
         const button = document.createElement('button');
         button.type = 'button';
         button.dataset.key = key;
-        button.className = 'type-selection-card w-full p-4 rounded-lg text-left flex items-center gap-4';
+        button.className = 'type-selection-card w-full p-8 rounded-lg text-left flex items-center gap-4';
         button.style.setProperty('--card-color', style.color);
         button.innerHTML = `
             <i class="${style.icon} fa-2x w-10 text-center" style="color: ${style.color};"></i>
