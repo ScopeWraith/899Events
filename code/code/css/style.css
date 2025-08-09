@@ -146,18 +146,20 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     overflow-y: auto; /* ADD THIS */
     flex-grow: 1;     /* ADD THIS */
 }
-.modal-content-wrapper::-webkit-scrollbar {
-    width: 8px;
+/* --- REUSABLE THEMED SCROLLBAR --- */
+.themed-scrollbar::-webkit-scrollbar {
+    width: 10px;
 }
-.modal-content-wrapper::-webkit-scrollbar-track {
+.themed-scrollbar::-webkit-scrollbar-track {
     background: rgba(0,0,0,0.2);
     border-radius: 10px;
 }
-.modal-content-wrapper::-webkit-scrollbar-thumb {
+.themed-scrollbar::-webkit-scrollbar-thumb {
     background: var(--color-primary);
     border-radius: 10px;
+    border: 2px solid rgba(0,0,0,0.2);
 }
-.modal-content-wrapper::-webkit-scrollbar-thumb:hover {
+.themed-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #00a9e0;
 }
 .input-group { position: relative; display: flex; align-items: center; background-color: rgba(13, 17, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; transition: border-color 0.3s ease, box-shadow 0.3s ease; }

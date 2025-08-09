@@ -35,7 +35,7 @@
             <i class="fas fa-times fa-lg"></i>
         </button>
 
-        <div id="view-post-content" class="flex-grow p-6 pt-10 overflow-y-auto text-center">
+        <div id="view-post-content" class="flex-grow p-6 pt-10 overflow-y-auto text-center themed-scrollbar">
             <span id="view-post-category" class="modal-post-category">Category</span>
             <h2 id="view-post-title" class="text-3xl font-bold text-white mt-2 mb-5">Post Title</h2>
             
@@ -80,7 +80,7 @@
             <div id="modal-backdrop" class="modal-backdrop"></div>
             <div id="auth-modal-container" class="modal-container">
                 <div class="glass-pane">
-                    <div class="modal-content-wrapper">
+                    <div class="modal-content-wrapper themed-scrollbar">
                         <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                             <i class="fas fa-times fa-lg"></i>
                         </button>
@@ -303,7 +303,7 @@
                             <h2 id="post-subtype-header" class="text-xl font-bold text-white">Select Type</h2>
                             <p class="text-gray-400 text-sm">Choose the type of post you want to create.</p>
                         </div>
-                        <div id="post-subtype-selection-container" class="create-post-content grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div id="post-subtype-selection-container" class="create-post-content grid grid-cols-1 md:grid-cols-2 gap-3 themed-scrollbar">
                             </div>
                     </div>
 
@@ -312,7 +312,7 @@
                             <h2 id="post-content-header" class="text-xl font-bold text-white">New Post</h2>
                             <p id="post-content-subheader" class="text-gray-400 text-sm">Provide the details for your post.</p>
                         </div>
-                        <div class="create-post-content space-y-4">
+                        <div class="create-post-content space-y-4 themed-scrollbar">
                             <div class="input-group">
                                 <i class="fas fa-heading input-icon"></i>
                                 <input type="text" id="post-title" placeholder="Title" class="form-input" required>
@@ -547,7 +547,7 @@
                                                 <i class="fas fa-chevron-up"></i>
                                             </button>
                                         </div>
-                                        <div id="friends-list-social-page" class="space-y-2 p-2 rounded-lg bg-black/20 flex-grow" style="height: 75vh; overflow-y: auto;"></div>
+                                        <div id="friends-list-social-page" class="space-y-2 p-2 rounded-lg bg-black/20 flex-grow themed-scrollbar" style="height: 75vh; overflow-y: auto;"></div>
                                     </div>
                                 </div>
                                 <div class="lg:col-span-3">
