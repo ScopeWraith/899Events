@@ -10,7 +10,7 @@ import { doc, addDoc, updateDoc, collection, serverTimestamp, writeBatch, query,
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from '../state.js';
 import { POST_TYPES, POST_STYLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
-import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage, getRankBorderClass, formatPostTimestamp } from '../utils.js';
+import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage } from '../utils.js';
 import { hideAllModals, showModal, setCustomSelectValue } from './ui-manager.js';
 
 let currentPostStep = 1;
@@ -18,231 +18,135 @@ let postCreationData = {};
 let resizedThumbnailBlob = null;
 
 // --- RENDERING POSTS ---
-export function renderNews(filter = 'all') {
-    let { allPosts, currentUserData, countdownInterval } = getState();
-    const now = new Date();
-
-    if (countdownInterval) clearInterval(countdownInterval);
-
-    let visiblePosts = allPosts.filter(post => {
-        if (!currentUserData) return post.visibility === 'public';
-        if (currentUserData.isAdmin) return true;
-        if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
-        if (post.visibility === 'public') return true;
-        return false;
-    });
-
-    let announcements = [];
-    let events = [];
-    let container;
-    let timeWindow;
-
-    switch (filter) {
-        case 'events':
-            timeWindow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-            container = document.getElementById('sub-page-news-events');
-            break;
-        case 'announcements':
-            container = document.getElementById('sub-page-news-announcements');
-            break;
-        default:
-            timeWindow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-            container = document.getElementById('sub-page-news-all');
-            break;
-    }
-    
-    if (filter === 'announcements' || filter === 'all') {
-        announcements = visiblePosts.filter(post => {
-            if (post.mainType !== 'announcement') return false;
-            const postDate = post.createdAt?.toDate();
-            if (!postDate) return false;
-            const expirationDays = post.expirationDays || 1;
-            const expirationDate = new Date(postDate.getTime() + expirationDays * 24 * 60 * 60 * 1000);
-            return expirationDate > now;
-        });
-    }
-
-    if (filter === 'events' || filter === 'all') {
-        events = visiblePosts.filter(post => {
-            if (post.mainType !== 'event') return false;
-            const statusInfo = getEventStatus(post);
-            return statusInfo.status === 'live' || (statusInfo.status === 'upcoming' && statusInfo.startTime <= timeWindow);
-        });
-    }
-    
-    if (!container) return;
-
-    announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-    events.sort((a, b) => {
-        const statusA = getEventStatus(a);
-        const statusB = getEventStatus(b);
-        if (statusA.status === 'live' && statusB.status !== 'live') return -1;
-        if (statusA.status !== 'live' && statusB.status === 'live') return 1;
-        if (statusA.status === 'live' && statusB.status === 'live') return statusA.timeDiff - statusB.timeDiff;
-        if (statusA.status === 'upcoming' && statusB.status === 'upcoming') return statusA.timeDiff - statusB.timeDiff;
-        return 0;
-    });
-
-    let contentHTML = '';
-    if (announcements.length > 0) {
-        contentHTML += `<div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>`;
-    }
-    if (events.length > 0) {
-        if (announcements.length > 0) {
-            contentHTML += `<hr class="border-t border-white/10 my-6">`;
-        }
-        contentHTML += `<div class="grid grid-cols-1 gap-4">${events.map(createCard).join('')}</div>`;
-    }
-
-    container.innerHTML = contentHTML || `<p class="text-center text-gray-400 py-8">No items to display.</p>`;
-
-    countdownInterval = setInterval(updateCountdowns, 1000 * 30);
-    updateState({ countdownInterval });
-    updateCountdowns();
-}
-
-export function renderPosts() {
-    const { activeFilter } = getState();
-    const newsPage = document.getElementById('page-news');
-    if (newsPage && newsPage.style.display === 'block') {
-        renderNews(activeFilter === 'all' ? 'all' : activeFilter);
-    }
-}
 
 function createCard(post) {
-    const { currentUserData, allPlayers } = getState();
+    const { currentUserData } = getState();
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
-    const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
-    const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
-    let actionsTriggerHTML = '';
+    const headerStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}')` : `background-color: #101419;`;
+    const postDate = post.createdAt?.toDate();
+    const timestamp = postDate ? formatTimeAgo(postDate) : '...';
+    const postTypeText = POST_TYPES[`${post.subType}_${post.mainType}`]?.text || post.subType.replace(/_/g, ' ').toUpperCase();
 
+    let actionsTriggerHTML = '';
     if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
-        actionsTriggerHTML = `<button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options"><i class="fas fa-cog"></i></button>`;
+        actionsTriggerHTML = `
+            <button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options">
+                <i class="fas fa-cog"></i>
+            </button>
+        `;
     }
 
+    let statusContentHTML = '';
     if (isEvent) {
-        const backgroundStyle = post.thumbnailUrl ? `background-image: url('${post.thumbnailUrl}');` : '';
-        return `
-            <div class="post-card event-card" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
-                <div class="event-card-background" style="${backgroundStyle}"></div>
+        statusContentHTML = `<div class="status-content-wrapper"></div><div class="status-date"></div>`; 
+    } else {
+        statusContentHTML = `
+            <div class="status-content-wrapper">
+                <div class="status-label" title="${postDate?.toLocaleString() || ''}">Posted</div>
+                <div class="status-time">${timestamp}</div>
+            </div>
+            <div class="status-date">${postDate ? formatEventDateTime(postDate) : ''}</div>
+        `;
+    }
+
+    return `
+        <div class="post-card ${isEvent ? 'event-card' : 'announcement-card'}" data-post-id="${post.id}" style="--glow-color: ${color};">
+            <div class="post-card-thumbnail-wrapper">
+                <div class="post-card-thumbnail" style="${headerStyle}"></div>
+                ${actionsTriggerHTML}
+            </div>
+            <div class="post-card-body">
                 <div class="post-card-content">
-                    <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
+                    <div class="post-card-header">
+                        <span class="post-card-category" style="background-color: ${color};">${postTypeText}</span>
+                    </div>
                     <h3 class="post-card-title">${post.title}</h3>
                     <p class="post-card-details">${post.details}</p>
                 </div>
                 <div class="post-card-status">
-                    <div class="status-content-wrapper"></div>
-                    <div class="status-date"></div>
-                </div>
-                ${actionsTriggerHTML}
-            </div>
-        `;
-    } else { // Announcement
-    const authorData = allPlayers.find(p => p.uid === post.authorUid);
-    const color = POST_STYLES[post.subType]?.color || 'var(--color-primary)';
-    const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
-    const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
-
-    const rankBorder = getRankBorderClass(authorData);
-    const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
-    const postDate = post.createdAt?.toDate();
-    const hasThumbnail = !!post.thumbnailUrl;
-    const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="announcement-thumbnail" alt="Announcement Image">` : '';
-
-    // Safely create the rank and alliance HTML
-    let rankAndAllianceHTML = '';
-    if (authorData) {
-        const rankText = authorData.isAdmin ? '(ADMIN)' : `(${authorData.allianceRank || 'N/A'})`;
-        const allianceText = `[${authorData.alliance || 'N/A'}]`;
-        rankAndAllianceHTML = `<p class="author-rank-alliance">${rankText} ${allianceText}</p>`;
-    }
-
-    let actionsTriggerHTML = '';
-    if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
-        actionsTriggerHTML = `<button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options"><i class="fas fa-cog"></i></button>`;
-    }
-
-    return `
-        <div class="post-card announcement-card cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
-            <div class="post-card-body">
-                <div class="announcement-top-section">
-                    <div class="announcement-author-content">
-                        <div class="post-card-header">
-                            <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
-                            <div class="author-info">
-                                ${rankAndAllianceHTML}
-                                <p class="author-name">${authorData?.username || 'Unknown'}</p>
-                                <p class="author-meta">${formatTimeAgo(postDate)}</p>
-                            </div>
-                        </div>
-                        <span class="post-card-category" style="background-color: ${color};">${categoryText}</span>
-                    </div>
-                    ${thumbnailHTML}
-                </div>
-
-                <div class="announcement-main-content">
-                    <h3 class="post-card-title">${post.title}</h3>
-                    <p class="post-card-details">${post.details}</p>
+                    ${statusContentHTML}
                 </div>
             </div>
-            <div class="post-card-footer">
-                <p class="post-card-timestamp-footer">${formatPostTimestamp(postDate)}</p>
-            </div>
-            ${actionsTriggerHTML}
         </div>
     `;
 }
-}
 
-// --- NEW DEDICATED ANNOUNCEMENT MODAL FUNCTIONS ---
-
-export function showCreateAnnouncementModal() {
-    document.getElementById('create-announcement-form').reset();
-    const expirationSelect = document.getElementById('announcement-expiration-days').closest('.custom-select-container');
-    setCustomSelectValue(expirationSelect, '1', 'Expires In: 1 Day');
-    showModal(document.getElementById('create-announcement-modal-container'));
-}
-
-export async function handleAnnouncementSubmit(e) {
-    e.preventDefault();
-    const submitBtn = document.getElementById('create-announcement-submit-btn');
-    const errorElement = document.getElementById('create-announcement-error');
+function renderAnnouncements(announcements) {
     const { currentUserData } = getState();
-
-    if (!currentUserData) {
-        errorElement.textContent = 'You must be logged in to post.';
-        return;
+    const announcementsContainer = document.getElementById('announcements-container');
+    let createBtnHTML = '';
+    if (currentUserData && getAvailablePostTypes('announcement').length > 0) {
+        createBtnHTML = `<button id="create-announcement-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Announcement"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
     }
 
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Posting...';
-    errorElement.textContent = '';
+    const contentHTML = announcements.length > 0
+        ? `<div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>`
+        : `<p class="text-center text-gray-500 py-4">No announcements to display.</p>`;
 
-    const announcementData = {
-        mainType: 'announcement',
-        subType: 'server_announcement', // Defaulting to a server announcement
-        title: document.getElementById('announcement-title').value,
-        details: document.getElementById('announcement-details').value,
-        expirationDays: parseInt(document.getElementById('announcement-expiration-days').value, 10) || 1,
-        authorUid: currentUserData.uid,
-        authorUsername: currentUserData.username,
-        visibility: 'public', // Or determine based on admin/leader status
-        createdAt: serverTimestamp(),
-    };
-
-    try {
-        await addDoc(collection(db, 'posts'), announcementData);
-        hideAllModals();
-    } catch (error) {
-        console.error("Error creating announcement:", error);
-        errorElement.textContent = 'Failed to create announcement.';
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Post Announcement';
-    }
+    announcementsContainer.innerHTML = `
+        <div class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
+            <i class="fas fa-bullhorn"></i>
+            <span class="flex-grow">Announcements</span>
+            ${createBtnHTML}
+        </div>
+        ${contentHTML}
+    `;
 }
+
+function renderEvents(events) {
+    const { currentUserData } = getState();
+    const eventsSectionContainer = document.getElementById('events-section-container');
+    const announcementsContainer = document.getElementById('announcements-container');
+    const now = new Date();
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    let displayableEvents = events.filter(event => {
+        const status = getEventStatus(event);
+        const prospectiveStartTime = event.isRecurring ? getEventStatus(event).startTime : event.startTime?.toDate();
+        return status.status === 'live' || (status.status === 'upcoming' && (prospectiveStartTime || event.startTime?.toDate()) <= sevenDaysFromNow);
+    });
+
+    displayableEvents.sort((a, b) => {
+        const statusA = getEventStatus(a);
+        const statusB = getEventStatus(b);
+        if (statusA.status === 'live' && statusB.status !== 'live') return -1;
+        if (statusA.status !== 'live' && statusB.status === 'live') return 1;
+        if (statusA.status === 'live' && statusB.status === 'live') {
+            return statusA.timeDiff - statusB.timeDiff;
+        }
+        if (statusA.status === 'upcoming' && statusB.status === 'upcoming') {
+            if (statusA.timeDiff !== statusB.timeDiff) {
+                return statusA.timeDiff - statusB.timeDiff;
+            }
+            return a.title.localeCompare(b.title);
+        }
+        return 0;
+    });
+    
+    let createBtnHTML = '';
+    if (currentUserData && getAvailablePostTypes('event').length > 0) {
+        createBtnHTML = `<button id="create-event-btn" class="ml-4 primary-btn !p-0 w-5 h-5 rounded-full flex items-center justify-center text-xl" title="Create New Event"><i class="fas fa-plus" style="font-size:.6rem"></i></button>`;
+    }
+
+    const headerHTML = announcementsContainer.innerHTML.trim() === '' ? '' : '<div></div>';
+    
+    const contentHTML = displayableEvents.length > 0
+        ? `<div class="grid grid-cols-1 gap-4">${displayableEvents.map(createCard).join('')}</div>`
+        : `<p class="text-center text-gray-500 py-4">No upcoming events in the next 7 days.</p>`;
+
+    eventsSectionContainer.innerHTML = `
+        ${headerHTML}
+        <div class="section-header text-xl font-bold mb-4">
+            <i class="fas fa-calendar-alt"></i>
+            <span class="flex-grow">Events</span>
+            ${createBtnHTML}
+        </div>
+        ${contentHTML}
+    `;
+}
+
 function updateCountdowns() {
     const { allPosts } = getState();
     document.querySelectorAll('.event-card').forEach(el => {
@@ -253,14 +157,14 @@ function updateCountdowns() {
         const statusInfo = getEventStatus(post);
         const statusEl = el.querySelector('.status-content-wrapper');
         const dateEl = el.querySelector('.status-date'); 
+
         if (!statusEl || !dateEl) return;
 
         el.classList.remove('live', 'ended', 'upcoming');
         
-        if (statusInfo.status === 'live') {
-            dateEl.textContent = formatEventDateTime(statusInfo.endTime);
-        } else {
-            dateEl.textContent = formatEventDateTime(statusInfo.startTime);
+        const originalStartTime = post.startTime?.toDate();
+        if (originalStartTime) {
+            dateEl.textContent = formatEventDateTime(originalStartTime);
         }
 
         switch(statusInfo.status) {
@@ -280,34 +184,107 @@ function updateCountdowns() {
     });
 }
 
+function buildFilterControls(visiblePosts) {
+    const filterContainer = document.getElementById('filter-container');
+    const availableSubTypes = [...new Set(visiblePosts.map(p => p.subType))];
+    
+    filterContainer.innerHTML = ''; // Clear previous buttons
+    
+    const allBtn = document.createElement('button');
+    allBtn.className = 'filter-btn active';
+    allBtn.textContent = 'All';
+    allBtn.dataset.filter = 'all';
+    allBtn.style.setProperty('--glow-color', 'var(--color-primary)');
+    allBtn.style.setProperty('--glow-color-bg', 'rgba(0, 191, 255, 0.1)');
+    filterContainer.appendChild(allBtn);
+
+    availableSubTypes.forEach(subType => {
+        const style = POST_STYLES[subType] || {};
+        const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === subType);
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.textContent = postTypeInfo ? postTypeInfo.text : subType.replace('_', ' ');
+        btn.dataset.filter = subType;
+        btn.style.setProperty('--glow-color', style.color || 'var(--color-primary)');
+        btn.style.setProperty('--glow-color-bg', style.bgColor || 'rgba(0, 191, 255, 0.1)');
+        filterContainer.appendChild(btn);
+    });
+}
+
+export function renderPosts() {
+    let { countdownInterval, allPosts, currentUserData, activeFilter } = getState();
+    const eventsSectionContainer = document.getElementById('events-section-container');
+    const announcementsContainer = document.getElementById('announcements-container');
+
+    if (countdownInterval) clearInterval(countdownInterval);
+    
+    let visiblePosts = allPosts.filter(post => {
+        if (!currentUserData) return post.visibility === 'public';
+        if (post.visibility === 'public') return true;
+        if (currentUserData.isAdmin) return true;
+        if (post.visibility === 'alliance' && post.alliance === currentUserData.alliance) return true;
+        return false;
+    });
+    
+    buildFilterControls(visiblePosts);
+
+    if (activeFilter !== 'all') {
+        visiblePosts = visiblePosts.filter(p => p.subType === activeFilter);
+    }
+
+    const announcements = visiblePosts
+        .filter(p => p.mainType === 'announcement')
+        .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+
+    const events = visiblePosts.filter(p => p.mainType === 'event');
+    
+    renderAnnouncements(announcements);
+    renderEvents(events);
+    
+    if (announcements.length === 0 && events.length > 0) {
+        eventsSectionContainer.style.marginTop = '0';
+    } else if (announcements.length > 0) {
+        eventsSectionContainer.style.marginTop = '2rem';
+    }
+
+    countdownInterval = setInterval(updateCountdowns, 1000 * 30);
+    updateState({ countdownInterval });
+    updateCountdowns();
+}
+
+// --- POST CREATION & EDITING ---
+
 export function initializePostStepper(mainType) {
     document.getElementById('create-post-form').reset();
     postCreationData = {};
     resizedThumbnailBlob = null;
-    
-    const dropzone = document.getElementById('post-thumbnail-dropzone');
-    if (dropzone) {
-        dropzone.classList.remove('has-thumbnail');
-        dropzone.style.backgroundImage = 'none';
-    }
+    document.getElementById('post-thumbnail-preview').src = 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
     
     postCreationData.mainType = mainType;
     currentPostStep = 2; // Start at sub-type selection
     populateSubTypeSelection();
     showPostStep(currentPostStep);
     
-    const backBtn = document.getElementById('post-back-btn');
-    const nextBtn = document.getElementById('post-next-btn');
-    if (backBtn) backBtn.classList.remove('hidden');
-    if (nextBtn) nextBtn.classList.remove('hidden');
+    document.getElementById('post-back-btn').classList.remove('hidden');
+    document.getElementById('post-next-btn').classList.remove('hidden');
+}
+
+function getAvailablePostTypes(mainType) {
+    const { currentUserData } = getState();
+    return Object.entries(POST_TYPES).filter(([key, type]) => {
+        if (type.mainType !== mainType) return false;
+        if (!currentUserData && type.isAdminOnly) return false; // Unauthenticated users can't create admin-only posts
+        if (!currentUserData && type.allowedRanks) return false; // Unauthenticated users can't create rank-restricted posts
+        if (type.isAdminOnly) return currentUserData.isAdmin;
+        if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
+        if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
+        return true;
+    });
 }
 
 function populateSubTypeSelection() {
     const container = document.getElementById('post-subtype-selection-container');
     const header = document.getElementById('post-subtype-header');
-    
-    if (!container || !header) return;
-
     header.textContent = `Select ${postCreationData.mainType.charAt(0).toUpperCase() + postCreationData.mainType.slice(1)} Type`;
     container.innerHTML = '';
     
@@ -337,8 +314,6 @@ function populateSubTypeSelection() {
 
 function showPostStep(stepIndex) {
     const postFlow = document.getElementById('post-creation-flow');
-    if (!postFlow) return;
-
     const postFormSlides = postFlow.querySelectorAll('.form-slide');
     const postBackBtn = document.getElementById('post-back-btn');
     const postNextBtn = document.getElementById('post-next-btn');
@@ -347,51 +322,40 @@ function showPostStep(stepIndex) {
 
     postFormSlides.forEach(slide => slide.classList.remove('active'));
     const currentSlide = postFlow.querySelector(`.form-slide[data-slide="${stepIndex}"]`);
-    if (currentSlide) currentSlide.classList.add('active');
+    if(currentSlide) currentSlide.classList.add('active');
     
     const isEvent = postCreationData.mainType === 'event';
     const totalSteps = isEvent ? 4 : 3;
 
-    if (postBackBtn) postBackBtn.style.visibility = stepIndex === 2 ? 'hidden' : 'visible';
-    if (postNextBtn) postNextBtn.classList.toggle('hidden', stepIndex >= totalSteps);
-    if (postSubmitBtn) postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
+    postBackBtn.style.visibility = stepIndex === 2 ? 'hidden' : 'visible'; // Hide on first selection step
+    postNextBtn.classList.toggle('hidden', stepIndex >= totalSteps);
+    postSubmitBtn.classList.toggle('hidden', stepIndex !== totalSteps);
     
-    if (stepIndex === 3) {
+    if(stepIndex === 3) {
         const header = document.getElementById('post-content-header');
-        if (header) header.textContent = editingPostId ? `Edit ${postCreationData.text}` : `New ${postCreationData.text}`;
-        
+        header.textContent = editingPostId ? `Edit ${postCreationData.text}` : `New ${postCreationData.text}`;
         const allianceGroup = document.getElementById('post-alliance-group');
         const { currentUserData } = getState();
-        if (allianceGroup && currentUserData) {
-            if (currentUserData.isAdmin && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership')) {
-                allianceGroup.classList.remove('hidden');
-            } else {
-                allianceGroup.classList.add('hidden');
-            }
-        }
-        
-        const expirationGroup = document.getElementById('post-expiration-group');
-        if (expirationGroup) {
-            const isAnnouncement = postCreationData.mainType === 'announcement';
-            expirationGroup.classList.toggle('hidden', !isAnnouncement);
+        if(currentUserData.isAdmin && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership')) {
+            allianceGroup.classList.remove('hidden');
+        } else {
+            allianceGroup.classList.add('hidden');
         }
     }
 }
 
-
 function validatePostStep(stepIndex) {
     const createPostError = document.getElementById('create-post-error');
-    if (createPostError) createPostError.textContent = '';
-    
+    createPostError.textContent = '';
     if (stepIndex === 3) {
          if (!document.getElementById('post-title').value || !document.getElementById('post-details').value) {
-            if (createPostError) createPostError.textContent = 'Title and details are required.';
+            createPostError.textContent = 'Title and details are required.';
             return false;
         }
     } else if (stepIndex === 4 && postCreationData.mainType === 'event') {
         if (!document.getElementById('post-start-day').value || !document.getElementById('post-start-hour').value ||
             !document.getElementById('post-end-day').value || !document.getElementById('post-end-hour').value) {
-            if (createPostError) createPostError.textContent = 'Please select a start/end day and hour for the event.';
+            createPostError.textContent = 'Please select a start/end day and hour for the event.';
             return false;
         }
     }
@@ -418,12 +382,7 @@ export async function handleThumbnailSelection(e) {
     const file = e.target.files[0];
     if (!file) return;
     resizedThumbnailBlob = await resizeImage(file, { maxWidth: 1024, maxHeight: 1024 });
-    
-    const dropzone = document.getElementById('post-thumbnail-dropzone');
-    if (dropzone) {
-        dropzone.style.backgroundImage = `url('${URL.createObjectURL(resizedThumbnailBlob)}')`;
-        dropzone.classList.add('has-thumbnail');
-    }
+    document.getElementById('post-thumbnail-preview').src = URL.createObjectURL(resizedThumbnailBlob);
 }
 
 export async function handlePostSubmit(e) {
@@ -433,14 +392,12 @@ export async function handlePostSubmit(e) {
     const { currentUserData, editingPostId } = getState();
 
     if (!currentUserData) {
-        if (createPostError) createPostError.textContent = 'You must be logged in to post.';
+        createPostError.textContent = 'You must be logged in to post.';
         return;
     }
     
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
-    }
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
 
     let alliance = (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership') 
         ? (currentUserData.isAdmin ? document.getElementById('post-alliance').value : currentUserData.alliance)
@@ -455,10 +412,10 @@ export async function handlePostSubmit(e) {
         authorUsername: currentUserData.username,
         alliance: alliance,
         visibility: postCreationData.visibility,
+        isRecurring: document.getElementById('post-repeat-type').value === 'weekly',
     };
 
     if (postCreationData.mainType === 'event') {
-        finalPostData.isRecurring = document.getElementById('post-repeat-type').value === 'weekly';
         const startDay = document.getElementById('post-start-day').value;
         const startHour = document.getElementById('post-start-hour').value;
         const endDay = document.getElementById('post-end-day').value;
@@ -474,8 +431,6 @@ export async function handlePostSubmit(e) {
         if (finalPostData.isRecurring) {
             finalPostData.repeatWeeks = parseInt(document.getElementById('post-repeat-weeks').value, 10) || 1;
         }
-    } else {
-        finalPostData.expirationDays = parseInt(document.getElementById('post-expiration-days').value, 10) || 1;
     }
     
     try {
@@ -523,14 +478,14 @@ export async function handlePostSubmit(e) {
         hideAllModals();
     } catch (error) {
         console.error("Error saving post: ", error);
-        if (createPostError) createPostError.textContent = `Failed to save post: ${error.message}`; 
+         // Provide a more descriptive error message
+        createPostError.textContent = `Failed to save post: ${error.message}`; 
     } finally {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = editingPostId 
-                ? '<i class="fas fa-save mr-2"></i>Save Changes' 
-                : '<i class="fas fa-check-circle mr-2"></i>Create Post';
-        }
+        submitBtn.disabled = false;
+        // Reset button text based on context
+        submitBtn.innerHTML = editingPostId 
+            ? '<i class="fas fa-save mr-2"></i>Save Changes' 
+            : '<i class="fas fa-check-circle mr-2"></i>Create Post';
     }
 }
 
@@ -561,14 +516,7 @@ export async function populatePostFormForEdit(postId) {
     
     document.getElementById('post-title').value = post.title;
     document.getElementById('post-details').value = post.details;
-    const dropzone = document.getElementById('post-thumbnail-dropzone');
-    if (post.thumbnailUrl) {
-        dropzone.style.backgroundImage = `url('${post.thumbnailUrl}')`;
-        dropzone.classList.add('has-thumbnail');
-    } else {
-        dropzone.style.backgroundImage = 'none';
-        dropzone.classList.remove('has-thumbnail');
-    }
+    document.getElementById('post-thumbnail-preview').src = post.thumbnailUrl || 'https://placehold.co/100x100/161B22/444444?text=PREVIEW';
     
     if (post.mainType === 'event' && post.startTime) {
         const startDate = post.startTime.toDate();
@@ -590,6 +538,33 @@ export async function populatePostFormForEdit(postId) {
     showModal(document.getElementById('create-post-modal-container'));
     submitBtn.classList.remove('hidden');
 }
+export function renderTodaysAllianceActivity() {
+    const { allPosts, currentUserData } = getState();
+    const container = document.getElementById('feed-alliance-activity-container');
+    
+    if (!container || !currentUserData || !currentUserData.alliance) {
+        if (container) container.innerHTML = '<p class="text-center text-gray-500 py-4">Join an alliance to see its activity.</p>';
+        return;
+    }
+
+    const now = new Date();
+    const todayStart = new Date(now.setHours(0, 0, 0, 0));
+
+    const todaysAlliancePosts = allPosts.filter(post => {
+        const postDate = post.createdAt?.toDate();
+        return post.alliance === currentUserData.alliance &&
+               post.visibility === 'alliance' &&
+               postDate >= todayStart;
+    });
+
+    if (todaysAlliancePosts.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-4">No alliance activity today.</p>';
+    } else {
+        container.innerHTML = `<div class="grid grid-cols-1 gap-4">${todaysAlliancePosts.map(createCard).join('')}</div>`;
+        updateCountdowns(); // We need to call this to make sure event timers are updated
+    }
+}
+// --- NEW FUNCTION for the redesigned Feed Page ---
 export function renderFeedActivity() {
     const { allPosts, userNotifications, currentUserData } = getState();
     const container = document.getElementById('feed-activity-container');
