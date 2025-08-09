@@ -913,3 +913,18 @@ body {
 #view-post-category {
     color: #ffffff !important;
 }
+
+.avatar-border-select1 {
+  background-color: rgba(0, 0, 0, 0);
+  padding: 1em; /* Adjust as needed */
+  font-size: 16px;
+  border: none; /* Remove default border */
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  width: 100px; /* Adjust as needed */
+  height: 100px; /* Adjust as needed */
+  border-radius: 50%;
+  border: 2px solid #ffbf00;
+}
