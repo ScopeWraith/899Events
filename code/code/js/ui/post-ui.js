@@ -17,6 +17,28 @@ export function renderNews(filter = 'all') {
 
     if (countdownInterval) clearInterval(countdownInterval);
 
+    // --- PRELOADER LOGIC (NEW) ---
+    // Remove any old preload link to prevent clutter
+    const oldPreloadLink = document.getElementById('lcp-preload-link');
+    if (oldPreloadLink) {
+        oldPreloadLink.remove();
+    }
+    // Find the first upcoming or live event with a thumbnail
+    const firstEventWithThumb = allPosts
+        .filter(p => p.mainType === 'event' && p.thumbnailUrl && getEventStatus(p).status !== 'ended')
+        .sort((a, b) => (getEventStatus(a).startTime?.getTime() || 0) - (getEventStatus(b).startTime?.getTime() || 0))[0];
+
+    // If we found one, create a preload link for its image
+    if (firstEventWithThumb) {
+        const preloadLink = document.createElement('link');
+        preloadLink.id = 'lcp-preload-link';
+        preloadLink.rel = 'preload';
+        preloadLink.as = 'image';
+        preloadLink.href = firstEventWithThumb.thumbnailUrl;
+        document.head.appendChild(preloadLink);
+    }
+    // --- END OF NEW LOGIC ---
+
     let visiblePosts = allPosts.filter(post => {
         if (!currentUserData) return post.visibility === 'public';
         if (currentUserData.isAdmin) return true;
@@ -44,7 +66,8 @@ export function renderNews(filter = 'all') {
             container = document.getElementById('sub-page-news-all');
             break;
     }
-
+    
+    // ... (the rest of the function remains exactly the same)
     if (filter === 'announcements' || filter === 'all') {
         announcements = visiblePosts.filter(post => {
             if (post.mainType !== 'announcement') return false;
@@ -65,7 +88,7 @@ export function renderNews(filter = 'all') {
             return false;
         });
     }
-
+    
     if (!container) return;
 
     announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
