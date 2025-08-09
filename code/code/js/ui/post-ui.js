@@ -141,17 +141,27 @@ function createCard(post) {
         `;
     } else { // Announcement
     const authorData = allPlayers.find(p => p.uid === post.authorUid);
+    const color = POST_STYLES[post.subType]?.color || 'var(--color-primary)';
+    const postTypeInfo = Object.values(POST_TYPES).find(pt => pt.subType === post.subType && pt.mainType === post.mainType) || {};
+    const categoryText = postTypeInfo.text || post.subType.replace(/_/g, ' ');
+
     const rankBorder = getRankBorderClass(authorData);
     const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
     const postDate = post.createdAt?.toDate();
     const hasThumbnail = !!post.thumbnailUrl;
     const thumbnailHTML = hasThumbnail ? `<img src="${post.thumbnailUrl}" class="announcement-thumbnail" alt="Announcement Image">` : '';
 
+    // Safely create the rank and alliance HTML
     let rankAndAllianceHTML = '';
     if (authorData) {
         const rankText = authorData.isAdmin ? '(ADMIN)' : `(${authorData.allianceRank || 'N/A'})`;
         const allianceText = `[${authorData.alliance || 'N/A'}]`;
         rankAndAllianceHTML = `<p class="author-rank-alliance">${rankText} ${allianceText}</p>`;
+    }
+
+    let actionsTriggerHTML = '';
+    if (currentUserData && (currentUserData.isAdmin || post.authorUid === currentUserData.uid)) {
+        actionsTriggerHTML = `<button class="post-card-actions-trigger" data-post-id="${post.id}" title="Post Options"><i class="fas fa-cog"></i></button>`;
     }
 
     return `
