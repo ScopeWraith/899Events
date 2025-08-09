@@ -297,51 +297,67 @@
             </button>
             <form id="create-post-form" class="flex flex-col h-full">
                 <div id="post-creation-flow" class="flex flex-col flex-grow min-h-0">
-                    <div class="form-slide" data-slide="1"> ... </div>
-                    <div class="form-slide" data-slide="2"> ... </div>
 
-                    <div class="form-slide flex flex-col flex-grow min-h-0" data-slide="3">
+                    <div class="form-slide" data-slide="1">
+                         <div class="create-post-header">
+                            <h2 id="post-subtype-header" class="text-xl font-bold text-white">Select Type</h2>
+                            <p class="text-gray-400 text-sm">Choose the type of post you want to create.</p>
+                        </div>
+                        <div id="post-subtype-selection-container" class="create-post-content grid grid-cols-1 md:grid-cols-2 gap-3">
+                            </div>
+                    </div>
+
+                    <div class="form-slide flex flex-col flex-grow min-h-0" data-slide="2">
                         <div class="create-post-header">
                             <h2 id="post-content-header" class="text-xl font-bold text-white">New Post</h2>
-                            <p class="text-gray-400 text-sm">Provide the details for your post.</p>
+                            <p id="post-content-subheader" class="text-gray-400 text-sm">Provide the details for your post.</p>
                         </div>
-                        <div class="create-post-content space-y-6">
+                        <div class="create-post-content space-y-4">
                             <div class="input-group">
                                 <i class="fas fa-heading input-icon"></i>
                                 <input type="text" id="post-title" placeholder="Title" class="form-input" required>
                             </div>
                             <div class="input-group !items-start">
                                 <i class="fas fa-align-left input-icon pt-1"></i>
-                                <textarea id="post-details" placeholder="Details..." class="form-textarea" rows="5" required></textarea>
+                                <textarea id="post-details" placeholder="Details..." class="form-textarea" rows="4" required></textarea>
                             </div>
-                            <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <p class="text-sm text-gray-400">Thumbnail (Optional)</p>
-                            <button type="button" id="post-thumbnail-btn" class="secondary-btn !text-xs !py-1 !px-3">
-                                <i class="fas fa-upload mr-2"></i>Add Image
-                            </button>
-                        </div>
-                        <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=PREVIEW" class="w-full h-auto max-h-48 object-cover rounded-lg border-2 border-white/10 bg-black/20">
-                        <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
-                    </div>
+                            <div id="post-thumbnail-group" class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm text-gray-400">Thumbnail (Optional)</p>
+                                    <button type="button" id="post-thumbnail-btn" class="secondary-btn !text-xs !py-1 !px-3"><i class="fas fa-upload mr-2"></i>Add Image</button>
+                                </div>
+                                <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=PREVIEW" class="w-full h-auto max-h-48 object-cover rounded-lg border-2 border-white/10 bg-black/20">
                                 <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
+                            </div>
+                            <div id="post-alliance-group" class="input-group hidden">
+                                <i class="fas fa-shield-alt input-icon"></i>
+                                <div class="custom-select-container w-full" data-type="alliance">
+                                    <input type="hidden" id="post-alliance" name="alliance">
+                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options"><input type="text" class="custom-select-search" placeholder="Search..."><div class="options-list"></div></div>
+                                </div>
                             </div>
                             <div id="post-expiration-group" class="input-group hidden">
                                 <i class="fas fa-clock input-icon"></i>
-                                <div class="custom-select-container" data-type="announcement-expiration">
+                                <div class="custom-select-container w-full" data-type="announcement-expiration">
                                     <input type="hidden" id="post-expiration-days" value="1">
-                                    <button type="button" class="custom-select-value form-input">
-                                        <span>Expires In: 1 Day</span><i class="fas fa-chevron-down text-xs"></i>
-                                    </button>
-                                    <div class="custom-select-options">
-                                        <div class="options-list"></div>
-                                    </div>
+                                    <button type="button" class="custom-select-value form-input"><span>Expires In: 1 Day</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options"><div class="options-list"></div></div>
                                 </div>
+                            </div>
+                            <div id="post-timing-group" class="hidden space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="input-group"><i class="fas fa-calendar-day input-icon"></i><div class="custom-select-container w-full" data-type="day-of-week"><input type="hidden" id="post-start-day"><button type="button" class="custom-select-value form-input"><span>Start Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                    <div class="input-group"><i class="fas fa-clock input-icon"></i><div class="custom-select-container w-full" data-type="hour-of-day"><input type="hidden" id="post-start-hour"><button type="button" class="custom-select-value form-input"><span>Start Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                    <div class="input-group"><i class="fas fa-calendar-day input-icon"></i><div class="custom-select-container w-full" data-type="day-of-week"><input type="hidden" id="post-end-day"><button type="button" class="custom-select-value form-input"><span>End Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                    <div class="input-group"><i class="fas fa-clock input-icon"></i><div class="custom-select-container w-full" data-type="hour-of-day"><input type="hidden" id="post-end-hour"><button type="button" class="custom-select-value form-input"><span>End Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                </div>
+                                <div class="input-group"><i class="fas fa-redo-alt input-icon"></i><div class="custom-select-container w-full" data-type="repeat-type"><input type="hidden" id="post-repeat-type" value="none"><button type="button" class="custom-select-value form-input"><span>Does not repeat</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                <div id="post-repeat-weeks-container" class="input-group hidden"><i class="fas fa-hashtag input-icon"></i><input type="number" id="post-repeat-weeks" class="form-input" placeholder="Repeat every X weeks" value="1" min="1"></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-slide" data-slide="4"> ... </div>
                 </div>
 
                 <div id="post-nav-container" class="create-post-footer">
@@ -349,7 +365,6 @@
                     <div class="flex items-center">
                         <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
                         <div class="flex-grow flex justify-end">
-                            <button type="button" id="post-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button>
                             <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
                         </div>
                     </div>
@@ -357,6 +372,7 @@
             </form>
         </div>
     </div>
+</div>
             </div>
 
             <div id="confirmation-modal-container" class="modal-container">
