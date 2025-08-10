@@ -67,7 +67,7 @@ export function setupAllListeners(user) {
             updateState({ currentUserData: { uid: user.uid, ...userDoc.data() } });
             getState().callbacks.onAuthChange(user);
             // The news feed should not be refreshed when a user's own profile changes.
-            // This prevents an unnecessary global UI update for all users.
+            // This prevents an unnecessary global UI update.
             applyPlayerFilters();
             setupChatListeners();
         }
@@ -96,15 +96,18 @@ export function setupAllListeners(user) {
 
 export function fetchInitialData() {
     const { listeners } = getState();
+        // ... other listeners
 
-    // Posts listener
-    if (!listeners.posts) {
-        listeners.posts = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
-            const allPosts = [];
-            querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
-            updateState({ allPosts });
-            renderNews();
-        }, (error) => console.error("Error with posts listener:", error));
+        // Users listener
+        if (!listeners.users) {
+            listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
+                const allPlayers = [];
+                querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
+                updateState({ allPlayers });
+                applyPlayerFilters();
+            }, (error) => console.error("Error with users listener:", error));
+        }
+        // ... rest of the function
     }
 
     // Users listener
