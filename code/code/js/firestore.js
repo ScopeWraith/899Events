@@ -114,8 +114,6 @@ export function fetchInitialData() {
             querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
             updateState({ allPlayers });
             applyPlayerFilters();
-            renderFriendsList();
-            renderNews(); 
         }, (error) => console.error("Error with users listener:", error));
     }
     
