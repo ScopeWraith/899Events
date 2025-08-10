@@ -112,7 +112,7 @@ export function renderNews(filter = 'all') {
     updateCountdowns();
 }
 
-function createCard(post, allPosts, allPlayers) {
+function createCard(post,  allPlayers) {
     const { currentUserData, allPlayers } = getState();
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
