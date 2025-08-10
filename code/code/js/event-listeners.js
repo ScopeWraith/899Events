@@ -40,18 +40,23 @@ export function initializeAllEventListeners() {
 
             showPage(mainTarget);
 
-            if (mainTarget === 'page-social') {
-                toggleSubNav('social-submenu');
-            } else if (mainTarget === 'page-server') {
-                toggleSubNav('server-submenu');
-            } else {
-                toggleSubNav(null);
-            }
+            // This is the simplified, corrected logic.
+            toggleSubNav(submenuId);
 
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
         });
     });
+
+    // --- Sub Navigation Listener (RE-ADDED) ---
+    document.querySelectorAll('.sub-nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const subTarget = link.dataset.subTarget;
+            handleSubNavClick(subTarget);
+        });
+    });
+
     // --- Mobile Avatar Click to Edit Profile ---
     addListener('mobile-auth-container', 'click', () => {
         showEditProfileModal();
@@ -68,7 +73,7 @@ export function initializeAllEventListeners() {
             if (tabBtn) {
                 e.preventDefault();
                 const tabName = tabBtn.dataset.tab;
-                
+
                 // Update button active state
                 editProfileModal.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
                 tabBtn.classList.add('active');
@@ -78,7 +83,7 @@ export function initializeAllEventListeners() {
                     pane.classList.toggle('active', pane.id === `edit-profile-tab-${tabName}`);
                 });
             }
-            
+
             // Skin/Border selection logic
             const skinBtn = e.target.closest('.skin-select-btn');
             if (skinBtn) {
@@ -86,7 +91,7 @@ export function initializeAllEventListeners() {
                 const parentContainer = skinBtn.parentElement;
                 const targetInputId = parentContainer.id.replace('-selector', '');
                 const targetInput = getElement(`edit-${targetInputId}`);
-                
+
                 // Update hidden input and button active state
                 if (targetInput) {
                     targetInput.value = skinBtn.dataset.value;
@@ -123,7 +128,7 @@ export function initializeAllEventListeners() {
     addListener('show-login-link', 'click', (e) => { e.preventDefault(); showAuthModal('login'); });
     addListener('login-form', 'submit', handleLoginSubmit);
     addListener('forgot-password-link', 'click', handleForgotPassword);
-    
+
     // --- Registration Stepper ---
     addListener('register-next-btn', 'click', handleRegistrationNext);
     addListener('register-back-btn', 'click', handleRegistrationBack);
@@ -184,7 +189,7 @@ export function initializeAllEventListeners() {
         const container = getElement('post-repeat-weeks-container');
         if (container) container.classList.toggle('hidden', e.target.value !== 'weekly');
     });
-    
+
     // --- Mobile Navigation ---
     addListener('open-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.add('open');

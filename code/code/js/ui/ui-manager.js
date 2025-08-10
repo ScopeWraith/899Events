@@ -147,6 +147,7 @@ export function toggleSubNav(activeSubmenuId) {
 }
 
 // REVISED showPage function
+// REVISED showPage function
 export function showPage(targetId) {
     // This part remains the same: show/hide main page content
     querySelectorAll('.page-content').forEach(page => {
@@ -180,6 +181,13 @@ export function showPage(targetId) {
         renderFriendsList();
         activateChatChannel('world_chat');
         setupChatListeners('world_chat');
+    } else if (targetId === 'page-server') {
+        // Show the default 'Alliances' sub-page
+        const alliancesSubpage = getElement('sub-page-server-alliances');
+        if(alliancesSubpage) {
+            alliancesSubpage.style.display = 'block';
+        }
+        applyPlayerFilters();
     }
 }
 
