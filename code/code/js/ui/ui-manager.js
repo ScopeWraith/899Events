@@ -16,6 +16,7 @@ import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
 import { renderChatSelectors, renderFriendsList, activateChatChannel, renderConversations, renderFriendsPage } from './social-ui.js';
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
+import { applyPlayerFilters } from './players-ui.js';
 
 
 // --- DOM ELEMENT GETTERS ---
