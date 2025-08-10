@@ -12,7 +12,7 @@ let resizedThumbnailBlob = null;
 
 // --- RENDERING POSTS (Existing code, unchanged) ---
 export function renderNews(filter = 'all') {
-    let { allPosts, currentUserData, countdownInterval } = getState();
+    let {  allPlayers, allPosts, currentUserData, countdownInterval } = getState();
     const now = new Date();
 
     if (countdownInterval) clearInterval(countdownInterval);
@@ -112,7 +112,7 @@ export function renderNews(filter = 'all') {
     updateCountdowns();
 }
 
-function createCard(post, allPosts) {
+function createCard(post, allPosts, allPlayers) {
     const { currentUserData, allPlayers } = getState();
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
