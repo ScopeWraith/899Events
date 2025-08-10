@@ -201,7 +201,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 #mobile-nav-menu.open { transform: translateX(0); }
 .mobile-nav-link { display: flex; align-items: center; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 600; color: #c9d1d9; border-radius: 0.5rem; transition: background-color 0.2s, color 0.2s; }
 .mobile-nav-link:hover, .mobile-nav-link.active { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
-.section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid; border-image: linear-gradient(to right, var(--glow-color, var(--color-primary)), transparent) 1; }
+.section-header { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.5rem; text-align:center; }
 .filter-btn-group { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: .25rem; }
 .filter-btn { padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-radius: 6px; border: 1px solid #30363d; background-color: rgba(33, 38, 45, 0.5); color: #8b949e; transition: all 0.2s ease; cursor: pointer; }
 .filter-btn:hover { background-color: #30363d; color: #c9d1d9; }
