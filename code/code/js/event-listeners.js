@@ -33,44 +33,23 @@ export function initializeAllEventListeners() {
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            
+
             const mainTarget = link.dataset.mainTarget;
             const navItem = link.closest('.nav-item');
             const submenuId = navItem.dataset.submenuId || null;
 
             showPage(mainTarget);
-            toggleSubNav(submenuId);
+
+            if (mainTarget === 'page-social') {
+                toggleSubNav('social-submenu');
+            } else if (mainTarget === 'page-server') {
+                toggleSubNav('server-submenu');
+            } else {
+                toggleSubNav(null);
+            }
 
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
-        });
-    });
-
-    // --- Sub Navigation ---
-    document.querySelectorAll('.sub-nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation(); 
-            const subTarget = link.dataset.subTarget;
-            
-            if (subTarget) {
-                const parentSubNav = link.closest('.sub-nav');
-                const parentNavItem = link.closest('.nav-item');
-
-                // Update active state within this sub-menu
-                if (parentSubNav) {
-                    parentSubNav.querySelectorAll('.sub-nav-link').forEach(l => l.classList.remove('active'));
-                }
-                link.classList.add('active');
-                
-                // Handle the content switch
-                handleSubNavClick(subTarget);
-
-                // Close the parent pop-out menu after selection
-                if (parentNavItem) {
-                    parentNavItem.classList.remove('open');
-                }
-            }
         });
     });
     // --- Mobile Avatar Click to Edit Profile ---

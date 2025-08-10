@@ -65,7 +65,13 @@ export function handleSubNavClick(subTargetId) {
                 renderFriendsPage();
             }
             break;
+        case 'server':
+        if (filter === 'players') {
+            applyPlayerFilters();
+        }
+        break;
     }
+    
 }
 export function showViewPostModal(post) {
     if (!post) return;
