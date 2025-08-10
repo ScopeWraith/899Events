@@ -96,19 +96,19 @@ export function setupAllListeners(user) {
 
 export function fetchInitialData() {
     const { listeners } = getState();
-        // ... other listeners
+    // ... other listeners
 
-        // Users listener
-        if (!listeners.users) {
-            listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
-                const allPlayers = [];
-                querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
-                updateState({ allPlayers });
-                applyPlayerFilters();
-            }, (error) => console.error("Error with users listener:", error));
-        }
-        // ... rest of the function
+    // Users listener
+    if (!listeners.users) {
+        listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
+            const allPlayers = [];
+            querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
+            updateState({ allPlayers });
+            applyPlayerFilters();
+        }, (error) => console.error("Error with users listener:", error));
     }
+    // ... rest of the function
+}
 
     // Users listener
     if (!listeners.users) {
