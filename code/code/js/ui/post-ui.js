@@ -12,7 +12,7 @@ let resizedThumbnailBlob = null;
 
 // --- RENDERING POSTS (Existing code, unchanged) ---
 export function renderNews(filter = 'all') {
-    let {  allPlayers, allPosts, currentUserData, countdownInterval } = getState();
+    let { allPlayers, allPosts, currentUserData, countdownInterval } = getState();
     const now = new Date();
 
     if (countdownInterval) clearInterval(countdownInterval);
@@ -45,71 +45,86 @@ export function renderNews(filter = 'all') {
             break;
     }
 
-    if (filter === 'announcements' || filter === 'all') {
-        announcements = visiblePosts.filter(post => {
-            if (post.mainType !== 'announcement') return false;
-            const postDate = post.createdAt?.toDate();
-            if (!postDate) return false;
-            const expirationDays = post.expirationDays || 1;
-            const expirationDate = new Date(postDate.getTime() + expirationDays * 24 * 60 * 60 * 1000);
-            return expirationDate > now;
-        });
-    }
-
-    if (filter === 'events' || filter === 'all') {
-        events = visiblePosts.filter(post => {
-            if (post.mainType !== 'event') return false;
-            const statusInfo = getEventStatus(post);
-            if (statusInfo.status === 'live') return true;
-            if (statusInfo.status === 'upcoming' && statusInfo.startTime <= timeWindow) return true;
-            return false;
-        });
-    }
-
     if (!container) return;
 
-    announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-    events.sort((a, b) => {
-        const statusA = getEventStatus(a);
-        const statusB = getEventStatus(b);
-        if (statusA.status === 'live' && statusB.status !== 'live') return -1;
-        if (statusA.status !== 'live' && statusB.status === 'live') return 1;
-        return (statusA.startTime?.getTime() || 0) - (statusB.startTime?.getTime() || 0);
-    });
-
-    let contentHTML = '';
-    if (filter === 'all') {
-         contentHTML = `
-            <div class="mb-2 ${announcements.length === 0 ? 'hidden' : ''}">
-                <h2 class="section-header text-1xl font-bold">
-                    <i class="fas fa-bullhorn"></i><span>Announcements</span>
-                </h2>
-                <div class="grid grid-cols-1 gap-4">${announcements.map(post => createCard(post, allPlayers)).join('')}</div>
-            </div>
-            <div class="${events.length === 0 ? 'hidden' : ''}">
-                <h2 class="section-header text-1xl font-bold">
-                    <i class="fas fa-calendar-alt"></i><span>Events</span>
-                </h2>
-                <div class="grid grid-cols-1 gap-4">${events.map(post => createCard(post, allPlayers)).join('')}</div>
+    // Display skeletons immediately to prevent flickering
+    const existingSkeletons = container.querySelector('.skeleton-card');
+    if (!existingSkeletons) {
+        container.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                ${createSkeletonCard()}
+                ${createSkeletonCard()}
+                ${createSkeletonCard()}
+                ${createSkeletonCard()}
             </div>
         `;
-        if (announcements.length === 0 && events.length === 0) {
-            contentHTML = `<p class="text-center text-gray-400 py-8">No news or events to display.</p>`;
-        }
-    } else {
-         const items = filter === 'events' ? events : announcements;
-         if (items.length > 0) {
-             contentHTML = `<div class="grid grid-cols-1 gap-4">${items.map(post => createCard(post, allPlayers)).join('')}</div>`;
-         } else {
-             contentHTML = `<p class="text-center text-gray-400 py-8">No ${filter} to display.</p>`;
-         }
     }
 
-    container.innerHTML = contentHTML;
+    setTimeout(() => {
+        if (filter === 'announcements' || filter === 'all') {
+            announcements = visiblePosts.filter(post => {
+                if (post.mainType !== 'announcement') return false;
+                const postDate = post.createdAt?.toDate();
+                if (!postDate) return false;
+                const expirationDays = post.expirationDays || 1;
+                const expirationDate = new Date(postDate.getTime() + expirationDays * 24 * 60 * 60 * 1000);
+                return expirationDate > now;
+            });
+        }
 
-    countdownInterval = setInterval(updateCountdowns, 1000 * 30);
-    updateState({ countdownInterval });
-    updateCountdowns();
+        if (filter === 'events' || filter === 'all') {
+            events = visiblePosts.filter(post => {
+                if (post.mainType !== 'event') return false;
+                const statusInfo = getEventStatus(post);
+                if (statusInfo.status === 'live') return true;
+                if (statusInfo.status === 'upcoming' && statusInfo.startTime <= timeWindow) return true;
+                return false;
+            });
+        }
+
+        announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+        events.sort((a, b) => {
+            const statusA = getEventStatus(a);
+            const statusB = getEventStatus(b);
+            if (statusA.status === 'live' && statusB.status !== 'live') return -1;
+            if (statusA.status !== 'live' && statusB.status === 'live') return 1;
+            return (statusA.startTime?.getTime() || 0) - (statusB.startTime?.getTime() || 0);
+        });
+
+        let contentHTML = '';
+        if (filter === 'all') {
+             contentHTML = `
+                <div class="mb-2 ${announcements.length === 0 ? 'hidden' : ''}">
+                    <h2 class="section-header text-1xl font-bold">
+                        <i class="fas fa-bullhorn"></i><span>Announcements</span>
+                    </h2>
+                    <div class="grid grid-cols-1 gap-4">${announcements.map(post => createCard(post, allPlayers)).join('')}</div>
+                </div>
+                <div class="${events.length === 0 ? 'hidden' : ''}">
+                    <h2 class="section-header text-1xl font-bold">
+                        <i class="fas fa-calendar-alt"></i><span>Events</span>
+                    </h2>
+                    <div class="grid grid-cols-1 gap-4">${events.map(post => createCard(post, allPlayers)).join('')}</div>
+                </div>
+            `;
+            if (announcements.length === 0 && events.length === 0) {
+                contentHTML = `<p class="text-center text-gray-400 py-8">No news or events to display.</p>`;
+            }
+        } else {
+             const items = filter === 'events' ? events : announcements;
+             if (items.length > 0) {
+                 contentHTML = `<div class="grid grid-cols-1 gap-4">${items.map(post => createCard(post, allPlayers)).join('')}</div>`;
+             } else {
+                 contentHTML = `<p class="text-center text-gray-400 py-8">No ${filter} to display.</p>`;
+             }
+        }
+
+        container.innerHTML = contentHTML;
+
+        countdownInterval = setInterval(updateCountdowns, 1000 * 30);
+        updateState({ countdownInterval });
+        updateCountdowns();
+    }, 500); // Wait 500ms to allow skeleton to be visible
 }
 
 function createCard(post,  allPlayers) {

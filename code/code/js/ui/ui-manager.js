@@ -587,23 +587,20 @@ export function createSkeletonCard() {
 }
 
 export function renderSkeletons() {
-    // The new container for our default news/events view
-    const newsContainer = getElement('sub-page-news-all');
-    if (!newsContainer) return; // Exit if the container isn't there
-
-    // We'll create a combined skeleton view for the new layout
-    newsContainer.innerHTML = `
-        <div class="mb-8">
-            <div class="grid grid-cols-1 gap-4">
-                ${createSkeletonCard()}
-            </div>
-        </div>
-        <div>
-            <div class="grid grid-cols-1 gap-4">
+    // You'll now render skeletons as part of the `renderNews` function,
+    // so this function can be simplified. It's main job is just to
+    // show a single loading state on initial load.
+    const appContainer = getElement('page-news');
+    if (!appContainer) return;
+    appContainer.innerHTML = `
+        <div id="sub-page-news-all" class="sub-page">
+             <div class="grid grid-cols-1 gap-4">
                 ${createSkeletonCard()}
                 ${createSkeletonCard()}
             </div>
         </div>
+        <div id="sub-page-news-events" class="sub-page" style="display:none;"></div>
+        <div id="sub-page-news-announcements" class="sub-page" style="display:none;"></div>
     `;
 }
 
