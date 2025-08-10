@@ -82,7 +82,7 @@ service cloud.firestore {
     }
 
 
-    function canManageUser(targetUserId) {
+function canManageUser(targetUserId) {
       let managerData = getUserData(request.auth.uid);
       let targetData = getUserData(targetUserId);
       return isSignedIn() && (
@@ -105,7 +105,7 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.authorUid) || isAdmin();
     }
     
-    function canCreatePost(postData) {
+function canCreatePost(postData) {
   let userRank = getUserData(request.auth.uid).allianceRank;
  return isOwner(postData.authorUid) && (
     isAdmin() ||
@@ -133,10 +133,10 @@ service cloud.firestore {
         allow update, delete: if isAdmin() || isOwner(resource.data.authorUid);
     }
     
-    match /alliance_chats/{allianceId}/messages/{messageId} {
-        allow read, create: if isMemberOf(allianceId) && isVerified();
-        allow update, delete: if (isLeader() && isMemberOf(allianceId)) || isOwner(resource.data.authorUid);
-    }
+match /alliance_chats/{allianceId}/messages/{messageId} {
+    allow read, create: if isMemberOf(allianceId) && isVerified();
+    allow update, delete: if (isLeader() && isMemberOf(allianceId)) || isOwner(resource.data.authorUid);
+}
 
     // --- PRIVATE CHAT ---
     match /private_chats/{chatId} {
@@ -168,4 +168,4 @@ service cloud.firestore {
         allow create, update, delete: if isLeader() && isMemberOf(allianceId);
     }
   }
-}
+

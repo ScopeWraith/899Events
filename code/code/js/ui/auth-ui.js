@@ -259,14 +259,18 @@ export async function handleEditProfileSubmit(e) {
         missilePower: parsePower(document.getElementById('edit-missile-power').value),
     };
 
-    // Un-verify the user if their alliance or rank has changed
+    let needsReverification = false;
     if (currentUserData && (updatedData.alliance !== currentUserData.alliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
+        needsReverification = true;
     }
 
     try {
         await updateDoc(doc(db, "users", user.uid), updatedData);
         hideAllModals();
+        if (needsReverification) {
+            alert("Profile updated! You have been un-verified and will need to be approved by a leader in your new alliance or rank to access all features.");
+        }
     } catch (error) {
         console.error("Update profile error:", error);
         errorElement.textContent = "Failed to update profile.";
