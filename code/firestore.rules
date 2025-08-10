@@ -111,7 +111,8 @@ service cloud.firestore {
         isAdmin() ||
         (
           !(postData.subType == 'server' || postData.subType == 'seasonal' || postData.subType == 'hot_deals' || postData.subType == 'wanted_boss' || postData.subType == 'campaign' || postData.subType == 'vs') &&
-          !(!isVerified() && postData.subType == 'alliance' && postData.mainType == 'event') &&
+          !(!isVerified() && postData.mainType == 'event') && // isVerified is required for ALL events now
+          !(postData.subType == 'alliance' && postData.mainType == 'announcement' && !isVerified() && userRank == 'R4') && // R4s need to be verified for announcements
           (
             (postData.subType == 'alliance' && (userRank == 'R5' || userRank == 'R4')) ||
             (postData.subType == 'leadership' && userRank == 'R5')
@@ -133,7 +134,7 @@ service cloud.firestore {
     }
     
     match /alliance_chats/{allianceId}/messages/{messageId} {
-        allow read, create: if isMemberOf(allianceId);
+        allow read, create: if isMemberOf(allianceId) && isVerified();
         allow update, delete: if (isLeader() && isMemberOf(allianceId)) || isOwner(resource.data.authorUid);
     }
 

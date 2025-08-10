@@ -303,7 +303,7 @@
                             <h2 id="post-subtype-header" class="text-xl font-bold text-white">Select Type</h2>
                             <p class="text-gray-400 text-sm">Choose the type of post you want to create.</p>
                         </div>
-                        <div id="post-subtype-selection-container" class="create-post-content grid grid-cols-1 md:grid-cols-2 gap-3 themed-scrollbar">
+                        <div id="post-subtype-selection-container" class="create-post-content grid grid-cols-1 gap-3 themed-scrollbar">
                             </div>
                     </div>
 
@@ -463,8 +463,8 @@
                         <div class="nav-item" data-submenu-id="social-submenu">
                             <a href="#" class="nav-link" data-main-target="page-social"><i class="fas fa-comments fa-fw mr-2"></i><span>Social</span></a>
                         </div>
-                        <div class="nav-item">
-                            <a href="#" class="nav-link" data-main-target="page-players"><i class="fas fa-users fa-fw mr-2"></i><span>Players</span></a>
+                        <div class="nav-item" data-submenu-id="server-submenu">
+                            <a href="#" class="nav-link" data-main-target="page-server"><i class="fas fa-server fa-fw mr-2"></i><span>Server</span></a>
                         </div>
                         <div class="nav-item" id="feed-nav-item">
                             <a href="#" class="nav-link" data-main-target="page-feed"><i class="fas fa-bell fa-fw mr-2"></i><span>Feed</span><span id="notification-badge" class="notification-badge"></span></a>
@@ -522,6 +522,7 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div id="news-submenu" class="sub-nav-content"><a href="#" class="sub-nav-link active" data-sub-target="news-all"><i class="fas fa-grip-horizontal fa-fw w-6"></i> ALL</a><a href="#" class="sub-nav-link" data-sub-target="news-events"><i class="fas fa-calendar-alt fa-fw w-6"></i> Events</a><a href="#" class="sub-nav-link" data-sub-target="news-announcements"><i class="fas fa-bullhorn fa-fw w-6"></i> Announcements</a></div>
             <div id="social-submenu" class="sub-nav-content hidden"><a href="#" class="sub-nav-link active" data-sub-target="social-chat"><i class="fas fa-comments fa-fw w-6"></i> Chat</a><a href="#" class="sub-nav-link" data-sub-target="social-convo"><i class="fas fa-user-secret fa-fw w-6"></i> Private</a><a href="#" class="sub-nav-link" data-sub-target="social-friends"><i class="fas fa-user-friends fa-fw w-6"></i> Friends</a></div>
+            <div id="server-submenu" class="sub-nav-content hidden"><a href="#" class="sub-nav-link active" data-sub-target="server-alliances"><i class="fas fa-handshake fa-fw w-6"></i> Alliances</a><a href="#" class="sub-nav-link" data-sub-target="server-players"><i class="fas fa-users fa-fw w-6"></i> Players</a><a href="#" class="sub-nav-link" data-sub-target="server-nap"><i class="fas fa-gavel fa-fw w-6"></i> NAP</a></div>
         </div>
     </div>
 </header>
@@ -576,24 +577,38 @@
                         </div>
                         <div id="sub-page-social-friends" class="sub-page" style="display: none;"></div>
                     </div>
-                    <div id="page-players" class="page-content" style="display: none;">
-                        <div class="flex flex-col md:flex-row gap-4 mb-6">
-                            <div class="relative flex-grow">
-                                <i class="fas fa-search absolute top-1/2 left-4 -translate-y-1/2 text-gray-500"></i>
-                                <input type="text" id="player-search-input" placeholder="Search by player name..." class="form-input !pl-10 !rounded-full !bg-gray-900/70">
+                    <div id="page-server" class="page-content" style="display: none;">
+                        <div id="sub-page-server-alliances" class="sub-page">
+                            <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6">Server Alliances</h2>
+                            <div class="glass-pane p-6 text-center">
+                                <p class="text-gray-400">Content for the Alliances page will go here. This page will display all alliances on the server and allow R5s to edit their alliance information.</p>
                             </div>
-                            <div class="input-group md:w-64 !rounded-full !bg-gray-900/70">
-                                <i class="fas fa-shield-alt input-icon"></i>
-                                <div class="custom-select-container w-full" data-type="alliance-filter">
-                                    <input type="hidden" id="alliance-filter">
-                                    <button type="button" class="custom-select-value form-input"><span>All Alliances</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                    <div class="custom-select-options">
-                                        <div class="options-list"></div>
+                        </div>
+                        <div id="sub-page-server-players" class="sub-page" style="display: none;">
+                            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                                <div class="relative flex-grow">
+                                    <i class="fas fa-search absolute top-1/2 left-4 -translate-y-1/2 text-gray-500"></i>
+                                    <input type="text" id="player-search-input" placeholder="Search by player name..." class="form-input !pl-10 !rounded-full !bg-gray-900/70">
+                                </div>
+                                <div class="input-group md:w-64 !rounded-full !bg-gray-900/70">
+                                    <i class="fas fa-shield-alt input-icon"></i>
+                                    <div class="custom-select-container w-full" data-type="alliance-filter">
+                                        <input type="hidden" id="alliance-filter">
+                                        <button type="button" class="custom-select-value form-input"><span>All Alliances</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                        <div class="custom-select-options">
+                                            <div class="options-list"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <div id="player-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            </div>
                         </div>
-                        <div id="player-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div id="sub-page-server-nap" class="sub-page" style="display: none;">
+                            <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6">Non-Aggression Pact & Rules of Engagement</h2>
+                            <div class="glass-pane p-6 text-center">
+                                <p class="text-gray-400">Content for the NAP and Rules of Engagement page will go here.</p>
+                            </div>
                         </div>
                     </div>
                     <div id="page-feed" class="page-content" style="display: none;">

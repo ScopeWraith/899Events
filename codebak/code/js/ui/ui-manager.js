@@ -16,6 +16,7 @@ import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
 import { renderChatSelectors, renderFriendsList, activateChatChannel, renderConversations, renderFriendsPage } from './social-ui.js';
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
+import { applyPlayerFilters } from './players-ui.js';
 
 
 // --- DOM ELEMENT GETTERS ---
@@ -65,7 +66,13 @@ export function handleSubNavClick(subTargetId) {
                 renderFriendsPage();
             }
             break;
+        case 'server':
+        if (filter === 'players') {
+            applyPlayerFilters();
+        }
+        break;
     }
+    
 }
 export function showViewPostModal(post) {
     if (!post) return;
@@ -141,6 +148,7 @@ export function toggleSubNav(activeSubmenuId) {
 }
 
 // REVISED showPage function
+// REVISED showPage function
 export function showPage(targetId) {
     // This part remains the same: show/hide main page content
     querySelectorAll('.page-content').forEach(page => {
@@ -174,6 +182,13 @@ export function showPage(targetId) {
         renderFriendsList();
         activateChatChannel('world_chat');
         setupChatListeners('world_chat');
+    } else if (targetId === 'page-server') {
+        // Show the default 'Alliances' sub-page
+        const alliancesSubpage = getElement('sub-page-server-alliances');
+        if(alliancesSubpage) {
+            alliancesSubpage.style.display = 'block';
+        }
+        applyPlayerFilters();
     }
 }
 
@@ -572,23 +587,20 @@ export function createSkeletonCard() {
 }
 
 export function renderSkeletons() {
-    // The new container for our default news/events view
-    const newsContainer = getElement('sub-page-news-all');
-    if (!newsContainer) return; // Exit if the container isn't there
-
-    // We'll create a combined skeleton view for the new layout
-    newsContainer.innerHTML = `
-        <div class="mb-8">
-            <div class="grid grid-cols-1 gap-4">
-                ${createSkeletonCard()}
-            </div>
-        </div>
-        <div>
-            <div class="grid grid-cols-1 gap-4">
+    // You'll now render skeletons as part of the `renderNews` function,
+    // so this function can be simplified. It's main job is just to
+    // show a single loading state on initial load.
+    const appContainer = getElement('page-news');
+    if (!appContainer) return;
+    appContainer.innerHTML = `
+        <div id="sub-page-news-all" class="sub-page">
+             <div class="grid grid-cols-1 gap-4">
                 ${createSkeletonCard()}
                 ${createSkeletonCard()}
             </div>
         </div>
+        <div id="sub-page-news-events" class="sub-page" style="display:none;"></div>
+        <div id="sub-page-news-announcements" class="sub-page" style="display:none;"></div>
     `;
 }
 

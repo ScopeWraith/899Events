@@ -41,11 +41,10 @@ export function renderChatSelectors() {
     selectorContainer.innerHTML = ''; // Clear old selectors
     let availableChannels = [];
 
-    // Determine which channels the user can see
     for (const channelKey in CHAT_CHANNELS) {
         const channel = CHAT_CHANNELS[channelKey];
         if (!currentUserData && channel.requiresAuth) continue;
-        if (channel.requiresAlliance && !currentUserData?.alliance) continue;
+        if (channel.requiresAlliance && (!currentUserData?.alliance || !currentUserData?.isVerified)) continue;
         if (channel.requiresLeader && !isUserLeader(currentUserData)) continue;
         availableChannels.push(channel);
     }
