@@ -84,13 +84,13 @@ export function renderNews(filter = 'all') {
                 <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
                     <i class="fas fa-bullhorn"></i><span>Announcements</span>
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${announcements.map(createCard).join('')}</div>
+                <div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>
             </div>
             <div class="${events.length === 0 ? 'hidden' : ''}">
                 <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-primary);">
                     <i class="fas fa-calendar-alt"></i><span>Events</span>
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${events.map(createCard).join('')}</div>
+                <div class="grid grid-cols-1 gap-4">${events.map(createCard).join('')}</div>
             </div>
         `;
         if (announcements.length === 0 && events.length === 0) {
@@ -99,7 +99,7 @@ export function renderNews(filter = 'all') {
     } else {
          const items = filter === 'events' ? events : announcements;
          if (items.length > 0) {
-             contentHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${items.map(createCard).join('')}</div>`;
+             contentHTML = `<div class="grid grid-cols-1 gap-4">${items.map(createCard).join('')}</div>`;
          } else {
              contentHTML = `<p class="text-center text-gray-400 py-8">No ${filter} to display.</p>`;
          }
