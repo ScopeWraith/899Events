@@ -339,7 +339,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-radius: 4px;
-    display: block; /* Changed from display: block */
+    display: inline-flex; /* Changed from display: block */
     text-shadow: 0px 0px 5px #000000;
     min-width: 60px; /* Added min-width */
     text-align: center; /* Added for better text alignment */
