@@ -84,13 +84,13 @@ export function renderNews(filter = 'all') {
                 <h2 class="section-header text-1xl font-bold">
                     <i class="fas fa-bullhorn"></i><span>Announcements</span>
                 </h2>
-                <div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>
+                <div class="grid grid-cols-1 gap-4">${announcements.map(post => createCard(post, allPosts)).join('')}</div>
             </div>
             <div class="${events.length === 0 ? 'hidden' : ''}">
                 <h2 class="section-header text-1xl font-bold">
                     <i class="fas fa-calendar-alt"></i><span>Events</span>
                 </h2>
-                <div class="grid grid-cols-1 gap-4">${events.map(createCard).join('')}</div>
+                <div class="grid grid-cols-1 gap-4">${events.map(post => createCard(post, allPosts)).join('')}</div>
             </div>
         `;
         if (announcements.length === 0 && events.length === 0) {
@@ -112,7 +112,7 @@ export function renderNews(filter = 'all') {
     updateCountdowns();
 }
 
-function createCard(post) {
+function createCard(post, allPosts) {
     const { currentUserData, allPlayers } = getState();
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
