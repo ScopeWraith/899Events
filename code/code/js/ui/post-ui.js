@@ -80,7 +80,7 @@ export function renderNews(filter = 'all') {
     let contentHTML = '';
     if (filter === 'all') {
          contentHTML = `
-            <div class="mb-8 ${announcements.length === 0 ? 'hidden' : ''}">
+            <div class="mb-2 ${announcements.length === 0 ? 'hidden' : ''}">
                 <h2 class="section-header text-1xl font-bold">
                     <i class="fas fa-bullhorn"></i><span>Announcements</span>
                 </h2>
