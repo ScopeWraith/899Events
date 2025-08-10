@@ -259,7 +259,8 @@ export async function handleEditProfileSubmit(e) {
         missilePower: parsePower(document.getElementById('edit-missile-power').value),
     };
 
-    if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
+    // Un-verify the user if their alliance or rank has changed
+    if (currentUserData && (updatedData.alliance !== currentUserData.alliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
     }
 
