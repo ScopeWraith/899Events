@@ -6,9 +6,15 @@
  */
 
 import { getState } from '../state.js';
-import { canManageUser } from '../utils.js';
+import { canManageUser , getAvatarSkinClass , getRankBorderClass} from '../utils.js';
 
 export function applyPlayerFilters() {
+    const playerListContainer = document.getElementById('player-list-container');
+    // FIX: Add a guard clause to ensure the function only runs when the Players page is visible.
+    if (!playerListContainer) {
+        return;
+    }
+
     const { allPlayers } = getState();
     const searchTerm = document.getElementById('player-search-input').value.toLowerCase();
     const allianceFilter = document.getElementById('alliance-filter').value;
@@ -47,14 +53,15 @@ export function renderPlayers(players) {
         const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
         const session = userSessions[player.uid];
         const statusClass = session ? session.status : 'offline';
+        const rankBorder = getRankBorderClass(player); // Correctly using the helper
 
         card.innerHTML = `
             ${gearIconHTML}
             <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
                 <div class="avatar-container mr-4">
-                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full border-2 object-cover" style="border-color: rgba(255,255,255,0.2);" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${rankBorder}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
                     <div class="player-badge">[${player.alliance}] ${player.allianceRank}</div>
-                </div>                
+                </div>
                 <div>
                     <h3 class="font-bold text-lg text-white flex items-center">${player.username} <span class="status-dot ${statusClass} ml-2"></span></h3>
                     <p class="text-sm font-semibold" style="color: var(--color-primary);">[${player.alliance}] - ${player.allianceRank}</p>

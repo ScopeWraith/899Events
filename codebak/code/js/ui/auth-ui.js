@@ -10,9 +10,9 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswor
 import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from '../state.js';
-import { resizeImage } from '../utils.js';
+import { resizeImage , getAvatarSkinClass, getRankBorderClass} from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
-import { ALLIANCE_RANKS } from '../constants.js';
+import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 
 let currentRegStep = 1;
 let resizedAvatarBlob = null;
@@ -25,7 +25,18 @@ export function initializeRegistrationStepper() {
     document.getElementById('registration-flow').style.display = 'block';
     document.getElementById('registration-success').style.display = 'none';
 }
-
+function buildSkinSelectors() {
+    // Build Rank Color Legend
+    const rankLegend = document.getElementById('rank-color-legend');
+    if(rankLegend) {
+        rankLegend.innerHTML = Object.entries(RANK_STYLES).map(([rank, style]) => `
+            <div class="rank-legend-item">
+                <div class="rank-legend-color" style="background-color: ${style.color};"></div>
+                <span class="font-semibold text-white">${rank}</span>
+            </div>
+        `).join('');
+    }
+}
 function showRegStep(stepIndex) {
     const registrationFlow = document.getElementById('registration-flow');
     const regFormSlides = registrationFlow.querySelectorAll('.form-slide');
@@ -190,22 +201,41 @@ export function handleForgotPassword(e) {
         .catch((error) => alert(error.message));
 }
 
+/* code/js/ui/auth-ui.js */
 export function populateEditForm() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
-    document.getElementById('edit-username').value = currentUserData.username;
     
+    buildSkinSelectors(); // Still need this for the legend
+
+    // -- Populate Stats Tab --
+    document.getElementById('edit-username').value = currentUserData.username;
     const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
     const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
-    
-    setCustomSelectValue(editAllianceSelect, currentUserData.alliance);
+    setCustomSelectValue(editAllianceSelect, currentUserData.alliance, currentUserData.alliance);
     const rankData = ALLIANCE_RANKS.find(r => r.value === currentUserData.allianceRank);
     setCustomSelectValue(editRankSelect, currentUserData.allianceRank, rankData ? rankData.text : currentUserData.allianceRank);
-    
     document.getElementById('edit-power').value = (currentUserData.power || 0).toLocaleString();
     document.getElementById('edit-tank-power').value = (currentUserData.tankPower || 0).toLocaleString();
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
+
+    // -- Populate Skin Tab --
+    // Helper to set active button and hidden input
+    const setActiveSkin = (containerId, inputId, value, defaultValue) => {
+        const finalValue = value || defaultValue;
+        const container = document.getElementById(containerId);
+        const input = document.getElementById(inputId);
+        if (container && input) {
+            input.value = finalValue;
+            container.querySelectorAll('.skin-select-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === finalValue);
+            });
+        }
+    };
+
+    setActiveSkin('avatar-border-selector', 'edit-avatar-border', currentUserData.avatarBorder, 'avatar-border-none');
+    setActiveSkin('chat-bubble-border-selector', 'edit-chat-bubble-border', currentUserData.chatBubbleBorder, 'chat-bubble-border-none');
 }
 
 export async function handleEditProfileSubmit(e) {
@@ -242,6 +272,7 @@ export async function handleEditProfileSubmit(e) {
     }
 }
 
+
 export async function handleAvatarUpload(e) {
     const file = e.target.files[0];
     const user = auth.currentUser;
@@ -265,30 +296,105 @@ export async function handleAvatarUpload(e) {
 
 export function updateAvatarDisplay(data) {
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-    document.getElementById('user-avatar-button').src = avatarUrl;
-    document.getElementById('user-avatar-mobile').src = avatarUrl;
+    const rankBorder = getRankBorderClass(data); // Use the new helper
+
+    const userAvatarButton = document.getElementById('user-avatar-button');
+    userAvatarButton.src = avatarUrl;
+    // This now just uses the rank border, no custom skin
+    userAvatarButton.className = `w-6 h-6 rounded-full object-cover ${rankBorder}`; 
+
+    const userAvatarMobile = document.getElementById('user-avatar-mobile');
+    userAvatarMobile.src = avatarUrl;
+    userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${rankBorder}`;
+
+    document.getElementById('mobile-avatar-alliance').textContent = `[${data.alliance}]`;
+    document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
 }
 
 export function updatePlayerProfileDropdown() {
     const { currentUserData, userNotifications } = getState();
     if (!currentUserData) return;
 
-    document.getElementById('profile-dropdown-power').textContent = (currentUserData.power || 0).toLocaleString();
-     
-    const friendRequests = userNotifications.filter(n => n.type === 'friend_request' && !n.isRead);
-    const friendReqBtn = document.getElementById('profile-dropdown-friends');
-    const friendReqBadge = friendReqBtn.querySelector('.badge');
-     
-    if (friendRequests.length > 0) {
-        friendReqBadge.textContent = friendRequests.length;
-        friendReqBadge.classList.remove('hidden');
-        friendReqBtn.disabled = false;
-    } else {
-        friendReqBadge.classList.add('hidden');
-        friendReqBtn.disabled = true;
+    const dropdownContainer = document.getElementById('player-profile-dropdown');
+    if (!dropdownContainer) return;
+
+    // --- START: Admin-Specific Dropdown ---
+    if (currentUserData.isAdmin) {
+        dropdownContainer.innerHTML = `
+            <div class="p-2 mb-2 border-b border-white/10">
+                <p class="text-sm text-gray-400">Total Power</p>
+                <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
+            </div>
+            <button id="admin-create-event-dropdown-btn" class="dropdown-link profile-menu-link">
+                <span><i class="fas fa-calendar-plus fa-fw w-6 text-center mr-2"></i>Create Event</span>
+            </button>
+            <button id="admin-create-announcement-dropdown-btn" class="dropdown-link profile-menu-link">
+                <span><i class="fas fa-bullhorn fa-fw w-6 text-center mr-2"></i>Create Announcement</span>
+            </button>
+            <div class="p-1"><hr class="border-t border-white/10"></div>
+            <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
+                <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
+            </button>
+            <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
+                <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
+            </button>
+            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+            <div class="p-1"><hr class="border-t border-white/10"></div>
+            <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
+                <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
+            </button>
+        `;
+    } 
+    // --- START: Default User Dropdown ---
+    else {
+        dropdownContainer.innerHTML = `
+            <div class="p-2 mb-2 border-b border-white/10">
+                <p class="text-sm text-gray-400">Total Power</p>
+                <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
+            </div>
+            <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
+                <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
+                <span class="badge hidden">0</span>
+            </button>
+            <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
+                <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
+                <span class="badge hidden">0</span>
+            </button>
+            <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
+                <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
+            </button>
+            <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
+                <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
+            </button>
+            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+            <div class="p-1"><hr class="border-t border-white/10"></div>
+            <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
+                <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
+            </button>
+        `;
     }
-     
-    // This is correctly a placeholder for now
+
+    // --- Common Logic for Both ---
+    document.getElementById('profile-dropdown-power').textContent = (currentUserData.power || 0).toLocaleString();
+    
+    // Only update badges if the elements exist (i.e., for non-admins)
+    const friendReqBtn = document.getElementById('profile-dropdown-friends');
+    if (friendReqBtn) {
+        const friendRequests = userNotifications.filter(n => n.type === 'friend_request' && !n.isRead);
+        const friendReqBadge = friendReqBtn.querySelector('.badge');
+        
+        if (friendRequests.length > 0) {
+            friendReqBadge.textContent = friendRequests.length;
+            friendReqBadge.classList.remove('hidden');
+            friendReqBtn.disabled = false;
+        } else {
+            friendReqBadge.classList.add('hidden');
+            friendReqBtn.disabled = true;
+        }
+    }
+    
     const messagesBtn = document.getElementById('profile-dropdown-messages');
-    messagesBtn.disabled = true;
+    if (messagesBtn) {
+        messagesBtn.disabled = true; // Placeholder logic
+    }
 }

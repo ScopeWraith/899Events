@@ -1,37 +1,127 @@
 // code/js/event-listeners.js
 
-/**
- * This module centralizes the setup of all major event listeners
- * for the application, keeping the main.js file cleaner.
- */
-
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal } from './ui/ui-manager.js';
+import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
-import { handlePostNext, handlePostBack, handleThumbnailSelection, handlePostSubmit, renderPosts } from './ui/post-ui.js';
+import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
-import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction } from './firestore.js';
+import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction  } from './firestore.js';
 import { activateChatChannel } from './ui/social-ui.js';
 import { positionEmojiPicker } from './utils.js';
 
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
 
-    // --- Null-safe listener attachment function ---
     const addListener = (id, event, handler) => {
         const element = getElement(id);
         if (element) {
             element.addEventListener(event, handler);
         }
     };
+    addListener('view-post-modal-container', 'click', (e) => {
+    const reactionBtn = e.target.closest('.post-reaction-btn');
+    if (reactionBtn) {
+        const { actionPostId } = getState();
+        const reactionType = reactionBtn.dataset.reaction;
+        togglePostReaction(actionPostId, reactionType);
+    }
+    });
+    // --- Main Navigation & Page Switching ---
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            const mainTarget = link.dataset.mainTarget;
+            const navItem = link.closest('.nav-item');
+            const submenuId = navItem.dataset.submenuId || null;
 
+            showPage(mainTarget);
+            toggleSubNav(submenuId);
+
+            document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+        });
+    });
+
+    // --- Sub Navigation ---
+    document.querySelectorAll('.sub-nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); 
+            const subTarget = link.dataset.subTarget;
+            
+            if (subTarget) {
+                const parentSubNav = link.closest('.sub-nav');
+                const parentNavItem = link.closest('.nav-item');
+
+                // Update active state within this sub-menu
+                if (parentSubNav) {
+                    parentSubNav.querySelectorAll('.sub-nav-link').forEach(l => l.classList.remove('active'));
+                }
+                link.classList.add('active');
+                
+                // Handle the content switch
+                handleSubNavClick(subTarget);
+
+                // Close the parent pop-out menu after selection
+                if (parentNavItem) {
+                    parentNavItem.classList.remove('open');
+                }
+            }
+        });
+    });
+    // --- Mobile Avatar Click to Edit Profile ---
+    addListener('mobile-auth-container', 'click', () => {
+        showEditProfileModal();
+    });
+    addListener('user-avatar-mobile' , 'click', () => {
+        showEditProfileModal();
+    });
+    // --- Edit Profile Modal Tabs and Skin Selectors ---
+    const editProfileModal = getElement('edit-profile-modal-container');
+    if (editProfileModal) {
+        editProfileModal.addEventListener('click', (e) => {
+            // Tab switching logic
+            const tabBtn = e.target.closest('.modal-tab-btn');
+            if (tabBtn) {
+                e.preventDefault();
+                const tabName = tabBtn.dataset.tab;
+                
+                // Update button active state
+                editProfileModal.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
+                tabBtn.classList.add('active');
+
+                // Update pane visibility
+                editProfileModal.querySelectorAll('.modal-tab-pane').forEach(pane => {
+                    pane.classList.toggle('active', pane.id === `edit-profile-tab-${tabName}`);
+                });
+            }
+            
+            // Skin/Border selection logic
+            const skinBtn = e.target.closest('.skin-select-btn');
+            if (skinBtn) {
+                e.preventDefault();
+                const parentContainer = skinBtn.parentElement;
+                const targetInputId = parentContainer.id.replace('-selector', '');
+                const targetInput = getElement(`edit-${targetInputId}`);
+                
+                // Update hidden input and button active state
+                if (targetInput) {
+                    targetInput.value = skinBtn.dataset.value;
+                    parentContainer.querySelectorAll('.skin-select-btn').forEach(btn => btn.classList.remove('active'));
+                    skinBtn.classList.add('active');
+                }
+            }
+        });
+    }
     // --- Modal Triggers & Closers ---
     addListener('login-btn', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
     addListener('close-edit-modal-btn', 'click', hideAllModals);
+    addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
     addListener('close-private-message-modal-btn', 'click', hideAllModals);
@@ -41,7 +131,11 @@ export function initializeAllEventListeners() {
         if (e.target === getElement('modal-backdrop')) {
             hideAllModals();
             const mobileNav = getElement('mobile-nav-menu');
-            if(mobileNav) mobileNav.classList.remove('open');
+            if (mobileNav.classList.contains('open')) {
+                mobileNav.classList.remove('open');
+                // Change icon back to 'bars'
+                const icon = getElement('open-mobile-menu-btn').querySelector('i');
+            }
         }
     });
 
@@ -62,32 +156,27 @@ export function initializeAllEventListeners() {
     addListener('user-profile-button', 'click', (e) => {
         e.stopPropagation();
         const navItem = getElement('user-profile-nav-item');
-        // Close other dropdowns
         document.querySelectorAll('.nav-item.open').forEach(item => {
             if (item !== navItem) item.classList.remove('open');
         });
-        // Toggle this dropdown
         if(navItem) navItem.classList.toggle('open');
     });
 
     // --- Mobile Avatar Dropdown Listener ---
     addListener('user-avatar-mobile', 'click', (e) => {
-        e.stopPropagation(); // Prevent the window click listener from closing it immediately
+        e.stopPropagation();
         const navItem = getElement('user-profile-nav-item');
         const dropdown = getElement('player-profile-dropdown');
         const avatar = getElement('user-avatar-mobile');
 
         if (navItem && dropdown && avatar) {
-            // Toggle the dropdown's visibility
             const isOpen = navItem.classList.toggle('open');
-            
-            // If opening, position it correctly near the mobile avatar
             if (isOpen) {
                 const avatarRect = avatar.getBoundingClientRect();
-                dropdown.style.top = `${avatarRect.bottom + 10}px`; // 10px below the avatar
-                dropdown.style.right = '1rem'; // Align to the right edge of the screen
+                dropdown.style.top = `${avatarRect.bottom + 10}px`;
+                dropdown.style.right = '1rem';
                 dropdown.style.left = 'auto';
-                dropdown.style.transform = 'none'; // Reset any desktop transforms
+                dropdown.style.transform = 'none';
             }
         }
     });
@@ -108,7 +197,6 @@ export function initializeAllEventListeners() {
     addListener('player-settings-form', 'submit', handlePlayerSettingsSubmit);
 
     // --- Post Creation/Editing ---
-    addListener('post-next-btn', 'click', handlePostNext);
     addListener('post-back-btn', 'click', handlePostBack);
     addListener('post-thumbnail-btn', 'click', () => getElement('post-thumbnail-input').click());
     addListener('post-thumbnail-input', 'change', handleThumbnailSelection);
@@ -118,21 +206,19 @@ export function initializeAllEventListeners() {
         if (container) container.classList.toggle('hidden', e.target.value !== 'weekly');
     });
     
-    // --- Main Navigation & Page Switching ---
-    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-            if (link.dataset.mainTarget) showPage(link.dataset.mainTarget);
-        });
-    });
-    
     // --- Mobile Navigation ---
     addListener('open-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.add('open');
         getElement('modal-backdrop').classList.add('visible');
+        // Change icon to 'X'
+        const icon = getElement('open-mobile-menu-btn').querySelector('i');
     });
+
     addListener('close-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.remove('open');
         getElement('modal-backdrop').classList.remove('visible');
+        // Change icon back to 'bars'
+        const icon = getElement('open-mobile-menu-btn').querySelector('i');
     });
 
     // --- Filtering ---
@@ -141,7 +227,7 @@ export function initializeAllEventListeners() {
             updateState({ activeFilter: e.target.dataset.filter });
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
-            renderPosts();
+            renderNews(e.target.dataset.filter);
         }
     });
     addListener('player-search-input', 'input', () => applyPlayerFilters());
@@ -295,15 +381,24 @@ export function initializeAllEventListeners() {
             }
         });
     }
+// Add this new listener inside initializeAllEventListeners()
 
+addListener('player-profile-dropdown', 'click', (e) => {
+    const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
+    const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
+
+    if (createEventBtn) {
+        getElement('user-profile-nav-item').classList.remove('open');
+        showCreatePostModal('event');
+    } else if (createAnnouncementBtn) {
+        getElement('user-profile-nav-item').classList.remove('open');
+        showCreatePostModal('announcement');
+    }
+});
     // --- General UI ---
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.nav-item')) {
             document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));
-        }
-        const userProfileNavItem = getElement('user-profile-nav-item');
-        if (userProfileNavItem && !e.target.closest('#user-profile-nav-item')) {
-             userProfileNavItem.classList.remove('open');
         }
         if (!e.target.closest('.custom-select-container')) {
             document.querySelectorAll('.custom-select-container').forEach(c => c.classList.remove('open'));
@@ -315,14 +410,28 @@ export function initializeAllEventListeners() {
     });
 
     // --- Event/Announcement Creation Triggers ---
-    addListener('events-main-container', 'click', e => {
+    addListener('page-news', 'click', e => {
         const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
         const createEventBtn = e.target.closest('#create-event-btn');
         const actionsBtn = e.target.closest('.post-card-actions-trigger');
+        const announcementCard = e.target.closest('.announcement-card');
 
-        if (createAnnouncementBtn) showCreatePostModal('announcement');
-        else if (createEventBtn) showCreatePostModal('event');
-        else if (actionsBtn) showPostActionsModal(actionsBtn.dataset.postId);
+        if (createAnnouncementBtn) {
+            showCreatePostModal('announcement');
+        } else if (createEventBtn) {
+            showCreatePostModal('event');
+        } else if (actionsBtn) {
+            // Prevent card click from firing when clicking the options button
+            e.stopPropagation(); 
+            showPostActionsModal(actionsBtn.dataset.postId);
+        } else if (announcementCard) {
+            // This is the logic that opens the modal
+            const { allPosts } = getState();
+            const post = allPosts.find(p => p.id === announcementCard.dataset.postId);
+            if (post) {
+                showViewPostModal(post);
+            }
+        }
     });
 
     // --- Attachment and Emoji Logic ---

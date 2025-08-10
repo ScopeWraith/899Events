@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>899Events.com</title>
     <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=Oswald:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="code/css/style.css">
 </head>
@@ -28,6 +28,47 @@
         </div>
 
         <div id="modal-container-all">
+            <div id="view-post-modal-container" class="modal-container !p-0" style="max-width: 550px; height: 90vh; max-height: 750px;">
+    <div class="glass-pane flex flex-col h-full overflow-hidden">
+        
+        <button id="close-view-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+            <i class="fas fa-times fa-lg"></i>
+        </button>
+
+        <div id="view-post-content" class="flex-grow p-6 pt-10 overflow-y-auto text-center themed-scrollbar">
+            <span id="view-post-category" class="modal-post-category">Category</span>
+            <h2 id="view-post-title" class="text-3xl font-bold text-white mt-2 mb-5">Post Title</h2>
+            
+            <div id="view-post-thumbnail-section" class="mb-6" style="display: none;">
+                <img id="view-post-thumbnail" src="" class="max-w-[80%] mx-auto h-auto object-cover rounded-lg shadow-lg">
+            </div>
+
+            <div id="view-post-details" class="prose prose-invert max-w-none text-left">
+                </div>
+        </div>
+        
+        <div id="view-post-footer" class="flex-shrink-0 p-3 border-t border-white/10 bg-black/30 flex items-center justify-between gap-4">
+             <div id="view-post-author-section" class="flex items-center gap-3" style="display: none;">
+                <img id="view-post-author-avatar" src="https://placehold.co/64x64/161B22/FFFFFF?text=?" class="w-10 h-10 rounded-full object-cover">
+                <div>
+                    <p id="view-post-author-username" class="font-bold text-white text-sm leading-tight">Username</p>
+                    <p id="view-post-author-meta" class="text-xs text-gray-400 leading-tight">Meta Info</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-3">
+                <button class="post-reaction-btn" data-reaction="like">
+                    <i class="far fa-thumbs-up"></i>
+                    <span class="reaction-count">0</span>
+                </button>
+                <button class="post-reaction-btn" data-reaction="heart">
+                    <i class="far fa-heart"></i>
+                    <span class="reaction-count">0</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
             <div id="emoji-picker-container" class="absolute z-[2000]" style="display: none;">
                 <emoji-picker class="light"></emoji-picker>
             </div>
@@ -39,7 +80,7 @@
             <div id="modal-backdrop" class="modal-backdrop"></div>
             <div id="auth-modal-container" class="modal-container">
                 <div class="glass-pane">
-                    <div class="modal-content-wrapper">
+                    <div class="modal-content-wrapper themed-scrollbar">
                         <button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                             <i class="fas fa-times fa-lg"></i>
                         </button>
@@ -131,47 +172,77 @@
             </div>
             
             <div id="edit-profile-modal-container" class="modal-container">
-                 <div class="glass-pane">
-                    <div class="modal-content-wrapper">
-                        <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                            <i class="fas fa-times fa-lg"></i>
-                        </button>
-                        <div class="modal-content-scroll">
-                            <h2 class="text-2xl font-bold text-white text-center mb-6">Edit Your Profile</h2>
-                            <form id="edit-profile-form">
-                                 <div class="space-y-4">
-                                    <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                                        <div class="custom-select-container w-full" data-type="alliance">
-                                            <input type="hidden" id="edit-alliance" name="alliance" required>
-                                            <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                            <div class="custom-select-options dropdown-pane glass-pane">
-                                                <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                                <div class="options-list"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="input-group"><i class="fas fa-star input-icon"></i>
-                                         <div class="custom-select-container w-full" data-type="rank">
-                                            <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
-                                            <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                            <div class="custom-select-options dropdown-pane glass-pane">
-                                                <div class="options-list"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input" required></div>
-                                </div>
-                                <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                                <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
-                            </form>
+    <div class="glass-pane">
+        <div class="modal-content-wrapper">
+            <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+            
+            <h2 class="text-2xl font-bold text-white text-center mb-4">Edit Profile</h2>
+
+            <nav class="modal-tab-nav">
+                <button class="modal-tab-btn active" data-tab="stats">
+                    <i class="fas fa-chart-bar mr-2"></i>Stats
+                </button>
+                <button class="modal-tab-btn" data-tab="skin">
+                    <i class="fas fa-paint-brush mr-2"></i>Skin
+                </button>
+            </nav>
+
+            <form id="edit-profile-form">
+                <div id="edit-profile-tab-stats" class="modal-tab-pane active">
+                    <div class="space-y-4">
+                        <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
+                        <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
+                            <div class="custom-select-container w-full" data-type="alliance">
+                                <input type="hidden" id="edit-alliance" name="alliance" required>
+                                <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                <div class="custom-select-options"><input type="text" class="custom-select-search" placeholder="Search..."><div class="options-list"></div></div>
+                            </div>
                         </div>
+                        <div class="input-group"><i class="fas fa-star input-icon"></i>
+                             <div class="custom-select-container w-full" data-type="rank">
+                                <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
+                                <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                <div class="custom-select-options"><div class="options-list"></div></div>
+                            </div>
+                        </div>
+                        <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
+                        <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input"></div>
+                        <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input"></div>
+                        <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input"></div>
                     </div>
                 </div>
-            </div>
+
+                <div id="edit-profile-tab-skin" class="modal-tab-pane">
+                    <div class="coming-soon-overlay">
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="text-base font-bold text-white mb-2">Avatar Border</h4>
+                                <div class="skin-select-container h-24 bg-black/20 rounded-lg">
+                                    <button class="avatar-border-select1"></button>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-base font-bold text-white mb-2">Chat Bubble Border</h4>
+                                <div class="skin-select-container h-24 bg-black/20 rounded-lg"></div>
+                            </div>
+                        </div>
+                        <div class="coming-soon-text">Coming Soon!</div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h4 class="text-base font-bold text-white mb-2">Rank Color Key</h4>
+                        <div id="rank-color-legend" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
 
             <div id="player-settings-modal-container" class="modal-container">
                  <div class="glass-pane">
@@ -179,7 +250,7 @@
                         <button id="close-player-settings-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                             <i class="fas fa-times fa-lg"></i>
                         </button>
-                        <div class="modal-content-scroll">
+                        <div>
                             <h2 class="text-2xl font-bold text-white text-center mb-2">Player Settings</h2>
                             <p id="player-settings-username" class="text-center text-gray-400 mb-6 font-semibold"></p>
                             <form id="player-settings-form">
@@ -219,117 +290,89 @@
             </div>
 
             <div id="create-post-modal-container" class="modal-container">
-                 <div class="glass-pane">
-                    <div class="modal-content-wrapper">
-                        <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
-                            <i class="fas fa-times fa-lg"></i>
-                        </button>
-                        <div class="modal-content-scroll">
-                            <form id="create-post-form">
-                                <div id="post-creation-flow">
-                                     <div class="form-slide" data-slide="1">
-                                        <h2 class="text-2xl font-bold text-white text-center mb-4">Create New Post</h2>
-                                        <p class="text-center text-gray-400 mb-6">What would you like to create?</p>
-                                        <div id="post-main-type-selection-container" class="space-y-4">
-                                           </div>
-                                    </div>
-                                    <div class="form-slide" data-slide="2">
-                                        <h2 id="post-subtype-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
-                                        <p class="text-center text-gray-400 mb-6">Select a category.</p>
-                                        <div id="post-subtype-selection-container" class="space-y-3">
-                                           </div>
-                                    </div>
-                                    <div class="form-slide" data-slide="3">
-                                        <h2 id="post-content-header" class="text-2xl font-bold text-white text-center mb-4"></h2>
-                                        <p class="text-center text-gray-400 mb-6">Provide the details for your post.</p>
-                                        <div class="space-y-4">
-                                            <div id="post-alliance-group" class="input-group hidden"><i class="fas fa-shield-alt input-icon"></i>
-                                                 <div class="custom-select-container w-full" data-type="alliance">
-                                                    <input type="hidden" id="post-alliance" name="post-alliance">
-                                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                                    <div class="custom-select-options">
-                                                        <input type="text" class="custom-select-search" placeholder="Search alliances...">
-                                                        <div class="options-list"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="input-group"><i class="fas fa-heading input-icon"></i><input type="text" id="post-title" placeholder="Title" class="form-input" required></div>
-                                            <div class="input-group !items-start"><i class="fas fa-align-left input-icon pt-3"></i><textarea id="post-details" placeholder="Details..." class="form-textarea" required></textarea></div>
-                                            <div>
-                                                <p class="text-sm text-gray-400 mb-2">Thumbnail (Optional)</p>
-                                                <div class="flex items-center gap-4">
-                                                    <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=PREVIEW" class="w-24 h-24 rounded-lg object-cover border-2 border-white/20">
-                                                    <button type="button" id="post-thumbnail-btn" class="flex-grow p-3 rounded-lg secondary-btn">
-                                                        <i class="fas fa-upload mr-2"></i> Choose Image
-                                                    </button>
-                                                    <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                     <div class="form-slide" data-slide="4">
-                                        <h2 class="text-2xl font-bold text-white text-center mb-4">Event Schedule</h2>
-                                        <p class="text-center text-gray-400 mb-6">Set the schedule for your event.</p>
-                                        <div id="post-timing-group" class="space-y-4">
-                                             <div>
-                                                <label class="text-sm font-semibold text-gray-400 mb-1 block">Start Time</label>
-                                                <div class="flex gap-2">
-                                                    <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
-                                                        <div class="custom-select-container" data-type="day-of-week">
-                                                            <input type="hidden" id="post-start-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
-                                                        <div class="custom-select-container" data-type="hour-of-day">
-                                                            <input type="hidden" id="post-start-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label class="text-sm font-semibold text-gray-400 mb-1 block">End Time</label>
-                                                <div class="flex gap-2">
-                                                     <div class="input-group w-1/2"><i class="fas fa-calendar-day input-icon"></i>
-                                                        <div class="custom-select-container" data-type="day-of-week">
-                                                            <input type="hidden" id="post-end-day" required><button type="button" class="custom-select-value form-input"><span>Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="input-group w-1/2"><i class="fas fa-clock input-icon"></i>
-                                                        <div class="custom-select-container" data-type="hour-of-day">
-                                                            <input type="hidden" id="post-end-hour" required><button type="button" class="custom-select-value form-input"><span>Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                             <div>
-                                                <label class="text-sm font-semibold text-gray-400 mb-1 block">Repetition</label>
-                                                <div class="flex gap-2">
-                                                     <div class="input-group w-1/2"><i class="fas fa-redo-alt input-icon"></i>
-                                                        <div class="custom-select-container" data-type="repeat-type">
-                                                            <input type="hidden" id="post-repeat-type" value="none" required><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                        </div>
-                                                    </div>
-                                                    <div id="post-repeat-weeks-container" class="input-group w-1/2 hidden"><i class="fas fa-hashtag input-icon"></i>
-                                                        <input type="number" id="post-repeat-weeks" class="form-input" min="1" value="1" placeholder="Weeks">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <p class="text-xs text-center text-gray-400">Times are based on your local timezone.</p>
-                                        </div>
-                                    </div>
+    <div class="glass-pane">
+        <div class="modal-content-wrapper">
+            <button id="close-create-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+            <form id="create-post-form" class="flex flex-col h-full">
+                <div id="post-creation-flow" class="flex flex-col flex-grow min-h-0">
+
+                    <div class="form-slide" data-slide="1">
+                         <div class="create-post-header">
+                            <h2 id="post-subtype-header" class="text-xl font-bold text-white">Select Type</h2>
+                            <p class="text-gray-400 text-sm">Choose the type of post you want to create.</p>
+                        </div>
+                        <div id="post-subtype-selection-container" class="create-post-content grid grid-cols-1 md:grid-cols-2 gap-3 themed-scrollbar">
+                            </div>
+                    </div>
+
+                    <div class="form-slide flex flex-col flex-grow min-h-0" data-slide="2">
+                        <div class="create-post-header">
+                            <h2 id="post-content-header" class="text-xl font-bold text-white">New Post</h2>
+                            <p id="post-content-subheader" class="text-gray-400 text-sm">Provide the details for your post.</p>
+                        </div>
+                        <div class="create-post-content space-y-4 themed-scrollbar">
+                            <div class="input-group">
+                                <i class="fas fa-heading input-icon"></i>
+                                <input type="text" id="post-title" placeholder="Title" class="form-input" required>
+                            </div>
+                            <div class="input-group !items-start">
+                                <i class="fas fa-align-left input-icon pt-1"></i>
+                                <textarea id="post-details" placeholder="Details..." class="form-textarea" rows="4" required></textarea>
+                            </div>
+                            <div id="post-thumbnail-group" class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm text-gray-400">Thumbnail (Optional)</p>
+                                    <button type="button" id="post-thumbnail-btn" class="secondary-btn !text-xs !py-1 !px-3"><i class="fas fa-upload mr-2"></i>Add Image</button>
                                 </div>
-                                <p id="create-post-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                                 <div id="post-nav-container" class="flex items-center mt-6">
-                                    <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
-                                    <div class="flex-grow flex justify-center">
-                                        <button type="button" id="post-next-btn" class="px-6 py-2 rounded-lg primary-btn flex items-center">Next<i class="fas fa-arrow-right ml-2"></i></button>
-                                        <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
-                                    </div>
+                                <img id="post-thumbnail-preview" src="https://placehold.co/100x100/161B22/444444?text=PREVIEW" class="w-full h-auto max-h-48 object-cover rounded-lg border-2 border-white/10 bg-black/20">
+                                <input type="file" id="post-thumbnail-input" class="hidden" accept="image/*">
+                            </div>
+                            <div id="post-alliance-group" class="input-group hidden">
+                                <i class="fas fa-shield-alt input-icon"></i>
+                                <div class="custom-select-container w-full" data-type="alliance">
+                                    <input type="hidden" id="post-alliance" name="alliance">
+                                    <button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options"><input type="text" class="custom-select-search" placeholder="Search..."><div class="options-list"></div></div>
                                 </div>
-                            </form>
+                            </div>
+                            <div id="post-expiration-group" class="input-group hidden">
+                                <i class="fas fa-clock input-icon"></i>
+                                <div class="custom-select-container w-full" data-type="announcement-expiration">
+                                    <input type="hidden" id="post-expiration-days" value="1">
+                                    <button type="button" class="custom-select-value form-input"><span>Expires In: 1 Day</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options"><div class="options-list"></div></div>
+                                </div>
+                            </div>
+                            <div id="post-timing-group" class="hidden space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="input-group"><i class="fas fa-calendar-day input-icon"></i><div class="custom-select-container w-full" data-type="day-of-week"><input type="hidden" id="post-start-day"><button type="button" class="custom-select-value form-input"><span>Start Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                    <div class="input-group"><i class="fas fa-clock input-icon"></i><div class="custom-select-container w-full" data-type="hour-of-day"><input type="hidden" id="post-start-hour"><button type="button" class="custom-select-value form-input"><span>Start Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                    <div class="input-group"><i class="fas fa-calendar-day input-icon"></i><div class="custom-select-container w-full" data-type="day-of-week"><input type="hidden" id="post-end-day"><button type="button" class="custom-select-value form-input"><span>End Day</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                    <div class="input-group"><i class="fas fa-clock input-icon"></i><div class="custom-select-container w-full" data-type="hour-of-day"><input type="hidden" id="post-end-hour"><button type="button" class="custom-select-value form-input"><span>End Hour</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                </div>
+                                <div class="input-group"><i class="fas fa-redo-alt input-icon"></i><div class="custom-select-container w-full" data-type="repeat-type"><input type="hidden" id="post-repeat-type" value="none"><button type="button" class="custom-select-value form-input"><span>Does not repeat</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                <div id="post-repeat-weeks-container" class="input-group hidden"><i class="fas fa-hashtag input-icon"></i><input type="number" id="post-repeat-weeks" class="form-input" placeholder="Repeat every X weeks" value="1" min="1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="post-nav-container" class="create-post-footer">
+                    <p id="create-post-error" class="text-red-400 text-center text-sm mb-3 form-error"></p>
+                    <div class="flex items-center">
+                        <button type="button" id="post-back-btn" class="px-6 py-2 rounded-lg secondary-btn flex items-center"><i class="fas fa-arrow-left mr-2"></i>Back</button>
+                        <div class="flex-grow flex justify-end">
+                            <button type="submit" id="post-submit-btn" class="px-6 py-2 rounded-lg primary-btn hidden flex items-center"><i class="fas fa-check-circle mr-2"></i>Create Post</button>
                         </div>
                     </div>
                 </div>
+            </form>
+        </div>
+    </div>
+</div>
             </div>
 
             <div id="confirmation-modal-container" class="modal-container">
@@ -399,182 +442,174 @@
                 </div>
             </div>
         </div>
+        <header id="app-header" class="sticky top-0 z-50">
+    <div class="glass-pane !rounded-none !border-x-0 !border-t-0">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
 
-        <div class="relative min-h-screen w-full p-4 sm:p-6 lg:p-8">
-            <div class="max-w-6xl mx-auto">
+                <div class="flex-shrink-0">
+                    <a href="#" id="text-logo" class="flex flex-col leading-none">
+                        <div class="font-black text-2xl tracking-wider">
+                            <span class="text-white">899</span><span id="logo-events">EVENTS</span>
+                        </div>
+                    </a>
+                </div>
 
-                <header class="glass-pane header-main flex justify-between items-center mb-6">
-                    <div class="flex-shrink-0">
-                        <img src="img/logo.png" alt="899Events Hub Logo" style="height: 50px;">
-                    </div>
-                    
-                    <nav id="main-nav" class="hidden md:flex flex-grow justify-center items-center">
-                        <div class="nav-item"><div class="nav-link active" data-main-target="page-events"><i class="fas fa-calendar-alt"></i><span>Events</span></div></div>
-                        <div class="nav-item"><div class="nav-link" data-main-target="page-social"><i class="fas fa-comments"></i><span>Social</span></div></div>
-                        <div class="nav-item"><div class="nav-link" data-main-target="page-players"><i class="fas fa-users"></i><span>Players</span></div></div>
+                <div class="flex-grow flex justify-center">
+                    <nav id="main-nav" class="hidden md:flex items-center" style="height:100%">
+                        <div class="nav-item" data-submenu-id="news-submenu">
+                            <a href="#" class="nav-link active" data-main-target="page-news"><i class="fas fa-newspaper fa-fw mr-2"></i><span>News</span></a>
+                        </div>
+                        <div class="nav-item" data-submenu-id="social-submenu">
+                            <a href="#" class="nav-link" data-main-target="page-social"><i class="fas fa-comments fa-fw mr-2"></i><span>Social</span></a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link" data-main-target="page-players"><i class="fas fa-users fa-fw mr-2"></i><span>Players</span></a>
+                        </div>
                         <div class="nav-item" id="feed-nav-item">
-                            <div class="nav-link" data-main-target="page-feed">
-                                <i class="fas fa-bell"></i><span>Feed</span>
-                                <span id="notification-badge" class="notification-badge"></span>
-                            </div>
-                            <div id="feed-dropdown" class="dropdown-menu dropdown-pane glass-pane">
-                                <p class="text-center text-gray-500 p-4">No new notifications.</p>
-                            </div>
+                            <a href="#" class="nav-link" data-main-target="page-feed"><i class="fas fa-bell fa-fw mr-2"></i><span>Feed</span><span id="notification-badge" class="notification-badge"></span></a>
+                            <div id="feed-dropdown" class="dropdown-menu dropdown-pane glass-pane"></div>
                         </div>
                     </nav>
+                    <button id="open-mobile-menu-btn" class="md:hidden flex items-baseline gap-5 text-white/90 hover:text-white transition-colors mr-7">                        
+                        <i class="fas fa-bars fa-md"></i>
+                        <h1 id="mobile-page-title" class="text-lg font-semibold uppercase tracking-widest">News</h1>
+                    </button>
+                </div>
 
-                    <div id="mobile-controls-container" class="flex md:hidden items-center gap-4">
-                        <div id="mobile-auth-container" class="hidden">
-                             <img id="user-avatar-mobile" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-8 h-8 rounded-full object-cover border-2 border-white/20" alt="User Avatar">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center">
+                        <div id="auth-container" class="hidden md:flex items-center">
+                            <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
+                            <div id="user-profile-nav-item" class="nav-item">
+                                <button id="user-profile-button" class="auth-button">
+                                    <div class="avatar-wrapper">
+                                        <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
+                                    </div>
+                                    <span id="username-display"></span>
+                                    <i class="fas fa-caret-down ml-2 transition-transform"></i>
+                                </button>
+                                <div id="player-profile-dropdown" class="dropdown-menu dropdown-pane glass-pane">
+                                    <div class="p-2 mb-2 border-b border-white/10"><p class="text-sm text-gray-400">Total Power</p><p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p></div>
+                                    <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link"><span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span><span class="badge hidden">0</span></button>
+                                    <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link"><span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span><span class="badge hidden">0</span></button>
+                                    <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link"><span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span></button>
+                                    <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link"><span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span></button>
+                                    <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+                                    <div class="p-1"><hr class="border-t border-white/10"></div>
+                                    <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left"><span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span></button>
+                                </div>
+                            </div>
                         </div>
-                        <button id="open-mobile-menu-btn" class="auth-button !px-4 gap-2"><i class="fas fa-bars"></i><span class="font-bold tracking-wider">MENU</span></button>
-                    </div>
-
-                    <div id="auth-container" class="hidden md:flex flex-shrink-0">
-                         <button id="login-btn" class="auth-button"><i class="fas fa-sign-in-alt fa-fw mr-2"></i>Login</button>
-                         <div id="user-profile-nav-item" class="nav-item hidden">
-                            <button id="user-profile-button" class="auth-button">
-                                 <img id="user-avatar-button" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-6 h-6 rounded-full mr-2 object-cover" alt="User Avatar">
-                                <span id="username-display"></span>
-                                <i class="fas fa-caret-down ml-2 transition-transform"></i>
-                            </button>
-                            <div id="player-profile-dropdown" class="dropdown-menu dropdown-pane glass-pane">
-                               <div class="p-2 mb-2 border-b border-white/10">
-                                   <p class="text-sm text-gray-400">Total Power</p>
-                                   <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
-                               </div>
-                               <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
-                                   <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
-                                   <span class="badge hidden">0</span>
-                               </button>
-                               <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
-                                   <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
-                                   <span class="badge hidden">0</span>
-                               </button>
-                               <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
-                                   <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
-                               </button>
-                               <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
-                                   <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
-                               </button>
-                               <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
-                               <div class="p-1"><hr class="border-t border-white/10"></div>
-                               <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
-                                   <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
-                               </button>
+                        <div id="mobile-controls-container" class="flex md:hidden items-center">
+                            <div id="mobile-auth-container" class="hidden items-center gap-2 cursor-pointer">
+                                <div class="text-xs leading-tight text-right">
+                                    <p id="mobile-avatar-alliance" class="font-bold text-white"></p>
+                                    <p id="mobile-avatar-rank" class="text-white/70"></p>
+                                </div>
+                                <div class="avatar-wrapper">
+                                    <img id="user-avatar-mobile" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-8 h-8 rounded-full object-cover">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    </header>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="sub-nav-container" class="sub-nav-slider">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div id="news-submenu" class="sub-nav-content"><a href="#" class="sub-nav-link active" data-sub-target="news-all"><i class="fas fa-grip-horizontal fa-fw w-6"></i> ALL</a><a href="#" class="sub-nav-link" data-sub-target="news-events"><i class="fas fa-calendar-alt fa-fw w-6"></i> Events</a><a href="#" class="sub-nav-link" data-sub-target="news-announcements"><i class="fas fa-bullhorn fa-fw w-6"></i> Announcements</a></div>
+            <div id="social-submenu" class="sub-nav-content hidden"><a href="#" class="sub-nav-link active" data-sub-target="social-chat"><i class="fas fa-comments fa-fw w-6"></i> Chat</a><a href="#" class="sub-nav-link" data-sub-target="social-convo"><i class="fas fa-user-secret fa-fw w-6"></i> Private</a><a href="#" class="sub-nav-link" data-sub-target="social-friends"><i class="fas fa-user-friends fa-fw w-6"></i> Friends</a></div>
+        </div>
+    </div>
+</header>
+
+        <div class="relative min-h-screen w-full">
+            <div class="max-w-6xl mx-auto py-2 px-4">
                 <div id="page-container">
-                    <div id="page-feed" class="page-content" style="display: none;">
-                        <div id="feed-welcome-message" class="mb-8 text-center"></div>
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div class="lg:col-span-1">
-                                <h3 class="section-header text-xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    <span>Action Required</span>
-                                </h3>
-                                <div id="feed-action-container" class="space-y-3"><p class="text-center text-gray-500 py-4">No pending actions.</p></div>
-                            </div>
-                            <div class="lg:col-span-2">
-                                <h3 class="section-header text-xl font-bold mb-4" style="--glow-color: var(--post-color-server);">
-                                    <i class="fas fa-history"></i>
-                                    <span>Feed Activity</span>
-                                </h3>
-                                <div id="feed-activity-container" class="space-y-3">
-                                    <p class="text-center text-gray-500 py-4">No recent activity.</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div id="page-news" class="page-content">
+                        <div id="sub-page-news-all" class="sub-page"></div>
+                        <div id="sub-page-news-events" class="sub-page" style="display: none;"></div>
+                        <div id="sub-page-news-announcements" class="sub-page" style="display: none;"></div>
                     </div>
-                </div>
-                    
                     <div id="page-social" class="page-content" style="display: none;">
-                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                            <div class="lg:col-span-1">
-                                <div id="friends-list-container-social" class="glass-pane section-container flex flex-col">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <h3 class="section-header !border-none !p-0 text-lg font-bold">
-                                            <i class="fas fa-user-friends"></i>Friends
-                                        </h3>
-                                        <button id="collapse-friends-btn" class="lg:hidden text-gray-400 hover:text-white">
-                                            <i class="fas fa-chevron-up"></i>
-                                        </button>
+                        <div id="sub-page-social-chat" class="sub-page">
+                            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                                <div class="lg:col-span-1">
+                                    <div id="friends-list-container-social" class="glass-pane section-container flex flex-col">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <h3 class="section-header !border-none !p-0 text-lg font-bold">
+                                                <i class="fas fa-user-friends"></i>Friends
+                                            </h3>
+                                            <button id="collapse-friends-btn" class="lg:hidden text-gray-400 hover:text-white">
+                                                <i class="fas fa-chevron-up"></i>
+                                            </button>
+                                        </div>
+                                        <div id="friends-list-social-page" class="space-y-2 p-2 rounded-lg bg-black/20 flex-grow themed-scrollbar" style="height: 75vh; overflow-y: auto;"></div>
                                     </div>
-                                    <div id="friends-list-social-page" class="space-y-2 p-2 rounded-lg bg-black/20 flex-grow" style="height: 75vh; overflow-y: auto;">
-                                        </div>
                                 </div>
-                            </div>
-
-                            <div class="lg:col-span-3">
-                                <div class="glass-pane section-container flex flex-col h-full">
-                                    <div id="social-chat-selector" class="mb-4">
-                                        </div>
-                                    
-                                    <div id="social-chat-pane" class="flex flex-col flex-grow">
-                                        <div id="chat-window-main" class="chat-window p-4 flex-grow" style="height: 65vh;">
-                                            <p class="text-center text-gray-500 m-auto">Select a chat to begin.</p>
-                                        </div>
-                                        <form id="chat-input-form" class="mt-4 flex items-center gap-2" style="display: none;">
-                                            <div class="relative flex-grow">
-                                                <input type="text" id="chat-input-main" class="form-input" placeholder="Type a message...">
-                                                <button type="button" id="main-chat-emoji-btn" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
-                                                    <i class="fas fa-smile"></i>
-                                                </button>
+                                <div class="lg:col-span-3">
+                                    <div class="glass-pane section-container flex flex-col h-full">
+                                        <div id="social-chat-selector" class="mb-4"></div>
+                                        <div id="social-chat-pane" class="flex flex-col flex-grow">
+                                            <div id="chat-window-main" class="chat-window p-4 flex-grow" style="height: 65vh;">
+                                                <p class="text-center text-gray-500 m-auto">Select a chat to begin.</p>
                                             </div>
-                                            <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                        </form>
+                                            <form id="chat-input-form" class="mt-4 flex items-center gap-2" style="display: none;">
+                                                <div class="relative flex-grow">
+                                                    <input type="text" id="chat-input-main" class="form-input" placeholder="Type a message...">
+                                                    <button type="button" id="main-chat-emoji-btn" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                                                        <i class="fas fa-smile"></i>
+                                                    </button>
+                                                </div>
+                                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        <div id="sub-page-social-convo" class="sub-page" style="display: none;">
+                            <h2 class="text-2xl font-bold text-white text-center mb-6">Recent Interactions</h2>
+                        </div>
+                        <div id="sub-page-social-friends" class="sub-page" style="display: none;"></div>
                     </div>
                     <div id="page-players" class="page-content" style="display: none;">
-                        <div class="glass-pane section-container">
-                            <div class="text-center mb-8">
-                                <h2 class="text-3xl font-bold text-white tracking-wider" style="text-shadow: 0 0 10px var(--color-primary);">PLAYERS OF 899</h2>
-                                <div class="themed-line-break mx-auto mt-2"></div>
+                        <div class="flex flex-col md:flex-row gap-4 mb-6">
+                            <div class="relative flex-grow">
+                                <i class="fas fa-search absolute top-1/2 left-4 -translate-y-1/2 text-gray-500"></i>
+                                <input type="text" id="player-search-input" placeholder="Search by player name..." class="form-input !pl-10 !rounded-full !bg-gray-900/70">
                             </div>
-
-                            <div class="flex flex-col md:flex-row gap-4 mb-6">
-                                <div class="input-group flex-grow">
-                                    <i class="fas fa-search input-icon"></i>
-                                    <input type="text" id="player-search-input" placeholder="Search by player name..." class="form-input">
-                                </div>
-                                <div class="input-group md:max-w-xs">
-                                    <i class="fas fa-shield-alt input-icon"></i>
-                                    <div class="custom-select-container" data-type="alliance-filter">
-                                        <input type="hidden" id="alliance-filter" name="alliance-filter">
-                                        <button type="button" class="custom-select-value form-input"><span>All Alliances</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                        <div class="custom-select-options">
-                                            <div class="options-list"></div>
-                                        </div>
+                            <div class="input-group md:w-64 !rounded-full !bg-gray-900/70">
+                                <i class="fas fa-shield-alt input-icon"></i>
+                                <div class="custom-select-container w-full" data-type="alliance-filter">
+                                    <input type="hidden" id="alliance-filter">
+                                    <button type="button" class="custom-select-value form-input"><span>All Alliances</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options">
+                                        <div class="options-list"></div>
                                     </div>
                                 </div>
                             </div>
-
-                            <div id="player-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                 </div>
+                        </div>
+                        <div id="player-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         </div>
                     </div>
-                    <div id="page-events" class="page-content">
-                        <main id="events-main-container" class="space-y-6">
-                            
-                            <div id="filter-container" class="filter-btn-group">
-                                </div>
-
-                            <div id="announcements-container" class="space-y-4">
-                                </div>
-
-                            <div id="events-section-container" class="space-y-4">
-                                </div>
-
-                        </main>
+                    <div id="page-feed" class="page-content" style="display: none;">
+                        <div id="feed-welcome-message" class="text-center mb-10"></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div class="lg:col-span-2">
+                                <h2 class="section-header text-1xl font-bold mb-4" style="--glow-color: var(--color-primary);"><i class="fas fa-stream"></i><span>Recent Activity</span></h2>
+                                <div id="feed-activity-container" class="space-y-4"></div>
+                            </div>
+                            <div>
+                                <h2 class="section-header text-1xl font-bold mb-4" style="--glow-color: var(--color-highlight);"><i class="fas fa-exclamation-triangle"></i><span>Pending Actions</span></h2>
+                                <div id="feed-action-container" class="space-y-4"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
                 <footer class="text-center mt-12 py-4 border-t border-gray-800/50"><p class="text-gray-500">&copy; 2025 SWDesigns - 899 Community</p></footer>
             </div>
         </div>

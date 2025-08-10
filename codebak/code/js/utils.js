@@ -77,7 +77,7 @@ export function getEventStatus(event) {
     let endTime = event.endTime?.toDate();
 
     if (!startTime || !endTime) {
-        return { status: 'ended' }; 
+        return { status: 'ended', startTime: null }; 
     }
 
     if (event.isRecurring) {
@@ -90,11 +90,11 @@ export function getEventStatus(event) {
     }
 
     if (startTime > now) {
-        return { status: 'upcoming', timeDiff: startTime - now };
+        return { status: 'upcoming', timeDiff: startTime - now, startTime: startTime };
     } else if (startTime <= now && endTime > now) {
-        return { status: 'live', timeDiff: endTime - now };
+        return { status: 'live', timeDiff: endTime - now, startTime: startTime, endTime: endTime };
     } else {
-        return { status: 'ended', endedDate: endTime };
+        return { status: 'ended', endedDate: endTime, startTime: startTime };
     }
 }
 
@@ -104,13 +104,27 @@ export function calculateNextDateTime(dayOfWeek, hour) {
     const now = new Date();
     
     let resultDate = new Date();
-    resultDate.setDate(now.getDate() + (targetDay - now.getDay() + 7) % 7);
+    
+    // Set the time for the target day
     resultDate.setHours(targetHour, 0, 0, 0);
 
-    if (resultDate < now) {
-        resultDate.setDate(resultDate.getDate() + 7);
+    // --- START: NEW LOGIC ---
+    const currentDay = now.getDay();
+    let dayDifference = targetDay - currentDay;
+
+    // If the target day is in the past (e.g., today is Thurs[4] and target is Tues[2]),
+    // this will be negative. Add 7 to move to next week.
+    if (dayDifference < 0) {
+        dayDifference += 7;
+    } 
+    // If it's the same day, but the target hour is in the past, also move to next week.
+    else if (dayDifference === 0 && targetHour < now.getHours()) {
+        dayDifference += 7;
     }
     
+    resultDate.setDate(now.getDate() + dayDifference);
+    // --- END: NEW LOGIC ---
+
     return resultDate;
 }
 
@@ -179,4 +193,18 @@ export function autoLinkText(text) {
     return text.replace(urlRegex, function(url) {
         return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${url}</a>`;
     });
+}
+export function getAvatarSkinClass(player) {
+    if (!player) return 'avatar-skin-r1'; // Default
+    if (player.isAdmin) return 'avatar-skin-admin';
+    
+    const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
+    return `avatar-skin-${rank}`;
+}
+export function getRankBorderClass(player) {
+    if (!player) return 'rank-border-r1'; // Default
+    if (player.isAdmin) return 'rank-border-admin';
+    
+    const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
+    return `rank-border-${rank}`;
 }

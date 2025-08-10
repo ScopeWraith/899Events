@@ -7,15 +7,56 @@
 
 import { db, storage } from './firebase-config.js';
 import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+import { ref, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from './state.js';
-import { renderPosts } from './ui/post-ui.js';
+import { renderNews } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { renderFriendsList, renderMessages } from './ui/social-ui.js';
 import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
 
+export async function togglePostReaction(postId, reactionType) {
+    const { currentUserData } = getState();
+    if (!currentUserData || !postId || !['like', 'heart'].includes(reactionType)) return;
+
+    const postRef = doc(db, 'posts', postId);
+    const countField = reactionType === 'like' ? 'likes' : 'hearts';
+    const arrayField = reactionType === 'like' ? 'likedBy' : 'heartedBy';
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const postDoc = await transaction.get(postRef);
+            if (!postDoc.exists()) throw "Document does not exist!";
+
+            const currentLikedBy = postDoc.data()[arrayField] || [];
+            let newCount = postDoc.data()[countField] || 0;
+            let newLikedBy = [...currentLikedBy];
+
+            const userIndex = newLikedBy.indexOf(currentUserData.uid);
+            if (userIndex > -1) {
+                // User has already reacted, so remove reaction
+                newLikedBy.splice(userIndex, 1);
+                newCount--;
+            } else {
+                // User has not reacted, so add reaction
+                newLikedBy.push(currentUserData.uid);
+                newCount++;
+            }
+            
+            // Ensure count is never negative
+            if (newCount < 0) newCount = 0;
+
+            let updateData = {};
+            updateData[countField] = newCount;
+            updateData[arrayField] = newLikedBy;
+
+            transaction.update(postRef, updateData);
+        });
+    } catch (e) {
+        console.error("Post reaction transaction failed: ", e);
+    }
+}
 
 export function setupAllListeners(user) {
     const listeners = {};
@@ -25,7 +66,7 @@ export function setupAllListeners(user) {
         if (userDoc.exists()) {
             updateState({ currentUserData: { uid: user.uid, ...userDoc.data() } });
             getState().callbacks.onAuthChange(user);
-            renderPosts(); 
+            renderNews(); 
             applyPlayerFilters();
             setupChatListeners();
         }
@@ -61,7 +102,7 @@ export function fetchInitialData() {
             const allPosts = [];
             querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
             updateState({ allPosts });
-            renderPosts();
+            renderNews();
         }, (error) => console.error("Error with posts listener:", error));
     }
 
@@ -73,6 +114,7 @@ export function fetchInitialData() {
             updateState({ allPlayers });
             applyPlayerFilters();
             renderFriendsList();
+            renderNews(); 
         }, (error) => console.error("Error with users listener:", error));
     }
     
@@ -388,5 +430,36 @@ export async function toggleReaction(chatType, messageId, emoji) {
         });
     } catch (error) {
         console.error("Transaction failed: ", error);
-    }
+    }   
+}
+
+export async function fetchConversations() {
+    const { currentUserData } = getState();
+    if (!currentUserData) return [];
+
+    const conversations = [];
+    const q = query(collection(db, 'private_chats'), where('participants', 'array-contains', currentUserData.uid));
+    const querySnapshot = await getDocs(q);
+
+    const conversationPromises = querySnapshot.docs.map(async (chatDoc) => {
+        const chatData = chatDoc.data();
+        const partnerId = chatData.participants.find(p => p !== currentUserData.uid);
+        
+        const messagesQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), orderBy('timestamp', 'desc'), limit(1));
+        const lastMessageSnapshot = await getDocs(messagesQuery);
+        
+        if (!lastMessageSnapshot.empty) {
+            const lastMessage = lastMessageSnapshot.docs[0].data();
+            return {
+                chatId: chatDoc.id,
+                partnerId: partnerId,
+                lastMessage: lastMessage
+            };
+        }
+        return null;
+    });
+
+    const resolvedConversations = await Promise.all(conversationPromises);
+    
+    return resolvedConversations.filter(convo => convo !== null);
 }

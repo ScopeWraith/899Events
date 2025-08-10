@@ -66,3 +66,39 @@ export const POST_STYLES = {
     campaign: { color: 'var(--post-color-campaign)', icon: 'fas fa-map-marked-alt', bgColor: 'rgba(50, 205, 50, 0.1)'},
     vs: { color: 'var(--post-color-vs)', icon: 'fas fa-fist-raised', bgColor: 'rgba(255, 165, 0, 0.1)'},
 };
+
+export const ANNOUNCEMENT_EXPIRATION_DAYS = [
+    { value: '1', text: '1 Day' },
+    { value: '2', text: '2 Days' },
+    { value: '3', text: '3 Days' }
+];
+
+export const AVATAR_BORDERS = [
+    { value: 'avatar-border-none', text: 'None' },
+    { value: 'avatar-border-sentinel', text: 'Sentinel' },
+    { value: 'avatar-border-cobalt', text: 'Cobalt' },
+    { value: 'avatar-border-solar', text: 'Solar Flare' },
+    { value: 'avatar-border-amethyst', text: 'Amethyst' },
+    { value: 'avatar-border-cyber', text: 'Cybernetic' },
+    { value: 'avatar-border-crimson', text: 'Crimson' },
+    { value: 'avatar-border-glacial', text: 'Glacial' },
+    { value: 'avatar-border-venom', text: 'Venom' },
+    { value: 'avatar-border-ares', text: 'Ares' },
+    { value: 'avatar-border-nebula', text: 'Nebula' },
+    { value: 'avatar-border-chroma', text: 'Chroma' },
+];
+
+export const CHAT_BUBBLE_BORDERS = [
+    { value: 'chat-bubble-border-none', text: 'None' },
+    { value: 'chat-bubble-border-sentinel', text: 'Sentinel' },
+    { value: 'chat-bubble-border-cobalt', text: 'Cobalt' },
+    { value: 'chat-bubble-border-solar', text: 'Solar Flare' },
+    { value: 'chat-bubble-border-amethyst', text: 'Amethyst' },
+    { value: 'chat-bubble-border-cyber', text: 'Cybernetic' },
+    { value: 'chat-bubble-border-crimson', text: 'Crimson' },
+    { value: 'chat-bubble-border-glacial', text: 'Glacial' },
+    { value: 'chat-bubble-border-venom', text: 'Venom' },
+    { value: 'chat-bubble-border-ares', text: 'Ares' },
+    { value: 'chat-bubble-border-nebula', text: 'Nebula' },
+    { value: 'chat-bubble-border-chroma', text: 'Chroma' },
+];
