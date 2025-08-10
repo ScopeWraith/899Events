@@ -322,7 +322,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     align-items: center; 
     grid-template-columns: 1fr; /* A single column for stacking */
     text-align: center; /* Center all text */
-    padding: 1rem; /* Add padding for breathing room */
 }
 .event-card .post-card-content { flex-grow: 1; padding: .4rem; }
 .event-card .post-card-thumbnail-wrapper { flex-shrink: 0; width: 150px; height: 100%; position: relative; overflow: hidden; order: 1; margin-left: auto; }
