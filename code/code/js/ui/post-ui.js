@@ -143,13 +143,15 @@ function createCard(post) {
             </div>
         `;
     } else {
-        const authorData = allPlayers.find(p => p.uid === post.authorUid);
+        const authorData = allPosts.find(p => p.uid === post.authorUid);
         const rankBorder = getRankBorderClass(authorData);
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
         const postDate = post.createdAt?.toDate();
+        // The key change is adding the 'has-thumbnail' class conditionally
+        const hasThumbnailClass = post.thumbnailUrl ? 'has-thumbnail' : '';
         return `
-            <div class="post-card announcement-card cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
-                ${post.thumbnailUrl ? `<div class="announcement-card-thumb" style="background-image: url('${post.thumbnailUrl}')"></div>` : ''}
+            <div class="post-card announcement-card cursor-pointer ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+                ${post.thumbnailUrl ? `<div class="announcement-card-thumbnail" style="background-image: url('${post.thumbnailUrl}')"></div>` : ''}
                 <div class="post-card-body">
                     <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
                     <h3 class="post-card-title !mb-2">${post.title}</h3>
