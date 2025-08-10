@@ -4,7 +4,7 @@ import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/fireba
 import { getState, updateState } from '../state.js';
 import { POST_TYPES, POST_STYLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES } from '../constants.js';
 import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage, getRankBorderClass } from '../utils.js';
-import { hideAllModals, showModal, setCustomSelectValue } from './ui-manager.js';
+import { hideAllModals, showModal, setCustomSelectValue, createSkeletonCard } from './ui-manager.js';
 
 let currentPostStep = 1;
 let postCreationData = {};
