@@ -83,19 +83,19 @@ service cloud.firestore {
 
 
 function canManageUser(targetUserId) {
-      let managerData = getUserData(request.auth.uid);
-      let targetData = getUserData(targetUserId);
-      return isSignedIn() && (
+    let managerData = getUserData(request.auth.uid);
+    let targetData = getUserData(targetUserId);
+    return isSignedIn() && (
         managerData.isAdmin == true ||
         (
-          managerData.alliance == targetData.alliance &&
-          (
-            (managerData.allianceRank == 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetData.allianceRank)) ||
-            (managerData.allianceRank == 'R4' && ['R3', 'R2', 'R1'].includes(targetData.allianceRank))
-          )
+            managerData.alliance == targetData.alliance &&
+            (
+                (managerData.allianceRank == 'R5' && targetData.allianceRank in ['R4', 'R3', 'R2', 'R1']) ||
+                (managerData.allianceRank == 'R4' && targetData.allianceRank in ['R3', 'R2', 'R1'])
+            )
         )
-      );
-    }
+    );
+}
 
     // --- POSTS (ANNOUNCEMENTS & EVENTS) ---
     match /posts/{postId} {
