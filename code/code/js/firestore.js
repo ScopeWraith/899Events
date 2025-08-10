@@ -66,7 +66,8 @@ export function setupAllListeners(user) {
         if (userDoc.exists()) {
             updateState({ currentUserData: { uid: user.uid, ...userDoc.data() } });
             getState().callbacks.onAuthChange(user);
-            renderNews(); 
+            // The news feed should not be refreshed when a user's own profile changes.
+            // This prevents an unnecessary global UI update for all users.
             applyPlayerFilters();
             setupChatListeners();
         }
