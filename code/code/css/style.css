@@ -325,7 +325,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 
 /* Adjust the header to make space for the thumbnail */
 .announcement-card.has-thumbnail .post-card-header {
-    padding-right: 100px; /* 80px width + 20px padding */
+    padding-right: 160px; /* Adjust this value as needed based on thumbnail size + margin */
 }
 .post-card.event-card { 
     flex-direction: row; 
