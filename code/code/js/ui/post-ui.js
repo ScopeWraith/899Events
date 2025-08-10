@@ -81,15 +81,9 @@ export function renderNews(filter = 'all') {
     if (filter === 'all') {
          contentHTML = `
             <div class="mb-8 ${announcements.length === 0 ? 'hidden' : ''}">
-                <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-highlight);">
-                    <i class="fas fa-bullhorn"></i><span>Announcements</span>
-                </h2>
                 <div class="grid grid-cols-1 gap-4">${announcements.map(createCard).join('')}</div>
             </div>
             <div class="${events.length === 0 ? 'hidden' : ''}">
-                <h2 class="section-header text-2xl font-bold mb-4" style="--glow-color: var(--color-primary);">
-                    <i class="fas fa-calendar-alt"></i><span>Events</span>
-                </h2>
                 <div class="grid grid-cols-1 gap-4">${events.map(createCard).join('')}</div>
             </div>
         `;
