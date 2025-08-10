@@ -47,6 +47,19 @@ export function renderNews(filter = 'all') {
 
     if (!container) return;
 
+    // If posts are still loading, display skeletons immediately.
+    if (allPosts.length === 0) {
+        container.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                ${createSkeletonCard()}
+                ${createSkeletonCard()}
+                ${createSkeletonCard()}
+                ${createSkeletonCard()}
+            </div>
+        `;
+        return;
+    }
+
     if (filter === 'announcements' || filter === 'all') {
         announcements = visiblePosts.filter(post => {
             if (post.mainType !== 'announcement') return false;

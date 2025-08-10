@@ -60,7 +60,6 @@ onAuthStateChanged(auth, (user) => {
 
 // --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded', () => {
-    renderSkeletons();
     setupInitialUI();
     initializeAllEventListeners();
     showPage('page-news');
