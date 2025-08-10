@@ -128,7 +128,6 @@ export function renderFriendsList() {
         friendEl.innerHTML = `
             <div class="flex items-center gap-3">
                 <div class="relative">
-                    {/* The border class is added here */}
                     <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder}">
                     <span class="status-dot ${statusClass} absolute bottom-0 right-0 border-2 border-gray-800"></span>
                 </div>
