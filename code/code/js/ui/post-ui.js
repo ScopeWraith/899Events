@@ -143,31 +143,31 @@ function createCard(post,  allPlayers) {
             </div>
         `;
     } else {
-        const authorData = allPosts.find(p => p.uid === post.authorUid);
-        const rankBorder = getRankBorderClass(authorData);
-        const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
-        const postDate = post.createdAt?.toDate();
-        // The key change is adding the 'has-thumbnail' class conditionally
-        const hasThumbnailClass = post.thumbnailUrl ? 'has-thumbnail' : '';
-        return `
-            <div class="post-card announcement-card cursor-pointer ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
-                ${post.thumbnailUrl ? `<div class="announcement-card-thumbnail" style="background-image: url('${post.thumbnailUrl}')"></div>` : ''}
-                <div class="post-card-body">
-                    <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
-                    <h3 class="post-card-title !mb-2">${post.title}</h3>
-                    <p class="post-card-details">${post.details}</p>
-                    <div class="post-card-header mt-3">
-                        <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
-                        <div class="author-info">
-                            <p class="author-name">${authorData?.username || 'Unknown'}</p>
-                            <p class="author-meta">Posted ${postDate ? formatTimeAgo(postDate) : ''}</p>
-                        </div>
+    // CORRECTED: Use `allPlayers` to find the author's data, not `allPosts`
+    const authorData = allPlayers.find(p => p.uid === post.authorUid);
+    const rankBorder = getRankBorderClass(authorData);
+    const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
+    const postDate = post.createdAt?.toDate();
+    const hasThumbnailClass = post.thumbnailUrl ? 'has-thumbnail' : '';
+    return `
+        <div class="post-card announcement-card cursor-pointer ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">
+            ${post.thumbnailUrl ? `<div class="announcement-card-thumbnail" style="background-image: url('${post.thumbnailUrl}')"></div>` : ''}
+            <div class="post-card-body">
+                <span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span>
+                <div class="post-card-header mb-3">
+                    <img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}">
+                    <div class="author-info">
+                        <p class="author-name">${authorData?.username || 'Unknown'}</p>
+                        <p class="author-meta">Posted ${postDate ? formatTimeAgo(postDate) : ''}</p>
                     </div>
                 </div>
-                ${actionsTriggerHTML}
+                <h3 class="post-card-title !mb-2">${post.title}</h3>
+                <p class="post-card-details">${post.details}</p>
             </div>
-        `;
-    }
+            ${actionsTriggerHTML}
+        </div>
+    `;
+}
 }
 
 function updateCountdowns() {
