@@ -84,13 +84,13 @@ export function renderNews(filter = 'all') {
                 <h2 class="section-header text-1xl font-bold">
                     <i class="fas fa-bullhorn"></i><span>Announcements</span>
                 </h2>
-                <div class="grid grid-cols-1 gap-4">${announcements.map(post => createCard(post, allPosts)).join('')}</div>
+                <div class="grid grid-cols-1 gap-4">${announcements.map(post => createCard(post, allPlayers)).join('')}</div>
             </div>
             <div class="${events.length === 0 ? 'hidden' : ''}">
                 <h2 class="section-header text-1xl font-bold">
                     <i class="fas fa-calendar-alt"></i><span>Events</span>
                 </h2>
-                <div class="grid grid-cols-1 gap-4">${events.map(post => createCard(post, allPosts)).join('')}</div>
+                <div class="grid grid-cols-1 gap-4">${events.map(post => createCard(post, allPlayers)).join('')}</div>
             </div>
         `;
         if (announcements.length === 0 && events.length === 0) {
@@ -99,7 +99,7 @@ export function renderNews(filter = 'all') {
     } else {
          const items = filter === 'events' ? events : announcements;
          if (items.length > 0) {
-             contentHTML = `<div class="grid grid-cols-1 gap-4">${items.map(createCard).join('')}</div>`;
+             contentHTML = `<div class="grid grid-cols-1 gap-4">${items.map(post => createCard(post, allPlayers)).join('')}</div>`;
          } else {
              contentHTML = `<p class="text-center text-gray-400 py-8">No ${filter} to display.</p>`;
          }
