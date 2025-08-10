@@ -113,7 +113,7 @@ export function renderNews(filter = 'all') {
 }
 
 function createCard(post,  allPlayers) {
-    const { currentUserData, allPlayers } = getState();
+    const { currentUserData, allPosts } = getState();
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
