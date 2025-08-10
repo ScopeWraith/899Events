@@ -108,7 +108,6 @@ export function fetchInitialData() {
         }, (error) => console.error("Error with users listener:", error));
     }
     // ... rest of the function
-}
 
     // Users listener
     if (!listeners.users) {
