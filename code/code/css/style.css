@@ -287,7 +287,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
         grid-column: 1 / -1;
         background: none; /* No background on mobile for a cleaner overlap */
         justify-content: center; /* Center the status items */
-        min-width:120px;
+        min-width:160px;
     }
 }
 
