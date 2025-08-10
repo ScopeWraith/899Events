@@ -253,9 +253,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     position: relative;
     z-index: 1;
     height: 100%; /* Make sure they take full height */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Center content vertically */
 }
 
 .event-card .post-card-content {
