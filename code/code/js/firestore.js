@@ -118,7 +118,15 @@ export function fetchInitialData() {
             applyPlayerFilters();
         }, (error) => console.error("Error with users listener:", error));
     }
-    
+    // Posts listener   
+    if (!listeners.posts) {
+        listeners.posts = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
+            const allPosts = [];
+            querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
+            updateState({ allPosts });
+            renderNews();
+        }, (error) => console.error("Error with posts listener:", error));
+    }
     // Sessions listener for presence
     if (!listeners.sessions) {
         listeners.sessions = onSnapshot(collection(db, 'sessions'), (snapshot) => {
