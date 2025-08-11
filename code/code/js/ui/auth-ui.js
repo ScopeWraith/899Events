@@ -263,24 +263,27 @@ export async function handleEditProfileSubmit(e) {
     };
 
     let needsReverification = false;
+    let oldAlliance = currentUserData.alliance;
+    let newAlliance = updatedData.alliance;
+
     // Check if the user changed their alliance or rank
-    if (currentUserData && (updatedData.alliance !== currentUserData.alliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
-        
-        // If the alliance has been changed, set it to a pending state.
-        if (updatedData.alliance !== currentUserData.alliance) {
-            updatedData.alliance = 'Pending Alliance';
-        }
-        
-        // In all cases of alliance or rank change, the user is un-verified.
+    if (currentUserData && (newAlliance !== oldAlliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
         needsReverification = true;
+        // Only set alliance to pending if they changed alliances
+        if (newAlliance !== oldAlliance) {
+             updatedData.alliance = 'Pending Alliance';
+        }
     }
 
     try {
         await updateDoc(doc(db, "users", user.uid), updatedData);
         hideAllModals();
+
+        // If re-verification is needed, send notification to leaders of the new/current alliance
         if (needsReverification) {
-            alert("Profile updated! You have been un-verified and will need to be approved by a leader in your new alliance or rank to access all features.");
+            await sendVerificationRequest(user.uid, updatedData.username, newAlliance);
+            alert("Profile updated! You have been un-verified and will need to be approved by a leader in your alliance to access all features.");
         }
     } catch (error) {
         console.error("Update profile error:", error);

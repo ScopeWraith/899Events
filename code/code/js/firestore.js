@@ -284,7 +284,32 @@ export async function handleDeleteMessage(messageId, chatType) {
        alert("Failed to delete message. You may not have permission.");
    }
 }
+export async function sendVerificationRequest(senderUid, senderUsername, alliance) {
+    if (!alliance || alliance === 'Pending Alliance') return;
 
+    try {
+        const leadersQuery = query(collection(db, 'users'), where('alliance', '==', alliance), where('allianceRank', 'in', ['R5', 'R4']));
+        const leadersSnapshot = await getDocs(leadersQuery);
+        const batch = writeBatch(db);
+        leadersSnapshot.forEach(leaderDoc => {
+            const notificationRef = doc(collection(db, 'notifications'));
+            batch.set(notificationRef, {
+                recipientUid: leaderDoc.id,
+                senderUid: senderUid,
+                senderUsername: senderUsername,
+                type: 'verification_request',
+                message: `${senderUsername} has updated their profile and is awaiting verification.`,
+                isRead: false,
+                timestamp: serverTimestamp()
+            });
+        });
+        await batch.commit();
+        return true;
+    } catch (error) {
+        console.error("Error sending verification request:", error);
+        return false;
+    }
+}
 export async function handleNotificationAction(notificationId, action, senderUid, targetUid) {
     const { currentUserData } = getState();
     if (!currentUserData) return;
