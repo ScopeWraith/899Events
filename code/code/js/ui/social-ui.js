@@ -147,13 +147,6 @@ export function renderMessages(messages, container, chatType) {
     const { currentUserData, allPlayers } = getState();
     if (!currentUserData || !container) return;
 
-    // A helper to get the right CSS class for the border
-    const getRankBorderClass = (player) => {
-        if (player?.isAdmin) return 'rank-border-admin';
-        const rank = player?.allianceRank;
-        return `rank-border-${rank?.toLowerCase() || 'r1'}`;
-    };
-
     container.innerHTML = ''; // Clear previous messages
     if (messages.length === 0) {
         container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
@@ -166,20 +159,15 @@ export function renderMessages(messages, container, chatType) {
         const authorUsername = authorData?.username || 'Unknown User';
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
         const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
-        const borderClass = getRankBorderClass(authorData);
-        const avatarBorder = authorData?.avatarBorder || 'avatar-border-common';
-        const chatBubbleBorder = authorData?.chatBubbleBorder || 'chat-bubble-border-common';
-        const avatarSkin = getAvatarSkinClass(authorData);
         const rankBorder = getRankBorderClass(authorData);
-    
+
         // --- Determine which action buttons to show ---
-        const canEdit = isSelf;
         const canDelete = canDeleteMessage(currentUserData, authorData);
         let messageActionsHTML = '';
-        if (canEdit || canDelete) {
+        if (canDelete) {
             messageActionsHTML = `
                 <div class="message-actions">
-                    ${canDelete ? `<button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>` : ''}
+                    <button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>
                 </div>
             `;
         }
@@ -199,29 +187,30 @@ export function renderMessages(messages, container, chatType) {
         let messageContent = `<p class="chat-message-author">${authorUsername}</p>`;
         if (msg.text) messageContent += `<p>${autoLinkText(msg.text)}</p>`;
         if (msg.imageUrl) messageContent += `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">`;
-
+        
         // --- FINAL ASSEMBLY ---
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
         messageEl.innerHTML = `
-            <div class="chat-message-identity">
-                <div class="avatar-container">
+            ${isSelf ? '' : `
+                <div class="chat-message-identity">
                     <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder}" alt="${authorUsername}">
-                    <div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>                
+                    <p class="chat-message-timestamp">${timestamp}</p>
                 </div>
-                <p class="chat-message-timestamp">${timestamp}</p>
-                ${messageActionsHTML}
-            </div>
+            `}
             <div class="chat-message-main">
                 <div class="chat-message-bubble ${rankBorder}" data-message-id="${msg.id}" data-chat-type="${chatType}">
-                    ${messageContent}
+                    ${isSelf ? '' : `<p class="chat-message-author">${authorUsername}</p>`}
+                    ${msg.text ? `<p>${autoLinkText(msg.text)}</p>` : ''}
+                    ${msg.imageUrl ? `<img src="${msg.imageUrl}" class="chat-message-image" alt="User uploaded image">` : ''}
                 </div>
                 <div class="chat-reactions-container">${reactionPillsHTML}</div>
             </div>
+            ${canDelete ? `<div class="delete-message-btn" data-message-id="${msg.id}" data-chat-type="${chatType}"><i class="fas fa-times"></i></div>` : ''}
         `;
         container.appendChild(messageEl);
     });
-    
+
     // Scroll to the bottom of the chat window
     container.scrollTop = container.scrollHeight;
 }
