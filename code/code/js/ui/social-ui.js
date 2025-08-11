@@ -11,7 +11,7 @@ let currentSubmitHandler = null; // To manage the form's event listener
 const CHAT_CHANNELS = {
     world_chat: {
         id: 'world_chat',
-        name: 'World Chat',
+        name: 'World',
         icon: 'fas fa-globe',
         color: 'var(--color-primary)',
         requiresAuth: true
