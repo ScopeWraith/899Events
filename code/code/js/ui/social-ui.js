@@ -32,35 +32,6 @@ const CHAT_CHANNELS = {
     }
 };
 
-// Function to build the chat selection list
-export async function renderConversations() {
-    const container = document.getElementById('sub-page-social-chat');
-    if (!container) return;
-
-    const conversations = await fetchConversations();
-    const { allPlayers, userSessions } = getState();
-    const listContainer = document.getElementById('convo-list');
-
-    if (conversations.length === 0) {
-        listContainer.innerHTML = `<p class="text-center text-gray-400 py-8">No recent conversations. Start one from the Players page!</p>`;
-        return;
-    }
-
-    listContainer.innerHTML = conversations.map(convo => {
-        // ... (HTML for conversation list item, similar to the existing code)
-    }).join('');
-
-    listContainer.querySelectorAll('.convo-item').forEach(el => {
-        el.addEventListener('click', () => {
-            const partnerId = el.dataset.partnerUid;
-            const partnerData = allPlayers.find(p => p.uid === partnerId);
-            if(partnerData) {
-                showPrivateMessageModal(partnerData);
-            }
-        });
-    });
-}
-
 // --- EXISTING FUNCTIONS (Modified) ---
 
 export function renderFriendsList() {
@@ -192,24 +163,17 @@ export function renderMessages(messages, container, chatType) {
     container.scrollTop = container.scrollHeight;
 }
 export async function renderConversations() {
-    const container = document.getElementById('sub-page-social-convo');
+    const container = document.getElementById('sub-page-social-chat');
     if (!container) return;
-
-    // Add a header and a container for the list
-    container.innerHTML = `<h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6" style="text-shadow: 0 0 10px var(--color-primary);">Recent Interactions</h2><div id="convo-list" class="space-y-3 max-w-4xl mx-auto"></div>`;
-    const listContainer = document.getElementById('convo-list');
-    listContainer.innerHTML = `<p class="text-center text-gray-400 py-8">Loading conversations...</p>`;
 
     const conversations = await fetchConversations();
     const { allPlayers, userSessions } = getState();
+    const listContainer = document.getElementById('convo-list');
 
     if (conversations.length === 0) {
         listContainer.innerHTML = `<p class="text-center text-gray-400 py-8">No recent conversations. Start one from the Players page!</p>`;
         return;
     }
-    
-    // Sort by the timestamp of the last message
-    conversations.sort((a, b) => b.lastMessage.timestamp.toDate() - a.lastMessage.timestamp.toDate());
 
     listContainer.innerHTML = conversations.map(convo => {
         const partnerData = allPlayers.find(p => p.uid === convo.partnerId);
@@ -246,7 +210,6 @@ export async function renderConversations() {
         `;
     }).join('');
 
-    // Add event listeners to open the chat modal when an item is clicked
     listContainer.querySelectorAll('.convo-item').forEach(el => {
         el.addEventListener('click', () => {
             const partnerId = el.dataset.partnerUid;
