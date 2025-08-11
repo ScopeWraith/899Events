@@ -1,16 +1,10 @@
-// code/js/ui/player-settings-ui.js
-
-/**
- * This module handles the UI logic for the Player Settings modal,
- * allowing admins and alliance leaders to manage player roles and verification.
- */
-
 import { db } from '../firebase-config.js';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getState } from '../state.js';
 import { canManageUser } from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { ALLIANCE_RANKS, ALLIANCE_ROLES } from '../constants.js';
+import { sendVerificationRequest } from '../firestore.js'; // New Import
 
 export function populatePlayerSettingsForm(player) {
     const { currentUserData } = getState();
@@ -38,18 +32,35 @@ export async function handlePlayerSettingsSubmit(e) {
     const errorElement = document.getElementById('player-settings-error');
     errorElement.textContent = '';
 
+    const newAllianceRank = document.getElementById('setting-alliance-rank').value;
+    const newAllianceRole = document.getElementById('setting-alliance-role').value;
+    const isVerifiedChecked = document.getElementById('setting-verified').checked;
+
     const updatedData = {
-        allianceRank: document.getElementById('setting-alliance-rank').value,
-        allianceRole: document.getElementById('setting-alliance-role').value,
+        allianceRank: newAllianceRank,
+        allianceRole: newAllianceRole,
     };
+    
+    // Check if rank or verification status has changed
+    const rankHasChanged = newAllianceRank !== targetPlayer.allianceRank;
+    const verificationHasChanged = isVerifiedChecked !== targetPlayer.isVerified;
 
     if (canManageUser(currentUserData, targetPlayer)) {
-        updatedData.isVerified = document.getElementById('setting-verified').checked;
+        if (rankHasChanged) {
+            updatedData.isVerified = false;
+        } else {
+            updatedData.isVerified = isVerifiedChecked;
+        }
     }
-
+    
     try {
         await updateDoc(doc(db, "users", activePlayerSettingsUID), updatedData);
         hideAllModals();
+
+        // If the rank has changed, send a verification request
+        if (rankHasChanged) {
+            await sendVerificationRequest(targetPlayer.uid, targetPlayer.username, targetPlayer.alliance);
+        }
     } catch (error) {
         console.error("Error updating player settings:", error);
         errorElement.textContent = "Failed to save settings.";

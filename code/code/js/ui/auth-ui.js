@@ -1,10 +1,3 @@
-// code/js/ui/auth-ui.js
-
-/**
- * This module handles all UI logic related to authentication,
- * including registration steps, login form, profile editing, and avatar updates.
- */
-
 import { auth, db, storage } from '../firebase-config.js';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -13,6 +6,7 @@ import { getState, updateState } from '../state.js';
 import { resizeImage , getAvatarSkinClass, getRankBorderClass} from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
+import { sendVerificationRequest } from '../firestore.js'; // New Import
 
 let currentRegStep = 1;
 let resizedAvatarBlob = null;
