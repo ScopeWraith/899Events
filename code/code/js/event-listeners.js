@@ -9,7 +9,7 @@ import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction  } from './firestore.js';
-import { activateChatChannel } from './ui/social-ui.js';
+// REMOVED: import { activateChatChannel } from './ui/social-ui.js';
 import { positionEmojiPicker } from './utils.js';
 
 export function initializeAllEventListeners() {
@@ -133,7 +133,7 @@ export function initializeAllEventListeners() {
     addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
-    addListener('close-private-message-modal-btn', 'click', hideAllModals);
+    addListener('close-private-chat-modal-btn', 'click', hideAllModals);
     addListener('confirmation-cancel-btn', 'click', hideAllModals);
     addListener('close-post-actions-modal-btn', 'click', hideAllModals);
     addListener('modal-backdrop', 'click', (e) => {
