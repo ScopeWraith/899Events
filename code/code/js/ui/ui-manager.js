@@ -7,7 +7,7 @@
  */
 
 import { getState, updateState } from '../state.js';
-import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES } from '../constants.js';
+import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
@@ -45,7 +45,6 @@ export function handleSubNavClick(subTargetId) {
         console.warn(`Sub-page with id "sub-page-${subTargetId}" not found.`);
     }
 
-    // Handle specific rendering logic for each sub-page
     switch (subTargetId) {
         case 'news-all':
         case 'news-events':
@@ -66,10 +65,8 @@ export function handleSubNavClick(subTargetId) {
             applyPlayerFilters();
             break;
         case 'server-alliances':
-            // No specific render function yet, just show the page
             break;
         case 'server-nap':
-            // No specific render function yet, just show the page
             break;
     }
 }
@@ -77,9 +74,8 @@ export function handleSubNavClick(subTargetId) {
 export function showViewPostModal(post) {
     if (!post) return;
     const { allPlayers, currentUserData } = getState();
-    updateState({ actionPostId: post.id }); // Keep track of the open post's ID
+    updateState({ actionPostId: post.id });
 
-    // --- Populate Header ---
     const author = allPlayers.find(p => p.uid === post.authorUid);
     const authorSection = getElement('view-post-author-section');
     if (author) {
@@ -94,7 +90,6 @@ export function showViewPostModal(post) {
         authorSection.style.display = 'none';
     }
 
-    // --- Populate Content ---
     const categoryStyle = POST_STYLES[post.subType] || {};
     const postTypeKey = Object.keys(POST_TYPES).find(key => POST_TYPES[key].subType === post.subType && POST_TYPES[key].mainType === post.mainType);
     const categoryInfo = POST_TYPES[postTypeKey] || {};
@@ -113,21 +108,20 @@ export function showViewPostModal(post) {
     }
     getElement('view-post-details').innerHTML = autoLinkText(post.details).replace(/\n/g, '<br />');
 
-    // --- Populate Footer & Reactions ---
-const likeBtn = document.querySelector('.post-reaction-btn[data-reaction="like"]');
-const heartBtn = document.querySelector('.post-reaction-btn[data-reaction="heart"]');
+    const likeBtn = document.querySelector('.post-reaction-btn[data-reaction="like"]');
+    const heartBtn = document.querySelector('.post-reaction-btn[data-reaction="heart"]');
 
-likeBtn.querySelector('.reaction-count').textContent = post.likes || 0;
-heartBtn.querySelector('.reaction-count').textContent = post.hearts || 0;
+    likeBtn.querySelector('.reaction-count').textContent = post.likes || 0;
+    heartBtn.querySelector('.reaction-count').textContent = post.hearts || 0;
 
-if (currentUserData) {
-    likeBtn.classList.toggle('reacted', post.likedBy && post.likedBy.includes(currentUserData.uid));
-    heartBtn.classList.toggle('reacted', post.heartedBy && post.heartedBy.includes(currentUserData.uid));
-}
+    if (currentUserData) {
+        likeBtn.classList.toggle('reacted', post.likedBy && post.likedBy.includes(currentUserData.uid));
+        heartBtn.classList.toggle('reacted', post.heartedBy && post.heartedBy.includes(currentUserData.uid));
+    }
 
     showModal(getElement('view-post-modal-container'));
 }
-// NEW function to control the slide-out sub-menu
+
 export function toggleSubNav(activeSubmenuId) {
     const subNavContainer = document.getElementById('sub-nav-container');
     if (!subNavContainer) return;
@@ -147,14 +141,11 @@ export function toggleSubNav(activeSubmenuId) {
     }
 }
 
-// REVISED showPage function
 export function showPage(targetId) {
-    // This part remains the same: show/hide main page content
     querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';
     });
 
-    // NEW: Update mobile page title
     const mobileTitleEl = getElement('mobile-page-title');
     const activeNavLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
     if (mobileTitleEl && activeNavLink) {
@@ -162,7 +153,6 @@ export function showPage(targetId) {
         mobileTitleEl.textContent = titleText;
     }
     
-    // This logic still correctly renders the default content for each page
     if (targetId === 'page-news') {
         renderNews('all');
     } else if (targetId === 'page-feed') {
@@ -177,11 +167,8 @@ export function showPage(targetId) {
         }
         renderFeedActivity();
     } else if (targetId === 'page-social') {
-        // REPLACED OLD CHAT LOGIC
-        // Instead of activating a chat channel, we now render the conversation list.
         handleSubNavClick('social-chat');
     } else if (targetId === 'page-server') {
-        // Show the default 'Alliances' sub-page
         const alliancesSubpage = getElement('sub-page-server-alliances');
         if(alliancesSubpage) {
             alliancesSubpage.style.display = 'block';
@@ -206,7 +193,6 @@ export function hideAllModals() {
         activePrivateChatId: null,
         activePrivateChatPartner: null 
     });
-    // Detach private chat listener if it exists
     const { listeners } = getState();
     if (listeners.privateChat) listeners.privateChat();
 }
@@ -216,7 +202,6 @@ export function showAuthModal(formToShow) {
     querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
     if (formToShow === 'register') {
         getElement('register-form-container').classList.add('active');
-        // initializeRegistrationStepper(); // This will be handled in auth-ui.js
     } else {
         getElement('login-form-container').classList.add('active');
     }
@@ -260,21 +245,16 @@ export function showPostActionsModal(postId) {
     const editBtn = document.getElementById('modal-edit-post-btn');
     const deleteBtn = document.getElementById('modal-delete-post-btn');
 
-    // Clone and replace buttons to remove old event listeners
     const newEditBtn = editBtn.cloneNode(true);
     const newDeleteBtn = deleteBtn.cloneNode(true);
     editBtn.parentNode.replaceChild(newEditBtn, editBtn);
     deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
 
-    // Add new listener for the EDIT button
     newEditBtn.addEventListener('click', () => {
         hideAllModals();
-        // We are importing a function from post-ui.js that is not yet exported.
-        // We will add this export in the next step.
         populatePostFormForEdit(postId); 
     });
 
-    // Add new listener for the DELETE button
     newDeleteBtn.addEventListener('click', () => {
         const { allPosts } = getState();
         const postToDelete = allPosts.find(p => p.id === postId);
@@ -290,7 +270,7 @@ export function showPostActionsModal(postId) {
                         console.error("Error deleting post: ", err);
                         alert("Error: Could not delete post.");
                     }
-                    hideAllModals(); // Add this line
+                    hideAllModals();
                 }
             );
         }
@@ -299,46 +279,72 @@ export function showPostActionsModal(postId) {
     showModal(document.getElementById('post-actions-modal-container'));
 }
 
-export async function showPrivateMessageModal(targetPlayer) {
+export async function showFullscreenChatModal({ targetPlayer = null, chatType = null }) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
 
-    if (!targetPlayer) {
-        console.error("showPrivateMessageModal called with an invalid targetPlayer.");
-        alert("Failed to open chat: Player data is missing. Please try again.");
-        return;
-    }
+    getElement('chat-header-user-info').style.display = 'none';
+    getElement('chat-header-channel-info').style.display = 'none';
+    getElement('fullscreen-chat-window').innerHTML = '';
+    
+    const { listeners } = getState();
+    if (listeners.privateChat) listeners.privateChat();
+    if (listeners.worldChat) listeners.worldChat();
+    if (listeners.allianceChat) listeners.allianceChat();
+    if (listeners.leadershipChat) listeners.leadershipChat();
 
-    try {
-        const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
-        const chatDocRef = doc(db, 'private_chats', chatId);
-        await setDoc(chatDocRef, {
-            participants: [currentUserData.uid, targetPlayer.uid]
-        }, { merge: true });
+    if (targetPlayer) {
+        if (!targetPlayer) {
+            console.error("showFullscreenChatModal called with an invalid targetPlayer.");
+            alert("Failed to open chat: Player data is missing. Please try again.");
+            return;
+        }
 
-        updateState({
-            activePrivateChatPartner: targetPlayer,
-            activePrivateChatId: chatId
-        });
+        try {
+            const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
+            const chatDocRef = doc(db, 'private_chats', chatId);
+            await setDoc(chatDocRef, {
+                participants: [currentUserData.uid, targetPlayer.uid]
+            }, { merge: true });
 
-        const session = userSessions[targetPlayer.uid];
-        const status = session ? session.status : 'offline';
-        getElement('private-chat-username').textContent = targetPlayer.username;
-        getElement('private-chat-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        getElement('private-chat-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
-        getElement('private-chat-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
-        getElement('private-chat-window').innerHTML = '';
+            updateState({
+                activePrivateChatPartner: targetPlayer,
+                activePrivateChatId: chatId
+            });
 
-        showModal(getElement('private-chat-modal-container'));
+            const session = userSessions[targetPlayer.uid];
+            const status = session ? session.status : 'offline';
+            getElement('chat-header-user-info').style.display = 'flex';
+            getElement('chat-header-username').textContent = targetPlayer.username;
+            getElement('chat-header-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            getElement('chat-header-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
+            getElement('chat-header-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
+            getElement('fullscreen-chat-window').innerHTML = '';
 
-        setupPrivateChatListener(chatId);
+            showModal(getElement('fullscreen-chat-modal-container'));
+            setupPrivateChatListener(chatId);
 
-    } catch (error) {
-        console.error("Failed to open private chat:", error);
-        alert("Could not open the chat window. Please check the console for errors.");
+        } catch (error) {
+            console.error("Failed to open private chat:", error);
+            alert("Could not open the chat window. Please check the console for errors.");
+        }
+    } else if (chatType) {
+        const channel = CHAT_CHANNELS[chatType];
+        if (!channel) {
+            console.error("showFullscreenChatModal called with an invalid chatType.");
+            return;
+        }
+
+        getElement('chat-header-channel-info').style.display = 'flex';
+        getElement('chat-header-channel-name').textContent = channel.name;
+        getElement('chat-header-channel-icon').className = `${channel.icon} mr-3 text-2xl`;
+        getElement('chat-header-channel-icon').style.color = channel.color;
+        getElement('fullscreen-chat-window').innerHTML = '';
+
+        showModal(getElement('fullscreen-chat-modal-container'));
+        setupChatListeners(chatType, 'fullscreen');
     }
 }
-// --- UI INITIALIZATION & UPDATES ---
 
 export function setupInitialUI() {
     setupCustomSelects();
@@ -382,7 +388,6 @@ export function buildMobileNav() {
     mobileNavLinksContainer.innerHTML = '';
     const desktopNav = getElement('main-nav');
 
-    // --- Main Page Links ---
     desktopNav.querySelectorAll('.nav-item').forEach(item => {
         const link = item.querySelector('.nav-link');
         const newLink = document.createElement('a');
@@ -412,7 +417,6 @@ export function buildMobileNav() {
     divider.className = 'border-t border-white/10 my-2';
     mobileNavLinksContainer.appendChild(divider);
 
-    // --- Admin Links ---
     if (currentUserData && currentUserData.isAdmin) {
         const createEventLink = document.createElement('a');
         createEventLink.href = '#';
@@ -433,7 +437,6 @@ export function buildMobileNav() {
         mobileNavLinksContainer.appendChild(adminDivider);
     }
     
-    // --- User-Specific Links ---
     if (currentUserData) {
         const editProfileMobile = document.createElement('a');
         editProfileMobile.href = '#';
@@ -446,7 +449,7 @@ export function buildMobileNav() {
         logoutMobile.href = '#';
         logoutMobile.className = 'mobile-nav-link';
         logoutMobile.innerHTML = `<i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>Logout`;
-        logoutMobile.onclick = (e) => { e.preventDefault(); auth.signOut(); }; // Assuming auth is available here
+        logoutMobile.onclick = (e) => { e.preventDefault(); auth.signOut(); };
         mobileNavLinksContainer.appendChild(logoutMobile);
     } else {
         const loginMobile = document.createElement('a');
@@ -582,9 +585,6 @@ export function createSkeletonCard() {
 }
 
 export function renderSkeletons() {
-    // You'll now render skeletons as part of the `renderNews` function,
-    // so this function can be simplified. It's main job is just to
-    // show a single loading state on initial load.
     const appContainer = getElement('page-news');
     if (!appContainer) return;
     appContainer.innerHTML = `

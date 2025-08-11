@@ -3,7 +3,7 @@
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
+import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
@@ -27,13 +27,13 @@ export function initializeAllEventListeners() {
         const { allPlayers } = getState();
         const partnerData = allPlayers.find(p => p.uid === partnerId);
         if (partnerData) {
-            showPrivateMessageModal(partnerData);
+            showFullscreenChatModal({ targetPlayer: partnerData });
         }
     }
     });
-    addListener('private-chat-form', 'submit', async (e) => {
+    addListener('fullscreen-chat-form', 'submit', async (e) => {
         e.preventDefault();
-        const input = getElement('private-chat-input');
+        const input = getElement('fullscreen-chat-input');
         const text = input.value.trim();
         if (text === '') return;
         input.value = '';
@@ -64,7 +64,6 @@ export function initializeAllEventListeners() {
 
             showPage(mainTarget);
 
-            // This is the simplified, corrected logic.
             toggleSubNav(submenuId);
 
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
@@ -92,23 +91,19 @@ export function initializeAllEventListeners() {
     const editProfileModal = getElement('edit-profile-modal-container');
     if (editProfileModal) {
         editProfileModal.addEventListener('click', (e) => {
-            // Tab switching logic
             const tabBtn = e.target.closest('.modal-tab-btn');
             if (tabBtn) {
                 e.preventDefault();
                 const tabName = tabBtn.dataset.tab;
 
-                // Update button active state
                 editProfileModal.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
                 tabBtn.classList.add('active');
 
-                // Update pane visibility
                 editProfileModal.querySelectorAll('.modal-tab-pane').forEach(pane => {
                     pane.classList.toggle('active', pane.id === `edit-profile-tab-${tabName}`);
                 });
             }
 
-            // Skin/Border selection logic
             const skinBtn = e.target.closest('.skin-select-btn');
             if (skinBtn) {
                 e.preventDefault();
@@ -116,7 +111,6 @@ export function initializeAllEventListeners() {
                 const targetInputId = parentContainer.id.replace('-selector', '');
                 const targetInput = getElement(`edit-${targetInputId}`);
 
-                // Update hidden input and button active state
                 if (targetInput) {
                     targetInput.value = skinBtn.dataset.value;
                     parentContainer.querySelectorAll('.skin-select-btn').forEach(btn => btn.classList.remove('active'));
@@ -132,7 +126,7 @@ export function initializeAllEventListeners() {
     addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
-    addListener('close-private-chat-modal-btn', 'click', hideAllModals);
+    addListener('close-fullscreen-chat-modal-btn', 'click', hideAllModals);
     addListener('confirmation-cancel-btn', 'click', hideAllModals);
     addListener('close-post-actions-modal-btn', 'click', hideAllModals);
     addListener('modal-backdrop', 'click', (e) => {
@@ -141,7 +135,6 @@ export function initializeAllEventListeners() {
             const mobileNav = getElement('mobile-nav-menu');
             if (mobileNav.classList.contains('open')) {
                 mobileNav.classList.remove('open');
-                // Change icon back to 'bars'
                 const icon = getElement('open-mobile-menu-btn').querySelector('i');
             }
         }
@@ -218,14 +211,12 @@ export function initializeAllEventListeners() {
     addListener('open-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.add('open');
         getElement('modal-backdrop').classList.add('visible');
-        // Change icon to 'X'
         const icon = getElement('open-mobile-menu-btn').querySelector('i');
     });
 
     addListener('close-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.remove('open');
         getElement('modal-backdrop').classList.remove('visible');
-        // Change icon back to 'bars'
         const icon = getElement('open-mobile-menu-btn').querySelector('i');
     });
 
@@ -252,7 +243,7 @@ export function initializeAllEventListeners() {
         document.querySelectorAll('.chat-selector-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         
-        setupChatListeners(btn.dataset.chatType);
+        showFullscreenChatModal({ chatType: btn.dataset.chatType });
     });
 
     addListener('chat-form-main', 'submit', async (e) => {
@@ -304,9 +295,9 @@ export function initializeAllEventListeners() {
     }
 
     // Private Message Modal Click Handler
-    const privateChatModal = getElement('private-chat-modal-container');
-    if (privateChatModal) {
-        privateChatModal.addEventListener('click', (e) => {
+    const fullscreenChatModal = getElement('fullscreen-chat-modal-container');
+    if (fullscreenChatModal) {
+        fullscreenChatModal.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-message-btn');
             if (deleteBtn) {
                 const messageEl = deleteBtn.closest('.chat-message');
@@ -370,7 +361,7 @@ export function initializeAllEventListeners() {
         } else if (messageBtn && currentUserData) {
             const playerCard = messageBtn.closest('.player-card');
             const targetPlayer = allPlayers.find(p => p.uid === playerCard.dataset.uid);
-            if (targetPlayer) showPrivateMessageModal(targetPlayer);
+            if (targetPlayer) showFullscreenChatModal({ targetPlayer });
         } else if (settingsBtn) {
             const targetPlayer = allPlayers.find(p => p.uid === settingsBtn.dataset.uid);
             if(targetPlayer) showPlayerSettingsModal(targetPlayer);
@@ -384,7 +375,7 @@ export function initializeAllEventListeners() {
             if (messageBtn) {
                 const { allPlayers } = getState();
                 const targetPlayer = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
-                if (targetPlayer) showPrivateMessageModal(targetPlayer);
+                if (targetPlayer) showFullscreenChatModal({ targetPlayer });
             }
         });
     }
@@ -427,11 +418,9 @@ export function initializeAllEventListeners() {
         } else if (createEventBtn) {
             showCreatePostModal('event');
         } else if (actionsBtn) {
-            // Prevent card click from firing when clicking the options button
             e.stopPropagation(); 
             showPostActionsModal(actionsBtn.dataset.postId);
         } else if (announcementCard) {
-            // This is the logic that opens the modal
             const { allPosts } = getState();
             const post = allPosts.find(p => p.id === announcementCard.dataset.postId);
             if (post) {
@@ -441,7 +430,7 @@ export function initializeAllEventListeners() {
     });
 
     // --- Attachment and Emoji Logic ---
-    addListener('private-chat-attach-btn', 'click', () => {
+    addListener('fullscreen-chat-attach-btn', 'click', () => {
         const attachInput = getElement('private-message-attach-input');
         if (attachInput) attachInput.click();
     });
@@ -465,8 +454,7 @@ export function initializeAllEventListeners() {
             });
         }
     };
-    setupEmojiButton('main-chat-emoji-btn', 'chat-input-main');
-    setupEmojiButton('private-chat-emoji-btn', 'private-chat-input');
+    setupEmojiButton('fullscreen-chat-emoji-btn', 'fullscreen-chat-input');
 
     if (emojiPicker) {
         emojiPicker.addEventListener('emoji-click', event => {
