@@ -231,13 +231,26 @@ export function initializePostStepper(mainType) {
 
 function getAvailablePostTypes(mainType) {
     const { currentUserData } = getState();
+    // Return an empty array if the user is not logged in or is not verified
+    if (!currentUserData || !currentUserData.isVerified) {
+        // Admins can bypass verification
+        if (!currentUserData?.isAdmin) {
+             return [];
+        }
+    }
+    
     return Object.entries(POST_TYPES).filter(([key, type]) => {
         if (type.mainType !== mainType) return false;
-        if (!currentUserData) return false;
-        if (type.isAdminOnly) return currentUserData.isAdmin;
-        if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
-        if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
-        return true;
+        
+        // Admins can create all posts
+        if (currentUserData.isAdmin) return true;
+
+        // Check for required ranks and verification status
+        if (type.allowedRanks) {
+            return type.allowedRanks.includes(currentUserData.allianceRank);
+        }
+        
+        return false;
     });
 }
 
@@ -299,6 +312,7 @@ function showPostStep(stepIndex) {
         document.getElementById('post-timing-group').classList.toggle('hidden', !isEvent);
 
         const allianceGroup = document.getElementById('post-alliance-group');
+        // REVISED: Only show alliance selection for Admins
         const canSpecifyAlliance = currentUserData.isAdmin && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership');
         allianceGroup.classList.toggle('hidden', !canSpecifyAlliance);
     }
