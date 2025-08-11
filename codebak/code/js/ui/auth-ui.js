@@ -128,14 +128,16 @@ export async function handleRegistrationSubmit(e) {
             avatarUrl = await getDownloadURL(avatarRef);
         }
 
-        const userProfile = {
+        let userProfile = {
             username, email, alliance, allianceRank, power, tankPower, airPower, missilePower,
             likes: 0, allianceRole: '', isVerified: false, avatarUrl,
             isAdmin: email === 'mikestancato@gmail.com',
             registrationTimestampUTC: new Date().toISOString(),
         };
-        if (userProfile.isAdmin) {
-            userProfile.isVerified = true;
+
+        // If the user is not an admin, set their alliance to 'Pending Alliance'
+        if (!userProfile.isAdmin) {
+            userProfile.alliance = 'Pending Alliance';
         }
 
         await setDoc(doc(db, "users", user.uid), userProfile);
@@ -259,13 +261,19 @@ export async function handleEditProfileSubmit(e) {
         missilePower: parsePower(document.getElementById('edit-missile-power').value),
     };
 
-    if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
+    let needsReverification = false;
+    if (currentUserData && (updatedData.alliance !== currentUserData.alliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
+        updatedData.alliance = 'Pending Alliance';
+        needsReverification = true;
     }
 
     try {
         await updateDoc(doc(db, "users", user.uid), updatedData);
         hideAllModals();
+        if (needsReverification) {
+            alert("Profile updated! You have been un-verified and will need to be approved by a leader in your new alliance or rank to access all features.");
+        }
     } catch (error) {
         console.error("Update profile error:", error);
         errorElement.textContent = "Failed to update profile.";

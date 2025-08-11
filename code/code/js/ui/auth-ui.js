@@ -138,6 +138,7 @@ export async function handleRegistrationSubmit(e) {
         // If the user is not an admin, set their alliance to 'Pending Alliance'
         if (!userProfile.isAdmin) {
             userProfile.alliance = 'Pending Alliance';
+            userProfile.isVerified = false;
         }
 
         await setDoc(doc(db, "users", user.uid), userProfile);

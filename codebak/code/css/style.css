@@ -216,8 +216,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .filter-btn { padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-radius: 6px; border: 1px solid #30363d; background-color: rgba(33, 38, 45, 0.5); color: #8b949e; transition: all 0.2s ease; cursor: pointer; }
 .filter-btn:hover { background-color: #30363d; color: #c9d1d9; }
 .filter-btn.active { color: #fff; border-color: var(--glow-color, var(--color-primary)); background-color: var(--glow-color-bg, rgba(0, 191, 255, 0.1)); box-shadow: 0 0 8px -2px var(--glow-color, var(--color-primary)); }
-.post-card { display: flex; flex-direction: column; background: linear-gradient(145deg, #212832, #161B22); border-radius: 8px; position: relative; overflow: hidden; animation: fadeIn 0.5s ease-out; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-.post-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+.post-card { display: flex; flex-direction: column; background: linear-gradient(145deg, #212832, #161B22); border-radius: 8px; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+.post-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
 .post-card-body { padding: .5rem 1rem; }
 .post-card.announcement-card .post-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
 /* --- NEW & UPDATED POST CARD STYLES --- */
@@ -390,7 +390,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .social-content-pane { display: none; animation: fadeIn 0.4s; }
 .social-content-pane.active { display: block; }
 .chat-window { height: 60vh; background-color: rgba(13, 17, 23, 0.5); border-radius: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; }
-.chat-message { display: flex; gap: 0.25rem; padding: 0.25rem .5rem; position: relative; width: fit-content; max-width: 85%; animation: slideInUp 0.3s ease-out; }
+.chat-message { display: flex; gap: 0.25rem; padding: 0.25rem .5rem; position: relative; width: fit-content; max-width: 85%; }
 .chat-message:hover .delete-message-btn { opacity: 1; }
 .chat-message-bubble { padding: 0.5rem .75rem; border-radius: 18px; background-color: rgba(33, 38, 45, 0.6); border: 2px solid; word-wrap: break-word; position: relative; cursor: pointer; transition: background-color 0.2s ease; }
 .chat-message-bubble:hover { background-color: rgba(48, 54, 61, 0.8); }
@@ -520,7 +520,7 @@ emoji-picker { width: 100%; height: 100%; }
 .chat-message.self .chat-message-bubble { border-bottom-right-radius: 4px; }
 .chat-message:not(.self) .chat-message-bubble { border-bottom-left-radius: 4px; }
 .pm-footer-btn { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background-color: #30363d; color: #8b949e; font-size: 1rem; flex-shrink: 0; transition: background-color 0.2s ease; }
-#social-chat-selector { display: flex; justify-content: center; gap: 0.5rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+#social-chat-selector { display: flex; justify-content: center; gap: 0.5rem; }
 #social-chat-selector .chat-selector-btn { padding: 0.5rem 1.5rem; border-bottom: 3px solid transparent; border-radius: 6px; }
 #social-chat-selector .chat-selector-btn.active { background-color: rgba(255, 255, 255, 0.05); border-bottom-color: var(--glow-color, var(--color-primary)); color: white; }
 #friends-list-container-social.collapsed #friends-list-social-page { display: none; }
@@ -855,7 +855,6 @@ body {
 
 #view-post-details {
     text-align: left; 
-    margin-top: 1.5rem;
 }
 
 #view-post-footer {

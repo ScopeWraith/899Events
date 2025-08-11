@@ -82,20 +82,20 @@ service cloud.firestore {
     }
 
 
-    function canManageUser(targetUserId) {
-      let managerData = getUserData(request.auth.uid);
-      let targetData = getUserData(targetUserId);
-      return isSignedIn() && (
+function canManageUser(targetUserId) {
+    let managerData = getUserData(request.auth.uid);
+    let targetData = getUserData(targetUserId);
+    return isSignedIn() && (
         managerData.isAdmin == true ||
         (
-          managerData.alliance == targetData.alliance &&
-          (
-            (managerData.allianceRank == 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetData.allianceRank)) ||
-            (managerData.allianceRank == 'R4' && ['R3', 'R2', 'R1'].includes(targetData.allianceRank))
-          )
+            managerData.alliance == targetData.alliance &&
+            (
+                (managerData.allianceRank == 'R5' && targetData.allianceRank in ['R4', 'R3', 'R2', 'R1']) ||
+                (managerData.allianceRank == 'R4' && targetData.allianceRank in ['R3', 'R2', 'R1'])
+            )
         )
-      );
-    }
+    );
+}
 
     // --- POSTS (ANNOUNCEMENTS & EVENTS) ---
     match /posts/{postId} {
@@ -105,20 +105,21 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.authorUid) || isAdmin();
     }
     
-    function canCreatePost(postData) {
-      let userRank = getUserData(request.auth.uid).allianceRank;
-      return isOwner(postData.authorUid) && (
-        isAdmin() ||
-        (
-          !(postData.subType == 'server' || postData.subType == 'seasonal' || postData.subType == 'hot_deals' || postData.subType == 'wanted_boss' || postData.subType == 'campaign' || postData.subType == 'vs') &&
-          !(!isVerified() && postData.subType == 'alliance' && postData.mainType == 'event') &&
-          (
-            (postData.subType == 'alliance' && (userRank == 'R5' || userRank == 'R4')) ||
-            (postData.subType == 'leadership' && userRank == 'R5')
-          )
-        )
-      );
-    }
+function canCreatePost(postData) {
+  let userRank = getUserData(request.auth.uid).allianceRank;
+ return isOwner(postData.authorUid) && (
+    isAdmin() ||
+    (
+      !(postData.subType == 'server' || postData.subType == 'seasonal' || postData.subType == 'hot_deals' || postData.subType == 'wanted_boss' || postData.subType == 'campaign' || postData.subType == 'vs') &&
+      !(!isVerified() && postData.mainType == 'event') && // isVerified is required for ALL events now
+      !(postData.subType == 'alliance' && postData.mainType == 'announcement' && !isVerified() && userRank == 'R4') && // R4s need to be verified for announcements
+      (
+        (postData.subType == 'alliance' && (userRank == 'R5' || userRank == 'R4')) ||
+        (postData.subType == 'leadership' && userRank == 'R5')
+      )
+    )
+  );
+}
     
     // --- CHAT CHANNELS ---
     match /world_chat/{messageId} {
@@ -132,10 +133,10 @@ service cloud.firestore {
         allow update, delete: if isAdmin() || isOwner(resource.data.authorUid);
     }
     
-    match /alliance_chats/{allianceId}/messages/{messageId} {
-        allow read, create: if isMemberOf(allianceId);
-        allow update, delete: if (isLeader() && isMemberOf(allianceId)) || isOwner(resource.data.authorUid);
-    }
+match /alliance_chats/{allianceId}/messages/{messageId} {
+    allow read, create: if isMemberOf(allianceId) && isVerified();
+    allow update, delete: if (isLeader() && isMemberOf(allianceId)) || isOwner(resource.data.authorUid);
+}
 
     // --- PRIVATE CHAT ---
     match /private_chats/{chatId} {
@@ -167,4 +168,4 @@ service cloud.firestore {
         allow create, update, delete: if isLeader() && isMemberOf(allianceId);
     }
   }
-}
+
