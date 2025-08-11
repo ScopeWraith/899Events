@@ -169,7 +169,7 @@ export function canManageUser(manager, targetUser) {
     if (!manager || !targetUser) return false;
     if (manager.isAdmin) return true;
     if (manager.alliance !== targetUser.alliance) return false;
-    if (manager.allianceRank === 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
+    if (manager.allianceRank === 'R5') return true;
     if (manager.allianceRank === 'R4' && ['R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
     return false;
 }
