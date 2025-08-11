@@ -3,7 +3,7 @@
     --color-primary: #00BFFF;
     --color-primary-glow: rgba(0, 191, 255, 0.5);
     --color-highlight: #F87171;
-    --color-glass-bg: rgba(22, 27, 34, 0.6); 
+    --color-glass-bg: rgba(22, 27, 34, 0.6);
     --color-dropdown-bg: rgb(22, 27, 34);
     
     /* Post/Event Theme Colors */
@@ -181,7 +181,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .progress-bar .line { position: absolute; top: 50%; left: 0; transform: translateY(-50%); height: 2px; background-color: var(--color-primary); width: 0%; transition: width 0.4s ease; z-index: 0; }
 .progress-step { width: 25px; height: 25px; background-color: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.4s ease; position: relative; z-index: 1; }
 .progress-step.active { background-color: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg); }
-.form-slide { display: none; animation: fadeIn 0.5s ease-in-out; }
+.form-slide { display: none; animation: fadeIn 0.5s forwards; }
 .form-slide.active { display: block; }
 .custom-select-container { position: relative; flex-grow: 1; }
 .custom-select-value { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; }
@@ -223,12 +223,11 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 /* --- NEW & UPDATED POST CARD STYLES --- */
 
 .post-card {
-    /* ... existing styles ... */
-    border-top: 3px solid transparent; /* ADD this line for the new accent */
+    border-top: 3px solid transparent;
 }
 
 .announcement-card .post-card-title {
-    color: var(--glow-color, var(--color-primary)); /* ADD this for colorized titles */
+    color: var(--glow-color, var(--color-primary));
 }
 
 .post-card.announcement-card {
@@ -262,7 +261,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .event-card .post-card-status {
     position: relative;
     z-index: 1;
-    height: 100%; /* Make sure they take full height */
+    height: 100%;
 }
 
 .event-card .post-card-content {
@@ -275,28 +274,26 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     padding: 1rem;
     background: rgba(0,0,0,0.3);
     border-left: 1px solid rgba(255,255,255,0.1);
-    min-width: 150px; /* Ensure status has enough space */
+    min-width: 150px;
     text-align: center;
 }
 
-/* Remove the now-unused image column */
 .event-card .post-card-image-col {
     display: none;
 }
 
 
-/* --- MOBILE LAYOUT FOR EVENTS --- */
 @media (max-width: 767px) {
     .event-card .post-card-status {
         grid-column: 1 / -1;
-        background: none; /* No background on mobile for a cleaner overlap */
-        justify-content: center; /* Center the status items */
+        background: none;
+        justify-content: center;
         min-width:160px;
     }
 }
 
 .event-card .post-card-status {
-    grid-column: 3 / 4; /* Place in the third column */
+    grid-column: 3 / 4;
     background-color: rgba(0,0,0,0.2);
     border-left: 1px solid rgba(255,255,255,0.05);
 }
@@ -309,18 +306,18 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     font-weight: 700;
     color: #fff;
     line-height: 1.3;
-    margin-bottom: 0.25rem; /* Reduced margin */
+    margin-bottom: 0.25rem;
 }
 .announcement-card .post-card-details { font-size: 0.95rem; color: #a0a8b1; line-height: 1.5; }
 /* --- NEW Announcement Thumbnail Styles --- */
 .announcement-card-thumbnail {
     position: absolute;
-    top: 1rem; /* Match the body padding */
-    right: 1rem; /* Match the body padding */
+    top: 1rem;
+    right: 1rem;
     width: 140px;
     height: 74px;
-    background-size: cover; /* Use background-size instead of object-fit */
-    background-position: center; /* Center the image */
+    background-size: cover;
+    background-position: center;
     border-radius: 0.5rem;
     border: 2px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 15px rgba(0,0,0,0.4);
@@ -332,13 +329,13 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 
 /* Adjust the header to make space for the thumbnail */
 .announcement-card.has-thumbnail .post-card-header {
-    padding-right: 160px; /* Adjust this value as needed based on thumbnail size + margin */
+    padding-right: 160px;
 }
 .post-card.event-card { 
     flex-direction: row; 
     align-items: center; 
-    grid-template-columns: 1fr; /* A single column for stacking */
-    text-align: center; /* Center all text */
+    grid-template-columns: 1fr;
+    text-align: center;
 }
 .event-card .post-card-content { flex-grow: 1; padding: .4rem; }
 .event-card .post-card-thumbnail-wrapper { flex-shrink: 0; width: 150px; height: 100%; position: relative; overflow: hidden; order: 1; margin-left: auto; }
@@ -352,19 +349,19 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-radius: 4px;
-    display: inline-flex; /* Changed from display: block */
+    display: inline-flex;
     text-shadow: 0px 0px 5px #000000;
-    min-width: 60px; /* Added min-width */
-    text-align: center; /* Added for better text alignment */
+    min-width: 60px;
+    text-align: center;
 }
 .event-card .post-card-title { font-size: 1.3rem; font-weight: 700; color: #fff; line-height: 1.2; }
 .event-card .post-card-details { display: block; font-size: 0.95rem; color: #a0a8b1; line-height: 1.4; max-height: 2.8em; overflow: hidden; text-overflow: ellipsis; }
 .post-card-status {
-    text-align: center; /* Changed from right */
+    text-align: center;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Changed from flex-end */
+    align-items: center;
     justify-content: center;
     padding: 1rem;
 }
@@ -548,14 +545,14 @@ emoji-picker { width: 100%; height: 100%; }
 }
 
 #text-logo:hover {
-    transform: scale(1.03); /* Slight zoom on hover */
+    transform: scale(1.03);
 }
 
 /* Apply the new font and styling to the main logo text */
 #text-logo > div {
-    font-weight: 700; /* Bold */
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em; /* Adds a little space for a cleaner look */
+    letter-spacing: 0.05em;
 }
 
 #logo-events {
@@ -566,12 +563,10 @@ emoji-picker { width: 100%; height: 100%; }
 
 /* --- MOBILE UX FIXES --- */
 body {
-    /* Disables double-tap to zoom */
     touch-action: manipulation;
 }
 
 @media (max-width: 767px) {
-    /* Prevents iOS zoom on focus by ensuring font size is at least 16px */
     .form-input, .form-textarea, .custom-select-value, .custom-select-search {
         font-size: 16px;
     }
@@ -598,7 +593,7 @@ body {
 .modal-tab-nav {
     display: flex;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin: -1.5rem -1.5rem 1.5rem -1.5rem; /* Extend to edges of modal padding */
+    margin: -1.5rem -1.5rem 1.5rem -1.5rem;
 }
 
 .modal-tab-btn {
@@ -666,7 +661,7 @@ body {
 
 /* Fix to ensure all previews are round */
 .skin-select-btn .preview {
-    background-color: #30363d; /* Add a base color for borders with transparency */
+    background-color: #30363d;
 }
 
 .avatar-skin-admin { background-color: var(--rank-admin-color); }
@@ -698,11 +693,11 @@ body {
 
 /* --- REVAMPED CREATE POST MODAL STYLES --- */
 #create-post-modal-container .modal-content-wrapper {
-    padding: 0; /* Remove padding to allow for full-height sections */
+    padding: 0;
 }
 
 .create-post-header {
-    padding: 1rem 1.5rem;
+    padding: 1.5rem 1.5rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
 }
@@ -716,7 +711,7 @@ body {
 #post-title {
     font-size: 1.25rem;
     font-weight: 700;
-    padding: 0.5rem 0; /* Simpler padding */
+    padding: 0.5rem 0;
     height: auto;
 }
 
@@ -809,7 +804,6 @@ body {
 }
 
 #view-post-title {
-    /* Give the title more presence */
     line-height: 1.2;
     text-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
@@ -871,22 +865,22 @@ body {
 
 .avatar-border-select1 {
   background-color: rgba(0, 0, 0, 0);
-  padding: 1em; /* Adjust as needed */
+  padding: 1em;
   font-size: 16px;
-  border: none; /* Remove default border */
+  border: none;
   text-align: center;
   text-decoration: none;
   display: inline-block;
   cursor: pointer;
-  width: 35px; /* Adjust as needed */
-  height: 100px; /* Adjust as needed */
+  width: 35px;
+  height: 100px;
   border-radius: 50%;
   border: 2px solid #ffbf00;
 }
 
 /* --- REVAMPED CREATE POST MODAL STYLES --- */
 #create-post-modal-container .modal-content-wrapper {
-    padding: 0; /* Remove padding to allow for full-height sections */
+    padding: 0;
 }
 
 .create-post-header {
@@ -952,7 +946,7 @@ body {
 }
 
 #post-creation-flow .form-slide.active {
-    display: flex; /* Use flex for vertical layout */
+    display: flex;
     flex-direction: column;
     flex-grow: 1;
     min-height: 0;
@@ -968,4 +962,23 @@ body {
     transform: none !important;
     border-radius: 0 !important;
     background: var(--color-bg);
+}
+
+/* --- NEW Private Conversation List Styles --- */
+.convo-item.unread-convo {
+    background-color: rgba(0, 191, 255, 0.05);
+    border: 1px solid var(--color-primary);
+    animation: unread-glow 1.5s infinite alternate;
+}
+.convo-item .badge {
+    background-color: var(--color-highlight);
+    color: white;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+@keyframes unread-glow {
+    from { box-shadow: 0 0 5px rgba(0, 191, 255, 0.2); }
+    to { box-shadow: 0 0 15px rgba(0, 191, 255, 0.5); }
 }

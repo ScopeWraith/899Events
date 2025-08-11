@@ -1,10 +1,5 @@
 // code/js/firestore.js
 
-/**
- * This module centralizes all interactions with Firestore,
- * including setting up listeners, fetching data, and writing data.
- */
-
 import { db, storage } from './firebase-config.js';
 import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";

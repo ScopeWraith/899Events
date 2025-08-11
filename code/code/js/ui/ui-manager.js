@@ -345,6 +345,7 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
         setupChatListeners(chatType, 'fullscreen');
     }
 }
+// --- UI INITIALIZATION & UPDATES ---
 
 export function setupInitialUI() {
     setupCustomSelects();

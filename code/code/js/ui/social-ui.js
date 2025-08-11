@@ -5,7 +5,7 @@ import { isUserLeader } from '../utils.js';
 import { handleSendMessage, fetchConversations, addFriend, setupChatListeners, handleImageAttachment } from '../firestore.js';
 import { formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarSkinClass, getRankBorderClass } from '../utils.js';
 import { canDeleteMessage } from '../utils.js';
-import { showFullscreenChatModal, showPage } from './ui-manager.js'; // Corrected import to showFullscreenChatModal
+import { showFullscreenChatModal, showPage } from './ui-manager.js';
 import { CHAT_CHANNELS } from '../constants.js';
 
 export function renderChatChannels() {
@@ -153,6 +153,13 @@ export async function renderConversations() {
     const conversations = await fetchConversations();
     const { allPlayers, userSessions } = getState();
     const listContainer = document.getElementById('convo-list');
+    
+    // Sort conversations by the last message timestamp
+    conversations.sort((a, b) => {
+        const timeA = a.lastMessage?.timestamp?.toDate() || new Date(0);
+        const timeB = b.lastMessage?.timestamp?.toDate() || new Date(0);
+        return timeB - timeA;
+    });
 
     if (conversations.length === 0) {
         listContainer.innerHTML = `<p class="text-center text-gray-400 py-8">No recent conversations. Start one from the Players page!</p>`;
@@ -171,13 +178,17 @@ export async function renderConversations() {
         const statusClass = session ? session.status : 'offline';
         const avatarUrl = partnerData.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${partnerData.username.charAt(0).toUpperCase()}`;
 
-        let lastMessageText = convo.lastMessage?.text;
+        let lastMessageText = convo.lastMessage?.text || '';
         if (convo.lastMessage?.imageUrl && !lastMessageText) {
             lastMessageText = '<i>[Image]</i>';
         }
         
+        // Use unreadCount to determine styling
+        const unreadClass = convo.unreadCount > 0 ? 'unread-convo' : '';
+        const unreadBadge = convo.unreadCount > 0 ? `<span class="badge">${convo.unreadCount}</span>` : '';
+
         return `
-            <div class="convo-item glass-pane p-4 flex items-center justify-between hover:bg-white/5 transition-colors duration-200 cursor-pointer rounded-lg" data-partner-uid="${partnerData.uid}">
+            <div class="convo-item glass-pane p-4 flex items-center justify-between hover:bg-white/5 transition-colors duration-200 cursor-pointer rounded-lg ${unreadClass}" data-partner-uid="${partnerData.uid}" data-chat-id="${convo.chatId}">
                 <div class="flex items-center gap-4 overflow-hidden">
                     <div class="relative flex-shrink-0">
                         <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover">
@@ -190,6 +201,7 @@ export async function renderConversations() {
                 </div>
                 <div class="flex items-center gap-4 flex-shrink-0">
                     <span class="text-xs text-gray-500">${formatTimeAgo(convo.lastMessage?.timestamp?.toDate())}</span>
+                    ${unreadBadge}
                     <button class="text-gray-500 hover:text-yellow-400 transition-colors" title="Pin Conversation (coming soon)">
                         <i class="fas fa-thumbtack"></i>
                     </button>
