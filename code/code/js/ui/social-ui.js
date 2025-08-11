@@ -2,10 +2,10 @@
 
 import { getState, updateState } from '../state.js';
 import { isUserLeader } from '../utils.js';
-import { handleSendMessage, fetchConversations, addFriend, setupChatListeners, handleImageAttachment } from '../firestore.js'; // Modified import
-import { formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarSkinClass, getRankBorderClass } from '../utils.js'; // Modified import
+import { handleSendMessage, fetchConversations, addFriend, setupChatListeners, handleImageAttachment } from '../firestore.js';
+import { formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarSkinClass, getRankBorderClass } from '../utils.js';
 import { canDeleteMessage } from '../utils.js';
-import { showPrivateMessageModal, showPage } from './ui-manager.js'; // Added import
+import { showFullscreenChatModal, showPage } from './ui-manager.js'; // Corrected import to showFullscreenChatModal
 
 // An object to define our chat channels
 const CHAT_CHANNELS = {
@@ -52,9 +52,6 @@ export function renderChatChannels() {
             </button>
         `;
     }).join('');
-
-    const chatWindow = document.getElementById('chat-window-main');
-    if (chatWindow) chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Select a chat channel to begin.</p>`;
 }
 
 export function renderFriendsList() {
@@ -275,7 +272,7 @@ export function renderFriendsPage() {
         const messageBtn = e.target.closest('.message-player-btn');
         if(messageBtn) {
             const partnerData = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
-            if(partnerData) showPrivateMessageModal(partnerData);
+            if(partnerData) showFullscreenChatModal({ targetPlayer: partnerData });
         }
     });
 }
