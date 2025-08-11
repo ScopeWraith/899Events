@@ -274,7 +274,6 @@ export async function handleDeleteMessage(messageId, chatType) {
    }
 }
 export async function sendVerificationRequest(senderUid, senderUsername, alliance) {
-    if (!alliance || alliance === 'Pending Alliance') return;
 
     try {
         const leadersQuery = query(collection(db, 'users'), where('alliance', '==', alliance), where('allianceRank', 'in', ['R5', 'R4']));
