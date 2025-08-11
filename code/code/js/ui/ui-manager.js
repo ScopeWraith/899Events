@@ -31,7 +31,6 @@ export function handleSubNavClick(subTargetId) {
         link.classList.toggle('active', link.dataset.subTarget === subTargetId);
     });
 
-    // Hide all sub-pages within the active main page
     const activePage = querySelector('.page-content[style*="display: block"]');
     if (activePage) {
         activePage.querySelectorAll('.sub-page').forEach(page => {
@@ -39,7 +38,6 @@ export function handleSubNavClick(subTargetId) {
         });
     }
 
-    // Show the target sub-page
     const targetSubPage = getElement(`sub-page-${subTargetId}`);
     if (targetSubPage) {
         targetSubPage.style.display = 'block';
@@ -56,6 +54,7 @@ export function handleSubNavClick(subTargetId) {
             renderNews(filter);
             break;
         case 'social-chat':
+        case 'social-convo':
             renderConversations();
             break;
         case 'social-friends':
@@ -69,27 +68,6 @@ export function handleSubNavClick(subTargetId) {
             break;
         case 'server-nap':
             // No specific render function yet, just show the page
-            break;
-        default:
-            // The default logic from the original case is still needed.
-            const [page, filterFallback] = subTargetId.split('-');
-            switch (page) {
-                case 'news':
-                    renderNews(filterFallback);
-                    break;
-                case 'social':
-                    if (filterFallback === 'convo') {
-                        renderConversations();
-                    } else if (filterFallback === 'friends') {
-                        renderFriendsPage();
-                    }
-                    break;
-                case 'server':
-                    if (filterFallback === 'players') {
-                        applyPlayerFilters();
-                    }
-                    break;
-            }
             break;
     }
 }
