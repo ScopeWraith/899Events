@@ -146,15 +146,13 @@ export function renderMessages(messages, container, chatType) {
     container.scrollTop = container.scrollHeight;
 }
 
-export async function renderConversations() {
+export function renderConversations(conversations) {
     const container = document.getElementById('sub-page-social-convo');
     if (!container) return;
 
-    const conversations = await fetchConversations();
     const { allPlayers, userSessions } = getState();
     const listContainer = document.getElementById('convo-list');
     
-    // Sort conversations by the last message timestamp
     conversations.sort((a, b) => {
         const timeA = a.lastMessage?.timestamp?.toDate() || new Date(0);
         const timeB = b.lastMessage?.timestamp?.toDate() || new Date(0);

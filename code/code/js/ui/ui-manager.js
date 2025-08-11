@@ -45,6 +45,10 @@ export function handleSubNavClick(subTargetId) {
         console.warn(`Sub-page with id "sub-page-${subTargetId}" not found.`);
     }
 
+    // Detach old listeners before starting new ones
+    const { listeners } = getState();
+    if (listeners.convoList) listeners.convoList();
+    
     switch (subTargetId) {
         case 'news-all':
         case 'news-events':
