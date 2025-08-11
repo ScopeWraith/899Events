@@ -14,7 +14,7 @@ import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
-import { renderFriendsList, renderConversations, renderFriendsPage } from './social-ui.js';
+import { renderFriendsList, renderConversations, renderFriendsPage, renderChatChannels } from './social-ui.js';
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
 import { applyPlayerFilters } from './players-ui.js';
 
@@ -54,6 +54,8 @@ export function handleSubNavClick(subTargetId) {
             renderNews(filter);
             break;
         case 'social-chat':
+            renderChatChannels();
+            break;
         case 'social-convo':
             renderConversations();
             break;
@@ -297,8 +299,6 @@ export function showPostActionsModal(postId) {
     showModal(document.getElementById('post-actions-modal-container'));
 }
 
-// Add async here
-// Add async to the function definition
 export async function showPrivateMessageModal(targetPlayer) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
@@ -310,33 +310,27 @@ export async function showPrivateMessageModal(targetPlayer) {
     }
 
     try {
-        // 1. Calculate the ID and ensure the chat document exists.
         const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
         const chatDocRef = doc(db, 'private_chats', chatId);
         await setDoc(chatDocRef, {
             participants: [currentUserData.uid, targetPlayer.uid]
         }, { merge: true });
 
-        // 2. Update the state with BOTH the partner info and the calculated ID.
         updateState({
             activePrivateChatPartner: targetPlayer,
-            activePrivateChatId: chatId // This is the critical fix
+            activePrivateChatId: chatId
         });
 
-        // 3. Populate the UI header.
         const session = userSessions[targetPlayer.uid];
         const status = session ? session.status : 'offline';
-        // Corrected IDs from private-message to private-chat
         getElement('private-chat-username').textContent = targetPlayer.username;
         getElement('private-chat-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
         getElement('private-chat-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
         getElement('private-chat-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
         getElement('private-chat-window').innerHTML = '';
 
-        // 4. Show the modal.
         showModal(getElement('private-chat-modal-container'));
 
-        // 5. Call the listener and PASS THE CHAT ID DIRECTLY as an argument.
         setupPrivateChatListener(chatId);
 
     } catch (error) {
@@ -365,8 +359,6 @@ export function updateUIForLoggedInUser() {
     const adminActionsContainer = getElement('admin-actions-container');
     if (adminActionsContainer) {
         if (currentUserData.isAdmin) {
-            // This is the key change:
-            // We ensure it's displayed as a flex container on medium screens and up.
             adminActionsContainer.classList.remove('hidden');
             adminActionsContainer.classList.add('md:flex');
         } else {

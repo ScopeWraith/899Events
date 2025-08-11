@@ -31,7 +31,6 @@ export function initializeAllEventListeners() {
         }
     }
     });
-    // Corrected ID to private-chat-form and private-chat-input
     addListener('private-chat-form', 'submit', async (e) => {
         e.preventDefault();
         const input = getElement('private-chat-input');
@@ -44,38 +43,6 @@ export function initializeAllEventListeners() {
             console.error("Failed to send private message:", error);
             alert("Error: Could not send message.");
             input.value = text;
-        }
-    });
-    // --- Social Page & Chat Listeners ---
-    // This listener handles the chat channel selectors
-    addListener('chat-selectors', 'click', (e) => {
-        const btn = e.target.closest('.chat-selector-btn');
-        if (!btn) return;
-        
-        document.querySelectorAll('.chat-selector-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        setupChatListeners(btn.dataset.chatType);
-    });
-
-    // This listener handles sending messages to the public/alliance chats
-    addListener('chat-form-main', 'submit', async (e) => {
-        e.preventDefault();
-        const input = getElement('chat-input-main');
-        const text = input.value.trim();
-        const activeBtn = document.querySelector('.chat-selector-btn.active');
-        if (!text || !activeBtn) return;
-        
-        const chatType = activeBtn.dataset.chatType;
-        if (!chatType) return;
-        
-        input.value = '';
-        try {
-            await handleSendMessage(e, chatType, text);
-        } catch (error) {
-            console.error("Failed to send message:", error);
-            alert("Error: Could not send message.");
-            input.value = text; // Restore message on error
         }
     });
     addListener('view-post-modal-container', 'click', (e) => {
@@ -165,7 +132,6 @@ export function initializeAllEventListeners() {
     addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
-    // Corrected ID to close-private-chat-modal-btn
     addListener('close-private-chat-modal-btn', 'click', hideAllModals);
     addListener('confirmation-cancel-btn', 'click', hideAllModals);
     addListener('close-post-actions-modal-btn', 'click', hideAllModals);
@@ -278,9 +244,36 @@ export function initializeAllEventListeners() {
         allianceFilter.addEventListener('change', () => applyPlayerFilters());
     }
 
-    // --- Social Page & Chat ---
-    // REMOVED old chat form listeners
+    // --- Social Page & Chat Listeners ---
+    addListener('chat-selectors', 'click', (e) => {
+        const btn = e.target.closest('.chat-selector-btn');
+        if (!btn) return;
+        
+        document.querySelectorAll('.chat-selector-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        setupChatListeners(btn.dataset.chatType);
+    });
 
+    addListener('chat-form-main', 'submit', async (e) => {
+        e.preventDefault();
+        const input = getElement('chat-input-main');
+        const text = input.value.trim();
+        const activeBtn = document.querySelector('.chat-selector-btn.active');
+        if (!text || !activeBtn) return;
+        
+        const chatType = activeBtn.dataset.chatType;
+        if (!chatType) return;
+        
+        input.value = '';
+        try {
+            await handleSendMessage(e, chatType, text);
+        } catch (error) {
+            console.error("Failed to send message:", error);
+            alert("Error: Could not send message.");
+            input.value = text;
+        }
+    });
 
     // Social Page Click Handler (for main chat window)
     const socialPage = getElement('page-social');
@@ -311,7 +304,6 @@ export function initializeAllEventListeners() {
     }
 
     // Private Message Modal Click Handler
-    // Corrected ID to private-chat-modal-container
     const privateChatModal = getElement('private-chat-modal-container');
     if (privateChatModal) {
         privateChatModal.addEventListener('click', (e) => {
@@ -396,20 +388,19 @@ export function initializeAllEventListeners() {
             }
         });
     }
-// Add this new listener inside initializeAllEventListeners()
 
-addListener('player-profile-dropdown', 'click', (e) => {
-    const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
-    const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
+    addListener('player-profile-dropdown', 'click', (e) => {
+        const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
+        const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
 
-    if (createEventBtn) {
-        getElement('user-profile-nav-item').classList.remove('open');
-        showCreatePostModal('event');
-    } else if (createAnnouncementBtn) {
-        getElement('user-profile-nav-item').classList.remove('open');
-        showCreatePostModal('announcement');
-    }
-});
+        if (createEventBtn) {
+            getElement('user-profile-nav-item').classList.remove('open');
+            showCreatePostModal('event');
+        } else if (createAnnouncementBtn) {
+            getElement('user-profile-nav-item').classList.remove('open');
+            showCreatePostModal('announcement');
+        }
+    });
     // --- General UI ---
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.nav-item')) {
@@ -450,7 +441,6 @@ addListener('player-profile-dropdown', 'click', (e) => {
     });
 
     // --- Attachment and Emoji Logic ---
-    // Corrected ID to private-chat-attach-btn
     addListener('private-chat-attach-btn', 'click', () => {
         const attachInput = getElement('private-message-attach-input');
         if (attachInput) attachInput.click();
@@ -476,7 +466,6 @@ addListener('player-profile-dropdown', 'click', (e) => {
         }
     };
     setupEmojiButton('main-chat-emoji-btn', 'chat-input-main');
-    // Corrected IDs to private-chat-emoji-btn and private-chat-input
     setupEmojiButton('private-chat-emoji-btn', 'private-chat-input');
 
     if (emojiPicker) {
