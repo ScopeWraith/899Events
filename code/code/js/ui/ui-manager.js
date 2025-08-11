@@ -48,12 +48,11 @@ export function handleSubNavClick(subTargetId) {
     }
 
     // Handle specific rendering logic for each sub-page
-    const [page, filter] = subTargetId.split('-');
-    
     switch (subTargetId) {
         case 'news-all':
         case 'news-events':
         case 'news-announcements':
+            const [, filter] = subTargetId.split('-');
             renderNews(filter);
             break;
         case 'social-chat':
@@ -70,6 +69,27 @@ export function handleSubNavClick(subTargetId) {
             break;
         case 'server-nap':
             // No specific render function yet, just show the page
+            break;
+        default:
+            // The default logic from the original case is still needed.
+            const [page, filterFallback] = subTargetId.split('-');
+            switch (page) {
+                case 'news':
+                    renderNews(filterFallback);
+                    break;
+                case 'social':
+                    if (filterFallback === 'convo') {
+                        renderConversations();
+                    } else if (filterFallback === 'friends') {
+                        renderFriendsPage();
+                    }
+                    break;
+                case 'server':
+                    if (filterFallback === 'players') {
+                        applyPlayerFilters();
+                    }
+                    break;
+            }
             break;
     }
 }
