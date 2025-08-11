@@ -167,9 +167,13 @@ export function resizeImage(file, options) {
 
 export function canManageUser(manager, targetUser) {
     if (!manager || !targetUser) return false;
+    // Admins can manage any user, regardless of alliance or rank
     if (manager.isAdmin) return true;
+    // User cannot manage themselves
+    if (manager.uid === targetUser.uid) return false;
+    // Ranks R5 and R4 can manage lower ranks in their own alliance
     if (manager.alliance !== targetUser.alliance) return false;
-    if (manager.allianceRank === 'R5') return true;
+    if (manager.allianceRank === 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
     if (manager.allianceRank === 'R4' && ['R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
     return false;
 }
