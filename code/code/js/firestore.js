@@ -490,8 +490,8 @@ export function setupUnverifiedPlayersListener(user) {
     // Detach old listener if it exists
     if (listeners.unverifiedPlayers) listeners.unverifiedPlayers();
     
-    // Only listen for unverified players if the user is in an alliance
-    if (!user || !user.alliance || user.alliance === 'Pending Alliance') {
+    // Only listen for unverified players if the user is a leader in an alliance
+    if (!user || !isUserLeader(user) || user.alliance === 'Pending Alliance') {
         return;
     }
     
