@@ -496,4 +496,4 @@ export async function fetchConversations() {
     const resolvedConversations = await Promise.all(conversationPromises);
     
     return resolvedConversations.filter(convo => convo !== null);
-}
+} 
