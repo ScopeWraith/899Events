@@ -456,7 +456,7 @@ export async function toggleReaction(chatType, messageId, emoji) {
     }   
 }
 
-async function fetchConversations() {
+export async function fetchConversations() {
     const { currentUserData } = getState();
     if (!currentUserData) return [];
 
