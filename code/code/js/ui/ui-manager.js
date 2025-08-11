@@ -50,27 +50,30 @@ export function handleSubNavClick(subTargetId) {
     // Handle specific rendering logic for each sub-page
     const [page, filter] = subTargetId.split('-');
     
-    switch (page) {
-        case 'news':
+    switch (subTargetId) {
+        case 'news-all':
+        case 'news-events':
+        case 'news-announcements':
             renderNews(filter);
             break;
-        case 'social':
-            // Removed the old chat handling logic.
-            // The `renderConversations` function now handles the social page.
-            if (filter === 'convo') {
-                renderConversations();
-            } else if (filter === 'friends') {
-                renderFriendsPage();
-            }
+        case 'social-chat':
+            renderConversations();
             break;
-        case 'server':
-        if (filter === 'players') {
+        case 'social-friends':
+            renderFriendsPage();
+            break;
+        case 'server-players':
             applyPlayerFilters();
-        }
-        break;
+            break;
+        case 'server-alliances':
+            // No specific render function yet, just show the page
+            break;
+        case 'server-nap':
+            // No specific render function yet, just show the page
+            break;
     }
-    
 }
+
 export function showViewPostModal(post) {
     if (!post) return;
     const { allPlayers, currentUserData } = getState();
