@@ -145,7 +145,6 @@ export function toggleSubNav(activeSubmenuId) {
 }
 
 // REVISED showPage function
-// REVISED showPage function
 export function showPage(targetId) {
     // This part remains the same: show/hide main page content
     querySelectorAll('.page-content').forEach(page => {
@@ -175,10 +174,9 @@ export function showPage(targetId) {
         }
         renderFeedActivity();
     } else if (targetId === 'page-social') {
-        renderChatSelectors();
-        renderFriendsList();
-        activateChatChannel('world_chat');
-        setupChatListeners('world_chat');
+        // REPLACED OLD CHAT LOGIC
+        // Instead of activating a chat channel, we now render the conversation list.
+        handleSubNavClick('social-chat');
     } else if (targetId === 'page-server') {
         // Show the default 'Alliances' sub-page
         const alliancesSubpage = getElement('sub-page-server-alliances');
