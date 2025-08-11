@@ -412,7 +412,7 @@ export async function populatePostFormForEdit(postId) {
 }
 
 export function renderFeedActivity() {
-    const { allPosts, currentUserData } = getState();
+    const { allPosts, currentUserData, unverifiedPlayers } = getState();
     const container = document.getElementById('feed-activity-container');
 
     if (!container || !currentUserData) {
@@ -444,10 +444,26 @@ export function renderFeedActivity() {
                     </div>
                 </div>
             `;
-        }).join('');
+        });
+        
+    // NEW: Add a list of unverified players to the feed items
+    const unverifiedItems = (unverifiedPlayers || [])
+        .map(player => {
+            return `
+                <div class="feed-item-compact" style="--glow-color: var(--color-highlight);">
+                    <div class="feed-item-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="feed-item-content">
+                        <h4>${player.username} has joined your alliance.</h4>
+                        <p>Awaiting verification &bull; Unverified Player</p>
+                    </div>
+                </div>
+            `;
+        });
 
-    if (feedItems) {
-        container.innerHTML = feedItems;
+    const allFeedItems = [...unverifiedItems, ...feedItems].join('');
+
+    if (allFeedItems) {
+        container.innerHTML = allFeedItems;
     } else {
         container.innerHTML = `<p class="text-center text-gray-400 py-4">No recent activity.</p>`;
     }

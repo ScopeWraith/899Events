@@ -485,3 +485,28 @@ export async function fetchConversations() {
     
     return resolvedConversations.filter(convo => convo !== null);
 } 
+export function setupUnverifiedPlayersListener(user) {
+    const { listeners } = getState();
+    // Detach old listener if it exists
+    if (listeners.unverifiedPlayers) listeners.unverifiedPlayers();
+    
+    // Only listen for unverified players if the user is in an alliance
+    if (!user || !user.alliance || user.alliance === 'Pending Alliance') {
+        return;
+    }
+    
+    const unverifiedPlayersQuery = query(
+        collection(db, 'users'),
+        where('alliance', '==', user.alliance),
+        where('isVerified', '==', false)
+    );
+    
+    listeners.unverifiedPlayers = onSnapshot(unverifiedPlayersQuery, (snapshot) => {
+        const unverifiedPlayers = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+        updateState({ unverifiedPlayers });
+        // Trigger a re-render of the feed
+        renderFeedActivity();
+    }, (error) => console.error("Error with unverified players listener:", error));
+    
+    updateState({ listeners });
+}

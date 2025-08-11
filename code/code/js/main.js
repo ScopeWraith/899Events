@@ -35,6 +35,7 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         setupPresenceManagement(user);
         setupAllListeners(user);
+        setupUnverifiedPlayersListener(user);
     } else {
         // For logged-out users, we still want to fetch public data
         fetchInitialData();
