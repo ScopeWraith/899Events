@@ -55,12 +55,9 @@ export function handleSubNavClick(subTargetId) {
             renderNews(filter);
             break;
         case 'social':
-            if (filter === 'chat') {
-                renderChatSelectors();
-                renderFriendsList();
-                activateChatChannel('world_chat');
-                setupChatListeners('world_chat');
-            } else if (filter === 'convo') {
+            // Removed the old chat handling logic.
+            // The `renderConversations` function now handles the social page.
+            if (filter === 'convo') {
                 renderConversations();
             } else if (filter === 'friends') {
                 renderFriendsPage();
