@@ -303,6 +303,12 @@ export async function showPrivateMessageModal(targetPlayer) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
 
+    if (!targetPlayer) {
+        console.error("showPrivateMessageModal called with an invalid targetPlayer.");
+        alert("Failed to open chat: Player data is missing. Please try again.");
+        return;
+    }
+
     try {
         // 1. Calculate the ID and ensure the chat document exists.
         const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
