@@ -54,7 +54,31 @@ export async function togglePostReaction(postId, reactionType) {
         console.error("Post reaction transaction failed: ", e);
     }
 }
+export async function handleFullscreenMessageSend(text) {
+    const { currentUserData, activePrivateChatId } = getState();
+    if (!currentUserData || text.trim() === '') return;
 
+    if (activePrivateChatId) {
+        // We are in a private chat
+        const messagesColRef = collection(db, `private_chats/${activePrivateChatId}/messages`);
+        await addDoc(messagesColRef, {
+            text: text,
+            authorUid: currentUserData.uid,
+            authorUsername: currentUserData.username,
+            timestamp: serverTimestamp(),
+            reactions: {}
+        });
+    } else {
+        // We are in a public/alliance chat
+        const activeChatBtn = document.querySelector('#chat-selectors .chat-selector-btn.active');
+        if (!activeChatBtn) {
+            console.error("No active public chat channel selected.");
+            return;
+        }
+        const chatType = activeChatBtn.dataset.chatType;
+        await handleSendMessage(null, chatType, text);
+    }
+}
 export function setupAllListeners(user) {
     const listeners = {};
 
