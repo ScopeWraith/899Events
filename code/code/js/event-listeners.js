@@ -8,7 +8,7 @@ import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handle
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
-import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction, handleImageAttachment  } from './firestore.js';
+import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend  } from './firestore.js'; // Added handleFullscreenMessageSend
 import { positionEmojiPicker } from './utils.js';
 
 export function initializeAllEventListeners() {
@@ -38,9 +38,9 @@ export function initializeAllEventListeners() {
         if (text === '') return;
         input.value = '';
         try {
-            await sendPrivateMessage(text);
+            await handleFullscreenMessageSend(text);
         } catch (error) {
-            console.error("Failed to send private message:", error);
+            console.error("Failed to send message:", error);
             alert("Error: Could not send message.");
             input.value = text;
         }
