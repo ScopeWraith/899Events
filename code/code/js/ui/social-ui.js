@@ -6,31 +6,7 @@ import { handleSendMessage, fetchConversations, addFriend, setupChatListeners, h
 import { formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarSkinClass, getRankBorderClass } from '../utils.js';
 import { canDeleteMessage } from '../utils.js';
 import { showFullscreenChatModal, showPage } from './ui-manager.js'; // Corrected import to showFullscreenChatModal
-
-// An object to define our chat channels
-const CHAT_CHANNELS = {
-    world_chat: {
-        id: 'world_chat',
-        name: 'World',
-        icon: 'fas fa-globe',
-        color: 'var(--color-primary)',
-        requiresAuth: true
-    },
-    alliance_chat: {
-        id: 'alliance_chat',
-        name: 'Alliance',
-        icon: 'fas fa-shield-alt',
-        color: 'var(--post-color-alliance)',
-        requiresAlliance: true
-    },
-    leadership_chat: {
-        id: 'leadership_chat',
-        name: 'Leadership',
-        icon: 'fas fa-crown',
-        color: 'var(--post-color-leadership)',
-        requiresLeader: true
-    }
-};
+import { CHAT_CHANNELS } from '../constants.js';
 
 export function renderChatChannels() {
     const container = document.getElementById('chat-selectors');
