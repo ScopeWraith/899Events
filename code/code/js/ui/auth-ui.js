@@ -263,13 +263,17 @@ export async function handleEditProfileSubmit(e) {
     };
 
     let needsReverification = false;
+    // Check if the user changed their alliance or rank
     if (currentUserData && (updatedData.alliance !== currentUserData.alliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
+        
+        // If the alliance has been changed, set it to a pending state.
+        if (updatedData.alliance !== currentUserData.alliance) {
+            updatedData.alliance = 'Pending Alliance';
+        }
+        
+        // In all cases of alliance or rank change, the user is un-verified.
         updatedData.isVerified = false;
         needsReverification = true;
-    }
-
-    if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
-        updatedData.alliance = 'Pending Alliance';
     }
 
     try {
