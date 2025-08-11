@@ -12,7 +12,7 @@ import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } fr
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { db } from '../firebase-config.js';
-import { doc, deleteDoc, setDoc, getDocs, updateDoc, collection, where, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, deleteDoc, setDoc, getDocs, updateDoc, collection, where, query, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
 import { renderFriendsList, renderConversations, renderFriendsPage, renderChatChannels } from './social-ui.js';
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
