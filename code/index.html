@@ -519,7 +519,11 @@
     <div id="sub-nav-container" class="sub-nav-slider">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div id="news-submenu" class="sub-nav-content"><a href="#" class="sub-nav-link active" data-sub-target="news-all"><i class="fas fa-grip-horizontal fa-fw w-6"></i> ALL</a><a href="#" class="sub-nav-link" data-sub-target="news-events"><i class="fas fa-calendar-alt fa-fw w-6"></i> Events</a><a href="#" class="sub-nav-link" data-sub-target="news-announcements"><i class="fas fa-bullhorn fa-fw w-6"></i> Announcements</a></div>
-            <div id="social-submenu" class="sub-nav-content hidden"><a href="#" class="sub-nav-link active" data-sub-target="social-chat"><i class="fas fa-comments fa-fw w-6"></i> Chat</a><a href="#" class="sub-nav-link" data-sub-target="social-convo"><i class="fas fa-user-secret fa-fw w-6"></i> Private</a><a href="#" class="sub-nav-link" data-sub-target="social-friends"><i class="fas fa-user-friends fa-fw w-6"></i> Friends</a></div>
+            <div id="social-submenu" class="sub-nav-content hidden">
+                <a href="#" class="sub-nav-link active" data-sub-target="social-chat"><i class="fas fa-comments fa-fw w-6"></i> Chat</a>
+                <a href="#" class="sub-nav-link" data-sub-target="social-convo"><i class="fas fa-user-secret fa-fw w-6"></i> Private</a>
+                <a href="#" class="sub-nav-link" data-sub-target="social-friends"><i class="fas fa-user-friends fa-fw w-6"></i> Friends</a>
+            </div>
             <div id="server-submenu" class="sub-nav-content hidden"><a href="#" class="sub-nav-link active" data-sub-target="server-alliances"><i class="fas fa-handshake fa-fw w-6"></i> Alliances</a><a href="#" class="sub-nav-link" data-sub-target="server-players"><i class="fas fa-users fa-fw w-6"></i> Players</a><a href="#" class="sub-nav-link" data-sub-target="server-nap"><i class="fas fa-gavel fa-fw w-6"></i> NAP</a></div>
         </div>
     </div>
@@ -534,16 +538,36 @@
                         <div id="sub-page-news-announcements" class="sub-page" style="display: none;"></div>
                     </div>
                     <div id="page-social" class="page-content" style="display: none;">
-                        <div id="sub-page-social-chat" class="sub-page">
-                            <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6" style="text-shadow: 0 0 10px var(--color-primary);">Chats</h2>
-                            <div id="convo-list" class="space-y-3 max-w-4xl mx-auto">
-                                </div>
-                        </div>
-                        <div id="sub-page-social-convo" class="sub-page" style="display: none;">
-                            <h2 class="text-2xl font-bold text-white text-center mb-6">Recent Interactions</h2>
-                        </div>
-                        <div id="sub-page-social-friends" class="sub-page" style="display: none;"></div>
+    <div id="sub-page-social-chat" class="sub-page">
+        <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6" style="text-shadow: 0 0 10px var(--color-primary);">Chats</h2>
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-4">
+            <div id="chat-selector-panel" class="glass-pane p-4 flex-shrink-0 md:w-64">
+                <div id="chat-selectors" class="flex flex-col space-y-2">
                     </div>
+            </div>
+            <div id="chat-main-container" class="glass-pane flex-grow flex flex-col overflow-hidden">
+                <div id="chat-window-main" class="chat-window flex-grow p-4 themed-scrollbar">
+                    <p class="text-center text-gray-500 m-auto">Select a chat channel to begin.</p>
+                </div>
+                <div class="p-3 border-t border-white/10 bg-black/20 flex-shrink-0">
+                    <form id="chat-form-main" class="flex items-center gap-2">
+                        <div class="input-group flex-grow">
+                            <input type="text" id="chat-input-main" class="form-input" placeholder="Message..." required>
+                            <button type="button" id="main-chat-emoji-btn" class="input-icon"><i class="fas fa-smile"></i></button>
+                        </div>
+                        <button type="submit" class="p-2 primary-btn rounded-lg" title="Send"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="sub-page-social-convo" class="sub-page" style="display: none;">
+        <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6" style="text-shadow: 0 0 10px var(--color-primary);">Private Messages</h2>
+        <div id="convo-list" class="space-y-3 max-w-4xl mx-auto">
+            </div>
+    </div>
+    <div id="sub-page-social-friends" class="sub-page" style="display: none;"></div>
+</div>
                     <div id="page-server" class="page-content" style="display: none;">
                         <div id="sub-page-server-alliances" class="sub-page">
                             <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6">Server Alliances</h2>

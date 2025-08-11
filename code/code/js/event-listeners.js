@@ -46,6 +46,38 @@ export function initializeAllEventListeners() {
             input.value = text;
         }
     });
+    // --- Social Page & Chat Listeners ---
+    // This listener handles the chat channel selectors
+    addListener('chat-selectors', 'click', (e) => {
+        const btn = e.target.closest('.chat-selector-btn');
+        if (!btn) return;
+        
+        document.querySelectorAll('.chat-selector-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        setupChatListeners(btn.dataset.chatType);
+    });
+
+    // This listener handles sending messages to the public/alliance chats
+    addListener('chat-form-main', 'submit', async (e) => {
+        e.preventDefault();
+        const input = getElement('chat-input-main');
+        const text = input.value.trim();
+        const activeBtn = document.querySelector('.chat-selector-btn.active');
+        if (!text || !activeBtn) return;
+        
+        const chatType = activeBtn.dataset.chatType;
+        if (!chatType) return;
+        
+        input.value = '';
+        try {
+            await handleSendMessage(e, chatType, text);
+        } catch (error) {
+            console.error("Failed to send message:", error);
+            alert("Error: Could not send message.");
+            input.value = text; // Restore message on error
+        }
+    });
     addListener('view-post-modal-container', 'click', (e) => {
     const reactionBtn = e.target.closest('.post-reaction-btn');
     if (reactionBtn) {

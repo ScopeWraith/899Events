@@ -33,7 +33,30 @@ const CHAT_CHANNELS = {
         requiresLeader: true
     }
 };
+export function renderChatChannels() {
+    const container = document.getElementById('chat-selectors');
+    if (!container) return;
+    const { currentUserData } = getState();
 
+    container.innerHTML = Object.values(CHAT_CHANNELS).map(channel => {
+        let isVisible = true;
+        if (channel.requiresAuth && !currentUserData) isVisible = false;
+        if (channel.requiresAlliance && (!currentUserData || !currentUserData.alliance)) isVisible = false;
+        if (channel.requiresLeader && !isUserLeader(currentUserData)) isVisible = false;
+
+        if (!isVisible) return '';
+
+        return `
+            <button class="chat-selector-btn" style="--glow-color: ${channel.color};" data-chat-type="${channel.id}">
+                <i class="${channel.icon} fa-fw w-6 text-center"></i>
+                <span>${channel.name} Chat</span>
+            </button>
+        `;
+    }).join('');
+
+    const chatWindow = document.getElementById('chat-window-main');
+    if (chatWindow) chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Select a chat channel to begin.</p>`;
+}
 // --- EXISTING FUNCTIONS (Modified) ---
 
 export function renderFriendsList() {
