@@ -1,5 +1,10 @@
 // code/js/firestore.js
 
+/**
+ * This module centralizes all interactions with Firestore,
+ * including setting up listeners, fetching data, and writing data.
+ */
+
 import { db, storage } from './firebase-config.js';
 import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -221,7 +226,6 @@ export async function handleSendMessage(e, chatType, text) {
         await addDoc(collection(db, collectionPath), messageData);
     } catch (error) {
         console.error(`Error sending message to ${chatType}:`, error);
-        // Assuming there is an input element in the fullscreen modal
         const input = document.getElementById('fullscreen-chat-input');
         if(input) input.value = text;
     }
@@ -238,7 +242,15 @@ export async function handleFullscreenMessageSend(text) {
             authorUid: currentUserData.uid,
             authorUsername: currentUserData.username,
             timestamp: serverTimestamp(),
-            reactions: {}
+            reactions: {},
+            isRead: false
+        });
+        await updateDoc(doc(db, `private_chats/${activePrivateChatId}`), {
+            lastMessage: {
+                text: text,
+                authorUid: currentUserData.uid,
+                timestamp: serverTimestamp()
+            }
         });
     } else {
         const activeChatBtn = document.querySelector('#chat-selectors .chat-selector-btn.active');
@@ -482,12 +494,17 @@ export async function fetchConversations() {
         const messagesQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), orderBy('timestamp', 'desc'), limit(1));
         const lastMessageSnapshot = await getDocs(messagesQuery);
         
+        const unreadQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), where('isRead', '==', false), where('authorUid', '!=', currentUserData.uid));
+        const unreadSnapshot = await getDocs(unreadQuery);
+        const unreadCount = unreadSnapshot.docs.length;
+
         if (!lastMessageSnapshot.empty) {
             const lastMessage = lastMessageSnapshot.docs[0].data();
             return {
                 chatId: chatDoc.id,
                 partnerId: partnerId,
-                lastMessage: lastMessage
+                lastMessage: lastMessage,
+                unreadCount: unreadCount
             };
         }
         return null;

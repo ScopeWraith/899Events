@@ -183,7 +183,6 @@ export async function renderConversations() {
             lastMessageText = '<i>[Image]</i>';
         }
         
-        // Use unreadCount to determine styling
         const unreadClass = convo.unreadCount > 0 ? 'unread-convo' : '';
         const unreadBadge = convo.unreadCount > 0 ? `<span class="badge">${convo.unreadCount}</span>` : '';
 
