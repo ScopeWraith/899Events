@@ -1,9 +1,11 @@
+// code/js/ui/social-ui.js
+
 import { getState, updateState } from '../state.js';
 import { isUserLeader } from '../utils.js';
 import { handleSendMessage, fetchConversations, addFriend } from '../firestore.js'; // Modified import
 import { formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarSkinClass, getRankBorderClass } from '../utils.js'; // Modified import
 import { canDeleteMessage } from '../utils.js';
-import { showPrivateMessageModal } from './ui-manager.js'; // Added import
+import { showPrivateMessageModal, showPage } from './ui-manager.js'; // Added import
 let currentSubmitHandler = null; // To manage the form's event listener
 // --- NEW CHAT MANAGEMENT SYSTEM ---
 

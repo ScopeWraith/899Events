@@ -326,14 +326,15 @@ export async function showPrivateMessageModal(targetPlayer) {
         // 3. Populate the UI header.
         const session = userSessions[targetPlayer.uid];
         const status = session ? session.status : 'offline';
-        getElement('private-message-username').textContent = targetPlayer.username;
-        getElement('private-message-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        getElement('private-message-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
-        getElement('private-message-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
-        getElement('private-message-window').innerHTML = '';
+        // Corrected IDs from private-message to private-chat
+        getElement('private-chat-username').textContent = targetPlayer.username;
+        getElement('private-chat-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        getElement('private-chat-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
+        getElement('private-chat-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
+        getElement('private-chat-window').innerHTML = '';
 
         // 4. Show the modal.
-        showModal(getElement('private-message-modal-container'));
+        showModal(getElement('private-chat-modal-container'));
 
         // 5. Call the listener and PASS THE CHAT ID DIRECTLY as an argument.
         setupPrivateChatListener(chatId);
@@ -468,7 +469,7 @@ function setupCustomSelects() {
     querySelectorAll('.custom-select-container').forEach(container => {
         const type = container.dataset.type;
         const hiddenInput = container.querySelector('input[type="hidden"]');
-        const valueButton = container.querySelector('.custom-select-value');
+        const valueButton = container.querySelector('button.custom-select-value');
         const optionsContainer = container.querySelector('.custom-select-options');
         const searchInput = container.querySelector('.custom-select-search');
         const optionsList = container.querySelector('.options-list');
@@ -605,5 +606,3 @@ export function renderSkeletons() {
         <div id="sub-page-news-announcements" class="sub-page" style="display:none;"></div>
     `;
 }
-
-

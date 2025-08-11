@@ -8,8 +8,7 @@ import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handle
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
-import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction  } from './firestore.js';
-// REMOVED: import { activateChatChannel } from './ui/social-ui.js';
+import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction, handleImageAttachment  } from './firestore.js';
 import { positionEmojiPicker } from './utils.js';
 
 export function initializeAllEventListeners() {
@@ -32,6 +31,7 @@ export function initializeAllEventListeners() {
         }
     }
     });
+    // Corrected ID to private-chat-form and private-chat-input
     addListener('private-chat-form', 'submit', async (e) => {
         e.preventDefault();
         const input = getElement('private-chat-input');
@@ -39,7 +39,7 @@ export function initializeAllEventListeners() {
         if (text === '') return;
         input.value = '';
         try {
-            await sendPrivateMessage(text); // This function already exists
+            await sendPrivateMessage(text);
         } catch (error) {
             console.error("Failed to send private message:", error);
             alert("Error: Could not send message.");
@@ -133,6 +133,7 @@ export function initializeAllEventListeners() {
     addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
+    // Corrected ID to close-private-chat-modal-btn
     addListener('close-private-chat-modal-btn', 'click', hideAllModals);
     addListener('confirmation-cancel-btn', 'click', hideAllModals);
     addListener('close-post-actions-modal-btn', 'click', hideAllModals);
@@ -246,26 +247,8 @@ export function initializeAllEventListeners() {
     }
 
     // --- Social Page & Chat ---
+    // REMOVED old chat form listeners
 
-
-    // Chat Forms
-    const privateMessageForm = getElement('private-message-form');
-    if (privateMessageForm) {
-        privateMessageForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = getElement('private-message-input');
-            const text = input.value.trim();
-            if (text === '') return;
-            input.value = '';
-            try {
-                await sendPrivateMessage(text);
-            } catch (error) {
-                console.error("Failed to send private message:", error);
-                alert("Error: Could not send message.");
-                input.value = text;
-            }
-        });
-    }
 
     // Social Page Click Handler (for main chat window)
     const socialPage = getElement('page-social');
@@ -296,9 +279,10 @@ export function initializeAllEventListeners() {
     }
 
     // Private Message Modal Click Handler
-    const privateMessageModal = getElement('private-message-modal-container');
-    if (privateMessageModal) {
-        privateMessageModal.addEventListener('click', (e) => {
+    // Corrected ID to private-chat-modal-container
+    const privateChatModal = getElement('private-chat-modal-container');
+    if (privateChatModal) {
+        privateChatModal.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-message-btn');
             if (deleteBtn) {
                 const messageEl = deleteBtn.closest('.chat-message');
@@ -434,7 +418,8 @@ addListener('player-profile-dropdown', 'click', (e) => {
     });
 
     // --- Attachment and Emoji Logic ---
-    addListener('private-message-attach-btn', 'click', () => {
+    // Corrected ID to private-chat-attach-btn
+    addListener('private-chat-attach-btn', 'click', () => {
         const attachInput = getElement('private-message-attach-input');
         if (attachInput) attachInput.click();
     });
@@ -459,7 +444,8 @@ addListener('player-profile-dropdown', 'click', (e) => {
         }
     };
     setupEmojiButton('main-chat-emoji-btn', 'chat-input-main');
-    setupEmojiButton('private-message-emoji-btn', 'private-message-input');
+    // Corrected IDs to private-chat-emoji-btn and private-chat-input
+    setupEmojiButton('private-chat-emoji-btn', 'private-chat-input');
 
     if (emojiPicker) {
         emojiPicker.addEventListener('emoji-click', event => {
