@@ -14,7 +14,7 @@ import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
-import { renderChatSelectors, renderFriendsList, renderConversations, renderFriendsPage } from './social-ui.js';
+import { renderFriendsList, renderConversations, renderFriendsPage } from './social-ui.js';
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
 import { applyPlayerFilters } from './players-ui.js';
 
