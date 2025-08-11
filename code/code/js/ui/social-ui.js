@@ -209,16 +209,6 @@ export async function renderConversations() {
             </div>
         `;
     }).join('');
-
-    listContainer.querySelectorAll('.convo-item').forEach(el => {
-        el.addEventListener('click', () => {
-            const partnerId = el.dataset.partnerUid;
-            const partnerData = allPlayers.find(p => p.uid === partnerId);
-            if(partnerData) {
-                showPrivateMessageModal(partnerData);
-            }
-        });
-    });
 }
 
 // NEW: Renders the dedicated Friends page
