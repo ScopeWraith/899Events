@@ -390,7 +390,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .social-content-pane { display: none; animation: fadeIn 0.4s; }
 .social-content-pane.active { display: block; }
 .chat-window { height: 60vh; background-color: rgba(13, 17, 23, 0.5); border-radius: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; }
-.chat-message { display: flex; gap: 0.25rem; padding: 0.25rem .5rem; position: relative; width: fit-content; max-width: 85%; }
+.chat-message { display: flex; gap: 0.25rem; position: relative; width: fit-content; max-width: 85%; }
 .chat-message:hover .delete-message-btn { opacity: 1; }
 .chat-message-bubble { padding: 0.5rem .75rem; border-radius: 18px; background-color: rgba(33, 38, 45, 0.6); border: 2px solid; word-wrap: break-word; position: relative; cursor: pointer; transition: background-color 0.2s ease; }
 .chat-message-bubble:hover { background-color: rgba(48, 54, 61, 0.8); }
@@ -419,7 +419,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     border: 2px solid var(--rank-r1-color); 
     box-shadow: 0 0 10px -2px var(--rank-r1-color); 
 }
-.chat-message-author { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem; display: block; }
+.chat-message-author { font-weight: 500; font-size: 0.9rem; display: block; }
 .rank-border-admin .chat-message-author { color: var(--rank-admin-color); }
 .rank-border-r5 .chat-message-author { color: var(--rank-r5-color); }
 .rank-border-r4 .chat-message-author { color: var(--rank-r4-color); }
