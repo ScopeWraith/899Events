@@ -313,7 +313,10 @@ export async function handleNotificationAction(notificationId, action, senderUid
             await deleteDoc(doc(db, 'notifications', notificationId));
         } else if (action === 'verify-user') {
             const targetUsername = getState().allPlayers.find(p => p.uid === targetUid)?.username || 'A new member';
-            await updateDoc(doc(db, 'users', targetUid), { isVerified: true });
+            await updateDoc(doc(db, 'users', targetUid), { 
+                isVerified: true,
+                alliance: currentUserData.alliance // NEW: Update the alliance tag
+            });
             await updateDoc(doc(db, 'notifications', notificationId), {
                 type: 'user_verified_record',
                 isRead: true, 
