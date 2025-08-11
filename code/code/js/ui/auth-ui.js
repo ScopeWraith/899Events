@@ -324,20 +324,23 @@ export function updateAvatarDisplay(data) {
     document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
 }
 
+// code/js/ui/auth-ui.js
+
+// ...existing code...
+
 export function updatePlayerProfileDropdown() {
     const { currentUserData, userNotifications } = getState();
     if (!currentUserData) return;
 
     const dropdownContainer = document.getElementById('player-profile-dropdown');
     if (!dropdownContainer) return;
+    
+    // Check if the user is an Admin, R5, or a verified R4
+    const canCreatePost = currentUserData.isAdmin || (currentUserData.isVerified && (currentUserData.allianceRank === 'R5' || currentUserData.allianceRank === 'R4'));
 
-    // --- START: Admin-Specific Dropdown ---
-    if (currentUserData.isAdmin) {
-        dropdownContainer.innerHTML = `
-            <div class="p-2 mb-2 border-b border-white/10">
-                <p class="text-sm text-gray-400">Total Power</p>
-                <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
-            </div>
+    let postButtonsHTML = '';
+    if (canCreatePost) {
+        postButtonsHTML = `
             <button id="admin-create-event-dropdown-btn" class="dropdown-link profile-menu-link">
                 <span><i class="fas fa-calendar-plus fa-fw w-6 text-center mr-2"></i>Create Event</span>
             </button>
@@ -345,52 +348,41 @@ export function updatePlayerProfileDropdown() {
                 <span><i class="fas fa-bullhorn fa-fw w-6 text-center mr-2"></i>Create Announcement</span>
             </button>
             <div class="p-1"><hr class="border-t border-white/10"></div>
-            <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
-            </button>
-            <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
-            </button>
-            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
-            <div class="p-1"><hr class="border-t border-white/10"></div>
-            <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
-                <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
-            </button>
-        `;
-    } 
-    // --- START: Default User Dropdown ---
-    else {
-        dropdownContainer.innerHTML = `
-            <div class="p-2 mb-2 border-b border-white/10">
-                <p class="text-sm text-gray-400">Total Power</p>
-                <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
-            </div>
-            <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
-                <span class="badge hidden">0</span>
-            </button>
-            <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
-                <span class="badge hidden">0</span>
-            </button>
-            <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
-            </button>
-            <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
-            </button>
-            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
-            <div class="p-1"><hr class="border-t border-white/10"></div>
-            <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
-                <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
-            </button>
         `;
     }
 
+    // --- START: Dropdown Template ---
+    dropdownContainer.innerHTML = `
+        <div class="p-2 mb-2 border-b border-white/10">
+            <p class="text-sm text-gray-400">Total Power</p>
+            <p id="profile-dropdown-power" class="text-lg font-bold text-white">${(currentUserData.power || 0).toLocaleString()}</p>
+        </div>
+        ${postButtonsHTML}
+        <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
+            <span class="badge hidden">0</span>
+        </button>
+        <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
+            <span class="badge hidden">0</span>
+        </button>
+        <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
+        </button>
+        <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
+        </button>
+        <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+        <div class="p-1"><hr class="border-t border-white/10"></div>
+        <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
+            <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
+        </button>
+    `;
+
     // --- Common Logic for Both ---
     document.getElementById('profile-dropdown-power').textContent = (currentUserData.power || 0).toLocaleString();
-    
-    // Only update badges if the elements exist (i.e., for non-admins)
+
+    // Only update badges if the elements exist
     const friendReqBtn = document.getElementById('profile-dropdown-friends');
     if (friendReqBtn) {
         const friendRequests = userNotifications.filter(n => n.type === 'friend_request' && !n.isRead);
