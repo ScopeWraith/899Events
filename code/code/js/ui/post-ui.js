@@ -246,12 +246,12 @@ function getAvailablePostTypes(mainType) {
             return true;
         }
         
-        // Non-admins must be verified to create any type of post.
-        if (!currentUserData.isVerified) {
+        // Check if the post type requires verification.
+        if (type.isVerifiedRequired && !currentUserData.isVerified) {
             return false;
         }
         
-        // Alliance-specific posts are only visible to the correct ranks.
+        // Check if the user's rank is allowed to create this post type.
         if (type.allowedRanks) {
             return type.allowedRanks.includes(currentUserData.allianceRank);
         }
