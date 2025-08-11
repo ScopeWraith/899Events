@@ -2,7 +2,7 @@
 
 import { getState, updateState } from '../state.js';
 import { isUserLeader } from '../utils.js';
-import { handleSendMessage, fetchConversations, addFriend, setupChatListeners, handleImageAttachment } from '../firestore.js';
+import { handleSendMessage, fetchConversations, addFriend, setupChatListeners, handleImageAttachment, setupConversationListListener } from '../firestore.js';
 import { formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarSkinClass, getRankBorderClass } from '../utils.js';
 import { canDeleteMessage } from '../utils.js';
 import { showFullscreenChatModal, showPage } from './ui-manager.js';
@@ -146,7 +146,13 @@ export function renderMessages(messages, container, chatType) {
     container.scrollTop = container.scrollHeight;
 }
 
-export function renderConversations(conversations) {
+// Entry point function called from ui-manager
+export function renderConversations() {
+    setupConversationListListener();
+}
+
+// Actual rendering function called by the real-time listener
+export function renderConversationsList(conversations) {
     const container = document.getElementById('sub-page-social-convo');
     if (!container) return;
 
