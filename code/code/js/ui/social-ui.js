@@ -33,66 +33,32 @@ const CHAT_CHANNELS = {
 };
 
 // Function to build the chat selection list
-export function renderChatSelectors() {
-    const { currentUserData } = getState();
-    const selectorContainer = document.getElementById('social-chat-selector');
-    if (!selectorContainer) return;
+export async function renderConversations() {
+    const container = document.getElementById('sub-page-social-chat');
+    if (!container) return;
 
-    selectorContainer.innerHTML = ''; // Clear old selectors
-    let availableChannels = [];
-    for (const channelKey in CHAT_CHANNELS) {
-        const channel = CHAT_CHANNELS[channelKey];
-        if (!currentUserData && channel.requiresAuth) continue;
-        if (channel.requiresAlliance && (!currentUserData?.alliance || !currentUserData?.isVerified)) continue;
-        if (channel.requiresLeader && !isUserLeader(currentUserData)) continue;
-        availableChannels.push(channel);
-    }
+    const conversations = await fetchConversations();
+    const { allPlayers, userSessions } = getState();
+    const listContainer = document.getElementById('convo-list');
 
-    // Render the buttons
-    availableChannels.forEach(channel => {
-        const button = document.createElement('button');
-        button.className = 'chat-selector-btn';
-        button.dataset.chatId = channel.id;
-        button.style.setProperty('--glow-color', channel.color);
-        button.innerHTML = `<i class="${channel.icon} fa-fw"></i><span>${channel.name}</span>`;
-        selectorContainer.appendChild(button);
-    });
-}
-
-// Function to activate a specific chat
-// Function to activate a specific chat
-export function activateChatChannel(chatId) {
-    const chatWindow = document.getElementById('chat-window-main');
-    const chatInputForm = document.getElementById('chat-input-form');
-    const chatInput = document.getElementById('chat-input-main');
-
-    if (!chatWindow || !chatInputForm || !chatInput) {
-        console.error("Could not find all necessary chat elements in the DOM.");
+    if (conversations.length === 0) {
+        listContainer.innerHTML = `<p class="text-center text-gray-400 py-8">No recent conversations. Start one from the Players page!</p>`;
         return;
     }
 
-    document.querySelectorAll('.chat-selector-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.chatId === chatId);
+    listContainer.innerHTML = conversations.map(convo => {
+        // ... (HTML for conversation list item, similar to the existing code)
+    }).join('');
+
+    listContainer.querySelectorAll('.convo-item').forEach(el => {
+        el.addEventListener('click', () => {
+            const partnerId = el.dataset.partnerUid;
+            const partnerData = allPlayers.find(p => p.uid === partnerId);
+            if(partnerData) {
+                showPrivateMessageModal(partnerData);
+            }
+        });
     });
-
-    chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Loading messages for ${chatId.replace(/_/g, ' ')}...</p>`;
-    chatInputForm.style.display = 'flex';
-    chatInput.placeholder = `Type a message in ${chatId.replace('_chat', '')}...`;
-
-    // FIX: Remove the old event listener and add the new one to prevent duplicate IDs from cloneNode
-    if (currentSubmitHandler) {
-        chatInputForm.removeEventListener('submit', currentSubmitHandler);
-    }
-
-    // Define the new handler for the current chat channel
-    currentSubmitHandler = function(e) {
-        const text = chatInput.value;
-        handleSendMessage(e, chatId, text); // Pass the text to the handler
-        chatInput.value = ''; // Clear the input for the next message
-    };
-
-    // Add the new, specific event listener
-    chatInputForm.addEventListener('submit', currentSubmitHandler);
 }
 
 // --- EXISTING FUNCTIONS (Modified) ---

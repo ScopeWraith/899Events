@@ -405,40 +405,40 @@
                 </div>
             </div>
             
-            <div id="private-message-modal-container" class="modal-container !p-0" style="max-width: 500px; height: 85vh; max-height: 700px;">
-                <div class="glass-pane flex flex-col h-full overflow-hidden">
-                    <div id="private-message-header" class="flex items-center p-3 border-b border-white/10 flex-shrink-0">
-                        <button id="close-private-message-modal-btn" class="text-gray-500 hover:text-white transition-colors mr-3 ml-1">
-                            <i class="fas fa-arrow-left"></i>
-                        </button>
-                        <img id="private-message-avatar" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-10 h-10 rounded-full object-cover mr-3">
-                        <div>
-                            <h3 id="private-message-username" class="font-bold text-white leading-tight">Username</h3>
-                            <p id="private-message-status" class="text-xs font-semibold leading-tight">Offline</p>
-                        </div>
-                    </div>
-                    
-                    <div id="private-message-window" class="chat-window flex-grow p-4">
-                        </div>
-
-                    <div id="private-message-footer" class="p-3 border-t border-white/10 bg-black/20 flex-shrink-0">
-                        <form id="private-message-form" class="flex items-center gap-2">
-                            <button type="button" id="private-message-attach-btn" class="pm-footer-btn" title="Attach Image">
-                                <i class="fas fa-paperclip"></i>
-                            </button>
-                            <div class="relative flex-grow">
-                                <input type="text" id="private-message-input" class="form-input !rounded-full !bg-gray-900/70" placeholder="Type a message..." required>
-                                <button type="button" id="private-message-emoji-btn" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
-                                    <i class="fas fa-smile"></i>
-                                </button>
-                            </div>
-                            <button type="submit" class="pm-footer-btn !bg-blue-600 text-white" title="Send">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
+            <div id="private-chat-modal-container" class="modal-container full-screen-modal">
+    <div class="glass-pane flex flex-col h-full overflow-hidden">
+        <div id="private-chat-header" class="flex items-center p-3 border-b border-white/10 flex-shrink-0">
+            <button id="close-private-chat-modal-btn" class="text-gray-500 hover:text-white transition-colors mr-3">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <img id="private-chat-avatar" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-10 h-10 rounded-full object-cover mr-3">
+            <div>
+                <h3 id="private-chat-username" class="font-bold text-white leading-tight">Username</h3>
+                <p id="private-chat-status" class="text-xs font-semibold leading-tight">Offline</p>
             </div>
+        </div>
+
+        <div id="private-chat-window" class="chat-window flex-grow p-4">
+            </div>
+
+        <div id="private-chat-footer" class="p-3 border-t border-white/10 bg-black/20 flex-shrink-0 flex items-center">
+            <form id="private-chat-form" class="flex items-center gap-2 flex-grow">
+                <button type="button" id="private-chat-attach-btn" class="pm-footer-btn" title="Attach Image">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="relative flex-grow">
+                    <input type="text" id="private-chat-input" class="form-input !rounded-full !bg-gray-900/70" placeholder="Message..." required>
+                    <button type="button" id="private-chat-emoji-btn" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
+                        <i class="fas fa-smile"></i>
+                    </button>
+                </div>
+                <button type="submit" class="pm-footer-btn !bg-blue-600 text-white" title="Send">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
         </div>
         <header id="app-header" class="sticky top-0 z-50">
     <div class="glass-pane !rounded-none !border-x-0 !border-t-0">
@@ -535,27 +535,9 @@
                     </div>
                     <div id="page-social" class="page-content" style="display: none;">
                         <div id="sub-page-social-chat" class="sub-page">
-                            <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
-                                <div class="lg:col-span-3">
-                                    <div class="glass-pane section-container flex flex-col h-full p-0">
-                                        <div id="social-chat-selector"></div>
-                                        <div id="social-chat-pane" class="flex flex-col flex-grow">
-                                            <div id="chat-window-main" class="chat-window py-4 px-0 flex-grow" style="height: 65vh;">
-                                                <p class="text-center text-gray-500 m-auto">Select a chat to begin.</p>
-                                            </div>
-                                            <form id="chat-input-form" class="mt-4 flex items-center gap-2" style="display: none;">
-                                                <div class="relative flex-grow">
-                                                    <input type="text" id="chat-input-main" class="form-input" placeholder="Type a message...">
-                                                    <button type="button" id="main-chat-emoji-btn" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-white">
-                                                        <i class="fas fa-smile"></i>
-                                                    </button>
-                                                </div>
-                                                <button type="submit" class="primary-btn px-6 rounded-lg"><i class="fas fa-paper-plane"></i></button>
-                                            </form>
-                                        </div>
-                                    </div>
+                            <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6" style="text-shadow: 0 0 10px var(--color-primary);">Chats</h2>
+                            <div id="convo-list" class="space-y-3 max-w-4xl mx-auto">
                                 </div>
-                            </div>
                         </div>
                         <div id="sub-page-social-convo" class="sub-page" style="display: none;">
                             <h2 class="text-2xl font-bold text-white text-center mb-6">Recent Interactions</h2>

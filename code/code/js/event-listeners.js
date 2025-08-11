@@ -21,6 +21,31 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
+    addListener('convo-list', 'click', (e) => {
+    const convoItem = e.target.closest('.convo-item');
+    if (convoItem) {
+        const partnerId = convoItem.dataset.partnerUid;
+        const { allPlayers } = getState();
+        const partnerData = allPlayers.find(p => p.uid === partnerId);
+        if (partnerData) {
+            showPrivateMessageModal(partnerData);
+        }
+    }
+    });
+    addListener('private-chat-form', 'submit', async (e) => {
+        e.preventDefault();
+        const input = getElement('private-chat-input');
+        const text = input.value.trim();
+        if (text === '') return;
+        input.value = '';
+        try {
+            await sendPrivateMessage(text); // This function already exists
+        } catch (error) {
+            console.error("Failed to send private message:", error);
+            alert("Error: Could not send message.");
+            input.value = text;
+        }
+    });
     addListener('view-post-modal-container', 'click', (e) => {
     const reactionBtn = e.target.closest('.post-reaction-btn');
     if (reactionBtn) {
@@ -221,17 +246,7 @@ export function initializeAllEventListeners() {
     }
 
     // --- Social Page & Chat ---
-    const socialChatSelector = getElement('social-chat-selector');
-    if (socialChatSelector) {
-        socialChatSelector.addEventListener('click', (e) => {
-            const chatButton = e.target.closest('.chat-selector-btn');
-            if (chatButton) {
-                const chatId = chatButton.dataset.chatId;
-                activateChatChannel(chatId);
-                setupChatListeners(chatId);
-            }
-        });
-    }
+
 
     // Chat Forms
     const privateMessageForm = getElement('private-message-form');
