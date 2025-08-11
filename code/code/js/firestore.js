@@ -1,10 +1,5 @@
 // code/js/firestore.js
 
-/**
- * This module centralizes all interactions with Firestore,
- * including setting up listeners, fetching data, and writing data.
- */
-
 import { db, storage } from './firebase-config.js';
 import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -118,50 +113,7 @@ export function fetchInitialData() {
 
     updateState({ listeners });
 }
-export function setupConversationListListener() {
-    const { currentUserData, listeners } = getState();
-    if (!currentUserData) return;
-    
-    // Detach old listener if it exists
-    if (listeners.convoList) listeners.convoList();
 
-    const q = query(collection(db, 'private_chats'), where('participants', 'array-contains', currentUserData.uid));
-    
-    listeners.convoList = onSnapshot(q, async (snapshot) => {
-        const conversationPromises = snapshot.docs.map(async (chatDoc) => {
-            const chatData = chatDoc.data();
-            const partnerId = chatData.participants.find(p => p !== currentUserData.uid);
-            
-            const messagesQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), orderBy('timestamp', 'desc'), limit(1));
-            const lastMessageSnapshot = await getDocs(messagesQuery);
-            
-            const unreadQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), where('isRead', '==', false), where('authorUid', '!=', currentUserData.uid));
-            const unreadSnapshot = await getDocs(unreadQuery);
-            const unreadCount = unreadSnapshot.docs.length;
-
-            if (!lastMessageSnapshot.empty) {
-                const lastMessage = lastMessageSnapshot.docs[0].data();
-                return {
-                    chatId: chatDoc.id,
-                    partnerId: partnerId,
-                    lastMessage: lastMessage,
-                    unreadCount: unreadCount
-                };
-            }
-            return null;
-        });
-        
-        const resolvedConversations = await Promise.all(conversationPromises);
-        const conversations = resolvedConversations.filter(convo => convo !== null);
-        renderConversationsList(conversations);
-        
-        const unreadConvoCount = conversations.filter(c => c.unreadCount > 0).length;
-        getState().callbacks.onUnreadMessagesUpdate(unreadConvoCount);
-        
-    }, (error) => console.error("Error with conversation list listener:", error));
-    
-    updateState({ listeners });
-}
 export function setupChatListeners(activeChatId) {
     const { currentUserData, listeners } = getState();
     if (!currentUserData) return;
