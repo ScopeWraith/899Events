@@ -497,5 +497,3 @@ export async function fetchConversations() {
     
     return resolvedConversations.filter(convo => convo !== null);
 }
-
-export { togglePostReaction, setupAllListeners, fetchInitialData, setupChatListeners, setupPrivateChatListener, detachAllListeners, handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, handleImageAttachment, toggleReaction}
