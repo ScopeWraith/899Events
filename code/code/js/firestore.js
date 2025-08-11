@@ -118,31 +118,6 @@ export function fetchInitialData() {
 
     updateState({ listeners });
 }
-export async function handleFullscreenMessageSend(text) {
-    const { currentUserData, activePrivateChatId } = getState();
-    if (!currentUserData || text.trim() === '') return;
-
-    if (activePrivateChatId) {
-        // We are in a private chat
-        const messagesColRef = collection(db, `private_chats/${activePrivateChatId}/messages`);
-        await addDoc(messagesColRef, {
-            text: text,
-            authorUid: currentUserData.uid,
-            authorUsername: currentUserData.username,
-            timestamp: serverTimestamp(),
-            reactions: {}
-        });
-    } else {
-        // We are in a public/alliance chat
-        const activeChatBtn = document.querySelector('#chat-selectors .chat-selector-btn.active');
-        if (!activeChatBtn) {
-            console.error("No active public chat channel selected.");
-            return;
-        }
-        const chatType = activeChatBtn.dataset.chatType;
-        await handleSendMessage(null, chatType, text);
-    }
-}
 
 export function setupChatListeners(activeChatId) {
     const { currentUserData, listeners } = getState();
@@ -219,7 +194,6 @@ export function detachAllListeners() {
 }
 
 export async function handleSendMessage(e, chatType, text) {
-    e.preventDefault();
     const { currentUserData } = getState();
     if (!currentUserData || !text || text.trim() === '') return;
 
@@ -252,18 +226,17 @@ export async function handleSendMessage(e, chatType, text) {
         await addDoc(collection(db, collectionPath), messageData);
     } catch (error) {
         console.error(`Error sending message to ${chatType}:`, error);
-        const input = document.getElementById('chat-input-main');
+        // Assuming there is an input element in the fullscreen modal
+        const input = document.getElementById('fullscreen-chat-input');
         if(input) input.value = text;
     }
 }
 
-// NEW: Unified message sending function
 export async function handleFullscreenMessageSend(text) {
     const { currentUserData, activePrivateChatId } = getState();
     if (!currentUserData || text.trim() === '') return;
 
     if (activePrivateChatId) {
-        // We are in a private chat
         const messagesColRef = collection(db, `private_chats/${activePrivateChatId}/messages`);
         await addDoc(messagesColRef, {
             text: text,
@@ -273,7 +246,6 @@ export async function handleFullscreenMessageSend(text) {
             reactions: {}
         });
     } else {
-        // We are in a public/alliance chat
         const activeChatBtn = document.querySelector('#chat-selectors .chat-selector-btn.active');
         if (!activeChatBtn) {
             console.error("No active public chat channel selected.");
