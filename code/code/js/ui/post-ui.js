@@ -231,21 +231,27 @@ export function initializePostStepper(mainType) {
 
 function getAvailablePostTypes(mainType) {
     const { currentUserData } = getState();
-    // Return an empty array if the user is not logged in or is not verified
-    if (!currentUserData || !currentUserData.isVerified) {
-        // Admins can bypass verification
-        if (!currentUserData?.isAdmin) {
-             return [];
-        }
-    }
     
-    return Object.entries(POST_TYPES).filter(([key, type]) => {
-        if (type.mainType !== mainType) return false;
-        
-        // Admins can create all posts
-        if (currentUserData.isAdmin) return true;
+    if (!currentUserData) {
+        return [];
+    }
 
-        // Check for required ranks and verification status
+    return Object.entries(POST_TYPES).filter(([key, type]) => {
+        if (type.mainType !== mainType) {
+            return false;
+        }
+
+        // Admins can see all post types.
+        if (currentUserData.isAdmin) {
+            return true;
+        }
+        
+        // Non-admins must be verified to create any type of post.
+        if (!currentUserData.isVerified) {
+            return false;
+        }
+        
+        // Alliance-specific posts are only visible to the correct ranks.
         if (type.allowedRanks) {
             return type.allowedRanks.includes(currentUserData.allianceRank);
         }
