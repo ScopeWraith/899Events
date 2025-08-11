@@ -265,8 +265,11 @@ export async function handleEditProfileSubmit(e) {
     let needsReverification = false;
     if (currentUserData && (updatedData.alliance !== currentUserData.alliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
-        updatedData.alliance = 'Pending Alliance';
         needsReverification = true;
+    }
+
+    if (currentUserData && updatedData.alliance !== currentUserData.alliance) {
+        updatedData.alliance = 'Pending Alliance';
     }
 
     try {
