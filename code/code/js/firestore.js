@@ -2,7 +2,7 @@
 
 /**
  * This module centralizes all interactions with Firestore,
- * including setting up listeners, fetching data, and writing data.
+ * including setting up listeners, fetching data, and writing data.NotWorking
  */
 
 import { db, storage } from './firebase-config.js';
