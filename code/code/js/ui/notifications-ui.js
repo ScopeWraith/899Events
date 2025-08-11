@@ -35,8 +35,8 @@ export function renderNotifications(notifications) {
     }
 
     // --- Full Feed Page Rendering (Actionable items only) ---
-    const actionableNotifications = notifications.filter(n =>
-        n.type === 'friend_request'
+    const actionableNotifications = notifications.filter(n => 
+        n.type === 'friend_request' || n.type === 'verification_request'
     );
 
     // The feedActionContainer is only on the 'Feed' page, so this check is also important.
