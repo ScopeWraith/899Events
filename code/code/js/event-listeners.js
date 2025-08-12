@@ -3,7 +3,7 @@
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
+import { setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal, hideModal } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
@@ -126,7 +126,7 @@ export function initializeAllEventListeners() {
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
     addListener('close-fullscreen-chat-modal-btn', 'click', hideAllModals);
-    addListener('confirmation-cancel-btn', 'click', hideAllModals);
+    addListener('confirmation-cancel-btn', 'click', () => hideModal(getElement('confirmation-modal-container')));
     addListener('close-post-actions-modal-btn', 'click', hideAllModals);
     addListener('modal-backdrop', 'click', (e) => {
         if (e.target === getElement('modal-backdrop')) {
@@ -278,7 +278,6 @@ export function initializeAllEventListeners() {
                 if (bubble) {
                     showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
                         handleDeleteMessage(bubble.dataset.messageId, bubble.dataset.chatType);
-                        hideAllModals();
                     });
                 }
             } else if (bubble) {
@@ -305,7 +304,6 @@ export function initializeAllEventListeners() {
                     if (bubble) {
                         showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
                             handleDeleteMessage(bubble.dataset.messageId, 'private_chat');
-                            hideAllModals();
                         });
                     }
                 }

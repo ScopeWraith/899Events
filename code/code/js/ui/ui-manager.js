@@ -249,16 +249,31 @@ export function showCreatePostModal(mainType) {
 }
 
 export function showConfirmationModal(title, message, onConfirm) {
+    const confirmationModal = getElement('confirmation-modal-container');
+    if (!confirmationModal) return;
+
     getElement('confirmation-title').textContent = title;
     getElement('confirmation-message').textContent = message;
 
     const confirmBtn = getElement('confirmation-confirm-btn');
+    const cancelBtn = getElement('confirmation-cancel-btn');
+
+    // Clone and replace buttons to remove old event listeners
     const newConfirmBtn = confirmBtn.cloneNode(true);
+    const newCancelBtn = cancelBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
-    newConfirmBtn.addEventListener('click', onConfirm);;
+    newConfirmBtn.addEventListener('click', () => {
+        onConfirm();
+        hideModal(confirmationModal);
+    });
 
-    showModal(getElement('confirmation-modal-container'));
+    newCancelBtn.addEventListener('click', () => {
+        hideModal(confirmationModal);
+    });
+
+    showModal(confirmationModal);
 }
 
 export function showPostActionsModal(postId) {
@@ -381,7 +396,16 @@ export function setupInitialUI() {
     setupCustomSelects();
     setupParticleCanvas();
 }
-
+export function hideModal(modalElement) {
+    if (modalElement) {
+        modalElement.classList.remove('visible');
+    }
+    // Check if any other modals are visible before hiding the backdrop
+    const anyOtherModalsVisible = document.querySelectorAll('.modal-container.visible').length > 0;
+    if (!anyOtherModalsVisible) {
+        getElement('modal-backdrop').classList.remove('visible');
+    }
+}
 export function setupEmojiButton(buttonId, inputId) {
     const button = getElement(buttonId);
     const input = getElement(inputId);
