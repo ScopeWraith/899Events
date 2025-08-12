@@ -9,7 +9,7 @@ import { doc, deleteDoc, setDoc, getDocs, updateDoc, collection, where, query, s
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
 import { renderFriendsList, renderConversations, renderFriendsPage, renderChatChannels } from './social-ui.js';
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
-import { applyPlayerFilters } from '../players-ui.js';
+import { applyPlayerFilters } from './players-ui.js';
 
 
 // --- DOM ELEMENT GETTERS ---
