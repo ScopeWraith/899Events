@@ -3,7 +3,7 @@
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
+import { setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';

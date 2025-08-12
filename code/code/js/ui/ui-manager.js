@@ -381,7 +381,32 @@ export function setupInitialUI() {
     setupCustomSelects();
     setupParticleCanvas();
 }
+let activeEmojiInput = null;
 
+export function setupEmojiButton(buttonId, inputId) {
+    const button = getElement(buttonId);
+    const input = getElement(inputId);
+    const emojiPickerContainer = getElement('emoji-picker-container');
+
+    if (!button || !input || !emojiPickerContainer) return;
+
+    button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        emojiPickerContainer.classList.toggle('visible');
+        activeEmojiInput = input;
+    });
+
+    emojiPickerContainer.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    // Close the picker if the user clicks anywhere else
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#emoji-picker-container') && !e.target.closest(`#${buttonId}`)) {
+            emojiPickerContainer.classList.remove('visible');
+        }
+    });
+}
 export function updateUIForLoggedInUser() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
