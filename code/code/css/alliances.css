@@ -55,12 +55,16 @@
     font-weight: 900;
     color: #fff;
     text-shadow: 0 0 12px var(--primary-color);
+    text-align: center;
 }
 .alliance-card-tag {
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--secondary-color);
     text-shadow: 0 0 12px var(--primary-color);
+    letter-spacing: .1rem;
+    line-height: .8rem;
+    text-align: center;
 }
 .alliance-card-body {
     padding: 0rem 1.5rem;
