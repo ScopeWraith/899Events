@@ -1,7 +1,7 @@
 // code/js/ui/alliances-ui.js
 import { getState } from '../state.js';
 import { db, storage } from '../firebase-config.js';
-import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { showModal, hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { resizeImage } from '../utils.js';
@@ -10,9 +10,38 @@ let resizedAllianceAvatarBlob = null;
 
 export function renderAlliances(alliances) {
     const container = document.getElementById('alliances-list-container');
-    if (!container) return;
+    const pageHeader = document.querySelector('#sub-page-server-alliances h2'); // Get the header
+    if (!container || !pageHeader) return;
 
-    if (!alliances || alliances.length === 0) {
+    // --- NEW: Add a container for the button ---
+    let headerActionHTML = '';
+    const { currentUserData } = getState();
+
+    // Check if the user is a verified R5 and if their alliance is NOT in the rendered list
+    if (currentUserData &&
+        currentUserData.isVerified &&
+        currentUserData.allianceRank === 'R5' &&
+        currentUserData.alliance &&
+        !alliances.some(a => a.tag === currentUserData.alliance))
+    {
+        headerActionHTML = `
+            <div class="text-center mb-6">
+                <button id="show-register-alliance-modal-btn" class="primary-btn px-6 py-3 rounded-lg text-lg">
+                    <i class="fas fa-plus-circle mr-2"></i> Register Your Alliance
+                </button>
+            </div>
+        `;
+    }
+    
+    // Inject the button container right after the main page header
+    if (pageHeader.nextSibling?.id !== 'alliance-action-container') {
+         pageHeader.insertAdjacentHTML('afterend', `<div id="alliance-action-container">${headerActionHTML}</div>`);
+    } else {
+        document.getElementById('alliance-action-container').innerHTML = headerActionHTML;
+    }
+    // --- END NEW ---
+
+    if (alliances.length === 0) {
         container.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No alliances have been registered yet.</p>`;
         return;
     }
@@ -93,7 +122,73 @@ export async function handleAllianceAvatarSelection(e) {
     resizedAllianceAvatarBlob = await resizeImage(file, { maxWidth: 512, maxHeight: 512 });
     document.getElementById('edit-alliance-avatar-preview').src = URL.createObjectURL(resizedAllianceAvatarBlob);
 }
+export function showRegisterAllianceModal() {
+    const { currentUserData } = getState();
+    if (!currentUserData) return;
 
+    // Pre-fill the alliance tag display
+    document.getElementById('register-alliance-tag-display').textContent = `[${currentUserData.alliance}]`;
+    document.getElementById('register-alliance-form').reset();
+    document.getElementById('register-alliance-error').textContent = '';
+    
+    hideAllModals();
+    showModal(document.getElementById('register-alliance-modal-container'));
+}
+
+export async function handleAllianceRegisterSubmit(e) {
+    e.preventDefault();
+    const { currentUserData } = getState();
+    const errorElement = document.getElementById('register-alliance-error');
+    errorElement.textContent = '';
+
+    if (!currentUserData || !currentUserData.isVerified || currentUserData.allianceRank !== 'R5') {
+        errorElement.textContent = "You do not have permission to register an alliance.";
+        return;
+    }
+
+    const allianceTag = currentUserData.alliance;
+    const allianceName = document.getElementById('register-alliance-name').value;
+    const allianceDetails = document.getElementById('register-alliance-details').value;
+
+    if (!allianceName || !allianceDetails) {
+        errorElement.textContent = "Please fill out all fields.";
+        return;
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Registering...';
+
+    const allianceDocRef = doc(db, "alliances", allianceTag);
+
+    const newAllianceData = {
+        tag: allianceTag,
+        name: allianceName,
+        details: allianceDetails,
+        r5Name: currentUserData.username,
+        // Set other fields to null or empty strings initially
+        warlord: '',
+        recruiter: '',
+        muse: '',
+        butler: '',
+        recruitmentInfo: 'Contact leadership for details.',
+        avatarUrl: '',
+        primaryColor: '#00BFFF', // Default color
+        secondaryColor: '#F87171' // Default color
+    };
+
+    try {
+        await setDoc(allianceDocRef, newAllianceData);
+        hideAllModals();
+        // The real-time listener will automatically re-render the alliances page
+    } catch (error) {
+        console.error("Error registering alliance:", error);
+        errorElement.textContent = "An error occurred during registration. Please try again.";
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Complete Registration';
+    }
+}
 export async function handleAllianceEditSubmit(e) {
     e.preventDefault();
     const errorElement = document.getElementById('edit-alliance-error');

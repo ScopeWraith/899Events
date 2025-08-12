@@ -28,6 +28,36 @@
         </div>
 
         <div id="modal-container-all">
+            <div id="register-alliance-modal-container" class="modal-container">
+                <div class="glass-pane">
+                    <div class="modal-content-wrapper themed-scrollbar">
+                        <button id="close-register-alliance-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                            <i class="fas fa-times fa-lg"></i>
+                        </button>
+                        <h2 class="text-2xl font-bold text-white text-center mb-6">Register Alliance Profile</h2>
+                        <form id="register-alliance-form">
+                            <div class="space-y-4">
+                                <div class="text-center mb-4">
+                                    <p class="text-gray-400">Registering for Alliance:</p>
+                                    <h3 id="register-alliance-tag-display" class="text-3xl font-bold text-white"></h3>
+                                </div>
+
+                                <div class="input-group">
+                                    <i class="fas fa-users input-icon"></i>
+                                    <input type="text" id="register-alliance-name" placeholder="Full Alliance Name" class="form-input" required maxlength="50">
+                                </div>
+
+                                <div class="input-group">
+                                    <i class="fas fa-info-circle input-icon"></i>
+                                    <textarea id="register-alliance-details" placeholder="Short Alliance Bio (300 characters max)" class="form-textarea" required maxlength="300" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <p id="register-alliance-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                            <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Complete Registration</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
             <div id="edit-alliance-modal-container" class="modal-container">
                 <div class="glass-pane">
                     <div class="modal-content-wrapper themed-scrollbar">
