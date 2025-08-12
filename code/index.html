@@ -523,7 +523,11 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div id="news-submenu" class="sub-nav-content"><a href="#" class="sub-nav-link active" data-sub-target="news-all"><i class="fas fa-grip-horizontal fa-fw w-6"></i> ALL</a><a href="#" class="sub-nav-link" data-sub-target="news-events"><i class="fas fa-calendar-alt fa-fw w-6"></i> Events</a><a href="#" class="sub-nav-link" data-sub-target="news-announcements"><i class="fas fa-bullhorn fa-fw w-6"></i> Announcements</a></div>
             <div id="social-submenu" class="sub-nav-content hidden"><a href="#" class="sub-nav-link active" data-sub-target="social-chat"><i class="fas fa-comments fa-fw w-6"></i> Chat</a><a href="#" class="sub-nav-link" data-sub-target="social-convo"><i class="fas fa-user-secret fa-fw w-6"></i> Private</a><a href="#" class="sub-nav-link" data-sub-target="social-friends"><i class="fas fa-user-friends fa-fw w-6"></i> Friends</a></div>
-            <div id="server-submenu" class="sub-nav-content hidden"><a href="#" class="sub-nav-link active" data-sub-target="server-alliances"><i class="fas fa-handshake fa-fw w-6"></i> Alliances</a><a href="#" class="sub-nav-link" data-sub-target="server-players"><i class="fas fa-users fa-fw w-6"></i> Players</a><a href="#" class="sub-nav-link" data-sub-target="server-nap"><i class="fas fa-gavel fa-fw w-6"></i> NAP</a></div>
+            <div id="server-submenu" class="sub-nav-content hidden">
+                <a href="#" class="sub-nav-link active" data-sub-target="server-alliances"><i class="fas fa-handshake fa-fw w-6"></i> Alliances</a>
+                <a href="#" class="sub-nav-link" data-sub-target="server-players"><i class="fas fa-users fa-fw w-6"></i> Players</a>
+                <a href="#" class="sub-nav-link" data-sub-target="server-nap"><i class="fas fa-gavel fa-fw w-6"></i> NAP</a>
+            </div>
         </div>
     </div>
 </header>
@@ -553,9 +557,8 @@
                     <div id="page-server" class="page-content" style="display: none;">
                         <div id="sub-page-server-alliances" class="sub-page">
                             <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6">Server Alliances</h2>
-                            <div class="glass-pane p-6 text-center">
-                                <p class="text-gray-400">Content for the Alliances page will go here. This page will display all alliances on the server and allow R5s to edit their alliance information.</p>
-                            </div>
+                            <div id="alliances-list-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                                </div>
                         </div>
                         <div id="sub-page-server-players" class="sub-page" style="display: none;">
                             <div class="flex flex-col md:flex-row gap-4 mb-6">

@@ -4,6 +4,7 @@ let state = {
     currentUserData: null,
     allPlayers: [],
     allPosts: [],
+    allAlliances: [],
     userSessions: {},
     userNotifications: [],
     userFriends: [],

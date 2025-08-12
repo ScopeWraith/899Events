@@ -1,16 +1,13 @@
 // code/js/event-listeners.js
-
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showPrivateMessageModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
+import { setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
 import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
-import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction  } from './firestore.js';
-import { activateChatChannel } from './ui/social-ui.js';
-import { positionEmojiPicker } from './utils.js';
+import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend  } from './firestore.js';
 
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
@@ -21,6 +18,31 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
+    addListener('convo-list', 'click', (e) => {
+    const convoItem = e.target.closest('.convo-item');
+    if (convoItem) {
+        const partnerId = convoItem.dataset.partnerUid;
+        const { allPlayers } = getState();
+        const partnerData = allPlayers.find(p => p.uid === partnerId);
+        if (partnerData) {
+            showFullscreenChatModal({ targetPlayer: partnerData });
+        }
+    }
+    });
+    addListener('fullscreen-chat-form', 'submit', async (e) => {
+        e.preventDefault();
+        const input = getElement('fullscreen-chat-input');
+        const text = input.value.trim();
+        if (text === '') return;
+        input.value = '';
+        try {
+            await handleFullscreenMessageSend(text);
+        } catch (error) {
+            console.error("Failed to send message:", error);
+            alert("Error: Could not send message.");
+            input.value = text;
+        }
+    });
     addListener('view-post-modal-container', 'click', (e) => {
     const reactionBtn = e.target.closest('.post-reaction-btn');
     if (reactionBtn) {
@@ -40,7 +62,6 @@ export function initializeAllEventListeners() {
 
             showPage(mainTarget);
 
-            // This is the simplified, corrected logic.
             toggleSubNav(submenuId);
 
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
@@ -68,23 +89,19 @@ export function initializeAllEventListeners() {
     const editProfileModal = getElement('edit-profile-modal-container');
     if (editProfileModal) {
         editProfileModal.addEventListener('click', (e) => {
-            // Tab switching logic
             const tabBtn = e.target.closest('.modal-tab-btn');
             if (tabBtn) {
                 e.preventDefault();
                 const tabName = tabBtn.dataset.tab;
 
-                // Update button active state
                 editProfileModal.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
                 tabBtn.classList.add('active');
 
-                // Update pane visibility
                 editProfileModal.querySelectorAll('.modal-tab-pane').forEach(pane => {
                     pane.classList.toggle('active', pane.id === `edit-profile-tab-${tabName}`);
                 });
             }
 
-            // Skin/Border selection logic
             const skinBtn = e.target.closest('.skin-select-btn');
             if (skinBtn) {
                 e.preventDefault();
@@ -92,7 +109,6 @@ export function initializeAllEventListeners() {
                 const targetInputId = parentContainer.id.replace('-selector', '');
                 const targetInput = getElement(`edit-${targetInputId}`);
 
-                // Update hidden input and button active state
                 if (targetInput) {
                     targetInput.value = skinBtn.dataset.value;
                     parentContainer.querySelectorAll('.skin-select-btn').forEach(btn => btn.classList.remove('active'));
@@ -108,8 +124,8 @@ export function initializeAllEventListeners() {
     addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
-    addListener('close-private-message-modal-btn', 'click', hideAllModals);
-    addListener('confirmation-cancel-btn', 'click', hideAllModals);
+    addListener('close-fullscreen-chat-modal-btn', 'click', hideAllModals);
+    addListener('confirmation-cancel-btn', 'click', () => hideModal(getElement('confirmation-modal-container')));
     addListener('close-post-actions-modal-btn', 'click', hideAllModals);
     addListener('modal-backdrop', 'click', (e) => {
         if (e.target === getElement('modal-backdrop')) {
@@ -117,7 +133,6 @@ export function initializeAllEventListeners() {
             const mobileNav = getElement('mobile-nav-menu');
             if (mobileNav.classList.contains('open')) {
                 mobileNav.classList.remove('open');
-                // Change icon back to 'bars'
                 const icon = getElement('open-mobile-menu-btn').querySelector('i');
             }
         }
@@ -194,14 +209,12 @@ export function initializeAllEventListeners() {
     addListener('open-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.add('open');
         getElement('modal-backdrop').classList.add('visible');
-        // Change icon to 'X'
         const icon = getElement('open-mobile-menu-btn').querySelector('i');
     });
 
     addListener('close-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.remove('open');
         getElement('modal-backdrop').classList.remove('visible');
-        // Change icon back to 'bars'
         const icon = getElement('open-mobile-menu-btn').querySelector('i');
     });
 
@@ -220,54 +233,64 @@ export function initializeAllEventListeners() {
         allianceFilter.addEventListener('change', () => applyPlayerFilters());
     }
 
-    // --- Social Page & Chat ---
-    const socialChatSelector = getElement('social-chat-selector');
-    if (socialChatSelector) {
-        socialChatSelector.addEventListener('click', (e) => {
-            const chatButton = e.target.closest('.chat-selector-btn');
-            if (chatButton) {
-                const chatId = chatButton.dataset.chatId;
-                activateChatChannel(chatId);
-                setupChatListeners(chatId);
-            }
-        });
-    }
+    // --- Social Page & Chat Listeners ---
+    addListener('chat-selectors', 'click', (e) => {
+        const btn = e.target.closest('.chat-selector-btn');
+        if (!btn) return;
+        
+        document.querySelectorAll('.chat-selector-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        showFullscreenChatModal({ chatType: btn.dataset.chatType });
+    });
 
-    // Chat Forms
-    const privateMessageForm = getElement('private-message-form');
-    if (privateMessageForm) {
-        privateMessageForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = getElement('private-message-input');
-            const text = input.value.trim();
-            if (text === '') return;
-            input.value = '';
-            try {
-                await sendPrivateMessage(text);
-            } catch (error) {
-                console.error("Failed to send private message:", error);
-                alert("Error: Could not send message.");
-                input.value = text;
-            }
-        });
-    }
+    addListener('chat-form-main', 'submit', async (e) => {
+        e.preventDefault();
+        const input = getElement('chat-input-main');
+        const text = input.value.trim();
+        const activeBtn = document.querySelector('.chat-selector-btn.active');
+        if (!text || !activeBtn) return;
+        
+        const chatType = activeBtn.dataset.chatType;
+        if (!chatType) return;
+        
+        input.value = '';
+        try {
+            await handleSendMessage(e, chatType, text);
+        } catch (error) {
+            console.error("Failed to send message:", error);
+            alert("Error: Could not send message.");
+            input.value = text;
+        }
+    });
 
     // Social Page Click Handler (for main chat window)
     const socialPage = getElement('page-social');
     if (socialPage) {
         socialPage.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-message-btn');
-            const messageEl = e.target.closest('.chat-message');
+            const confirmBtn = e.target.closest('.confirm-delete-btn');
             const bubble = e.target.closest('.chat-message-bubble');
 
-            if (deleteBtn && messageEl) {
+            if (confirmBtn) {
+                const messageEl = confirmBtn.closest('.chat-message');
                 const bubble = messageEl.querySelector('.chat-message-bubble');
-                if (bubble) {
-                    showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
-                        handleDeleteMessage(bubble.dataset.messageId, bubble.dataset.chatType);
-                        hideAllModals();
-                    });
-                }
+                handleDeleteMessage(bubble.dataset.messageId, bubble.dataset.chatType);
+            } else if (deleteBtn) {
+                const messageEl = deleteBtn.closest('.chat-message');
+                const confirmDeleteBtn = messageEl.querySelector('.confirm-delete-btn');
+                const deleteIcon = deleteBtn.querySelector('i');
+                const confirmIcon = confirmDeleteBtn.querySelector('i');
+
+                // Toggle visibility
+                deleteBtn.classList.add('hidden');
+                confirmDeleteBtn.classList.remove('hidden');
+
+                // Set a timer to revert if not confirmed
+                setTimeout(() => {
+                    deleteBtn.classList.remove('hidden');
+                    confirmDeleteBtn.classList.add('hidden');
+                }, 3000);
             } else if (bubble) {
                 const picker = getElement('reaction-picker-container');
                 picker.style.display = 'flex';
@@ -281,20 +304,30 @@ export function initializeAllEventListeners() {
     }
 
     // Private Message Modal Click Handler
-    const privateMessageModal = getElement('private-message-modal-container');
-    if (privateMessageModal) {
-        privateMessageModal.addEventListener('click', (e) => {
+    const fullscreenChatModal = getElement('fullscreen-chat-modal-container');
+    if (fullscreenChatModal) {
+        fullscreenChatModal.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-message-btn');
-            if (deleteBtn) {
+            const confirmBtn = e.target.closest('.confirm-delete-btn');
+            if (confirmBtn) {
+                const messageEl = confirmBtn.closest('.chat-message');
+                const bubble = messageEl.querySelector('.chat-message-bubble');
+                if (bubble) {
+                    handleDeleteMessage(bubble.dataset.messageId, 'private_chat');
+                }
+            } else if (deleteBtn) {
                 const messageEl = deleteBtn.closest('.chat-message');
                 if (messageEl) {
-                    const bubble = messageEl.querySelector('.chat-message-bubble');
-                    if (bubble) {
-                        showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
-                            handleDeleteMessage(bubble.dataset.messageId, 'private_chat');
-                            hideAllModals();
-                        });
-                    }
+                    const confirmDeleteBtn = messageEl.querySelector('.confirm-delete-btn');
+                    // Toggle visibility
+                    deleteBtn.classList.add('hidden');
+                    confirmDeleteBtn.classList.remove('hidden');
+                    
+                    // Set a timer to revert if not confirmed
+                    setTimeout(() => {
+                        deleteBtn.classList.remove('hidden');
+                        confirmDeleteBtn.classList.add('hidden');
+                    }, 3000);
                 }
             }
         });
@@ -347,7 +380,7 @@ export function initializeAllEventListeners() {
         } else if (messageBtn && currentUserData) {
             const playerCard = messageBtn.closest('.player-card');
             const targetPlayer = allPlayers.find(p => p.uid === playerCard.dataset.uid);
-            if (targetPlayer) showPrivateMessageModal(targetPlayer);
+            if (targetPlayer) showFullscreenChatModal({ targetPlayer });
         } else if (settingsBtn) {
             const targetPlayer = allPlayers.find(p => p.uid === settingsBtn.dataset.uid);
             if(targetPlayer) showPlayerSettingsModal(targetPlayer);
@@ -361,24 +394,23 @@ export function initializeAllEventListeners() {
             if (messageBtn) {
                 const { allPlayers } = getState();
                 const targetPlayer = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
-                if (targetPlayer) showPrivateMessageModal(targetPlayer);
+                if (targetPlayer) showFullscreenChatModal({ targetPlayer });
             }
         });
     }
-// Add this new listener inside initializeAllEventListeners()
 
-addListener('player-profile-dropdown', 'click', (e) => {
-    const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
-    const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
+    addListener('player-profile-dropdown', 'click', (e) => {
+        const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
+        const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
 
-    if (createEventBtn) {
-        getElement('user-profile-nav-item').classList.remove('open');
-        showCreatePostModal('event');
-    } else if (createAnnouncementBtn) {
-        getElement('user-profile-nav-item').classList.remove('open');
-        showCreatePostModal('announcement');
-    }
-});
+        if (createEventBtn) {
+            getElement('user-profile-nav-item').classList.remove('open');
+            showCreatePostModal('event');
+        } else if (createAnnouncementBtn) {
+            getElement('user-profile-nav-item').classList.remove('open');
+            showCreatePostModal('announcement');
+        }
+    });
     // --- General UI ---
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.nav-item')) {
@@ -405,11 +437,9 @@ addListener('player-profile-dropdown', 'click', (e) => {
         } else if (createEventBtn) {
             showCreatePostModal('event');
         } else if (actionsBtn) {
-            // Prevent card click from firing when clicking the options button
             e.stopPropagation(); 
             showPostActionsModal(actionsBtn.dataset.postId);
         } else if (announcementCard) {
-            // This is the logic that opens the modal
             const { allPosts } = getState();
             const post = allPosts.find(p => p.id === announcementCard.dataset.postId);
             if (post) {
@@ -419,7 +449,7 @@ addListener('player-profile-dropdown', 'click', (e) => {
     });
 
     // --- Attachment and Emoji Logic ---
-    addListener('private-message-attach-btn', 'click', () => {
+    addListener('fullscreen-chat-attach-btn', 'click', () => {
         const attachInput = getElement('private-message-attach-input');
         if (attachInput) attachInput.click();
     });
@@ -430,26 +460,17 @@ addListener('player-profile-dropdown', 'click', (e) => {
 
     const emojiPickerContainer = getElement('emoji-picker-container');
     const emojiPicker = document.querySelector('emoji-picker');
-    let activeEmojiInput = null;
 
-    const setupEmojiButton = (buttonId, inputId) => {
-        const button = getElement(buttonId);
-        const input = getElement(inputId);
-        if (button && input && emojiPickerContainer) {
-            button.addEventListener('click', (e) => {
-                e.stopPropagation();
-                activeEmojiInput = input;
-                positionEmojiPicker(button, emojiPickerContainer);
-            });
-        }
-    };
-    setupEmojiButton('main-chat-emoji-btn', 'chat-input-main');
-    setupEmojiButton('private-message-emoji-btn', 'private-message-input');
+    setupEmojiButton('fullscreen-chat-emoji-btn', 'fullscreen-chat-input');
 
     if (emojiPicker) {
         emojiPicker.addEventListener('emoji-click', event => {
+            const { activeEmojiInput } = getState(); // MODIFIED: Get from global state
             if (activeEmojiInput) activeEmojiInput.value += event.detail.unicode;
-            if (emojiPickerContainer) emojiPickerContainer.style.display = 'none';
+            
+            // MODIFIED: Use classList.remove instead of inline style
+            const emojiPickerContainer = getElement('emoji-picker-container');
+            if (emojiPickerContainer) emojiPickerContainer.classList.remove('visible');
         });
     }
 

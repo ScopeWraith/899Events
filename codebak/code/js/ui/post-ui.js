@@ -231,13 +231,32 @@ export function initializePostStepper(mainType) {
 
 function getAvailablePostTypes(mainType) {
     const { currentUserData } = getState();
+    
+    if (!currentUserData) {
+        return [];
+    }
+
     return Object.entries(POST_TYPES).filter(([key, type]) => {
-        if (type.mainType !== mainType) return false;
-        if (!currentUserData) return false;
-        if (type.isAdminOnly) return currentUserData.isAdmin;
-        if (type.isVerifiedRequired && !currentUserData.isVerified) return false;
-        if (type.allowedRanks) return type.allowedRanks.includes(currentUserData.allianceRank);
-        return true;
+        if (type.mainType !== mainType) {
+            return false;
+        }
+
+        // Admins can see all post types.
+        if (currentUserData.isAdmin) {
+            return true;
+        }
+        
+        // Check if the post type requires verification.
+        if (type.isVerifiedRequired && !currentUserData.isVerified) {
+            return false;
+        }
+        
+        // Check if the user's rank is allowed to create this post type.
+        if (type.allowedRanks) {
+            return type.allowedRanks.includes(currentUserData.allianceRank);
+        }
+        
+        return false;
     });
 }
 
@@ -299,6 +318,7 @@ function showPostStep(stepIndex) {
         document.getElementById('post-timing-group').classList.toggle('hidden', !isEvent);
 
         const allianceGroup = document.getElementById('post-alliance-group');
+        // REVISED: Only show alliance selection for Admins
         const canSpecifyAlliance = currentUserData.isAdmin && (postCreationData.visibility === 'alliance' || postCreationData.visibility === 'leadership');
         allianceGroup.classList.toggle('hidden', !canSpecifyAlliance);
     }
@@ -412,7 +432,7 @@ export async function populatePostFormForEdit(postId) {
 }
 
 export function renderFeedActivity() {
-    const { allPosts, currentUserData } = getState();
+    const { allPosts, currentUserData, unverifiedPlayers } = getState();
     const container = document.getElementById('feed-activity-container');
 
     if (!container || !currentUserData) {
@@ -444,10 +464,26 @@ export function renderFeedActivity() {
                     </div>
                 </div>
             `;
-        }).join('');
+        });
+        
+    // NEW: Add a list of unverified players to the feed items
+    const unverifiedItems = (unverifiedPlayers || [])
+        .map(player => {
+            return `
+                <div class="feed-item-compact" style="--glow-color: var(--color-highlight);">
+                    <div class="feed-item-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="feed-item-content">
+                        <h4>${player.username} has joined your alliance.</h4>
+                        <p>Awaiting verification &bull; Unverified Player</p>
+                    </div>
+                </div>
+            `;
+        });
 
-    if (feedItems) {
-        container.innerHTML = feedItems;
+    const allFeedItems = [...unverifiedItems, ...feedItems].join('');
+
+    if (allFeedItems) {
+        container.innerHTML = allFeedItems;
     } else {
         container.innerHTML = `<p class="text-center text-gray-400 py-4">No recent activity.</p>`;
     }

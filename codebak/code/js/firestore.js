@@ -1,17 +1,12 @@
 // code/js/firestore.js
 
-/**
- * This module centralizes all interactions with Firestore,
- * including setting up listeners, fetching data, and writing data.
- */
-
 import { db, storage } from './firebase-config.js';
 import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from './state.js';
 import { renderNews } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
-import { renderFriendsList, renderMessages } from './ui/social-ui.js';
+import { renderFriendsList, renderMessages, renderConversationsList } from './ui/social-ui.js';
 import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
@@ -35,16 +30,13 @@ export async function togglePostReaction(postId, reactionType) {
 
             const userIndex = newLikedBy.indexOf(currentUserData.uid);
             if (userIndex > -1) {
-                // User has already reacted, so remove reaction
                 newLikedBy.splice(userIndex, 1);
                 newCount--;
             } else {
-                // User has not reacted, so add reaction
                 newLikedBy.push(currentUserData.uid);
                 newCount++;
             }
             
-            // Ensure count is never negative
             if (newCount < 0) newCount = 0;
 
             let updateData = {};
@@ -61,19 +53,14 @@ export async function togglePostReaction(postId, reactionType) {
 export function setupAllListeners(user) {
     const listeners = {};
 
-    // User document listener
     listeners.userDoc = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
         if (userDoc.exists()) {
             updateState({ currentUserData: { uid: user.uid, ...userDoc.data() } });
             getState().callbacks.onAuthChange(user);
-            // The news feed should not be refreshed when a user's own profile changes.
-            // This prevents an unnecessary global UI update.
             applyPlayerFilters();
-            setupChatListeners();
         }
     });
 
-    // Notifications listener
     const notificationsQuery = query(collection(db, "notifications"), where("recipientUid", "==", user.uid), orderBy("timestamp", "desc"));
     listeners.notifications = onSnapshot(notificationsQuery, (snapshot) => {
         const userNotifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -82,7 +69,6 @@ export function setupAllListeners(user) {
         updatePlayerProfileDropdown();
     });
 
-    // Friends listener
     const friendsQuery = collection(db, `users/${user.uid}/friends`);
     listeners.friends = onSnapshot(friendsQuery, (snapshot) => {
         const userFriends = snapshot.docs.map(doc => doc.id);
@@ -96,9 +82,7 @@ export function setupAllListeners(user) {
 
 export function fetchInitialData() {
     const { listeners } = getState();
-    // ... other listeners
 
-    // Users listener
     if (!listeners.users) {
         listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
             const allPlayers = [];
@@ -107,18 +91,6 @@ export function fetchInitialData() {
             applyPlayerFilters();
         }, (error) => console.error("Error with users listener:", error));
     }
-    // ... rest of the function
-
-    // Users listener
-    if (!listeners.users) {
-        listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
-            const allPlayers = [];
-            querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
-            updateState({ allPlayers });
-            applyPlayerFilters();
-        }, (error) => console.error("Error with users listener:", error));
-    }
-    // Posts listener   
     if (!listeners.posts) {
         listeners.posts = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
             const allPosts = [];
@@ -127,7 +99,6 @@ export function fetchInitialData() {
             renderNews();
         }, (error) => console.error("Error with posts listener:", error));
     }
-    // Sessions listener for presence
     if (!listeners.sessions) {
         listeners.sessions = onSnapshot(collection(db, 'sessions'), (snapshot) => {
             const userSessions = getState().userSessions || {};
@@ -143,7 +114,7 @@ export function fetchInitialData() {
     updateState({ listeners });
 }
 
-export function setupChatListeners(activeChatId = 'world_chat') {
+export function setupChatListeners(activeChatId) {
     const { currentUserData, listeners } = getState();
     if (!currentUserData) return;
 
@@ -152,7 +123,7 @@ export function setupChatListeners(activeChatId = 'world_chat') {
     if (listeners.leadershipChat) listeners.leadershipChat();
 
     let chatQuery;
-    let container = document.getElementById('chat-window-main');
+    const container = document.getElementById('fullscreen-chat-window');
 
     const createListener = (query, chatType) => {
         return onSnapshot(query, (snapshot) => {
@@ -160,7 +131,9 @@ export function setupChatListeners(activeChatId = 'world_chat') {
             renderMessages(messages, container, chatType);
         }, (error) => {
             console.error(`Error listening to ${chatType}:`, error);
-            container.innerHTML = `<p class="text-center text-gray-500 m-auto">Error loading messages. You may not have permission to view this chat.</p>`;
+            if (container) {
+                container.innerHTML = `<p class="text-center text-gray-500 m-auto">Error loading messages. You may not have permission to view this chat.</p>`;
+            }
         });
     };
 
@@ -193,14 +166,15 @@ export function setupPrivateChatListener(chatId) {
 
     updateState({ activePrivateChatId: chatId });
     const chatQuery = query(collection(db, `private_chats/${chatId}/messages`), orderBy("timestamp", "asc"), limit(50));
+    const container = document.getElementById('fullscreen-chat-window');
+    
     listeners.privateChat = onSnapshot(chatQuery, (snapshot) => {
         const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderMessages(messages, document.getElementById('private-message-window'), 'private_chat');
+        renderMessages(messages, container, 'private_chat');
     }, (error) => {
         console.error(`Error listening to private chat ${chatId}:`, error);
-        const chatWindow = document.getElementById('private-message-window');
-        if (chatWindow) {
-            chatWindow.innerHTML = `<p class="text-center text-gray-500 m-auto">Could not load messages.</p>`;
+        if (container) {
+            container.innerHTML = `<p class="text-center text-gray-500 m-auto">Could not load messages.</p>`;
         }
     });
     updateState({ listeners });
@@ -215,7 +189,6 @@ export function detachAllListeners() {
 }
 
 export async function handleSendMessage(e, chatType, text) {
-    e.preventDefault();
     const { currentUserData } = getState();
     if (!currentUserData || !text || text.trim() === '') return;
 
@@ -248,8 +221,40 @@ export async function handleSendMessage(e, chatType, text) {
         await addDoc(collection(db, collectionPath), messageData);
     } catch (error) {
         console.error(`Error sending message to ${chatType}:`, error);
-        const input = document.getElementById('chat-input-main');
+        const input = document.getElementById('fullscreen-chat-input');
         if(input) input.value = text;
+    }
+}
+
+export async function handleFullscreenMessageSend(text) {
+    const { currentUserData, activePrivateChatId } = getState();
+    if (!currentUserData || text.trim() === '') return;
+
+    if (activePrivateChatId) {
+        const messagesColRef = collection(db, `private_chats/${activePrivateChatId}/messages`);
+        await addDoc(messagesColRef, {
+            text: text,
+            authorUid: currentUserData.uid,
+            authorUsername: currentUserData.username,
+            timestamp: serverTimestamp(),
+            reactions: {},
+            isRead: false
+        });
+        await updateDoc(doc(db, `private_chats/${activePrivateChatId}`), {
+            lastMessage: {
+                text: text,
+                authorUid: currentUserData.uid,
+                timestamp: serverTimestamp()
+            }
+        });
+    } else {
+        const activeChatBtn = document.querySelector('#chat-selectors .chat-selector-btn.active');
+        if (!activeChatBtn) {
+            console.error("No active public chat channel selected.");
+            return;
+        }
+        const chatType = activeChatBtn.dataset.chatType;
+        await handleSendMessage(null, chatType, text);
     }
 }
 
@@ -284,7 +289,31 @@ export async function handleDeleteMessage(messageId, chatType) {
        alert("Failed to delete message. You may not have permission.");
    }
 }
+export async function sendVerificationRequest(senderUid, senderUsername, alliance) {
 
+    try {
+        const leadersQuery = query(collection(db, 'users'), where('alliance', '==', alliance), where('allianceRank', 'in', ['R5', 'R4']));
+        const leadersSnapshot = await getDocs(leadersQuery);
+        const batch = writeBatch(db);
+        leadersSnapshot.forEach(leaderDoc => {
+            const notificationRef = doc(collection(db, 'notifications'));
+            batch.set(notificationRef, {
+                recipientUid: leaderDoc.id,
+                senderUid: senderUid,
+                senderUsername: senderUsername,
+                type: 'verification_request',
+                message: `${senderUsername} has updated their profile and is awaiting verification.`,
+                isRead: false,
+                timestamp: serverTimestamp()
+            });
+        });
+        await batch.commit();
+        return true;
+    } catch (error) {
+        console.error("Error sending verification request:", error);
+        return false;
+    }
+}
 export async function handleNotificationAction(notificationId, action, senderUid, targetUid) {
     const { currentUserData } = getState();
     if (!currentUserData) return;
@@ -300,7 +329,10 @@ export async function handleNotificationAction(notificationId, action, senderUid
             await deleteDoc(doc(db, 'notifications', notificationId));
         } else if (action === 'verify-user') {
             const targetUsername = getState().allPlayers.find(p => p.uid === targetUid)?.username || 'A new member';
-            await updateDoc(doc(db, 'users', targetUid), { isVerified: true });
+            await updateDoc(doc(db, 'users', targetUid), { 
+                isVerified: true,
+                alliance: currentUserData.alliance
+            });
             await updateDoc(doc(db, 'notifications', notificationId), {
                 type: 'user_verified_record',
                 isRead: true, 
@@ -357,7 +389,17 @@ export async function sendPrivateMessage(text) {
         authorUid: currentUserData.uid,
         authorUsername: currentUserData.username,
         timestamp: serverTimestamp(),
-        reactions: {}
+        reactions: {},
+        isRead: false
+    });
+    // Add logic to update the conversation document's last message here.
+    // This is important for the conversation list to sort correctly.
+    await updateDoc(doc(db, `private_chats/${activePrivateChatId}`), {
+        lastMessage: {
+            text: text,
+            authorUid: currentUserData.uid,
+            timestamp: serverTimestamp()
+        }
     });
 }
 
@@ -368,7 +410,7 @@ export async function handleImageAttachment(file) {
         return;
     }
 
-    const textInput = document.getElementById('private-message-input');
+    const textInput = document.getElementById('fullscreen-chat-input');
     const originalPlaceholder = textInput.placeholder;
     textInput.placeholder = "Uploading image...";
     textInput.disabled = true;
@@ -457,12 +499,17 @@ export async function fetchConversations() {
         const messagesQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), orderBy('timestamp', 'desc'), limit(1));
         const lastMessageSnapshot = await getDocs(messagesQuery);
         
+        const unreadQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), where('isRead', '==', false), where('authorUid', '!=', currentUserData.uid));
+        const unreadSnapshot = await getDocs(unreadQuery);
+        const unreadCount = unreadSnapshot.docs.length;
+
         if (!lastMessageSnapshot.empty) {
             const lastMessage = lastMessageSnapshot.docs[0].data();
             return {
                 chatId: chatDoc.id,
                 partnerId: partnerId,
-                lastMessage: lastMessage
+                lastMessage: lastMessage,
+                unreadCount: unreadCount
             };
         }
         return null;
@@ -471,4 +518,69 @@ export async function fetchConversations() {
     const resolvedConversations = await Promise.all(conversationPromises);
     
     return resolvedConversations.filter(convo => convo !== null);
+} 
+export function setupConversationListListener() {
+    const { currentUserData, listeners } = getState();
+    if (!currentUserData) return;
+    
+    if (listeners.convoList) listeners.convoList();
+
+    const q = query(collection(db, 'private_chats'), where('participants', 'array-contains', currentUserData.uid));
+    
+    listeners.convoList = onSnapshot(q, async (snapshot) => {
+        const conversationPromises = snapshot.docs.map(async (chatDoc) => {
+            const chatData = chatDoc.data();
+            const partnerId = chatData.participants.find(p => p !== currentUserData.uid);
+            
+            const messagesQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), orderBy('timestamp', 'desc'), limit(1));
+            const lastMessageSnapshot = await getDocs(messagesQuery);
+            
+            const unreadQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), where('isRead', '==', false), where('authorUid', '!=', currentUserData.uid));
+            const unreadSnapshot = await getDocs(unreadQuery);
+            const unreadCount = unreadSnapshot.docs.length;
+
+            if (!lastMessageSnapshot.empty) {
+                const lastMessage = lastMessageSnapshot.docs[0].data();
+                return {
+                    chatId: chatDoc.id,
+                    partnerId: partnerId,
+                    lastMessage: lastMessage,
+                    unreadCount: unreadCount
+                };
+            }
+            return null;
+        });
+        
+        const resolvedConversations = await Promise.all(conversationPromises);
+        const conversations = resolvedConversations.filter(convo => convo !== null);
+        renderConversationsList(conversations);
+        
+        const unreadConvoCount = conversations.filter(c => c.unreadCount > 0).length;
+        getState().callbacks.onUnreadMessagesUpdate(unreadConvoCount);
+        
+    }, (error) => console.error("Error with conversation list listener:", error));
+    
+    updateState({ listeners });
+}
+export function setupUnverifiedPlayersListener(user) {
+    const { listeners } = getState();
+    if (listeners.unverifiedPlayers) listeners.unverifiedPlayers();
+    
+    if (!user || !isUserLeader(user) || user.alliance === 'Pending Alliance') {
+        return;
+    }
+    
+    const unverifiedPlayersQuery = query(
+        collection(db, 'users'),
+        where('alliance', '==', user.alliance),
+        where('isVerified', '==', false)
+    );
+    
+    listeners.unverifiedPlayers = onSnapshot(unverifiedPlayersQuery, (snapshot) => {
+        const unverifiedPlayers = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+        updateState({ unverifiedPlayers });
+        renderFeedActivity();
+    }, (error) => console.error("Error with unverified players listener:", error));
+    
+    updateState({ listeners });
 }

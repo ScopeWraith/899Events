@@ -1,0 +1,159 @@
+.alliance-card {
+    background: linear-gradient(145deg, #181d25, #11151c);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border-top: 4px solid var(--primary-color);
+}
+
+.alliance-card:before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, var(--primary-color, transparent) 0%, transparent 40%);
+    opacity: 0.1;
+    transform: rotate(0deg);
+    transition: transform 1s ease, opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.alliance-card:hover:before {
+    transform: rotate(360deg);
+    opacity: 0.2;
+}
+
+.alliance-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 20px var(--primary-color);
+}
+
+.alliance-card-header {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), transparent);
+}
+
+.alliance-card-avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    margin-right: 1.5rem;
+}
+
+.alliance-card-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--primary-color);
+    box-shadow: 0 0 15px var(--primary-color);
+}
+
+.alliance-card-name {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 10px var(--primary-color);
+}
+
+.alliance-card-tag {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    text-shadow: 0 0 8px var(--secondary-color);
+}
+
+.alliance-card-body {
+    padding: 1.5rem;
+}
+
+.alliance-card-details {
+    font-size: 0.95rem;
+    color: #c9d1d9;
+    margin-bottom: 1.5rem;
+    min-height: 60px;
+}
+
+.alliance-card-roles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.role-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--secondary-color);
+}
+
+.role-title {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+}
+
+.role-name {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.alliance-card-footer {
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.recruitment-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.recruitment-info {
+    font-size: 0.9rem;
+    color: #c9d1d9;
+}
+
+.alliance-card-edit-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: 1px solid var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: scale(0.8);
+    z-index: 10;
+}
+
+.alliance-card:hover .alliance-card-edit-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.alliance-card-edit-btn:hover {
+    background: var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-color);
+    transform: scale(1.1) rotate(45deg);
+}

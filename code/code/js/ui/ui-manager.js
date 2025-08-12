@@ -10,7 +10,7 @@ import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, ren
 import { renderFriendsList, renderConversations, renderFriendsPage, renderChatChannels } from './social-ui.js';
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
 import { applyPlayerFilters } from './players-ui.js';
-
+import { renderAlliances } from './alliances-ui.js';
 
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
@@ -81,6 +81,9 @@ export function handleSubNavClick(subTargetId) {
             applyPlayerFilters();
             break;
         case 'server-alliances':
+            // Call the new render function
+            const { allAlliances } = getState();
+            renderAlliances(allAlliances || []);
             break;
         case 'server-nap':
             break;

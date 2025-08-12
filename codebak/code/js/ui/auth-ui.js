@@ -1,10 +1,3 @@
-// code/js/ui/auth-ui.js
-
-/**
- * This module handles all UI logic related to authentication,
- * including registration steps, login form, profile editing, and avatar updates.
- */
-
 import { auth, db, storage } from '../firebase-config.js';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -13,6 +6,7 @@ import { getState, updateState } from '../state.js';
 import { resizeImage , getAvatarSkinClass, getRankBorderClass} from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
+import { sendVerificationRequest } from '../firestore.js'; // New Import
 
 let currentRegStep = 1;
 let resizedAvatarBlob = null;
@@ -138,6 +132,7 @@ export async function handleRegistrationSubmit(e) {
         // If the user is not an admin, set their alliance to 'Pending Alliance'
         if (!userProfile.isAdmin) {
             userProfile.alliance = 'Pending Alliance';
+            userProfile.isVerified = false;
         }
 
         await setDoc(doc(db, "users", user.uid), userProfile);
@@ -262,17 +257,27 @@ export async function handleEditProfileSubmit(e) {
     };
 
     let needsReverification = false;
-    if (currentUserData && (updatedData.alliance !== currentUserData.alliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
+    let oldAlliance = currentUserData.alliance;
+    let newAlliance = updatedData.alliance;
+
+    // Check if the user changed their alliance or rank
+    if (currentUserData && (newAlliance !== oldAlliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
-        updatedData.alliance = 'Pending Alliance';
         needsReverification = true;
+        // Only set alliance to pending if they changed alliances
+        if (newAlliance !== oldAlliance) {
+             updatedData.alliance = 'Pending Alliance';
+        }
     }
 
     try {
         await updateDoc(doc(db, "users", user.uid), updatedData);
         hideAllModals();
+
+        // If re-verification is needed, send notification to leaders of the new/current alliance
         if (needsReverification) {
-            alert("Profile updated! You have been un-verified and will need to be approved by a leader in your new alliance or rank to access all features.");
+            await sendVerificationRequest(user.uid, updatedData.username, newAlliance);
+            alert("Profile updated! You have been un-verified and will need to be approved by a leader in your alliance to access all features.");
         }
     } catch (error) {
         console.error("Update profile error:", error);
@@ -319,20 +324,23 @@ export function updateAvatarDisplay(data) {
     document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
 }
 
+// code/js/ui/auth-ui.js
+
+// ...existing code...
+
 export function updatePlayerProfileDropdown() {
     const { currentUserData, userNotifications } = getState();
     if (!currentUserData) return;
 
     const dropdownContainer = document.getElementById('player-profile-dropdown');
     if (!dropdownContainer) return;
+    
+    // Check if the user is an Admin, R5, or a verified R4
+    const canCreatePost = currentUserData.isAdmin || (currentUserData.isVerified && (currentUserData.allianceRank === 'R5' || currentUserData.allianceRank === 'R4'));
 
-    // --- START: Admin-Specific Dropdown ---
-    if (currentUserData.isAdmin) {
-        dropdownContainer.innerHTML = `
-            <div class="p-2 mb-2 border-b border-white/10">
-                <p class="text-sm text-gray-400">Total Power</p>
-                <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
-            </div>
+    let postButtonsHTML = '';
+    if (canCreatePost) {
+        postButtonsHTML = `
             <button id="admin-create-event-dropdown-btn" class="dropdown-link profile-menu-link">
                 <span><i class="fas fa-calendar-plus fa-fw w-6 text-center mr-2"></i>Create Event</span>
             </button>
@@ -340,52 +348,41 @@ export function updatePlayerProfileDropdown() {
                 <span><i class="fas fa-bullhorn fa-fw w-6 text-center mr-2"></i>Create Announcement</span>
             </button>
             <div class="p-1"><hr class="border-t border-white/10"></div>
-            <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
-            </button>
-            <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
-            </button>
-            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
-            <div class="p-1"><hr class="border-t border-white/10"></div>
-            <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
-                <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
-            </button>
-        `;
-    } 
-    // --- START: Default User Dropdown ---
-    else {
-        dropdownContainer.innerHTML = `
-            <div class="p-2 mb-2 border-b border-white/10">
-                <p class="text-sm text-gray-400">Total Power</p>
-                <p id="profile-dropdown-power" class="text-lg font-bold text-white">0</p>
-            </div>
-            <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
-                <span class="badge hidden">0</span>
-            </button>
-            <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
-                <span class="badge hidden">0</span>
-            </button>
-            <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
-            </button>
-            <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
-            </button>
-            <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
-            <div class="p-1"><hr class="border-t border-white/10"></div>
-            <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
-                <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
-            </button>
         `;
     }
 
+    // --- START: Dropdown Template ---
+    dropdownContainer.innerHTML = `
+        <div class="p-2 mb-2 border-b border-white/10">
+            <p class="text-sm text-gray-400">Total Power</p>
+            <p id="profile-dropdown-power" class="text-lg font-bold text-white">${(currentUserData.power || 0).toLocaleString()}</p>
+        </div>
+        ${postButtonsHTML}
+        <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
+            <span class="badge hidden">0</span>
+        </button>
+        <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
+            <span class="badge hidden">0</span>
+        </button>
+        <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
+        </button>
+        <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
+            <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
+        </button>
+        <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
+        <div class="p-1"><hr class="border-t border-white/10"></div>
+        <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
+            <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
+        </button>
+    `;
+
     // --- Common Logic for Both ---
     document.getElementById('profile-dropdown-power').textContent = (currentUserData.power || 0).toLocaleString();
-    
-    // Only update badges if the elements exist (i.e., for non-admins)
+
+    // Only update badges if the elements exist
     const friendReqBtn = document.getElementById('profile-dropdown-friends');
     if (friendReqBtn) {
         const friendRequests = userNotifications.filter(n => n.type === 'friend_request' && !n.isRead);

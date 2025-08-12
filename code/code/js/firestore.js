@@ -75,7 +75,18 @@ export function setupAllListeners(user) {
         updateState({ userFriends });
         renderFriendsList();
     });
-    
+    listeners.alliances = onSnapshot(query(collection(db, 'alliances')), async (querySnapshot) => {
+        const allAlliances = [];
+        querySnapshot.forEach((doc) => { allAlliances.push({id: doc.id, ...doc.data()}); });
+        updateState({ allAlliances });
+        
+        // If the current page is the alliances page, re-render it
+        const alliancesSubPage = document.getElementById('sub-page-server-alliances');
+        if (alliancesSubPage && alliancesSubPage.style.display !== 'none') {
+            const { renderAlliances } = await import('../ui/alliances-ui.js');
+            renderAlliances(allAlliances);
+        }
+    }, (error) => console.error("Error with alliances listener:", error));
     fetchInitialData();
     updateState({ listeners });
 }

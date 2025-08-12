@@ -102,3 +102,27 @@ export const CHAT_BUBBLE_BORDERS = [
     { value: 'chat-bubble-border-nebula', text: 'Nebula' },
     { value: 'chat-bubble-border-chroma', text: 'Chroma' },
 ];
+
+export const CHAT_CHANNELS = {
+    world_chat: {
+        id: 'world_chat',
+        name: 'World',
+        icon: 'fas fa-globe',
+        color: 'var(--color-primary)',
+        requiresAuth: true
+    },
+    alliance_chat: {
+        id: 'alliance_chat',
+        name: 'Alliance',
+        icon: 'fas fa-shield-alt',
+        color: 'var(--post-color-alliance)',
+        requiresAlliance: true
+    },
+    leadership_chat: {
+        id: 'leadership_chat',
+        name: 'Leadership',
+        icon: 'fas fa-crown',
+        color: 'var(--post-color-leadership)',
+        requiresLeader: true
+    }
+};
