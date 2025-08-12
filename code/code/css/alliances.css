@@ -60,6 +60,7 @@
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--secondary-color);
+    text-shadow: 0 0 12px var(--primary-color);
 }
 .alliance-card-body {
     padding: 0rem 1.5rem;
