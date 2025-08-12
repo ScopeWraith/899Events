@@ -1,7 +1,7 @@
 // code/js/ui/ui-manager.js
 import { getState, updateState } from '../state.js';
 import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS } from '../constants.js';
-import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
+import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown, handleLogout } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { auth, db } from '../firebase-config.js';
@@ -11,7 +11,6 @@ import { renderFriendsList, renderConversations, renderFriendsPage, renderChatCh
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
 import { applyPlayerFilters } from './players-ui.js';
 import { renderAlliances } from './alliances-ui.js';
-
 // --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
