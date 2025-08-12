@@ -269,16 +269,28 @@ export function initializeAllEventListeners() {
     if (socialPage) {
         socialPage.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-message-btn');
-            const messageEl = e.target.closest('.chat-message');
+            const confirmBtn = e.target.closest('.confirm-delete-btn');
             const bubble = e.target.closest('.chat-message-bubble');
 
-            if (deleteBtn && messageEl) {
+            if (confirmBtn) {
+                const messageEl = confirmBtn.closest('.chat-message');
                 const bubble = messageEl.querySelector('.chat-message-bubble');
-                if (bubble) {
-                    showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
-                        handleDeleteMessage(bubble.dataset.messageId, bubble.dataset.chatType);
-                    });
-                }
+                handleDeleteMessage(bubble.dataset.messageId, bubble.dataset.chatType);
+            } else if (deleteBtn) {
+                const messageEl = deleteBtn.closest('.chat-message');
+                const confirmDeleteBtn = messageEl.querySelector('.confirm-delete-btn');
+                const deleteIcon = deleteBtn.querySelector('i');
+                const confirmIcon = confirmDeleteBtn.querySelector('i');
+
+                // Toggle visibility
+                deleteBtn.classList.add('hidden');
+                confirmDeleteBtn.classList.remove('hidden');
+
+                // Set a timer to revert if not confirmed
+                setTimeout(() => {
+                    deleteBtn.classList.remove('hidden');
+                    confirmDeleteBtn.classList.add('hidden');
+                }, 3000);
             } else if (bubble) {
                 const picker = getElement('reaction-picker-container');
                 picker.style.display = 'flex';
@@ -296,15 +308,26 @@ export function initializeAllEventListeners() {
     if (fullscreenChatModal) {
         fullscreenChatModal.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-message-btn');
-            if (deleteBtn) {
+            const confirmBtn = e.target.closest('.confirm-delete-btn');
+            if (confirmBtn) {
+                const messageEl = confirmBtn.closest('.chat-message');
+                const bubble = messageEl.querySelector('.chat-message-bubble');
+                if (bubble) {
+                    handleDeleteMessage(bubble.dataset.messageId, 'private_chat');
+                }
+            } else if (deleteBtn) {
                 const messageEl = deleteBtn.closest('.chat-message');
                 if (messageEl) {
-                    const bubble = messageEl.querySelector('.chat-message-bubble');
-                    if (bubble) {
-                        showConfirmationModal('Delete Message?', 'Are you sure you want to permanently delete this message?', () => {
-                            handleDeleteMessage(bubble.dataset.messageId, 'private_chat');
-                        });
-                    }
+                    const confirmDeleteBtn = messageEl.querySelector('.confirm-delete-btn');
+                    // Toggle visibility
+                    deleteBtn.classList.add('hidden');
+                    confirmDeleteBtn.classList.remove('hidden');
+                    
+                    // Set a timer to revert if not confirmed
+                    setTimeout(() => {
+                        deleteBtn.classList.remove('hidden');
+                        confirmDeleteBtn.classList.add('hidden');
+                    }, 3000);
                 }
             }
         });

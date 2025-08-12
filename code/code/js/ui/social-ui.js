@@ -104,6 +104,7 @@ export function renderMessages(messages, container, chatType) {
             messageActionsHTML = `
                 <div class="message-actions">
                     <button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>
+                    <button class="message-action-btn confirm-delete-btn hidden" title="Confirm Delete"><i class="fas fa-check"></i></button>
                 </div>
             `;
         }
@@ -145,6 +146,7 @@ export function renderMessages(messages, container, chatType) {
     
     container.scrollTop = container.scrollHeight;
 }
+
 
 // Entry point function called from ui-manager
 export function renderConversations() {
