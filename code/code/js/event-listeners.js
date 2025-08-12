@@ -55,6 +55,11 @@ export function initializeAllEventListeners() {
     }
 
     // --- The rest of your event-listeners.js file remains unchanged ---
+    addListener('close-access-denied-modal-btn', 'click', hideAllModals);
+    addListener('access-denied-login-btn', 'click', () => {
+        hideAllModals();
+        showAuthModal('login');
+    });
     addListener('close-register-alliance-modal-btn', 'click', hideAllModals);
     addListener('register-alliance-form', 'submit', handleAllianceRegisterSubmit);
     addListener('close-edit-alliance-modal-btn', 'click', hideAllModals);
@@ -99,6 +104,10 @@ export function initializeAllEventListeners() {
             e.preventDefault();
 
             const mainTarget = link.dataset.mainTarget;
+            if (mainTarget === 'page-social' && !currentUserData) {
+            showAccessDeniedModal(); // Show the new modal instead of navigating
+            return;
+            }
             const navItem = link.closest('.nav-item');
             const submenuId = navItem.dataset.submenuId || null;
 

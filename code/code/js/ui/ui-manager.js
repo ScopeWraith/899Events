@@ -19,6 +19,10 @@ const querySelectorAll = (selector) => document.querySelectorAll(selector);
 
 let socialBadges = { convoCount: 0, friendRequestCount: 0 };
 
+export function showAccessDeniedModal() {
+    hideAllModals();
+    showModal(getElement('access-denied-modal-container'));
+}
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
     if (convoCount !== undefined) socialBadges.convoCount = convoCount;
     if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;
