@@ -226,10 +226,17 @@ export function showAuthModal(formToShow) {
     hideAllModals();
     showModal(getElement('auth-modal-container'));
     querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+    
     if (formToShow === 'register') {
         getElement('register-form-container').classList.add('active');
     } else {
         getElement('login-form-container').classList.add('active');
+        // --- NEW: Pre-fill email ---
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        if (rememberedEmail) {
+            getElement('login-email').value = rememberedEmail;
+            getElement('remember-email-checkbox').checked = true;
+        }
     }
 }
 

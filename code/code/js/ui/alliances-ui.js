@@ -39,12 +39,21 @@ export function renderAlliances(alliances) {
     }
     actionContainer.innerHTML = headerActionHTML;
 
-    if (!alliances || alliances.length === 0) {
-        container.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No alliances have been registered yet.</p>`;
+    if (!alliances) { // Check for undefined/null, meaning data is still loading
+        let skeletonHTML = '';
+        for (let i = 0; i < 6; i++) {
+            skeletonHTML += createAllianceSkeletonCard();
+        }
+        container.innerHTML = skeletonHTML;
         return;
     }
 
+    if (!alliances || alliances.length === 0) {
+        container.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No alliances have been registered yet.</p>`;
+        return;
+    } 
     container.innerHTML = alliances.map(alliance => createAllianceCard(alliance)).join('');
+
 }
 
 function createAllianceCard(alliance) {
@@ -273,4 +282,28 @@ export async function handleAllianceEditSubmit(e) {
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Save Changes';
     }
+}
+function createAllianceSkeletonCard() {
+    return `
+        <div class="alliance-card opacity-50">
+            <div class="alliance-card-header">
+                <div class="alliance-card-avatar-wrapper">
+                    <div class="w-[60px] h-[60px] rounded-full skeleton-loader"></div>
+                </div>
+                <div class="alliance-card-title-section w-full">
+                    <div class="h-5 w-24 skeleton-loader mb-2 mx-auto"></div>
+                    <div class="h-6 w-40 skeleton-loader mx-auto"></div>
+                </div>
+            </div>
+            <div class="alliance-card-body">
+                <div class="h-16 w-full skeleton-loader rounded-lg"></div>
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
+                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
+                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
+                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
+                </div>
+            </div>
+        </div>
+    `;
 }

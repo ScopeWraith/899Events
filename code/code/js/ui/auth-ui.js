@@ -171,21 +171,39 @@ export function handleLoginSubmit(e) {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
+    const rememberMe = document.getElementById('remember-email-checkbox').checked;
     const errorElement = document.getElementById('login-error');
+    const successMessage = document.getElementById('login-success-message');
     const submitBtn = document.getElementById('login-submit-btn');
+
     errorElement.textContent = '';
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Logging In...';
 
-    signInWithEmailAndPassword(auth, email, password).catch((error) => {
-        console.error("Login Error:", error);
-        errorElement.textContent = (error.code === 'auth/invalid-credential') 
-            ? "Invalid email or password." 
-            : "An unknown error occurred.";
-    }).finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Login';
-    });
+    // Store or clear the email based on the checkbox
+    if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+    } else {
+        localStorage.removeItem('rememberedEmail');
+    }
+
+    signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+            // --- NEW: Instant feedback and modal close ---
+            successMessage.classList.remove('hidden');
+            setTimeout(() => {
+                hideAllModals();
+                successMessage.classList.add('hidden'); // Reset for next time
+            }, 1000); // 1-second delay to show success message
+        })
+        .catch((error) => {
+            console.error("Login Error:", error);
+            errorElement.textContent = 'Invalid email or password.';
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Login';
+        });
 }
 
 export function handleForgotPassword(e) {
