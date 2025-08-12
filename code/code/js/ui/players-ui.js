@@ -27,12 +27,38 @@ export function applyPlayerFilters() {
     });
     renderPlayers(filteredPlayers);
 }
-
+function createPlayerSkeletonCard() {
+    return `
+        <div class="player-card glass-pane p-4 flex flex-col opacity-50">
+            <div class="flex items-center pb-3 border-b" style="border-color: rgba(255,255,255,0.1);">
+                <div class="w-12 h-12 rounded-full skeleton-loader mr-4"></div>
+                <div class="w-full">
+                    <div class="h-5 w-3/5 skeleton-loader mb-2"></div>
+                    <div class="h-4 w-2/5 skeleton-loader"></div>
+                </div>
+            </div>
+            <div class="flex-grow my-4 space-y-3">
+                <div class="h-5 w-full skeleton-loader"></div>
+                <div class="h-5 w-full skeleton-loader"></div>
+                <div class="h-5 w-full skeleton-loader"></div>
+                <div class="h-5 w-full skeleton-loader"></div>
+            </div>
+        </div>
+    `;
+}
 export function renderPlayers(players) {
     const playerListContainer = document.getElementById('player-list-container');
     const { currentUserData, userSessions } = getState();
 
     playerListContainer.innerHTML = '';
+    if (!players) { // Check for undefined/null, data is loading
+        let skeletonHTML = '';
+        for (let i = 0; i < 8; i++) {
+            skeletonHTML += createPlayerSkeletonCard();
+        }
+        playerListContainer.innerHTML = skeletonHTML;
+        return;
+    }
     if (players.length === 0) {
         playerListContainer.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No players match the current filters.</p>`;
         return;
@@ -94,3 +120,4 @@ export function renderPlayers(players) {
         playerListContainer.appendChild(card);
     });
 }
+
