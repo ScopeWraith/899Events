@@ -68,20 +68,30 @@ function restoreLastViewedPage() {
         }
     });
 
-    // If there's a specific sub-page saved, go there.
     if (lastSubPage) {
         handleSubNavClick(lastSubPage);
     } else {
-        // Otherwise, find the *active* sub-nav menu and click its first link.
-        const activeSubmenu = document.querySelector('.sub-nav-content:not(.hidden)');
-        if (activeSubmenu) {
-            const firstSubNavLink = activeSubmenu.querySelector('.sub-nav-link');
-            if (firstSubNavLink) {
-                // We use click() here to ensure all associated logic runs,
-                // not just the content switching part of handleSubNavClick.
-                firstSubNavLink.click();
-            }
+        // --- THIS IS THE CORRECTED LOGIC ---
+        // If no sub-page is saved, determine the default based on the main page.
+        let defaultSubTarget;
+        switch (lastPage) {
+            case 'page-social':
+                defaultSubTarget = 'social-chat';
+                break;
+            case 'page-server':
+                defaultSubTarget = 'server-alliances';
+                break;
+            case 'page-news':
+            default:
+                defaultSubTarget = 'news-all';
+                break;
         }
+        
+        const defaultSubNavLink = document.querySelector(`.sub-nav-link[data-sub-target="${defaultSubTarget}"]`);
+        if (defaultSubNavLink) {
+            defaultSubNavLink.click();
+        }
+        // --- END CORRECTION ---
     }
 }
 
