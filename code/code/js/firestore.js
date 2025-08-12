@@ -389,7 +389,17 @@ export async function sendPrivateMessage(text) {
         authorUid: currentUserData.uid,
         authorUsername: currentUserData.username,
         timestamp: serverTimestamp(),
-        reactions: {}
+        reactions: {},
+        isRead: false
+    });
+    // Add logic to update the conversation document's last message here.
+    // This is important for the conversation list to sort correctly.
+    await updateDoc(doc(db, `private_chats/${activePrivateChatId}`), {
+        lastMessage: {
+            text: text,
+            authorUid: currentUserData.uid,
+            timestamp: serverTimestamp()
+        }
     });
 }
 

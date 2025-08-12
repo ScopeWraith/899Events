@@ -201,6 +201,11 @@ export function showModal(modal) {
 export function hideAllModals() {
     getElement('modal-backdrop').classList.remove('visible');
     querySelectorAll('.modal-container').forEach(modal => modal.classList.remove('visible'));
+    
+    // NEW: Also close the emoji picker
+    const emojiPickerContainer = getElement('emoji-picker-container');
+    if (emojiPickerContainer) emojiPickerContainer.classList.remove('visible');
+    
     updateState({ 
         activePlayerSettingsUID: null, 
         editingPostId: null,
