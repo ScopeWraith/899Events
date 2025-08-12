@@ -396,6 +396,26 @@ export function updateUIForLoggedOutUser() {
     getElement('mobile-auth-container').classList.remove('logged-in');
 }
 
+let socialBadges = { convoCount: 0, friendRequestCount: 0 };
+
+// NEW: Function to update the social nav badges
+export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
+    if (convoCount !== undefined) socialBadges.convoCount = convoCount;
+    if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;
+
+    const convoBadge = document.querySelector('.sub-nav-link[data-sub-target="social-convo"] .badge');
+    if (convoBadge) {
+        convoBadge.textContent = socialBadges.convoCount;
+        convoBadge.classList.toggle('hidden', socialBadges.convoCount === 0);
+    }
+
+    const friendsBadge = document.querySelector('.sub-nav-link[data-sub-target="social-friends"] .badge');
+    if (friendsBadge) {
+        friendsBadge.textContent = socialBadges.friendRequestCount;
+        friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
+    }
+}
+
 export function buildMobileNav() {
     const { currentUserData } = getState();
     const mobileNavLinksContainer = getElement('mobile-nav-links');
