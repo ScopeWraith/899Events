@@ -392,7 +392,7 @@ export function setupEmojiButton(buttonId, inputId) {
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         emojiPickerContainer.classList.toggle('visible');
-        activeEmojiInput = input;
+        updateState({ activeEmojiInput: input });
     });
 
     emojiPickerContainer.addEventListener('click', (e) => {
