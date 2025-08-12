@@ -102,7 +102,7 @@ export function initializeAllEventListeners() {
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-
+            const { currentUserData } = getState(); 
             const mainTarget = link.dataset.mainTarget;
             if (mainTarget === 'page-social' && !currentUserData) {
             showAccessDeniedModal(); // Show the new modal instead of navigating
