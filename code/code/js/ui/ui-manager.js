@@ -1,3 +1,4 @@
+// code/js/ui/ui-manager.js
 import { getState, updateState } from '../state.js';
 import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
@@ -266,15 +267,24 @@ export function showConfirmationModal(title, message, onConfirm) {
 
     newConfirmBtn.addEventListener('click', () => {
         onConfirm();
-        hideModal(confirmationModal);
+        confirmationModal.classList.remove('visible');
+        const anyOtherModalsVisible = document.querySelectorAll('.modal-container.visible').length > 0;
+        if (!anyOtherModalsVisible) {
+            getElement('modal-backdrop').classList.remove('visible');
+        }
     });
 
     newCancelBtn.addEventListener('click', () => {
-        hideModal(confirmationModal);
+        confirmationModal.classList.remove('visible');
+        const anyOtherModalsVisible = document.querySelectorAll('.modal-container.visible').length > 0;
+        if (!anyOtherModalsVisible) {
+            getElement('modal-backdrop').classList.remove('visible');
+        }
     });
 
     showModal(confirmationModal);
 }
+
 
 export function showPostActionsModal(postId) {
     const editBtn = document.getElementById('modal-edit-post-btn');
@@ -396,16 +406,7 @@ export function setupInitialUI() {
     setupCustomSelects();
     setupParticleCanvas();
 }
-export function hideModal(modalElement) {
-    if (modalElement) {
-        modalElement.classList.remove('visible');
-    }
-    // Check if any other modals are visible before hiding the backdrop
-    const anyOtherModalsVisible = document.querySelectorAll('.modal-container.visible').length > 0;
-    if (!anyOtherModalsVisible) {
-        getElement('modal-backdrop').classList.remove('visible');
-    }
-}
+
 export function setupEmojiButton(buttonId, inputId) {
     const button = getElement(buttonId);
     const input = getElement(inputId);
