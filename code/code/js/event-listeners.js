@@ -443,17 +443,6 @@ export function initializeAllEventListeners() {
     const emojiPicker = document.querySelector('emoji-picker');
     let activeEmojiInput = null;
 
-    const setupEmojiButton = (buttonId, inputId) => {
-        const button = getElement(buttonId);
-        const input = getElement(inputId);
-        if (button && input && emojiPickerContainer) {
-            button.addEventListener('click', (e) => {
-                e.stopPropagation();
-                activeEmojiInput = input;
-                positionEmojiPicker(button, emojiPickerContainer);
-            });
-        }
-    };
     setupEmojiButton('fullscreen-chat-emoji-btn', 'fullscreen-chat-input');
 
     if (emojiPicker) {
