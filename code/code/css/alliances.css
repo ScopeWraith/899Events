@@ -139,7 +139,7 @@
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    margin: 0 auto 0.75rem;
+    margin: 0 auto 0;
 }
 
 .core-member-role {

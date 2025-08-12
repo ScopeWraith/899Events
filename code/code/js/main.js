@@ -56,6 +56,29 @@ onAuthStateChanged(auth, (user) => {
 document.addEventListener('DOMContentLoaded', () => {
     setupInitialUI();
     initializeAllEventListeners();
-    showPage('page-news');
-    toggleSubNav('news-submenu');
+    const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
+    const lastSubPage = localStorage.getItem('lastActiveSubPage');
+
+    showPage(lastPage);
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+        const isActive = link.dataset.mainTarget === lastPage;
+        link.classList.toggle('active', isActive);
+        if (isActive) {
+            const submenuId = link.closest('.nav-item').dataset.submenuId;
+            toggleSubNav(submenuId);
+        }
+    });
+
+    if (lastSubPage) {
+        handleSubNavClick(lastSubPage);
+    } else {
+        // If there's no saved sub-page, default to the first one in the active menu
+        const activeSubmenu = document.querySelector('.sub-nav-content:not(.hidden)');
+        if (activeSubmenu) {
+            const firstSubNavLink = activeSubmenu.querySelector('.sub-nav-link');
+            if (firstSubNavLink) {
+                handleSubNavClick(firstSubNavLink.dataset.subTarget);
+            }
+        }
+    }
 });

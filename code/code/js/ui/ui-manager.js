@@ -39,6 +39,7 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
 }
 // --- PAGE & MODAL MANAGEMENT ---
 export function handleSubNavClick(subTargetId) {
+    localStorage.setItem('lastActiveSubPage', subTargetId);
     const allSubNavLinks = querySelectorAll('.sub-nav-link');
     allSubNavLinks.forEach(link => {
         link.classList.toggle('active', link.dataset.subTarget === subTargetId);
@@ -165,7 +166,7 @@ export function showPage(targetId) {
     querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';
     });
-
+    localStorage.setItem('lastActivePage', targetId);
     const mobileTitleEl = getElement('mobile-page-title');
     const activeNavLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
     if (mobileTitleEl && activeNavLink) {
