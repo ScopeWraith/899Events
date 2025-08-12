@@ -18,6 +18,26 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
+    const alliancesContainer = getElement('page-server');
+    if (alliancesContainer) {
+        alliancesContainer.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.alliance-card-edit-btn');
+            if (editBtn) {
+                const { allAlliances } = getState();
+                const allianceTag = editBtn.dataset.allianceTag;
+                const allianceData = allAlliances.find(a => a.tag === allianceTag);
+                if (allianceData) {
+                    showEditAllianceModal(allianceData);
+                }
+            }
+        });
+    }
+
+    // Add listeners for the new modal
+    addListener('close-edit-alliance-modal-btn', 'click', hideAllModals);
+    addListener('edit-alliance-avatar-btn', 'click', () => getElement('edit-alliance-avatar-input').click());
+    addListener('edit-alliance-avatar-input', 'change', handleAllianceAvatarSelection);
+    addListener('edit-alliance-form', 'submit', handleAllianceEditSubmit);
     addListener('convo-list', 'click', (e) => {
     const convoItem = e.target.closest('.convo-item');
     if (convoItem) {

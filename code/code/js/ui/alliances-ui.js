@@ -2,6 +2,110 @@
 
 import { getState } from '../state.js';
 
+let resizedAllianceAvatarBlob = null;
+
+export function showEditAllianceModal(alliance) {
+    const { allPlayers, currentUserData } = getState();
+    if (!alliance) return;
+
+    // Store the tag of the alliance being edited
+    document.getElementById('edit-alliance-form').dataset.editingTag = alliance.tag;
+    
+    // Reset the avatar blob
+    resizedAllianceAvatarBlob = null;
+
+    // Populate standard fields
+    document.getElementById('edit-alliance-name').value = alliance.name || '';
+    document.getElementById('edit-alliance-details').value = alliance.details || '';
+    document.getElementById('edit-alliance-recruitment').value = alliance.recruitmentInfo || '';
+    document.getElementById('edit-alliance-avatar-preview').src = alliance.avatarUrl || 'https://placehold.co/128x128/161B22/FFFFFF?text=Avatar';
+    document.getElementById('edit-alliance-primary-color').value = alliance.primaryColor || '#00BFFF';
+    document.getElementById('edit-alliance-secondary-color').value = alliance.secondaryColor || '#F87171';
+
+    // Get members of the current user's alliance
+    const allianceMembers = allPlayers.filter(p => p.alliance === currentUserData.alliance);
+    const memberOptions = allianceMembers.map(m => ({ value: m.username, text: m.username }));
+
+    // Populate role dropdowns
+    populateRoleSelect('edit-alliance-warlord', memberOptions, alliance.warlord);
+    populateRoleSelect('edit-alliance-recruiter', memberOptions, alliance.recruiter);
+    populateRoleSelect('edit-alliance-muse', memberOptions, alliance.muse);
+    populateRoleSelect('edit-alliance-butler', memberOptions, alliance.butler);
+    
+    hideAllModals();
+    showModal(document.getElementById('edit-alliance-modal-container'));
+}
+
+function populateRoleSelect(selectId, members, selectedValue) {
+    const container = document.getElementById(selectId).closest('.custom-select-container');
+    const optionsList = container.querySelector('.options-list');
+    
+    // Add a "None" option
+    const allOptions = [{ value: '', text: 'None' }, ...members];
+
+    optionsList.innerHTML = allOptions.map(opt => `<div class="custom-select-option" data-value="${opt.value}">${opt.text}</div>`).join('');
+    
+    const selectedText = (allOptions.find(o => o.value === selectedValue) || {}).text || 'None';
+    setCustomSelectValue(container, selectedValue || '', selectedText);
+}
+
+export async function handleAllianceAvatarSelection(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    resizedAllianceAvatarBlob = await resizeImage(file, { maxWidth: 512, maxHeight: 512 });
+    document.getElementById('edit-alliance-avatar-preview').src = URL.createObjectURL(resizedAllianceAvatarBlob);
+}
+
+export async function handleAllianceEditSubmit(e) {
+    e.preventDefault();
+    const errorElement = document.getElementById('edit-alliance-error');
+    errorElement.textContent = '';
+
+    const allianceTag = e.target.dataset.editingTag;
+    if (!allianceTag) {
+        errorElement.textContent = "Could not identify the alliance. Please try again.";
+        return;
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+
+    const allianceDocRef = doc(db, "alliances", allianceTag);
+
+    try {
+        // Handle avatar upload if a new one was selected
+        if (resizedAllianceAvatarBlob) {
+            const avatarRef = ref(storage, `alliance_avatars/${allianceTag}`);
+            await uploadBytes(avatarRef, resizedAllianceAvatarBlob);
+            const downloadURL = await getDownloadURL(avatarRef);
+            await updateDoc(allianceDocRef, { avatarUrl: downloadURL });
+        }
+
+        // Update the rest of the data
+        const updatedData = {
+            name: document.getElementById('edit-alliance-name').value,
+            details: document.getElementById('edit-alliance-details').value,
+            recruitmentInfo: document.getElementById('edit-alliance-recruitment').value,
+            warlord: document.getElementById('edit-alliance-warlord').value,
+            recruiter: document.getElementById('edit-alliance-recruiter').value,
+            muse: document.getElementById('edit-alliance-muse').value,
+            butler: document.getElementById('edit-alliance-butler').value,
+            primaryColor: document.getElementById('edit-alliance-primary-color').value,
+            secondaryColor: document.getElementById('edit-alliance-secondary-color').value,
+        };
+
+        await updateDoc(allianceDocRef, updatedData);
+        hideAllModals();
+
+    } catch (error) {
+        console.error("Error updating alliance profile:", error);
+        errorElement.textContent = "An error occurred while saving. Please try again.";
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Save Changes';
+    }
+}
 export function renderAlliances(alliances) {
     const container = document.getElementById('alliances-list-container');
     if (!container) return;
