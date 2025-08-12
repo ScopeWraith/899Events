@@ -93,8 +93,8 @@ function createAllianceCard(alliance) {
                     <img src="${alliance.avatarUrl || 'https://placehold.co/128x128/161B22/FFFFFF?text=?'}" class="alliance-card-avatar" alt="${alliance.name} Avatar">
                 </div>
                 <div class="alliance-card-title-section">
-                    <h2 class="alliance-card-name">${alliance.name || 'Alliance Name'}</h2>
                     <p class="alliance-card-tag">[${alliance.tag}]</p>
+                    <h2 class="alliance-card-name">${alliance.name || 'Alliance Name'}</h2>           
                 </div>
             </div>
             <div class="alliance-card-body">
