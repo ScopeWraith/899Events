@@ -1,5 +1,5 @@
 import { auth, db, storage } from '../firebase-config.js';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { getState, updateState } from '../state.js';
@@ -30,6 +30,17 @@ function buildSkinSelectors() {
             </div>
         `).join('');
     }
+}
+export function handleLogout() {
+    signOut(auth).then(() => {
+        // Clear the saved page state from localStorage
+        localStorage.removeItem('lastActivePage');
+        localStorage.removeItem('lastActiveSubPage');
+        // Reload the entire application
+        window.location.reload();
+    }).catch((error) => {
+        console.error("Logout Error:", error);
+    });
 }
 function showRegStep(stepIndex) {
     const registrationFlow = document.getElementById('registration-flow');
