@@ -62,8 +62,8 @@ function createAllianceCard(alliance) {
     const leaderAvatarUrl = r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?';
     const leaderRankBorder = r5Data ? getRankBorderClass(r5Data) : 'rank-border-r5';
     
-    // --- MODIFIED FOR TESTING ---
-    // This now ensures the button container always shows when you're logged in.
+    const isSelf = currentUserData && r5Data && currentUserData.uid === r5Data.uid;
+    const isFriend = r5Data && userFriends.includes(r5Data.uid);
     const showLeaderActionButtons = currentUserData && r5Data;
 
     const coreMembers = [
@@ -109,8 +109,18 @@ function createAllianceCard(alliance) {
                     </div>
                     ${showLeaderActionButtons ? `
                         <div class="leader-actions">
-                            <button class="leader-action-btn message-player-btn" data-uid="${r5Data.uid}" title="Message Leader"><i class="fas fa-comment-dots"></i></button>
-                            <button class="leader-action-btn add-friend-btn" data-uid="${r5Data.uid}" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                            <button class="leader-action-btn message-player-btn" 
+                                    data-uid="${r5Data.uid}" 
+                                    title="${isSelf ? 'Cannot message yourself' : 'Message Leader'}" 
+                                    ${isSelf ? 'disabled' : ''}>
+                                <i class="fas fa-comment-dots"></i>
+                            </button>
+                            <button class="leader-action-btn add-friend-btn" 
+                                    data-uid="${r5Data.uid}" 
+                                    title="${isSelf ? 'Cannot add yourself' : (isFriend ? 'Already Friends' : 'Add Friend')}" 
+                                    ${isSelf || isFriend ? 'disabled' : ''}>
+                                <i class="fas ${isFriend ? 'fa-user-check' : 'fa-user-plus'}"></i>
+                            </button>
                         </div>
                     ` : ''}
                 </div>
