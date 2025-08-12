@@ -83,7 +83,7 @@ export function setupAllListeners(user) {
         // If the current page is the alliances page, re-render it
         const alliancesSubPage = document.getElementById('sub-page-server-alliances');
         if (alliancesSubPage && alliancesSubPage.style.display !== 'none') {
-            const { renderAlliances } = await import('../ui/alliances-ui.js');
+            const { renderAlliances } = await import('./ui/alliances-ui.js');
             renderAlliances(allAlliances);
         }
     }, (error) => console.error("Error with alliances listener:", error));

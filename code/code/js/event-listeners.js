@@ -18,11 +18,11 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
-    const alliancesContainer = getElement('page-server');
-    if (alliancesContainer) {
-        alliancesContainer.addEventListener('click', (e) => {
-            const editBtn = e.target.closest('.alliance-card-edit-btn');
-            if (editBtn) {
+    const alliancesContainer = getElement('alliances-list-container'); 
+        if (alliancesContainer) {
+            alliancesContainer.addEventListener('click', (e) => {
+                const editBtn = e.target.closest('.alliance-card-edit-btn');
+                if (editBtn) {
                 const { allAlliances } = getState();
                 const allianceTag = editBtn.dataset.allianceTag;
                 const allianceData = allAlliances.find(a => a.tag === allianceTag);
@@ -32,7 +32,25 @@ export function initializeAllEventListeners() {
             }
         });
     }
+   const alliancesPage = getElement('sub-page-server-alliances'); 
+        if (alliancesPage) {
+            alliancesPage.addEventListener('click', (e) => {
+                const registerBtn = e.target.closest('#show-register-alliance-modal-btn');
+                if (registerBtn) {
+                    showRegisterAllianceModal();
+                }
 
+
+            // This is the existing listener for the edit button
+            const editBtn = e.target.closest('.alliance-card-edit-btn');
+            if (editBtn) {
+                // ... (existing logic for edit button)
+            }
+        });
+    }
+    // Add listeners for the new register modal
+    addListener('close-register-alliance-modal-btn', 'click', hideAllModals);
+    addListener('register-alliance-form', 'submit', handleAllianceRegisterSubmit);
     // Add listeners for the new modal
     addListener('close-edit-alliance-modal-btn', 'click', hideAllModals);
     addListener('edit-alliance-avatar-btn', 'click', () => getElement('edit-alliance-avatar-input').click());
