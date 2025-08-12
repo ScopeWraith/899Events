@@ -8,7 +8,8 @@ import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
 import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend  } from './firestore.js';
-import { showEditAllianceModal, handleAllianceAvatarSelection, handleAllianceEditSubmit } from './ui/alliances-ui.js';
+import { showEditAllianceModal, handleAllianceAvatarSelection, handleAllianceEditSubmit, showRegisterAllianceModal, handleAllianceRegisterSubmit } from './ui/alliances-ui.js';
+
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
 
