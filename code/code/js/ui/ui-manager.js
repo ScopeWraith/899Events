@@ -475,7 +475,18 @@ export function buildMobileNav() {
         
         newLink.addEventListener('click', (e) => {
             e.preventDefault();
+            // Re-fetch state on click to ensure it's current
+            const { currentUserData } = getState(); 
             const mainTarget = link.dataset.mainTarget;
+
+            // --- THIS LOGIC IS NEW FOR MOBILE ---
+            if (mainTarget === 'page-social' && !currentUserData) {
+                getElement('mobile-nav-menu').classList.remove('open');
+                showAccessDeniedModal();
+                return;
+            }
+            // --- END NEW LOGIC ---
+
             const parentNavItem = link.closest('.nav-item');
             const submenuId = parentNavItem ? parentNavItem.dataset.submenuId : null;
 
