@@ -11,23 +11,20 @@ import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
 
+// No changes to togglePostReaction, it's correct.
 export async function togglePostReaction(postId, reactionType) {
     const { currentUserData } = getState();
     if (!currentUserData || !postId || !['like', 'heart'].includes(reactionType)) return;
-
     const postRef = doc(db, 'posts', postId);
     const countField = reactionType === 'like' ? 'likes' : 'hearts';
     const arrayField = reactionType === 'like' ? 'likedBy' : 'heartedBy';
-
     try {
         await runTransaction(db, async (transaction) => {
             const postDoc = await transaction.get(postRef);
             if (!postDoc.exists()) throw "Document does not exist!";
-
             const currentLikedBy = postDoc.data()[arrayField] || [];
             let newCount = postDoc.data()[countField] || 0;
             let newLikedBy = [...currentLikedBy];
-
             const userIndex = newLikedBy.indexOf(currentUserData.uid);
             if (userIndex > -1) {
                 newLikedBy.splice(userIndex, 1);
@@ -36,13 +33,10 @@ export async function togglePostReaction(postId, reactionType) {
                 newLikedBy.push(currentUserData.uid);
                 newCount++;
             }
-            
             if (newCount < 0) newCount = 0;
-
             let updateData = {};
             updateData[countField] = newCount;
             updateData[arrayField] = newLikedBy;
-
             transaction.update(postRef, updateData);
         });
     } catch (e) {
@@ -50,25 +44,37 @@ export async function togglePostReaction(postId, reactionType) {
     }
 }
 
+// ** MODIFIED FUNCTION **
+// This now waits for ALL necessary data before calling the onInitialDataLoaded callback.
 export function setupAllListeners(user, onInitialDataLoaded) {
     const listeners = {};
-    let initialLoadsPending = 3; // userDoc, notifications, friends
-    let initialLoadsCompleted = 0;
+    // We now wait for 7 initial data loads for a logged-in user.
+    const requiredLoads = ['userDoc', 'notifications', 'friends', 'alliances', 'users', 'posts', 'sessions'];
+    let loadedCount = 0;
 
-    const checkAllLoaded = () => {
-        initialLoadsCompleted++;
-        if (initialLoadsCompleted >= initialLoadsPending && onInitialDataLoaded) {
+    const checkAllLoaded = (source) => {
+        // Only count the first successful load from each source
+        if (requiredLoads.includes(source)) {
+            loadedCount++;
+            // Remove the source from the list to prevent counting it again
+            requiredLoads.splice(requiredLoads.indexOf(source), 1); 
+        }
+
+        // Once all required sources have loaded, fire the callback
+        if (loadedCount >= 7 && onInitialDataLoaded) {
             onInitialDataLoaded();
+            onInitialDataLoaded = null; // Prevent multiple calls
         }
     };
 
+    // User-specific listeners
     listeners.userDoc = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
         if (userDoc.exists()) {
             updateState({ currentUserData: { uid: user.uid, ...userDoc.data() } });
             getState().callbacks.onAuthChange(user);
         }
-        checkAllLoaded();
-    }, checkAllLoaded); // Also call on error to not block loading
+        checkAllLoaded('userDoc');
+    }, () => checkAllLoaded('userDoc'));
 
     const notificationsQuery = query(collection(db, "notifications"), where("recipientUid", "==", user.uid), orderBy("timestamp", "desc"));
     listeners.notifications = onSnapshot(notificationsQuery, (snapshot) => {
@@ -76,54 +82,78 @@ export function setupAllListeners(user, onInitialDataLoaded) {
         updateState({ userNotifications });
         renderNotifications(userNotifications);
         updatePlayerProfileDropdown();
-        checkAllLoaded();
-    }, checkAllLoaded);
+        checkAllLoaded('notifications');
+    }, () => checkAllLoaded('notifications'));
 
     const friendsQuery = collection(db, `users/${user.uid}/friends`);
     listeners.friends = onSnapshot(friendsQuery, (snapshot) => {
         const userFriends = snapshot.docs.map(doc => doc.id);
         updateState({ userFriends });
-        renderFriendsList();
-        checkAllLoaded();
-    }, checkAllLoaded);
-    
+        checkAllLoaded('friends');
+    }, () => checkAllLoaded('friends'));
+
+    // Public data listeners (now part of the main setup)
     listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
-        const allAlliances = [];
-        querySnapshot.forEach((doc) => { allAlliances.push({id: doc.id, ...doc.data()}); });
+        const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateState({ allAlliances });
-    }, (error) => console.error("Error with alliances listener:", error));
-    
-    fetchInitialData();
+        checkAllLoaded('alliances');
+    }, () => checkAllLoaded('alliances'));
+
+    listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
+        const allPlayers = querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+        updateState({ allPlayers });
+        checkAllLoaded('users');
+    }, () => checkAllLoaded('users'));
+
+    listeners.posts = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
+        const allPosts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        updateState({ allPosts });
+        checkAllLoaded('posts');
+    }, () => checkAllLoaded('posts'));
+
+    listeners.sessions = onSnapshot(collection(db, 'sessions'), (snapshot) => {
+        const userSessions = getState().userSessions || {};
+        snapshot.docChanges().forEach((change) => {
+            userSessions[change.doc.id] = change.doc.data();
+        });
+        updateState({ userSessions });
+        checkAllLoaded('sessions');
+    }, () => checkAllLoaded('sessions'));
+
     updateState({ listeners });
 }
 
+// ** MODIFIED FUNCTION **
+// This is now simplified for only logged-out users.
 export function fetchInitialData(onPublicDataLoaded) {
     const { listeners } = getState();
-    let publicLoadsPending = 3; // users, posts, sessions
-    let publicLoadsCompleted = 0;
+    const requiredPublicLoads = ['users', 'posts', 'sessions'];
+    let loadedCount = 0;
 
-    const checkPublicLoaded = () => {
-        publicLoadsCompleted++;
-        if (publicLoadsCompleted >= publicLoadsPending && onPublicDataLoaded) {
+    const checkPublicLoaded = (source) => {
+        if (requiredPublicLoads.includes(source)) {
+            loadedCount++;
+            requiredPublicLoads.splice(requiredPublicLoads.indexOf(source), 1);
+        }
+        if (loadedCount >= 3 && onPublicDataLoaded) {
             onPublicDataLoaded();
+            onPublicDataLoaded = null; // Prevent multiple calls
         }
     };
 
     if (!listeners.users) {
         listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
-            const allPlayers = [];
-            querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
+            const allPlayers = querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
             updateState({ allPlayers });
-            checkPublicLoaded();
-        }, checkPublicLoaded);
+            checkPublicLoaded('users');
+        }, () => checkPublicLoaded('users'));
     }
     if (!listeners.posts) {
         listeners.posts = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
-            const allPosts = [];
-            querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
+            const allPosts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             updateState({ allPosts });
-            checkPublicLoaded();
-        }, checkPublicLoaded);
+            checkPublicLoaded('posts');
+        }, () => checkPublicLoaded('posts'));
     }
     if (!listeners.sessions) {
         listeners.sessions = onSnapshot(collection(db, 'sessions'), (snapshot) => {
@@ -132,13 +162,18 @@ export function fetchInitialData(onPublicDataLoaded) {
                 userSessions[change.doc.id] = change.doc.data();
             });
             updateState({ userSessions });
-            checkPublicLoaded();
-        }, checkPublicLoaded);
+            checkPublicLoaded('sessions');
+        }, () => checkPublicLoaded('sessions'));
     }
-
     updateState({ listeners });
 }
 
+// All other functions from here down remain unchanged.
+// (setupChatListeners, setupPrivateChatListener, detachAllListeners, handleSendMessage, etc.)
+// The file is too long to paste in its entirety, but only the two functions above were modified.
+// This preserves the rest of your firestore.js logic.
+
+// --- The rest of your firestore.js functions remain unchanged ---
 export function setupChatListeners(activeChatId) {
     const { currentUserData, listeners } = getState();
     if (!currentUserData) return;
