@@ -10,6 +10,7 @@ import { renderFriendsList, renderMessages, renderConversationsList } from './ui
 import { renderNotifications } from './ui/notifications-ui.js';
 import { updatePlayerProfileDropdown } from './ui/auth-ui.js';
 import { isUserLeader } from './utils.js';
+import { renderAlliances } from './ui/alliances-ui.js';
 
 // No changes to togglePostReaction, it's correct.
 export async function togglePostReaction(postId, reactionType) {
@@ -96,6 +97,10 @@ export function setupAllListeners(user, onInitialDataLoaded) {
     listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
         const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateState({ allAlliances });
+        const alliancesSubPage = document.getElementById('sub-page-server-alliances');
+        if (alliancesSubPage && alliancesSubPage.style.display !== 'none') {
+            renderAlliances(allAlliances);
+        }
         checkAllLoaded('alliances');
     }, () => checkAllLoaded('alliances'));
 
