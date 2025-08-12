@@ -440,14 +440,17 @@ export function initializeAllEventListeners() {
 
     const emojiPickerContainer = getElement('emoji-picker-container');
     const emojiPicker = document.querySelector('emoji-picker');
-    let activeEmojiInput = null;
 
     setupEmojiButton('fullscreen-chat-emoji-btn', 'fullscreen-chat-input');
 
     if (emojiPicker) {
         emojiPicker.addEventListener('emoji-click', event => {
+            const { activeEmojiInput } = getState(); // MODIFIED: Get from global state
             if (activeEmojiInput) activeEmojiInput.value += event.detail.unicode;
-            if (emojiPickerContainer) emojiPickerContainer.style.display = 'none';
+            
+            // MODIFIED: Use classList.remove instead of inline style
+            const emojiPickerContainer = getElement('emoji-picker-container');
+            if (emojiPickerContainer) emojiPickerContainer.classList.remove('visible');
         });
     }
 

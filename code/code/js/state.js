@@ -1,11 +1,5 @@
 // code/js/state.js
 
-/**
- * This module manages the global state of the application.
- * It holds references to the current user, all players, posts, etc.
- * It also provides a simple callback mechanism to notify other modules of state changes.
- */
-
 let state = {
     currentUserData: null,
     allPlayers: [],
@@ -22,7 +16,8 @@ let state = {
     isFriendsListCollapsed: false,
     listeners: {}, // To hold unsubscribe functions for Firestore listeners
     awayTimer: null,
-    callbacks: {} // For simple pub/sub
+    callbacks: {}, // For simple pub/sub
+    activeEmojiInput: null, // NEW: Tracks the current input field for the emoji picker
 };
 
 export function getState() {

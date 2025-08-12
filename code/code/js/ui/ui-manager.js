@@ -381,7 +381,6 @@ export function setupInitialUI() {
     setupCustomSelects();
     setupParticleCanvas();
 }
-let activeEmojiInput = null;
 
 export function setupEmojiButton(buttonId, inputId) {
     const button = getElement(buttonId);
