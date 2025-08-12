@@ -480,7 +480,7 @@ export function buildMobileNav() {
             const mainTarget = link.dataset.mainTarget;
 
             // --- THIS LOGIC IS NEW FOR MOBILE ---
-            if (mainTarget === 'page-social' && !currentUserData) {
+            if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
                 getElement('mobile-nav-menu').classList.remove('open');
                 showAccessDeniedModal();
                 return;

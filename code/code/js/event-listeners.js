@@ -104,15 +104,17 @@ export function initializeAllEventListeners() {
             e.preventDefault();
             const { currentUserData } = getState(); 
             const mainTarget = link.dataset.mainTarget;
-            if (mainTarget === 'page-social' && !currentUserData) {
-            showAccessDeniedModal(); // Show the new modal instead of navigating
-            return;
+
+            // This condition now checks for 'page-social' OR 'page-feed'
+            if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
+                showAccessDeniedModal();
+                return;
             }
+
             const navItem = link.closest('.nav-item');
             const submenuId = navItem.dataset.submenuId || null;
 
             showPage(mainTarget);
-
             toggleSubNav(submenuId);
 
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
