@@ -63,9 +63,8 @@ function createAllianceCard(alliance) {
     const leaderRankBorder = r5Data ? getRankBorderClass(r5Data) : 'rank-border-r5';
     
     // --- MODIFIED FOR TESTING ---
-    // This line is changed to always show the buttons if you are logged in.
+    // This now ensures the button container always shows when you're logged in.
     const showLeaderActionButtons = currentUserData && r5Data;
-    const isFriend = r5Data && userFriends.includes(r5Data.uid);
 
     const coreMembers = [
         { role: 'Warlord', username: alliance.warlord },
@@ -111,7 +110,7 @@ function createAllianceCard(alliance) {
                     ${showLeaderActionButtons ? `
                         <div class="leader-actions">
                             <button class="leader-action-btn message-player-btn" data-uid="${r5Data.uid}" title="Message Leader"><i class="fas fa-comment-dots"></i></button>
-                            ${!isFriend ? `<button class="leader-action-btn add-friend-btn" data-uid="${r5Data.uid}" title="Add Friend"><i class="fas fa-user-plus"></i></button>` : ''}
+                            <button class="leader-action-btn add-friend-btn" data-uid="${r5Data.uid}" title="Add Friend"><i class="fas fa-user-plus"></i></button>
                         </div>
                     ` : ''}
                 </div>
