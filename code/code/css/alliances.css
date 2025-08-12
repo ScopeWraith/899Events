@@ -1,3 +1,5 @@
+/* ---- NEW ALLIANCE CARD STYLES ---- */
+
 .alliance-card {
     background: linear-gradient(145deg, #181d25, #11151c);
     border-radius: 12px;
@@ -70,63 +72,127 @@
     text-shadow: 0 0 8px var(--secondary-color);
 }
 
+/* REVISED Card Body */
 .alliance-card-body {
-    padding: 1.5rem;
-}
-
-.alliance-card-details {
-    font-size: 0.95rem;
-    color: #c9d1d9;
-    margin-bottom: 1.5rem;
-    min-height: 60px;
-}
-
-.alliance-card-roles {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
 }
 
-.role-item {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 0.75rem;
+/* NEW Leader Section Styles */
+.alliance-card-leader-section {
+    background: rgba(0,0,0,0.2);
+    padding: 1rem;
     border-radius: 8px;
-    border-left: 3px solid var(--secondary-color);
+    border-left: 3px solid var(--primary-color);
 }
 
-.role-title {
-    display: block;
-    font-size: 0.8rem;
+.leader-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.leader-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.leader-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.leader-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* NEW Core Members Grid */
+.alliance-card-core-members {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+}
+
+.core-member {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    border-bottom: 3px solid var(--secondary-color);
+}
+
+.core-member:hover {
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.core-member-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 0.75rem;
+}
+
+.core-member-role {
+    font-size: 0.65rem;
     font-weight: 700;
     color: var(--secondary-color);
     text-transform: uppercase;
 }
 
-.role-name {
-    display: block;
-    font-size: 1rem;
+.core-member-name {
+    font-size: 0.9rem;
     font-weight: 600;
     color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 0.25rem;
 }
 
-.alliance-card-footer {
-    padding: 1.5rem;
-    background: rgba(0, 0, 0, 0.3);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+/* REVISED Details Section */
+.alliance-card-details {
+    padding-top: 0.5rem;
 }
 
-.recruitment-title {
-    font-size: 1rem;
+.alliance-card-details h4,
+.alliance-card-footer h4 {
+    font-size: 0.8rem;
     font-weight: 700;
     color: var(--primary-color);
+    text-transform: uppercase;
     margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.recruitment-info {
+.alliance-card-details p,
+.alliance-card-footer p {
     font-size: 0.9rem;
     color: #c9d1d9;
+    line-height: 1.6;
 }
 
+/* REVISED Footer */
+.alliance-card-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    background: rgba(0,0,0,0.2);
+}
+
+/* REVISED Edit Button */
 .alliance-card-edit-btn {
     position: absolute;
     top: 1rem;

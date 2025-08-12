@@ -5,6 +5,7 @@ import { doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { showModal, hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { resizeImage } from '../utils.js';
+import { getRankBorderClass } from '../utils.js';
 
 let resizedAllianceAvatarBlob = null;
 
@@ -49,13 +50,39 @@ export function renderAlliances(alliances) {
     container.innerHTML = alliances.map(alliance => createAllianceCard(alliance)).join('');
 }
 
+
 function createAllianceCard(alliance) {
-    const { currentUserData } = getState();
+    // We now need allPlayers to find avatar info for the roles
+    const { currentUserData, allPlayers } = getState();
+
+    // Default colors if none are set
     const primaryColor = alliance.primaryColor || 'var(--color-primary)';
     const secondaryColor = alliance.secondaryColor || 'var(--color-highlight)';
-    const canEdit = currentUserData && currentUserData.isVerified && currentUserData.allianceRank === 'R5' && currentUserData.alliance === alliance.tag;
+    
+    const canEdit = currentUserData?.isVerified && currentUserData.allianceRank === 'R5' && currentUserData.alliance === alliance.tag;
     const editButtonHTML = canEdit ? `<button class="alliance-card-edit-btn" data-alliance-tag="${alliance.tag}"><i class="fas fa-cog"></i></button>` : '';
 
+    // --- NEW: Helper functions to get member data and create role HTML ---
+    const getRoleMember = (username) => allPlayers.find(p => p.username === username);
+    
+    const r5Data = getRoleMember(alliance.r5Name);
+
+    const createCoreMemberHTML = (memberUsername, roleName) => {
+        const memberData = getRoleMember(memberUsername);
+        const avatarUrl = memberData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
+        const rankBorder = memberData ? getRankBorderClass(memberData) : 'rank-border-r1';
+        const username = memberData?.username || 'N/A';
+
+        return `
+            <div class="core-member">
+                <img src="${avatarUrl}" class="core-member-avatar ${rankBorder}" alt="${roleName}">
+                <p class="core-member-role">${roleName}</p>
+                <p class="core-member-name">${username}</p>
+            </div>
+        `;
+    };
+
+    // --- REVISED CARD STRUCTURE ---
     return `
         <div class="alliance-card" style="--primary-color: ${primaryColor}; --secondary-color: ${secondaryColor};">
             ${editButtonHTML}
@@ -64,23 +91,32 @@ function createAllianceCard(alliance) {
                     <img src="${alliance.avatarUrl || 'https://placehold.co/128x128/161B22/FFFFFF?text=?'}" class="alliance-card-avatar" alt="${alliance.name} Avatar">
                 </div>
                 <div class="alliance-card-title-section">
-                    <h2 class="alliance-card-name">${alliance.name || 'Alliance Name'}</h2>
+                    <h2 class="alliance-card-name">${alliance.name}</h2>
                     <p class="alliance-card-tag">[${alliance.tag}]</p>
                 </div>
             </div>
             <div class="alliance-card-body">
-                <div class="alliance-card-details"><p>${alliance.details || 'No details provided.'}</p></div>
-                <div class="alliance-card-roles">
-                    <div class="role-item"><span class="role-title">Leader (R5)</span><span class="role-name">${alliance.r5Name || 'N/A'}</span></div>
-                    <div class="role-item"><span class="role-title">Warlord</span><span class="role-name">${alliance.warlord || 'N/A'}</span></div>
-                    <div class="role-item"><span class="role-title">Recruiter</span><span class="role-name">${alliance.recruiter || 'N/A'}</span></div>
-                    <div class="role-item"><span class="role-title">Muse</span><span class="role-name">${alliance.muse || 'N/A'}</span></div>
-                    <div class="role-item"><span class="role-title">Butler</span><span class="role-name">${alliance.butler || 'N/A'}</span></div>
+                <div class="alliance-card-leader-section">
+                    <p class="leader-title">LEADER (R5)</p>
+                    <div class="leader-info">
+                        <img src="${r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?'}" class="leader-avatar ${r5Data ? getRankBorderClass(r5Data) : 'rank-border-r5'}" alt="Leader">
+                        <span class="leader-name">${alliance.r5Name || 'N/A'}</span>
+                    </div>
+                </div>
+                <div class="alliance-card-core-members">
+                    ${createCoreMemberHTML(alliance.warlord, 'Warlord')}
+                    ${createCoreMemberHTML(alliance.recruiter, 'Recruiter')}
+                    ${createCoreMemberHTML(alliance.muse, 'Muse')}
+                    ${createCoreMemberHTML(alliance.butler, 'Butler')}
+                </div>
+                <div class="alliance-card-details">
+                    <h4>Details</h4>
+                    <p>${alliance.details || 'Coming soon...'}</p>
                 </div>
             </div>
             <div class="alliance-card-footer">
-                <h4 class="recruitment-title">Recruitment Requirements</h4>
-                <p class="recruitment-info">${alliance.recruitmentInfo || 'Contact leadership for details.'}</p>
+                <h4>Recruitment Requirements</h4>
+                <p>${alliance.recruitmentInfo || 'Contact leadership for details.'}</p>
             </div>
         </div>
     `;
