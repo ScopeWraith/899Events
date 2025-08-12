@@ -50,16 +50,25 @@ export async function togglePostReaction(postId, reactionType) {
     }
 }
 
-export function setupAllListeners(user) {
+export function setupAllListeners(user, onInitialDataLoaded) {
     const listeners = {};
+    let initialLoadsPending = 3; // userDoc, notifications, friends
+    let initialLoadsCompleted = 0;
+
+    const checkAllLoaded = () => {
+        initialLoadsCompleted++;
+        if (initialLoadsCompleted >= initialLoadsPending && onInitialDataLoaded) {
+            onInitialDataLoaded();
+        }
+    };
 
     listeners.userDoc = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
         if (userDoc.exists()) {
             updateState({ currentUserData: { uid: user.uid, ...userDoc.data() } });
             getState().callbacks.onAuthChange(user);
-            applyPlayerFilters();
         }
-    });
+        checkAllLoaded();
+    }, checkAllLoaded); // Also call on error to not block loading
 
     const notificationsQuery = query(collection(db, "notifications"), where("recipientUid", "==", user.uid), orderBy("timestamp", "desc"));
     listeners.notifications = onSnapshot(notificationsQuery, (snapshot) => {
@@ -67,48 +76,54 @@ export function setupAllListeners(user) {
         updateState({ userNotifications });
         renderNotifications(userNotifications);
         updatePlayerProfileDropdown();
-    });
+        checkAllLoaded();
+    }, checkAllLoaded);
 
     const friendsQuery = collection(db, `users/${user.uid}/friends`);
     listeners.friends = onSnapshot(friendsQuery, (snapshot) => {
         const userFriends = snapshot.docs.map(doc => doc.id);
         updateState({ userFriends });
         renderFriendsList();
-    });
-    listeners.alliances = onSnapshot(query(collection(db, 'alliances')), async (querySnapshot) => {
+        checkAllLoaded();
+    }, checkAllLoaded);
+    
+    listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
         const allAlliances = [];
         querySnapshot.forEach((doc) => { allAlliances.push({id: doc.id, ...doc.data()}); });
         updateState({ allAlliances });
-        
-        // If the current page is the alliances page, re-render it
-        const alliancesSubPage = document.getElementById('sub-page-server-alliances');
-        if (alliancesSubPage && alliancesSubPage.style.display !== 'none') {
-            const { renderAlliances } = await import('./ui/alliances-ui.js');
-            renderAlliances(allAlliances);
-        }
     }, (error) => console.error("Error with alliances listener:", error));
+    
     fetchInitialData();
     updateState({ listeners });
 }
 
-export function fetchInitialData() {
+export function fetchInitialData(onPublicDataLoaded) {
     const { listeners } = getState();
+    let publicLoadsPending = 3; // users, posts, sessions
+    let publicLoadsCompleted = 0;
+
+    const checkPublicLoaded = () => {
+        publicLoadsCompleted++;
+        if (publicLoadsCompleted >= publicLoadsPending && onPublicDataLoaded) {
+            onPublicDataLoaded();
+        }
+    };
 
     if (!listeners.users) {
         listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
             const allPlayers = [];
             querySnapshot.forEach((doc) => { allPlayers.push({uid: doc.id, ...doc.data()}); });
             updateState({ allPlayers });
-            applyPlayerFilters();
-        }, (error) => console.error("Error with users listener:", error));
+            checkPublicLoaded();
+        }, checkPublicLoaded);
     }
     if (!listeners.posts) {
         listeners.posts = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
             const allPosts = [];
             querySnapshot.forEach((doc) => allPosts.push({ id: doc.id, ...doc.data() }));
             updateState({ allPosts });
-            renderNews();
-        }, (error) => console.error("Error with posts listener:", error));
+            checkPublicLoaded();
+        }, checkPublicLoaded);
     }
     if (!listeners.sessions) {
         listeners.sessions = onSnapshot(collection(db, 'sessions'), (snapshot) => {
@@ -117,9 +132,8 @@ export function fetchInitialData() {
                 userSessions[change.doc.id] = change.doc.data();
             });
             updateState({ userSessions });
-            applyPlayerFilters();
-            renderFriendsList();
-        });
+            checkPublicLoaded();
+        }, checkPublicLoaded);
     }
 
     updateState({ listeners });
@@ -590,7 +604,6 @@ export function setupUnverifiedPlayersListener(user) {
     listeners.unverifiedPlayers = onSnapshot(unverifiedPlayersQuery, (snapshot) => {
         const unverifiedPlayers = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
         updateState({ unverifiedPlayers });
-        renderFeedActivity();
     }, (error) => console.error("Error with unverified players listener:", error));
     
     updateState({ listeners });
