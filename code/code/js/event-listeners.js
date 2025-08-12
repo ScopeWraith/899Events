@@ -8,7 +8,7 @@ import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handle
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
-import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend  } from './firestore.js'; // Added handleFullscreenMessageSend
+import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend  } from './firestore.js';
 import { positionEmojiPicker } from './utils.js';
 
 export function initializeAllEventListeners() {
