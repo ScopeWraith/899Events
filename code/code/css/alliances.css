@@ -1,7 +1,7 @@
 /* ---- NEW ALLIANCE CARD STYLES ---- */
 
 .alliance-card {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--primary-color), black 70%), rgb(33 40 50 / 65%) 10%, rgb(19 24 32 / 84%) 100%);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--primary-color), black 70%), rgb(33 40 50 / 65%) 10%, rgba(0,0,0,0.2) 100%);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -84,7 +84,7 @@
     background: rgba(0,0,0,0.2);
     padding: .5rem 1rem;
     border-radius: 8px;
-    border-top: 3px solid var(--primary-color);
+    border-bottom: 3px solid var(--primary-color);
 }
 
 .leader-title {
@@ -128,7 +128,7 @@
     padding: .5rem 0.5rem;
     border-radius: 8px;
     transition: all 0.2s ease;
-    border-top: 3px solid var(--secondary-color);
+    border-bottom: 3px solid var(--secondary-color);
 }
 
 .core-member:hover {
