@@ -48,7 +48,6 @@ export function renderAlliances(alliances) {
 }
 
 function createAllianceCard(alliance) {
-    // ** ADD userFriends to the state destructuring **
     const { currentUserData, allPlayers, userFriends } = getState();
 
     const primaryColor = alliance.primaryColor || 'var(--color-primary)';
@@ -62,25 +61,32 @@ function createAllianceCard(alliance) {
     const r5Data = getRoleMember(alliance.r5Name);
     const leaderAvatarUrl = r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?';
     const leaderRankBorder = r5Data ? getRankBorderClass(r5Data) : 'rank-border-r5';
-
-    // ** REVISED LOGIC for showing action buttons **
-    const isSelf = currentUserData && r5Data && currentUserData.uid === r5Data.uid;
+    
+    // --- MODIFIED FOR TESTING ---
+    // This line is changed to always show the buttons if you are logged in.
+    const showLeaderActionButtons = currentUserData && r5Data;
     const isFriend = r5Data && userFriends.includes(r5Data.uid);
-    const showLeaderActionButtons = currentUserData && r5Data && !isSelf;
 
-    // ** REVISED LOGIC to filter out empty roles **
     const coreMembers = [
         { role: 'Warlord', username: alliance.warlord },
         { role: 'Recruiter', username: alliance.recruiter },
         { role: 'Muse', username: alliance.muse },
         { role: 'Butler', username: alliance.butler }
-    ].filter(member => member.username && member.username.trim() !== ''); // <-- This ensures empty roles are hidden
+    ].filter(member => member.username && member.username.trim() !== '');
 
     const coreMembersHTML = coreMembers.map(member => {
-        // ... (this mapping logic is unchanged)
+        const memberData = getRoleMember(member.username);
+        const avatarUrl = memberData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
+        const rankBorder = memberData ? getRankBorderClass(memberData) : 'rank-border-r1';
+        return `
+            <div class="core-member">
+                <img src="${avatarUrl}" class="core-member-avatar ${rankBorder}" alt="${member.role}">
+                <p class="core-member-role">${member.role}</p>
+                <p class="core-member-name">${member.username}</p>
+            </div>
+        `;
     }).join('');
 
-    // ** REVISED CARD STRUCTURE **
     return `
         <div class="alliance-card" style="--primary-color: ${primaryColor}; --secondary-color: ${secondaryColor};">
             ${editButtonHTML}
@@ -129,7 +135,7 @@ function createAllianceCard(alliance) {
     `;
 }
 
-// ... All other functions in this file remain unchanged ...
+// ... (The rest of the file is unchanged) ...
 export function showEditAllianceModal(alliance) {
     const { allPlayers, currentUserData } = getState();
     if (!alliance) return;
