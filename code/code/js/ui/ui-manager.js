@@ -434,6 +434,7 @@ export function updateUIForLoggedInUser() {
     getElement('login-btn').classList.add('hidden');
     getElement('user-profile-nav-item').classList.remove('hidden');
     getElement('mobile-auth-container').classList.add('logged-in');
+    getElement('login-btn-mobile').classList.add('hidden');
 
     const adminActionsContainer = getElement('admin-actions-container');
     if (adminActionsContainer) {

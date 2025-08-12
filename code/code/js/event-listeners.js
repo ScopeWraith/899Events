@@ -155,6 +155,7 @@ export function initializeAllEventListeners() {
         });
     }
     addListener('login-btn', 'click', () => showAuthModal('login'));
+    addListener('login-btn-mobile', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
     addListener('close-edit-modal-btn', 'click', hideAllModals);
     addListener('close-view-post-modal-btn', 'click', hideAllModals);
