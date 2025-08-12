@@ -68,14 +68,18 @@ function restoreLastViewedPage() {
         }
     });
 
+    // If there's a specific sub-page saved, go there.
     if (lastSubPage) {
         handleSubNavClick(lastSubPage);
     } else {
+        // Otherwise, find the *active* sub-nav menu and click its first link.
         const activeSubmenu = document.querySelector('.sub-nav-content:not(.hidden)');
         if (activeSubmenu) {
             const firstSubNavLink = activeSubmenu.querySelector('.sub-nav-link');
             if (firstSubNavLink) {
-                handleSubNavClick(firstSubNavLink.dataset.subTarget);
+                // We use click() here to ensure all associated logic runs,
+                // not just the content switching part of handleSubNavClick.
+                firstSubNavLink.click();
             }
         }
     }
@@ -84,5 +88,4 @@ function restoreLastViewedPage() {
 document.addEventListener('DOMContentLoaded', () => {
     setupInitialUI();
     initializeAllEventListeners();
-    // Page restoration is now handled by the onAuthStateChanged logic.
 });

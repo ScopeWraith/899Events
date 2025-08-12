@@ -216,11 +216,18 @@ export function renderConversationsList(conversations) {
     }).join('');
 }
 
+// ** MODIFIED FUNCTION **
 export function renderFriendsPage() {
     const container = document.getElementById('sub-page-social-friends');
     if (!container) return;
 
     const { userFriends, allPlayers } = getState();
+
+    // The data might not be ready, so we check.
+    if (!userFriends || !allPlayers) {
+        container.innerHTML = '<div class="spinner mx-auto mt-8"></div>'; // Show a spinner
+        return;
+    }
 
     const friendsData = userFriends
         .map(friendId => allPlayers.find(p => p.uid === friendId))
@@ -257,8 +264,10 @@ export function renderFriendsPage() {
         </div>
     `;
 
+    // Re-attach listeners since we overwrite the HTML
     document.getElementById('add-friend-main-btn').addEventListener('click', () => {
-        showPage('page-players');
+        showPage('page-server');
+        handleSubNavClick('server-players'); // Directly navigate to players sub-page
     });
     
     document.getElementById('friends-page-list').addEventListener('click', (e) => {
