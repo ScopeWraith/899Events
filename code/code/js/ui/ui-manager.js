@@ -135,6 +135,7 @@ export function showViewPostModal(post) {
         heartBtn.classList.toggle('reacted', post.heartedBy && post.heartedBy.includes(currentUserData.uid));
     }
 
+    hideAllModals(); // ADDED
     showModal(getElement('view-post-modal-container'));
 }
 
@@ -194,7 +195,7 @@ export function showPage(targetId) {
 }
 
 export function showModal(modal) {
-    hideAllModals();
+    // REMOVED: hideAllModals() from here.
     getElement('modal-backdrop').classList.add('visible');
     modal.classList.add('visible');
 }
@@ -219,6 +220,7 @@ export function hideAllModals() {
 }
 
 export function showAuthModal(formToShow) {
+    hideAllModals(); // ADDED
     showModal(getElement('auth-modal-container'));
     querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
     if (formToShow === 'register') {
@@ -229,12 +231,14 @@ export function showAuthModal(formToShow) {
 }
 
 export function showEditProfileModal() {
+    hideAllModals(); // ADDED
     showModal(getElement('edit-profile-modal-container'));
     populateEditForm();
 }
 
 export function showPlayerSettingsModal(player) {
     updateState({ activePlayerSettingsUID: player.uid });
+    hideAllModals(); // ADDED
     showModal(getElement('player-settings-modal-container'));
     populatePlayerSettingsForm(player);
 }
@@ -243,6 +247,7 @@ export function showCreatePostModal(mainType) {
     updateState({ editingPostId: null });
     getElement('create-post-form').reset();
     getElement('post-nav-container').style.display = 'flex';
+    hideAllModals(); // ADDED
     showModal(getElement('create-post-modal-container'));
     initializePostStepper(mainType);
     getElement('post-content-header').textContent = 'Create New Post';
@@ -282,6 +287,7 @@ export function showConfirmationModal(title, message, onConfirm) {
         }
     });
 
+    // We do NOT call hideAllModals() here.
     showModal(confirmationModal);
 }
 
@@ -321,6 +327,7 @@ export function showPostActionsModal(postId) {
         }
     });
 
+    hideAllModals(); // ADDED
     showModal(document.getElementById('post-actions-modal-container'));
 }
 
@@ -376,6 +383,7 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
             getElement('chat-header-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
             getElement('fullscreen-chat-window').innerHTML = '';
 
+            hideAllModals(); // ADDED
             showModal(getElement('fullscreen-chat-modal-container'));
             setupPrivateChatListener(chatId);
 
@@ -396,6 +404,7 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
         getElement('chat-header-channel-icon').style.color = channel.color;
         getElement('fullscreen-chat-window').innerHTML = '';
 
+        hideAllModals(); // ADDED
         showModal(getElement('fullscreen-chat-modal-container'));
         setupChatListeners(chatType, 'fullscreen');
     }
