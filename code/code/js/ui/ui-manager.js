@@ -1,18 +1,10 @@
-// code/js/ui/ui-manager.js
-
-/**
- * This module is the central hub for managing the user interface.
- * It handles showing/hiding pages and modals, updating navigation,
- * and rendering major UI components like skeletons and dropdowns.
- */
-
 import { getState, updateState } from '../state.js';
 import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { db } from '../firebase-config.js';
-import { doc, deleteDoc, setDoc, getDocs, updateDoc, collection, where, query, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, deleteDoc, setDoc, getDocs, updateDoc, collection, where, query, serverTimestamp, writeBatch } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js)";
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
 import { renderFriendsList, renderConversations, renderFriendsPage, renderChatChannels } from './social-ui.js';
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
@@ -24,6 +16,26 @@ const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
 const querySelectorAll = (selector) => document.querySelectorAll(selector);
 
+// NEW: Store badge counts in the state
+let socialBadges = { convoCount: 0, friendRequestCount: 0 };
+
+// NEW: Function to update the social nav badges
+export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
+    if (convoCount !== undefined) socialBadges.convoCount = convoCount;
+    if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;
+
+    const convoBadge = document.querySelector('.sub-nav-link[data-sub-target="social-convo"] .badge');
+    if (convoBadge) {
+        convoBadge.textContent = socialBadges.convoCount;
+        convoBadge.classList.toggle('hidden', socialBadges.convoCount === 0);
+    }
+
+    const friendsBadge = document.querySelector('.sub-nav-link[data-sub-target="social-friends"] .badge');
+    if (friendsBadge) {
+        friendsBadge.textContent = socialBadges.friendRequestCount;
+        friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
+    }
+}
 // --- PAGE & MODAL MANAGEMENT ---
 export function handleSubNavClick(subTargetId) {
     const allSubNavLinks = querySelectorAll('.sub-nav-link');
@@ -394,26 +406,6 @@ export function updateUIForLoggedOutUser() {
     userProfileNavItem.classList.add('hidden');
     userProfileNavItem.classList.remove('open');
     getElement('mobile-auth-container').classList.remove('logged-in');
-}
-
-let socialBadges = { convoCount: 0, friendRequestCount: 0 };
-
-// NEW: Function to update the social nav badges
-export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
-    if (convoCount !== undefined) socialBadges.convoCount = convoCount;
-    if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;
-
-    const convoBadge = document.querySelector('.sub-nav-link[data-sub-target="social-convo"] .badge');
-    if (convoBadge) {
-        convoBadge.textContent = socialBadges.convoCount;
-        convoBadge.classList.toggle('hidden', socialBadges.convoCount === 0);
-    }
-
-    const friendsBadge = document.querySelector('.sub-nav-link[data-sub-target="social-friends"] .badge');
-    if (friendsBadge) {
-        friendsBadge.textContent = socialBadges.friendRequestCount;
-        friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
-    }
 }
 
 export function buildMobileNav() {
