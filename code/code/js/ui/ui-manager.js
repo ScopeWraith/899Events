@@ -275,7 +275,7 @@ export function showConfirmationModal(title, message, onConfirm) {
     const newConfirmBtn = confirmBtn.cloneNode(true);
     const newCancelBtn = cancelBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-    cancelBtn.parentNode.replaceChild(newCancelBtn, newCancelBtn); // FIX: This line was incorrect in the previous version
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
     newConfirmBtn.addEventListener('click', () => {
         onConfirm();
