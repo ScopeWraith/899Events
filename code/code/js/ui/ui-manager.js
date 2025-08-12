@@ -1,4 +1,5 @@
 // code/js/ui/ui-manager.js
+
 import { getState, updateState } from '../state.js';
 import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown, handleLogout } from './auth-ui.js';
@@ -11,15 +12,13 @@ import { renderFriendsList, renderConversations, renderFriendsPage, renderChatCh
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
 import { applyPlayerFilters } from './players-ui.js';
 import { renderAlliances } from './alliances-ui.js';
-// --- DOM ELEMENT GETTERS ---
+
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
 const querySelectorAll = (selector) => document.querySelectorAll(selector);
 
-// NEW: Store badge counts in the state
 let socialBadges = { convoCount: 0, friendRequestCount: 0 };
 
-// NEW: Function to update the social nav badges
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
     if (convoCount !== undefined) socialBadges.convoCount = convoCount;
     if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;
@@ -36,7 +35,6 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
         friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
     }
 }
-// --- PAGE & MODAL MANAGEMENT ---
 export function handleSubNavClick(subTargetId) {
     localStorage.setItem('lastActiveSubPage', subTargetId);
     const allSubNavLinks = querySelectorAll('.sub-nav-link');
@@ -81,9 +79,8 @@ export function handleSubNavClick(subTargetId) {
             applyPlayerFilters();
             break;
         case 'server-alliances':
-            // Call the new render function
             const { allAlliances } = getState();
-            renderAlliances(allAlliances || []);
+            renderAlliances(allAlliances);
             break;
         case 'server-nap':
             break;
@@ -206,7 +203,6 @@ export function hideAllModals() {
     getElement('modal-backdrop').classList.remove('visible');
     querySelectorAll('.modal-container').forEach(modal => modal.classList.remove('visible'));
     
-    // NEW: Also close the emoji picker
     const emojiPickerContainer = getElement('emoji-picker-container');
     if (emojiPickerContainer) emojiPickerContainer.classList.remove('visible');
     
@@ -230,7 +226,6 @@ export function showAuthModal(formToShow) {
         getElement('register-form-container').classList.add('active');
     } else {
         getElement('login-form-container').classList.add('active');
-        // --- NEW: Pre-fill email ---
         const rememberedEmail = localStorage.getItem('rememberedEmail');
         if (rememberedEmail) {
             getElement('login-email').value = rememberedEmail;
@@ -271,29 +266,12 @@ export function showConfirmationModal(title, message, onConfirm) {
     getElement('confirmation-message').textContent = message;
 
     const confirmBtn = getElement('confirmation-confirm-btn');
-    const cancelBtn = getElement('confirmation-cancel-btn');
-
-    const closeConfirmationModal = () => {
-        confirmationModal.classList.remove('visible');
-        const anyOtherModalsVisible = document.querySelectorAll('.modal-container.visible').length > 0;
-        if (!anyOtherModalsVisible) {
-            getElement('modal-backdrop').classList.remove('visible');
-        }
-    };
-
-    // Clone and replace buttons to remove old event listeners
     const newConfirmBtn = confirmBtn.cloneNode(true);
-    const newCancelBtn = cancelBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
     newConfirmBtn.addEventListener('click', () => {
         onConfirm();
-        closeConfirmationModal();
-    });
-
-    newCancelBtn.addEventListener('click', () => {
-        closeConfirmationModal();
+        hideAllModals();
     });
 
     showModal(confirmationModal);
@@ -417,7 +395,6 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
         setupChatListeners(chatType, 'fullscreen');
     }
 }
-// --- UI INITIALIZATION & UPDATES ---
 
 export function setupInitialUI() {
     setupCustomSelects();
@@ -441,7 +418,6 @@ export function setupEmojiButton(buttonId, inputId) {
         e.stopPropagation();
     });
 
-    // Close the picker if the user clicks anywhere else
     document.addEventListener('click', (e) => {
         if (!e.target.closest('#emoji-picker-container') && !e.target.closest(`#${buttonId}`)) {
             emojiPickerContainer.classList.remove('visible');
@@ -546,7 +522,13 @@ export function buildMobileNav() {
         logoutMobile.href = '#';
         logoutMobile.className = 'mobile-nav-link';
         logoutMobile.innerHTML = `<i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>Logout`;
-        logoutMobile.onclick = (e) => { e.preventDefault(); auth.signOut(); };
+        logoutMobile.onclick = (e) => { 
+            e.preventDefault(); 
+            // ** THIS IS THE FIX **
+            getElement('mobile-nav-menu').classList.remove('open');
+            getElement('modal-backdrop').classList.remove('visible');
+            handleLogout(); 
+        };
         mobileNavLinksContainer.appendChild(logoutMobile);
     } else {
         const loginMobile = document.createElement('a');
