@@ -21,24 +21,35 @@ export function initializeAllEventListeners() {
         }
     };
 
-    // ** MODIFIED SECTION **
-    // Consolidated listeners for the server page to avoid conflicts.
     const serverPage = getElement('page-server');
     if (serverPage) {
-        serverPage.addEventListener('click', (e) => {
+        serverPage.addEventListener('click', async (e) => {
             const registerBtn = e.target.closest('#show-register-alliance-modal-btn');
             const editBtn = e.target.closest('.alliance-card-edit-btn');
+            const messageBtn = e.target.closest('.leader-action-btn.message-player-btn');
+            const addFriendBtn = e.target.closest('.leader-action-btn.add-friend-btn');
+            const { allAlliances, allPlayers } = getState();
 
             if (registerBtn) {
                 showRegisterAllianceModal();
             } 
             else if (editBtn) {
-                const { allAlliances } = getState();
                 const allianceTag = editBtn.dataset.allianceTag;
                 const allianceData = allAlliances.find(a => a.tag === allianceTag);
                 if (allianceData) {
                     showEditAllianceModal(allianceData);
                 }
+            }
+            else if (messageBtn) {
+                const partnerData = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
+                if (partnerData) showFullscreenChatModal({ targetPlayer: partnerData });
+            }
+            else if (addFriendBtn) {
+                const recipientUid = addFriendBtn.dataset.uid;
+                addFriendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                const success = await addFriend(recipientUid);
+                addFriendBtn.innerHTML = success ? `<i class="fas fa-check"></i>` : `<i class="fas fa-user-plus"></i>`;
+                if (success) addFriendBtn.disabled = true;
             }
         });
     }

@@ -58,18 +58,17 @@ function createAllianceCard(alliance) {
 
     const getRoleMember = (username) => allPlayers.find(p => p.username === username);
     
-    // --- MODIFIED: LEADER SECTION LOGIC ---
     const r5Data = getRoleMember(alliance.r5Name);
     const leaderAvatarUrl = r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?';
     const leaderRankBorder = r5Data ? getRankBorderClass(r5Data) : 'rank-border-r5';
+    const showLeaderActionButtons = currentUserData && r5Data && currentUserData.uid !== r5Data.uid;
 
-    // --- MODIFIED: CONDITIONAL CORE MEMBER LOGIC ---
     const coreMembers = [
         { role: 'Warlord', username: alliance.warlord },
         { role: 'Recruiter', username: alliance.recruiter },
         { role: 'Muse', username: alliance.muse },
         { role: 'Butler', username: alliance.butler }
-    ].filter(member => member.username); // Filter out members that are not assigned
+    ].filter(member => member.username); 
 
     const coreMembersHTML = coreMembers.map(member => {
         const memberData = getRoleMember(member.username);
@@ -84,7 +83,6 @@ function createAllianceCard(alliance) {
         `;
     }).join('');
 
-    // --- REVISED CARD STRUCTURE ---
     return `
         <div class="alliance-card" style="--primary-color: ${primaryColor}; --secondary-color: ${secondaryColor};">
             ${editButtonHTML}
@@ -99,11 +97,19 @@ function createAllianceCard(alliance) {
             </div>
             <div class="alliance-card-body">
                 <div class="alliance-card-leader-section">
-                    <img src="${leaderAvatarUrl}" class="leader-avatar ${leaderRankBorder}" alt="Leader">
-                    <div class="leader-info">
-                        <span class="leader-title">LEADER (R5)</span>
-                        <span class="leader-name">${alliance.r5Name || 'N/A'}</span>
+                    <div class="leader-identity">
+                        <img src="${leaderAvatarUrl}" class="leader-avatar ${leaderRankBorder}" alt="Leader">
+                        <div class="leader-info">
+                            <span class="leader-title">LEADER (R5)</span>
+                            <span class="leader-name">${alliance.r5Name || 'N/A'}</span>
+                        </div>
                     </div>
+                    ${showLeaderActionButtons ? `
+                        <div class="leader-actions">
+                            <button class="leader-action-btn message-player-btn" data-uid="${r5Data.uid}" title="Message Leader"><i class="fas fa-comment-dots"></i></button>
+                            <button class="leader-action-btn add-friend-btn" data-uid="${r5Data.uid}" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                        </div>
+                    ` : ''}
                 </div>
                 
                 ${coreMembersHTML ? `
@@ -125,7 +131,7 @@ function createAllianceCard(alliance) {
     `;
 }
 
-// ... rest of the functions in alliances-ui.js are unchanged
+// ... All other functions in this file remain unchanged ...
 export function showEditAllianceModal(alliance) {
     const { allPlayers, currentUserData } = getState();
     if (!alliance) return;
