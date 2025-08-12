@@ -1,5 +1,4 @@
 /* ---- NEW ALLIANCE CARD STYLES ---- */
-
 .alliance-card {
     background: linear-gradient(180deg, color-mix(in srgb, var(--primary-color), black 70%), rgb(33 40 50 / 65%) 10%, rgba(0,0,0,0.2) 100%);
     border-radius: 12px;
@@ -10,7 +9,6 @@
     transition: all 0.3s ease;
     border-top: 4px solid var(--primary-color);
 }
-
 .alliance-card:before {
     content: '';
     position: absolute;
@@ -24,17 +22,14 @@
     transition: transform 1s ease, opacity 0.5s ease;
     pointer-events: none;
 }
-
 .alliance-card:hover:before {
     transform: rotate(360deg);
     opacity: 0.2;
 }
-
 .alliance-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 20px var(--primary-color);
 }
-
 .alliance-card-header {
     display: flex;
     align-items: center;
@@ -42,13 +37,11 @@
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), transparent);
     justify-content: center;
 }
-
 .alliance-card-avatar-wrapper {
     position: relative;
     flex-shrink: 0;
     margin-right: 1.5rem;
 }
-
 .alliance-card-avatar {
     width: 70px;
     height: 70px;
@@ -57,21 +50,17 @@
     border: 4px solid var(--primary-color);
     box-shadow: 0 0 15px var(--primary-color);
 }
-
 .alliance-card-name {
     font-size: 1.5rem;
     font-weight: 900;
     color: #fff;
     text-shadow: 0 0 12px var(--primary-color);
 }
-
 .alliance-card-tag {
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--secondary-color);
 }
-
-/* REVISED Card Body */
 .alliance-card-body {
     padding: 0rem 1.5rem;
     display: flex;
@@ -79,48 +68,48 @@
     gap: 1rem;
 }
 
-/* NEW Leader Section Styles */
+/* --- MODIFIED LEADER SECTION STYLES --- */
 .alliance-card-leader-section {
     background: rgba(0,0,0,0.2);
     padding: .5rem 1rem;
     border-radius: 8px;
+    display: flex; /* <-- Changed */
+    align-items: center; /* <-- Changed */
+    gap: 0.75rem; /* <-- Changed */
 }
-
+.leader-info {
+    display: flex;
+    flex-direction: column; /* <-- Changed */
+    align-items: flex-start; /* <-- Changed */
+    gap: 0; /* <-- Changed */
+}
 .leader-title {
     font-size: 0.7rem;
     font-weight: 700;
     color: var(--primary-color);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0; /* <-- Changed */
 }
-
-.leader-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
 .leader-avatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
     object-fit: cover;
 }
-
 .leader-name {
     font-size: 1.1rem;
     font-weight: 600;
     color: #fff;
+    line-height: 1.2; /* <-- Added for better alignment */
 }
+/* --- END MODIFIED STYLES --- */
 
-/* NEW Core Members Grid */
 .alliance-card-core-members {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 1rem;
 }
-
 .core-member {
     text-align: center;
     background: rgba(255, 255, 255, 0.05);
@@ -128,12 +117,10 @@
     border-radius: 8px;
     transition: all 0.2s ease;
 }
-
 .core-member:hover {
     transform: translateY(-3px);
     background: rgba(255, 255, 255, 0.1);
 }
-
 .core-member-avatar {
     width: 48px;
     height: 48px;
@@ -141,14 +128,12 @@
     object-fit: cover;
     margin: 0 auto 0;
 }
-
 .core-member-role {
     font-size: 0.65rem;
     font-weight: 700;
     color: var(--secondary-color);
     text-transform: uppercase;
 }
-
 .core-member-name {
     font-size: 0.9rem;
     font-weight: 600;
@@ -158,13 +143,9 @@
     text-overflow: ellipsis;
     margin-top: 0.25rem;
 }
-
-
-/* REVISED Details Section */
 .alliance-card-details {
     padding-top: 0.5rem;
 }
-
 .alliance-card-details h4,
 .alliance-card-footer h4 {
     font-size: 0.8rem;
@@ -175,21 +156,16 @@
     padding-bottom: 0.5rem;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-
 .alliance-card-details p,
 .alliance-card-footer p {
     font-size: 0.9rem;
     color: #c9d1d9;
     line-height: 1.6;
 }
-
-/* REVISED Footer */
 .alliance-card-footer {
     padding: 1rem 1.5rem 1.5rem;
     background: rgba(0,0,0,0.2);
 }
-
-/* REVISED Edit Button */
 .alliance-card-edit-btn {
     position: absolute;
     top: 1rem;
@@ -209,12 +185,10 @@
     transform: scale(0.8);
     z-index: 10;
 }
-
 .alliance-card:hover .alliance-card-edit-btn {
     opacity: 1;
     transform: scale(1);
 }
-
 .alliance-card-edit-btn:hover {
     background: var(--primary-color);
     box-shadow: 0 0 10px var(--primary-color);
