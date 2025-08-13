@@ -5,11 +5,13 @@ import { auth } from './firebase-config.js';
 import { subscribe, setState } from './state.js';
 import { setupAllListeners, detachAllListeners, fetchInitialData } from './firestore.js';
 import { setupPresenceManagement } from './presence.js';
-import {
-    setupInitialUI,
-    buildMobileNav,
+import { 
+    setupInitialUI, 
+    buildMobileNav, 
     updateSocialNavBadges,
-    showPage
+    showPage,
+    toggleSubNav,
+    handleSubNavClick
 } from './ui/ui-manager.js';
 import { initializeAllEventListeners } from './event-listeners.js';
 import { initializeAuthUI } from './ui/auth-ui.js';
@@ -17,13 +19,32 @@ import { initializeSocialUI } from './ui/social-ui.js';
 import { initializePostUI } from './ui/post-ui.js';
 import { initializePlayersUI } from './ui/players-ui.js';
 import { initializeAlliancesUI } from './ui/alliances-ui.js';
-import { initializeNotificationsUI } from './ui/notifications-ui.js';
+import { initializeNotificationsUI } from './ui/notifications-ui.js'; // New import
 
 function restoreLastViewedPage() {
-    // Get the last main page, or default to news
     const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
-    // The intelligent showPage function will handle the rest
+    const lastSubPage = localStorage.getItem('lastActiveSubPage');
     showPage(lastPage);
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+        const isActive = link.dataset.mainTarget === lastPage;
+        link.classList.toggle('active', isActive);
+        if (isActive) {
+            const submenuId = link.closest('.nav-item').dataset.submenuId;
+            toggleSubNav(submenuId);
+        }
+    });
+    if (lastSubPage) {
+        handleSubNavClick(lastSubPage);
+    } else {
+        let defaultSubTarget;
+        switch (lastPage) {
+            case 'page-social': defaultSubTarget = 'social-chat'; break;
+            case 'page-server': defaultSubTarget = 'server-alliances'; break;
+            case 'page-news': default: defaultSubTarget = 'news-all'; break;
+        }
+        const defaultSubNavLink = document.querySelector(`.sub-nav-link[data-sub-target="${defaultSubTarget}"]`);
+        if (defaultSubNavLink) defaultSubNavLink.click();
+    }
 }
 
 function showAppContent() {
@@ -70,5 +91,5 @@ export function initializeApp() {
     initializePostUI();
     initializePlayersUI();
     initializeAlliancesUI();
-    initializeNotificationsUI();
+    initializeNotificationsUI(); // Initialize our new component
 }

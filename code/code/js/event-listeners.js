@@ -2,11 +2,11 @@
 
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getState, setState } from './state.js';
+import { getState, setState } from './state.js'; // CHANGED HERE
 import {
     setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal,
     showCreatePostModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal,
-    handleSubNavClick, toggleSubNav, showViewPostModal, showAccessDeniedModal // <-- FIX: Added missing import
+    handleSubNavClick, toggleSubNav, showViewPostModal
 } from './ui/ui-manager.js';
 import {
     handleLogout, handleLoginSubmit, handleForgotPassword, handleRegistrationNext,
@@ -15,7 +15,7 @@ import {
 } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePostFormForEdit } from './ui/post-ui.js';
-import { applyPlayerFilters } from './players-ui.js';
+import { applyPlayerFilters } from './ui/players-ui.js';
 import {
     handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend,
     removeFriend, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend
@@ -49,16 +49,14 @@ export function initializeAllEventListeners() {
             }
             else if (editBtn) {
                 const allianceTag = editBtn.dataset.allianceTag;
-                if(allAlliances) {
-                    const allianceData = allAlliances.find(a => a.tag === allianceTag);
-                    if (allianceData) showEditAllianceModal(allianceData);
+                const allianceData = allAlliances.find(a => a.tag === allianceTag);
+                if (allianceData) {
+                    showEditAllianceModal(allianceData);
                 }
             }
             else if (messageBtn) {
-                if(allPlayers) {
-                    const partnerData = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
-                    if (partnerData) showFullscreenChatModal({ targetPlayer: partnerData });
-                }
+                const partnerData = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
+                if (partnerData) showFullscreenChatModal({ targetPlayer: partnerData });
             }
             else if (addFriendBtn) {
                 const recipientUid = addFriendBtn.dataset.uid;
@@ -86,9 +84,9 @@ export function initializeAllEventListeners() {
     if (convoItem) {
         const partnerId = convoItem.dataset.partnerUid;
         const { allPlayers } = getState();
-        if(allPlayers){
-            const partnerData = allPlayers.find(p => p.uid === partnerId);
-            if (partnerData) showFullscreenChatModal({ targetPlayer: partnerData });
+        const partnerData = allPlayers.find(p => p.uid === partnerId);
+        if (partnerData) {
+            showFullscreenChatModal({ targetPlayer: partnerData });
         }
     }
     });
@@ -263,7 +261,7 @@ export function initializeAllEventListeners() {
     });
     addListener('filter-container', 'click', (e) => {
         if (e.target.classList.contains('filter-btn')) {
-            setState({ activeFilter: e.target.dataset.filter });
+            setState({ activeFilter: e.target.dataset.filter }); // CHANGED HERE
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
         }
@@ -330,7 +328,7 @@ export function initializeAllEventListeners() {
     addListener('collapse-friends-btn', 'click', () => {
         const container = getElement('friends-list-container-social');
         const isCollapsed = container.classList.toggle('collapsed');
-        setState({ isFriendsListCollapsed: isCollapsed });
+        setState({ isFriendsListCollapsed: isCollapsed }); // CHANGED HERE
     });
     const feedDropdown = getElement('feed-dropdown');
     if (feedDropdown) {
@@ -368,15 +366,11 @@ export function initializeAllEventListeners() {
             if (success) addFriendBtn.disabled = true;
         } else if (messageBtn && currentUserData) {
             const playerCard = messageBtn.closest('.player-card');
-            if (allPlayers){
-                const targetPlayer = allPlayers.find(p => p.uid === playerCard.dataset.uid);
-                if (targetPlayer) showFullscreenChatModal({ targetPlayer });
-            }
+            const targetPlayer = allPlayers.find(p => p.uid === playerCard.dataset.uid);
+            if (targetPlayer) showFullscreenChatModal({ targetPlayer });
         } else if (settingsBtn) {
-            if(allPlayers){
-                const targetPlayer = allPlayers.find(p => p.uid === settingsBtn.dataset.uid);
-                if(targetPlayer) showPlayerSettingsModal(targetPlayer);
-            }
+            const targetPlayer = allPlayers.find(p => p.uid === settingsBtn.dataset.uid);
+            if(targetPlayer) showPlayerSettingsModal(targetPlayer);
         }
     });
 
@@ -386,10 +380,8 @@ export function initializeAllEventListeners() {
             const messageBtn = e.target.closest('.message-player-btn');
             if (messageBtn) {
                 const { allPlayers } = getState();
-                if(allPlayers){
-                    const targetPlayer = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
-                    if (targetPlayer) showFullscreenChatModal({ targetPlayer });
-                }
+                const targetPlayer = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
+                if (targetPlayer) showFullscreenChatModal({ targetPlayer });
             }
         });
     }
@@ -427,14 +419,14 @@ export function initializeAllEventListeners() {
             showPostActionsModal(actionsBtn.dataset.postId);
         } else if (postCard) {
             const { allPosts } = getState();
-            if(allPosts) {
-                const post = allPosts.find(p => p.id === postCard.dataset.postId);
-                if (post) showViewPostModal(post);
+            const post = allPosts.find(p => p.id === postCard.dataset.postId);
+            if (post) {
+                showViewPostModal(post);
             }
         }
     });
     addListener('fullscreen-chat-attach-btn', 'click', () => {
-        const attachInput = document.getElementById('private-message-attach-input');
+        const attachInput = getElement('private-message-attach-input');
         if (attachInput) attachInput.click();
     });
     addListener('private-message-attach-input', 'change', (e) => {
