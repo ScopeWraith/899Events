@@ -190,23 +190,6 @@ export function showViewPostModal(post) {
     showModal(getElement('view-post-modal-container'));
 }
 
-export function toggleSubNav(activeSubmenuId) {
-    const subNavContainer = document.getElementById('sub-nav-container');
-    if (!subNavContainer) return;
-    subNavContainer.querySelectorAll('.sub-nav-content').forEach(content => {
-        content.classList.add('hidden');
-    });
-    if (activeSubmenuId) {
-        const activeContent = document.getElementById(activeSubmenuId);
-        if (activeContent) {
-            activeContent.classList.remove('hidden');
-            subNavContainer.classList.add('open');
-        }
-    } else {
-        subNavContainer.classList.remove('open');
-    }
-}
-
 export function showPage(targetId) {
     // Hide all pages, then show the target page
     querySelectorAll('.page-content').forEach(page => {
