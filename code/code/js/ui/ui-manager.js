@@ -459,6 +459,7 @@ export function updateUIForLoggedInUser() {
     getElement('user-profile-nav-item').classList.remove('hidden');
     getElement('mobile-auth-container').classList.add('logged-in');
     getElement('login-btn-mobile').classList.add('hidden');
+    getElement('feed-nav-item').classList.remove('hidden');
 
     const adminActionsContainer = getElement('admin-actions-container');
     if (adminActionsContainer) {
@@ -479,6 +480,7 @@ export function updateUIForLoggedOutUser() {
     userProfileNavItem.classList.remove('open');
     getElement('mobile-auth-container').classList.remove('logged-in');
     getElement('login-btn-mobile').classList.remove('hidden');
+    getElement('feed-nav-item').classList.add('hidden');
 }
 
 export function buildMobileNav() {
