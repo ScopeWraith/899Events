@@ -25,27 +25,43 @@ function restoreLastViewedPage() {
     const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
     const lastSubPage = localStorage.getItem('lastActiveSubPage');
     showPage(lastPage);
+
+    let activeSubNavContainer = null;
+    // Activate the correct main nav link and show its sub-nav
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         const isActive = link.dataset.mainTarget === lastPage;
         link.classList.toggle('active', isActive);
         if (isActive) {
             const submenuId = link.closest('.nav-item').dataset.submenuId;
             toggleSubNav(submenuId);
+            if (submenuId) {
+                activeSubNavContainer = document.getElementById(submenuId);
+            }
         }
     });
-    if (lastSubPage) {
+
+    // Validate that the last sub-page belongs to the current main page
+    const isSubPageValid = lastSubPage && activeSubNavContainer && activeSubNavContainer.querySelector(`[data-sub-target="${lastSubPage}"]`);
+
+    if (isSubPageValid) {
         handleSubNavClick(lastSubPage);
     } else {
+        // If not valid or not set, determine the default for the current page
         let defaultSubTarget;
         switch (lastPage) {
             case 'page-social': defaultSubTarget = 'social-chat'; break;
             case 'page-server': defaultSubTarget = 'server-alliances'; break;
-            case 'page-news': default: defaultSubTarget = 'news-all'; break;
+            case 'page-news':
+            default:
+                defaultSubTarget = 'news-all'; break;
         }
-        const defaultSubNavLink = document.querySelector(`.sub-nav-link[data-sub-target="${defaultSubTarget}"]`);
-        if (defaultSubNavLink) defaultSubNavLink.click();
+        // Directly call the handler for robustness instead of simulating a click
+        if (defaultSubTarget) {
+            handleSubNavClick(defaultSubTarget);
+        }
     }
 }
+
 
 function showAppContent() {
     const appPreloader = document.getElementById('app-preloader');
