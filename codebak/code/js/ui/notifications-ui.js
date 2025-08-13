@@ -1,20 +1,25 @@
 // code/js/ui/notifications-ui.js
 
-/**
- * This module is responsible for rendering notifications in the dropdown
- * and on the main feed page.
- */
-
+import { subscribe } from '../state.js';
 import { formatTimeAgo } from '../utils.js';
 
-export function renderNotifications(notifications) {
+function renderNotificationsUI(newState, prevState) {
+    // Only re-render if notifications have changed.
+    if (newState.userNotifications === prevState.userNotifications) return;
+    
+    renderNotifications(newState.userNotifications || []);
+}
+
+export function initializeNotificationsUI() {
+    subscribe(renderNotificationsUI);
+}
+
+function renderNotifications(notifications) {
     const feedDropdown = document.getElementById('feed-dropdown');
     const feedActionContainer = document.getElementById('feed-action-container');
     const notificationBadge = document.getElementById('notification-badge');
 
-    // FIX: Add null checks to prevent errors if the DOM is not ready.
     if (!feedDropdown || !notificationBadge) {
-        console.warn("Notification UI elements not found, skipping render. This may be a timing issue on initial load.");
         return;
     }
 
@@ -27,19 +32,16 @@ export function renderNotifications(notifications) {
         notificationBadge.classList.remove('visible');
     }
 
-    // --- Dropdown Rendering (up to 5 notifications) ---
     if (notifications.length === 0) {
         feedDropdown.innerHTML = '<p class="text-center text-gray-500 p-4">No new notifications.</p>';
     } else {
         feedDropdown.innerHTML = notifications.slice(0, 5).map(n => createNotificationHTML(n)).join('');
     }
 
-    // --- Full Feed Page Rendering (Actionable items only) ---
     const actionableNotifications = notifications.filter(n => 
         n.type === 'friend_request' || n.type === 'verification_request'
     );
 
-    // The feedActionContainer is only on the 'Feed' page, so this check is also important.
     if (feedActionContainer) {
         if (actionableNotifications.length === 0) {
             feedActionContainer.innerHTML = '<p class="text-center text-gray-500 p-4">No pending actions.</p>';

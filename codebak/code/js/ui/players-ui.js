@@ -1,23 +1,42 @@
 // code/js/ui/players-ui.js
 
-/**
- * This module handles all UI logic related to the Players page,
- * including filtering the player list and rendering player cards.
- */
+import { subscribe, getState } from '../state.js';
+import { canManageUser, getRankBorderClass} from '../utils.js';
 
-import { getState } from '../state.js';
-import { canManageUser , getAvatarSkinClass , getRankBorderClass} from '../utils.js';
+// --- STATE & RENDER FUNCTIONS ---
+
+function renderPlayersUI(newState, prevState) {
+    // Re-render the player list if the list of players or the current user changes.
+    if (newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData) {
+        applyPlayerFilters();
+    }
+}
+
+export function initializePlayersUI() {
+    subscribe(renderPlayersUI);
+}
+
+// --- UI HELPER & RENDERING FUNCTIONS ---
 
 export function applyPlayerFilters() {
     const playerListContainer = document.getElementById('player-list-container');
-    // FIX: Add a guard clause to ensure the function only runs when the Players page is visible.
     if (!playerListContainer) {
         return;
     }
 
     const { allPlayers } = getState();
-    const searchTerm = document.getElementById('player-search-input').value.toLowerCase();
-    const allianceFilter = document.getElementById('alliance-filter').value;
+    // --- FIX: ADD THIS GUARD CLAUSE ---
+    if (!allPlayers) {
+        // If players aren't loaded yet, we can render skeletons or just exit.
+        renderPlayers(null); // Passing null will trigger the skeleton loader
+        return;
+    }
+
+    const searchTermInput = document.getElementById('player-search-input');
+    const allianceFilterInput = document.getElementById('alliance-filter');
+
+    const searchTerm = searchTermInput ? searchTermInput.value.toLowerCase() : '';
+    const allianceFilter = allianceFilterInput ? allianceFilterInput.value : '';
 
     const filteredPlayers = allPlayers.filter(player => {
         if (!player.username) return false;
@@ -28,15 +47,46 @@ export function applyPlayerFilters() {
     renderPlayers(filteredPlayers);
 }
 
+function createPlayerSkeletonCard() {
+    return `
+        <div class="player-card glass-pane p-4 flex flex-col opacity-50">
+            <div class="flex items-center pb-3 border-b" style="border-color: rgba(255,255,255,0.1);">
+                <div class="w-12 h-12 rounded-full skeleton-loader mr-4"></div>
+                <div class="w-full">
+                    <div class="h-5 w-3/5 skeleton-loader mb-2"></div>
+                    <div class="h-4 w-2/5 skeleton-loader"></div>
+                </div>
+            </div>
+            <div class="flex-grow my-4 space-y-3">
+                <div class="h-5 w-full skeleton-loader"></div>
+                <div class="h-5 w-full skeleton-loader"></div>
+                <div class="h-5 w-full skeleton-loader"></div>
+                <div class="h-5 w-full skeleton-loader"></div>
+            </div>
+        </div>
+    `;
+}
+
 export function renderPlayers(players) {
     const playerListContainer = document.getElementById('player-list-container');
-    const { currentUserData, userSessions } = getState();
+    if (!playerListContainer) return;
 
+    const { currentUserData, userSessions } = getState();
     playerListContainer.innerHTML = '';
+
+    if (players === null) { // Data is loading, show skeletons
+        let skeletonHTML = '';
+        for (let i = 0; i < 8; i++) {
+            skeletonHTML += createPlayerSkeletonCard();
+        }
+        playerListContainer.innerHTML = skeletonHTML;
+        return;
+    }
     if (players.length === 0) {
         playerListContainer.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No players match the current filters.</p>`;
         return;
     }
+
     players.forEach(player => {
         const card = document.createElement('div');
         card.className = 'player-card glass-pane p-4 flex flex-col relative';
@@ -45,15 +95,15 @@ export function renderPlayers(players) {
 
         let gearIconHTML = '';
         if (currentUserData && currentUserData.uid !== player.uid) {
-            if(canManageUser(currentUserData, player)) {
+            if (canManageUser(currentUserData, player)) {
                 gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
             }
         }
 
         const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
-        const session = userSessions[player.uid];
+        const session = userSessions ? userSessions[player.uid] : null;
         const statusClass = session ? session.status : 'offline';
-        const rankBorder = getRankBorderClass(player); // Correctly using the helper
+        const rankBorder = getRankBorderClass(player);
 
         card.innerHTML = `
             ${gearIconHTML}

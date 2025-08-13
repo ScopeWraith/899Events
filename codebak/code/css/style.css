@@ -1,3 +1,4 @@
+@import url('alliances.css');
 :root {
     --color-bg: #0D1117;
     --color-primary: #00BFFF;
@@ -997,3 +998,4 @@ body {
 .emoji-picker-modal-container.visible {
     transform: translateY(0);
 }
+

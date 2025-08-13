@@ -1,13 +1,29 @@
 // code/js/event-listeners.js
+
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getState, updateState } from './state.js';
-import { setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
-import { handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
+import { getState, setState } from './state.js'; // CHANGED HERE
+import {
+    setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal,
+    showCreatePostModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal,
+    handleSubNavClick, toggleSubNav, showViewPostModal
+} from './ui/ui-manager.js';
+import {
+    handleLogout, handleLoginSubmit, handleForgotPassword, handleRegistrationNext,
+    handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit,
+    handleEditProfileSubmit, handleAvatarUpload
+} from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
-import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
+import { handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePostFormForEdit } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
-import { handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend, removeFriend, sendPrivateMessage, setupChatListeners, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend  } from './firestore.js';
+import {
+    handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend,
+    removeFriend, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend
+} from './firestore.js';
+import {
+    showEditAllianceModal, handleAllianceAvatarSelection, handleAllianceEditSubmit,
+    showRegisterAllianceModal, handleAllianceRegisterSubmit
+} from './ui/alliances-ui.js';
 
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
@@ -18,6 +34,51 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
+
+    const serverPage = getElement('page-server');
+    if (serverPage) {
+        serverPage.addEventListener('click', async (e) => {
+            const registerBtn = e.target.closest('#show-register-alliance-modal-btn');
+            const editBtn = e.target.closest('.alliance-card-edit-btn');
+            const messageBtn = e.target.closest('.leader-action-btn.message-player-btn');
+            const addFriendBtn = e.target.closest('.leader-action-btn.add-friend-btn');
+            const { allAlliances, allPlayers } = getState();
+
+            if (registerBtn) {
+                showRegisterAllianceModal();
+            }
+            else if (editBtn) {
+                const allianceTag = editBtn.dataset.allianceTag;
+                const allianceData = allAlliances.find(a => a.tag === allianceTag);
+                if (allianceData) {
+                    showEditAllianceModal(allianceData);
+                }
+            }
+            else if (messageBtn) {
+                const partnerData = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
+                if (partnerData) showFullscreenChatModal({ targetPlayer: partnerData });
+            }
+            else if (addFriendBtn) {
+                const recipientUid = addFriendBtn.dataset.uid;
+                addFriendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                const success = await addFriend(recipientUid);
+                addFriendBtn.innerHTML = success ? `<i class="fas fa-check"></i>` : `<i class="fas fa-user-plus"></i>`;
+                if (success) addFriendBtn.disabled = true;
+            }
+        });
+    }
+
+    addListener('close-access-denied-modal-btn', 'click', hideAllModals);
+    addListener('access-denied-login-btn', 'click', () => {
+        hideAllModals();
+        showAuthModal('login');
+    });
+    addListener('close-register-alliance-modal-btn', 'click', hideAllModals);
+    addListener('register-alliance-form', 'submit', handleAllianceRegisterSubmit);
+    addListener('close-edit-alliance-modal-btn', 'click', hideAllModals);
+    addListener('edit-alliance-avatar-btn', 'click', () => getElement('edit-alliance-avatar-input').click());
+    addListener('edit-alliance-avatar-input', 'change', handleAllianceAvatarSelection);
+    addListener('edit-alliance-form', 'submit', handleAllianceEditSubmit);
     addListener('convo-list', 'click', (e) => {
     const convoItem = e.target.closest('.convo-item');
     if (convoItem) {
@@ -51,25 +112,27 @@ export function initializeAllEventListeners() {
         togglePostReaction(actionPostId, reactionType);
     }
     });
-    // --- Main Navigation & Page Switching ---
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-
+            const { currentUserData } = getState();
             const mainTarget = link.dataset.mainTarget;
+
+            if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
+                showAccessDeniedModal();
+                return;
+            }
+
             const navItem = link.closest('.nav-item');
             const submenuId = navItem.dataset.submenuId || null;
 
             showPage(mainTarget);
-
             toggleSubNav(submenuId);
 
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
         });
     });
-
-    // --- Sub Navigation Listener (RE-ADDED) ---
     document.querySelectorAll('.sub-nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -77,15 +140,12 @@ export function initializeAllEventListeners() {
             handleSubNavClick(subTarget);
         });
     });
-
-    // --- Mobile Avatar Click to Edit Profile ---
     addListener('mobile-auth-container', 'click', () => {
         showEditProfileModal();
     });
     addListener('user-avatar-mobile' , 'click', () => {
         showEditProfileModal();
     });
-    // --- Edit Profile Modal Tabs and Skin Selectors ---
     const editProfileModal = getElement('edit-profile-modal-container');
     if (editProfileModal) {
         editProfileModal.addEventListener('click', (e) => {
@@ -117,15 +177,15 @@ export function initializeAllEventListeners() {
             }
         });
     }
-    // --- Modal Triggers & Closers ---
     addListener('login-btn', 'click', () => showAuthModal('login'));
+    addListener('login-btn-mobile', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
     addListener('close-edit-modal-btn', 'click', hideAllModals);
     addListener('close-view-post-modal-btn', 'click', hideAllModals);
     addListener('close-player-settings-modal-btn', 'click', hideAllModals);
     addListener('close-create-post-modal-btn', 'click', hideAllModals);
     addListener('close-fullscreen-chat-modal-btn', 'click', hideAllModals);
-    addListener('confirmation-cancel-btn', 'click', () => hideModal(getElement('confirmation-modal-container')));
+    addListener('confirmation-cancel-btn', 'click', hideAllModals);
     addListener('close-post-actions-modal-btn', 'click', hideAllModals);
     addListener('modal-backdrop', 'click', (e) => {
         if (e.target === getElement('modal-backdrop')) {
@@ -133,25 +193,18 @@ export function initializeAllEventListeners() {
             const mobileNav = getElement('mobile-nav-menu');
             if (mobileNav.classList.contains('open')) {
                 mobileNav.classList.remove('open');
-                const icon = getElement('open-mobile-menu-btn').querySelector('i');
             }
         }
     });
-
-    // --- Auth Forms ---
     addListener('show-register-link', 'click', (e) => { e.preventDefault(); showAuthModal('register'); });
     addListener('show-login-link', 'click', (e) => { e.preventDefault(); showAuthModal('login'); });
     addListener('login-form', 'submit', handleLoginSubmit);
     addListener('forgot-password-link', 'click', handleForgotPassword);
-
-    // --- Registration Stepper ---
     addListener('register-next-btn', 'click', handleRegistrationNext);
     addListener('register-back-btn', 'click', handleRegistrationBack);
     addListener('register-avatar-btn', 'click', () => getElement('register-avatar-input').click());
     addListener('register-avatar-input', 'change', handleAvatarSelection);
     addListener('register-form', 'submit', handleRegistrationSubmit);
-
-    // --- User Profile & Actions ---
     addListener('user-profile-button', 'click', (e) => {
         e.stopPropagation();
         const navItem = getElement('user-profile-nav-item');
@@ -160,8 +213,6 @@ export function initializeAllEventListeners() {
         });
         if(navItem) navItem.classList.toggle('open');
     });
-
-    // --- Mobile Avatar Dropdown Listener ---
     addListener('user-avatar-mobile', 'click', (e) => {
         e.stopPropagation();
         const navItem = getElement('user-profile-nav-item');
@@ -179,7 +230,7 @@ export function initializeAllEventListeners() {
             }
         }
     });
-    addListener('profile-dropdown-logout', 'click', () => signOut(auth));
+    addListener('profile-dropdown-logout', 'click', handleLogout);
     addListener('profile-dropdown-edit', 'click', () => {
         getElement('user-profile-nav-item').classList.remove('open');
         showEditProfileModal();
@@ -191,11 +242,7 @@ export function initializeAllEventListeners() {
     addListener('profile-dropdown-avatar', 'click', () => getElement('avatar-upload-input').click());
     addListener('avatar-upload-input', 'change', handleAvatarUpload);
     addListener('edit-profile-form', 'submit', handleEditProfileSubmit);
-
-    // --- Player Settings ---
     addListener('player-settings-form', 'submit', handlePlayerSettingsSubmit);
-
-    // --- Post Creation/Editing ---
     addListener('post-back-btn', 'click', handlePostBack);
     addListener('post-thumbnail-btn', 'click', () => getElement('post-thumbnail-input').click());
     addListener('post-thumbnail-input', 'change', handleThumbnailSelection);
@@ -204,106 +251,58 @@ export function initializeAllEventListeners() {
         const container = getElement('post-repeat-weeks-container');
         if (container) container.classList.toggle('hidden', e.target.value !== 'weekly');
     });
-
-    // --- Mobile Navigation ---
     addListener('open-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.add('open');
         getElement('modal-backdrop').classList.add('visible');
-        const icon = getElement('open-mobile-menu-btn').querySelector('i');
     });
-
     addListener('close-mobile-menu-btn', 'click', () => {
         getElement('mobile-nav-menu').classList.remove('open');
         getElement('modal-backdrop').classList.remove('visible');
-        const icon = getElement('open-mobile-menu-btn').querySelector('i');
     });
-
-    // --- Filtering ---
     addListener('filter-container', 'click', (e) => {
         if (e.target.classList.contains('filter-btn')) {
-            updateState({ activeFilter: e.target.dataset.filter });
+            setState({ activeFilter: e.target.dataset.filter }); // CHANGED HERE
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
-            renderNews(e.target.dataset.filter);
         }
     });
     addListener('player-search-input', 'input', () => applyPlayerFilters());
     const allianceFilter = getElement('alliance-filter');
     if (allianceFilter) {
-        allianceFilter.addEventListener('change', () => applyPlayerFilters());
+        allianceFilter.closest('.custom-select-container').addEventListener('change', () => applyPlayerFilters());
     }
-
-    // --- Social Page & Chat Listeners ---
     addListener('chat-selectors', 'click', (e) => {
         const btn = e.target.closest('.chat-selector-btn');
         if (!btn) return;
-        
+
         document.querySelectorAll('.chat-selector-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
+
         showFullscreenChatModal({ chatType: btn.dataset.chatType });
     });
 
-    addListener('chat-form-main', 'submit', async (e) => {
-        e.preventDefault();
-        const input = getElement('chat-input-main');
-        const text = input.value.trim();
-        const activeBtn = document.querySelector('.chat-selector-btn.active');
-        if (!text || !activeBtn) return;
-        
-        const chatType = activeBtn.dataset.chatType;
-        if (!chatType) return;
-        
-        input.value = '';
-        try {
-            await handleSendMessage(e, chatType, text);
-        } catch (error) {
-            console.error("Failed to send message:", error);
-            alert("Error: Could not send message.");
-            input.value = text;
-        }
-    });
-
-    // Social Page Click Handler (for main chat window)
     const socialPage = getElement('page-social');
     if (socialPage) {
         socialPage.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-message-btn');
             const confirmBtn = e.target.closest('.confirm-delete-btn');
-            const bubble = e.target.closest('.chat-message-bubble');
 
             if (confirmBtn) {
                 const messageEl = confirmBtn.closest('.chat-message');
                 const bubble = messageEl.querySelector('.chat-message-bubble');
-                handleDeleteMessage(bubble.dataset.messageId, bubble.dataset.chatType);
+                handleDeleteMessage(messageEl.dataset.messageId, bubble.dataset.chatType);
             } else if (deleteBtn) {
                 const messageEl = deleteBtn.closest('.chat-message');
                 const confirmDeleteBtn = messageEl.querySelector('.confirm-delete-btn');
-                const deleteIcon = deleteBtn.querySelector('i');
-                const confirmIcon = confirmDeleteBtn.querySelector('i');
-
-                // Toggle visibility
                 deleteBtn.classList.add('hidden');
                 confirmDeleteBtn.classList.remove('hidden');
-
-                // Set a timer to revert if not confirmed
                 setTimeout(() => {
                     deleteBtn.classList.remove('hidden');
                     confirmDeleteBtn.classList.add('hidden');
                 }, 3000);
-            } else if (bubble) {
-                const picker = getElement('reaction-picker-container');
-                picker.style.display = 'flex';
-                const rect = bubble.getBoundingClientRect();
-                picker.style.left = `${rect.left}px`;
-                picker.style.top = `${rect.top}px`;
-                picker.dataset.messageId = bubble.dataset.messageId;
-                picker.dataset.chatType = bubble.dataset.chatType;
             }
         });
     }
-
-    // Private Message Modal Click Handler
     const fullscreenChatModal = getElement('fullscreen-chat-modal-container');
     if (fullscreenChatModal) {
         fullscreenChatModal.addEventListener('click', (e) => {
@@ -311,19 +310,13 @@ export function initializeAllEventListeners() {
             const confirmBtn = e.target.closest('.confirm-delete-btn');
             if (confirmBtn) {
                 const messageEl = confirmBtn.closest('.chat-message');
-                const bubble = messageEl.querySelector('.chat-message-bubble');
-                if (bubble) {
-                    handleDeleteMessage(bubble.dataset.messageId, 'private_chat');
-                }
+                handleDeleteMessage(messageEl.dataset.messageId, 'private_chat');
             } else if (deleteBtn) {
                 const messageEl = deleteBtn.closest('.chat-message');
                 if (messageEl) {
                     const confirmDeleteBtn = messageEl.querySelector('.confirm-delete-btn');
-                    // Toggle visibility
                     deleteBtn.classList.add('hidden');
                     confirmDeleteBtn.classList.remove('hidden');
-                    
-                    // Set a timer to revert if not confirmed
                     setTimeout(() => {
                         deleteBtn.classList.remove('hidden');
                         confirmDeleteBtn.classList.add('hidden');
@@ -332,15 +325,11 @@ export function initializeAllEventListeners() {
             }
         });
     }
-
-    // --- Collapsible Friends List ---
     addListener('collapse-friends-btn', 'click', () => {
         const container = getElement('friends-list-container-social');
         const isCollapsed = container.classList.toggle('collapsed');
-        updateState({ isFriendsListCollapsed: isCollapsed });
+        setState({ isFriendsListCollapsed: isCollapsed }); // CHANGED HERE
     });
-
-    // --- Notifications ---
     const feedDropdown = getElement('feed-dropdown');
     if (feedDropdown) {
         feedDropdown.addEventListener('click', (e) => handleNotificationClick(e));
@@ -362,8 +351,6 @@ export function initializeAllEventListeners() {
             actionBtn ? actionBtn.dataset.targetUid : null
         );
     }
-
-    // --- Player & Friend Actions ---
     addListener('player-list-container', 'click', async (e) => {
         const addFriendBtn = e.target.closest('.add-friend-btn');
         const messageBtn = e.target.closest('.message-player-btn');
@@ -411,7 +398,6 @@ export function initializeAllEventListeners() {
             showCreatePostModal('announcement');
         }
     });
-    // --- General UI ---
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.nav-item')) {
             document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));
@@ -424,31 +410,21 @@ export function initializeAllEventListeners() {
             picker.style.display = 'none';
         }
     });
-
-    // --- Event/Announcement Creation Triggers ---
     addListener('page-news', 'click', e => {
-        const createAnnouncementBtn = e.target.closest('#create-announcement-btn');
-        const createEventBtn = e.target.closest('#create-event-btn');
         const actionsBtn = e.target.closest('.post-card-actions-trigger');
-        const announcementCard = e.target.closest('.announcement-card');
+        const postCard = e.target.closest('.post-card');
 
-        if (createAnnouncementBtn) {
-            showCreatePostModal('announcement');
-        } else if (createEventBtn) {
-            showCreatePostModal('event');
-        } else if (actionsBtn) {
-            e.stopPropagation(); 
+        if (actionsBtn) {
+            e.stopPropagation();
             showPostActionsModal(actionsBtn.dataset.postId);
-        } else if (announcementCard) {
+        } else if (postCard) {
             const { allPosts } = getState();
-            const post = allPosts.find(p => p.id === announcementCard.dataset.postId);
+            const post = allPosts.find(p => p.id === postCard.dataset.postId);
             if (post) {
                 showViewPostModal(post);
             }
         }
     });
-
-    // --- Attachment and Emoji Logic ---
     addListener('fullscreen-chat-attach-btn', 'click', () => {
         const attachInput = getElement('private-message-attach-input');
         if (attachInput) attachInput.click();
@@ -465,16 +441,12 @@ export function initializeAllEventListeners() {
 
     if (emojiPicker) {
         emojiPicker.addEventListener('emoji-click', event => {
-            const { activeEmojiInput } = getState(); // MODIFIED: Get from global state
+            const { activeEmojiInput } = getState();
             if (activeEmojiInput) activeEmojiInput.value += event.detail.unicode;
-            
-            // MODIFIED: Use classList.remove instead of inline style
             const emojiPickerContainer = getElement('emoji-picker-container');
             if (emojiPickerContainer) emojiPickerContainer.classList.remove('visible');
         });
     }
-
-    // --- Reaction Picker Listener ---
     const reactionPicker = getElement('reaction-picker-container');
     if (reactionPicker) {
         reactionPicker.addEventListener('click', (e) => {

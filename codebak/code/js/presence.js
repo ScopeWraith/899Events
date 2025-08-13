@@ -8,7 +8,7 @@
 import { db, rtdb } from './firebase-config.js';
 import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref as dbRef, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
-import { getState, updateState } from './state.js';
+import { getState, setState } from './state.js'; // CHANGED: from updateState
 
 export function setupPresenceManagement(user) {
     const userStatusDatabaseRef = dbRef(rtdb, '/status/' + user.uid);
@@ -16,10 +16,10 @@ export function setupPresenceManagement(user) {
 
     const isOfflineForRTDB = { status: 'offline', lastSeen: rtdbServerTimestamp() };
     const isOnlineForRTDB = { status: 'online', lastSeen: rtdbServerTimestamp() };
-    
+
     const isOfflineForFirestore = { status: 'offline', lastSeen: serverTimestamp() };
     const isOnlineForFirestore = { status: 'online', lastSeen: serverTimestamp() };
-    
+
     onValue(dbRef(rtdb, '.info/connected'), (snapshot) => {
         if (snapshot.val() === false) {
             setDoc(userStatusFirestoreRef, isOfflineForFirestore);
@@ -35,21 +35,22 @@ export function setupPresenceManagement(user) {
     function resetAwayTimer() {
         let { awayTimer, userSessions } = getState();
         if (awayTimer) clearTimeout(awayTimer);
-        
-        if(userSessions[user.uid] && userSessions[user.uid].status === 'away') {
+
+        // Note: This checks the local state, which might have a slight delay.
+        if(userSessions && userSessions[user.uid] && userSessions[user.uid].status === 'away') {
              updateUserStatus(user.uid, 'online');
         }
 
         awayTimer = setTimeout(() => {
             updateUserStatus(user.uid, 'away');
         }, 5 * 60 * 1000); // 5 minutes
-        updateState({ awayTimer });
+        setState({ awayTimer }); // CHANGED: from updateState
     }
 
     ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
         document.addEventListener(event, resetAwayTimer, { passive: true });
     });
-    
+
     resetAwayTimer();
 }
 

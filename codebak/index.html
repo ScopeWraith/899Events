@@ -28,6 +28,105 @@
         </div>
 
         <div id="modal-container-all">
+            <div id="access-denied-modal-container" class="modal-container">
+                <div class="glass-pane">
+                    <div class="modal-content-wrapper p-6 text-center">
+                        <button id="close-access-denied-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                            <i class="fas fa-times fa-lg"></i>
+                        </button>
+                        <div class="w-16 h-16 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-2">Account Required</h2>
+                        <p class="text-gray-400 mb-6">You need to be logged in to access this feature.</p>
+                        <div class="flex justify-center gap-4">
+                            <button id="access-denied-login-btn" class="w-full p-3 rounded-lg primary-btn">Login / Register</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="register-alliance-modal-container" class="modal-container">
+                <div class="glass-pane">
+                    <div class="modal-content-wrapper themed-scrollbar">
+                        <button id="close-register-alliance-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                            <i class="fas fa-times fa-lg"></i>
+                        </button>
+                        <h2 class="text-2xl font-bold text-white text-center mb-6">Register Alliance Profile</h2>
+                        <form id="register-alliance-form">
+                            <div class="space-y-4">
+                                <div class="text-center mb-4">
+                                    <p class="text-gray-400">Registering for Alliance:</p>
+                                    <h3 id="register-alliance-tag-display" class="text-3xl font-bold text-white"></h3>
+                                </div>
+
+                                <div class="input-group">
+                                    <i class="fas fa-users input-icon"></i>
+                                    <input type="text" id="register-alliance-name" placeholder="Full Alliance Name" class="form-input" required maxlength="50">
+                                </div>
+
+                                <div class="input-group">
+                                    <i class="fas fa-info-circle input-icon"></i>
+                                    <textarea id="register-alliance-details" placeholder="Short Alliance Bio (300 characters max)" class="form-textarea" required maxlength="300" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <p id="register-alliance-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                            <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Complete Registration</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div id="edit-alliance-modal-container" class="modal-container">
+                <div class="glass-pane">
+                    <div class="modal-content-wrapper themed-scrollbar">
+                        <button id="close-edit-alliance-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
+                            <i class="fas fa-times fa-lg"></i>
+                        </button>
+                        <h2 class="text-2xl font-bold text-white text-center mb-6">Edit Alliance Profile</h2>
+                        <form id="edit-alliance-form">
+                            <div class="space-y-4">
+                                <div class="flex flex-col items-center gap-4">
+                                    <img id="edit-alliance-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover border-4 border-white/20">
+                                    <button type="button" id="edit-alliance-avatar-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-upload mr-2"></i>Choose New Avatar</button>
+                                    <input type="file" id="edit-alliance-avatar-input" class="hidden" accept="image/*">
+                                </div>
+
+                                <div class="input-group">
+                                    <i class="fas fa-users input-icon"></i>
+                                    <input type="text" id="edit-alliance-name" placeholder="Alliance Name" class="form-input" required maxlength="50">
+                                </div>
+
+                                <div class="input-group">
+                                    <i class="fas fa-info-circle input-icon"></i>
+                                    <textarea id="edit-alliance-details" placeholder="Short Alliance Bio (300 characters max)" class="form-textarea" required maxlength="300" rows="3"></textarea>
+                                </div>
+
+                                <div class="input-group"><i class="fas fa-crown input-icon"></i><div class="custom-select-container w-full" data-type="alliance-member"><input type="hidden" id="edit-alliance-warlord"><button type="button" class="custom-select-value form-input"><span>Select Warlord</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                <div class="input-group"><i class="fas fa-user-plus input-icon"></i><div class="custom-select-container w-full" data-type="alliance-member"><input type="hidden" id="edit-alliance-recruiter"><button type="button" class="custom-select-value form-input"><span>Select Recruiter</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                <div class="input-group"><i class="fas fa-music input-icon"></i><div class="custom-select-container w-full" data-type="alliance-member"><input type="hidden" id="edit-alliance-muse"><button type="button" class="custom-select-value form-input"><span>Select Muse</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+                                <div class="input-group"><i class="fas fa-concierge-bell input-icon"></i><div class="custom-select-container w-full" data-type="alliance-member"><input type="hidden" id="edit-alliance-butler"><button type="button" class="custom-select-value form-input"><span>Select Butler</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div></div>
+
+                                <div class="input-group">
+                                    <i class="fas fa-scroll input-icon"></i>
+                                    <textarea id="edit-alliance-recruitment" placeholder="Recruitment Requirements" class="form-textarea" required maxlength="300" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="flex flex-col items-center">
+                                        <label for="edit-alliance-primary-color" class="font-semibold text-white mb-2">Primary Color</label>
+                                        <input type="color" id="edit-alliance-primary-color" value="#00BFFF" class="w-full h-12 rounded-lg">
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <label for="edit-alliance-secondary-color" class="font-semibold text-white mb-2">Secondary Color</label>
+                                        <input type="color" id="edit-alliance-secondary-color" value="#F87171" class="w-full h-12 rounded-lg">
+                                    </div>
+                                </div>
+                            </div>
+                            <p id="edit-alliance-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                            <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
             <div id="view-post-modal-container" class="modal-container !p-0" style="max-width: 550px; height: 90vh; max-height: 750px;">
                 <div class="glass-pane flex flex-col h-full overflow-hidden">
                     <button id="close-view-post-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
@@ -79,11 +178,29 @@
                             <h2 class="text-2xl font-bold text-white text-center mb-6">Welcome Back</h2>
                             <form id="login-form">
                                 <div class="space-y-4">
-                                    <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="login-email" placeholder="Email" class="form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="login-password" placeholder="Password" class="form-input" required></div>
+                                    <div class="input-group">
+                                        <i class="fas fa-envelope input-icon"></i>
+                                        <input type="email" id="login-email" placeholder="Email" class="form-input" required>
+                                    </div>
+                                    <div class="input-group">
+                                        <i class="fas fa-lock input-icon"></i>
+                                        <input type="password" id="login-password" placeholder="Password" class="form-input" required>
+                                    </div>
                                 </div>
-                                <div class="text-right mt-2"><a href="#" id="forgot-password-link" class="text-xs text-blue-400 hover:underline">Forgot Password?</a></div>
+
+                                <div class="flex items-center justify-between mt-4">
+                                    <label class="flex items-center text-xs text-gray-400 select-none">
+                                        <input type="checkbox" id="remember-email-checkbox" class="mr-2 h-4 w-4 rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                                        Remember my email
+                                    </label>
+                                    <a href="#" id="forgot-password-link" class="text-xs text-blue-400 hover:underline">Forgot Password?</a>
+                                </div>
                                 <p id="login-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
+                                
+                                <div id="login-success-message" class="hidden text-center text-green-400 font-bold my-4">
+                                    <i class="fas fa-check-circle"></i> Success! Logging you in...
+                                </div>
+
                                 <button id="login-submit-btn" type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Login</button>
                                 <p class="text-center text-sm text-gray-400 mt-6">Don't have an account? <a href="#" id="show-register-link" class="font-bold text-blue-400 hover:underline">Sign Up</a></p>
                             </form>
@@ -503,6 +620,9 @@
                             </div>
                         </div>
                         <div id="mobile-controls-container" class="flex md:hidden items-center">
+                            <button id="login-btn-mobile" class="auth-button">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </button>
                             <div id="mobile-auth-container" class="hidden items-center gap-2 cursor-pointer">
                                 <div class="text-xs leading-tight text-right">
                                     <p id="mobile-avatar-alliance" class="font-bold text-white"></p>
@@ -523,7 +643,11 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div id="news-submenu" class="sub-nav-content"><a href="#" class="sub-nav-link active" data-sub-target="news-all"><i class="fas fa-grip-horizontal fa-fw w-6"></i> ALL</a><a href="#" class="sub-nav-link" data-sub-target="news-events"><i class="fas fa-calendar-alt fa-fw w-6"></i> Events</a><a href="#" class="sub-nav-link" data-sub-target="news-announcements"><i class="fas fa-bullhorn fa-fw w-6"></i> Announcements</a></div>
             <div id="social-submenu" class="sub-nav-content hidden"><a href="#" class="sub-nav-link active" data-sub-target="social-chat"><i class="fas fa-comments fa-fw w-6"></i> Chat</a><a href="#" class="sub-nav-link" data-sub-target="social-convo"><i class="fas fa-user-secret fa-fw w-6"></i> Private</a><a href="#" class="sub-nav-link" data-sub-target="social-friends"><i class="fas fa-user-friends fa-fw w-6"></i> Friends</a></div>
-            <div id="server-submenu" class="sub-nav-content hidden"><a href="#" class="sub-nav-link active" data-sub-target="server-alliances"><i class="fas fa-handshake fa-fw w-6"></i> Alliances</a><a href="#" class="sub-nav-link" data-sub-target="server-players"><i class="fas fa-users fa-fw w-6"></i> Players</a><a href="#" class="sub-nav-link" data-sub-target="server-nap"><i class="fas fa-gavel fa-fw w-6"></i> NAP</a></div>
+            <div id="server-submenu" class="sub-nav-content hidden">
+                <a href="#" class="sub-nav-link active" data-sub-target="server-alliances"><i class="fas fa-handshake fa-fw w-6"></i> Alliances</a>
+                <a href="#" class="sub-nav-link" data-sub-target="server-players"><i class="fas fa-users fa-fw w-6"></i> Players</a>
+                <a href="#" class="sub-nav-link" data-sub-target="server-nap"><i class="fas fa-gavel fa-fw w-6"></i> NAP</a>
+            </div>
         </div>
     </div>
 </header>
@@ -551,11 +675,9 @@
                         <div id="sub-page-social-friends" class="sub-page" style="display: none;"></div>
                     </div>
                     <div id="page-server" class="page-content" style="display: none;">
-                        <div id="sub-page-server-alliances" class="sub-page">
-                            <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6">Server Alliances</h2>
-                            <div class="glass-pane p-6 text-center">
-                                <p class="text-gray-400">Content for the Alliances page will go here. This page will display all alliances on the server and allow R5s to edit their alliance information.</p>
-                            </div>
+                        <div id="sub-page-server-alliances" class="sub-page" style="display: none;">
+                             <h2 class="text-3xl font-bold text-white tracking-wider text-center mb-6"></h2>
+                            <div id="alliances-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
                         </div>
                         <div id="sub-page-server-players" class="sub-page" style="display: none;">
                             <div class="flex flex-col md:flex-row gap-4 mb-6">
