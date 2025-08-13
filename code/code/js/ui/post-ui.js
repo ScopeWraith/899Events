@@ -9,20 +9,13 @@ import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, cal
 import { hideAllModals, showModal, setCustomSelectValue, createSkeletonCard, showCreatePostModal } from './ui-manager.js';
 
 let countdownInterval = null;
-let currentPostStep = 1;
-let postCreationData = {};
-let resizedThumbnailBlob = null;
-
-// --- STATE & RENDER FUNCTIONS ---
 
 function renderPostsUI(newState, prevState) {
-    // Add a check for allPosts before proceeding
     if (newState.allPosts && (newState.allPosts !== prevState.allPosts || newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData)) {
         const activeSubNav = document.querySelector('#news-submenu .sub-nav-link.active');
         const filter = activeSubNav ? activeSubNav.dataset.subTarget.split('-')[1] : 'all';
         renderNews(filter, newState);
     }
-    // Add a check for allPosts here too
     if (newState.allPosts && (newState.allPosts !== prevState.allPosts || newState.currentUserData !== prevState.currentUserData || newState.unverifiedPlayers !== prevState.unverifiedPlayers)) {
         renderFeedActivity(newState);
     }
@@ -32,18 +25,17 @@ export function initializePostUI() {
     subscribe(renderPostsUI);
 }
 
-// --- UI HELPER & RENDERING FUNCTIONS ---
-
 export function renderNews(filter = 'all', state) {
     const { allPlayers, allPosts, currentUserData } = state;
-    // Add a guard clause here as well
-    if (!allPosts) {
+    if (!allPosts || !allPlayers) { // FIX: Added check for allPlayers
+        const container = document.getElementById(`sub-page-news-${filter}`);
+        if (container && !container.querySelector('.skeleton-card')) {
+             container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${createSkeletonCard()}${createSkeletonCard()}${createSkeletonCard()}${createSkeletonCard()}</div>`;
+        }
         return;
     }
     const now = new Date();
-
     if (countdownInterval) clearInterval(countdownInterval);
-
     let visiblePosts = allPosts.filter(post => {
         if (!currentUserData) return post.visibility === 'public';
         if (currentUserData.isAdmin) return true;
@@ -51,34 +43,16 @@ export function renderNews(filter = 'all', state) {
         if (post.visibility === 'public') return true;
         return false;
     });
-
     let announcements = [];
     let events = [];
     let container;
     let timeWindow;
-
     switch (filter) {
-        case 'events':
-            timeWindow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-            container = document.getElementById('sub-page-news-events');
-            break;
-        case 'announcements':
-            container = document.getElementById('sub-page-news-announcements');
-            break;
-        case 'all':
-        default:
-            timeWindow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-            container = document.getElementById('sub-page-news-all');
-            break;
+        case 'events': timeWindow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); container = document.getElementById('sub-page-news-events'); break;
+        case 'announcements': container = document.getElementById('sub-page-news-announcements'); break;
+        default: timeWindow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); container = document.getElementById('sub-page-news-all'); break;
     }
-
     if (!container) return;
-
-    if (allPosts.length === 0 && !container.querySelector('.skeleton-card')) {
-        container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${createSkeletonCard()}${createSkeletonCard()}${createSkeletonCard()}${createSkeletonCard()}</div>`;
-        return;
-    }
-
     if (filter === 'announcements' || filter === 'all') {
         announcements = visiblePosts.filter(post => {
             if (post.mainType !== 'announcement') return false;
@@ -89,7 +63,6 @@ export function renderNews(filter = 'all', state) {
             return expirationDate > now;
         });
     }
-
     if (filter === 'events' || filter === 'all') {
         events = visiblePosts.filter(post => {
             if (post.mainType !== 'event') return false;
@@ -97,7 +70,6 @@ export function renderNews(filter = 'all', state) {
             return statusInfo.status === 'live' || (statusInfo.status === 'upcoming' && statusInfo.startTime <= timeWindow);
         });
     }
-
     announcements.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
     events.sort((a, b) => {
         const statusA = getEventStatus(a);
@@ -106,29 +78,14 @@ export function renderNews(filter = 'all', state) {
         if (statusA.status !== 'live' && statusB.status === 'live') return 1;
         return (statusA.startTime?.getTime() || 0) - (statusB.startTime?.getTime() || 0);
     });
-
     let contentHTML = '';
     if (filter === 'all') {
-         contentHTML = `
-            <div class="mb-2 ${announcements.length === 0 ? 'hidden' : ''}">
-                <h2 class="section-header text-1xl font-bold"><i class="fas fa-bullhorn"></i><span>Announcements</span></h2>
-                <div class="grid grid-cols-1 gap-4">${announcements.map(post => createCard(post, allPlayers, currentUserData)).join('')}</div>
-            </div>
-            <div class="${events.length === 0 ? 'hidden' : ''}">
-                <h2 class="section-header text-1xl font-bold"><i class="fas fa-calendar-alt"></i><span>Events</span></h2>
-                <div class="grid grid-cols-1 gap-4">${events.map(post => createCard(post, allPlayers, currentUserData)).join('')}</div>
-            </div>
-        `;
-        if (announcements.length === 0 && events.length === 0) {
-            contentHTML = `<p class="text-center text-gray-400 py-8">No news or events to display.</p>`;
-        }
+         contentHTML = `<div class="mb-2 ${announcements.length === 0 ? 'hidden' : ''}"><h2 class="section-header text-1xl font-bold"><i class="fas fa-bullhorn"></i><span>Announcements</span></h2><div class="grid grid-cols-1 gap-4">${announcements.map(post => createCard(post, allPlayers, currentUserData)).join('')}</div></div><div class="${events.length === 0 ? 'hidden' : ''}"><h2 class="section-header text-1xl font-bold"><i class="fas fa-calendar-alt"></i><span>Events</span></h2><div class="grid grid-cols-1 gap-4">${events.map(post => createCard(post, allPlayers, currentUserData)).join('')}</div></div>`;
+        if (announcements.length === 0 && events.length === 0) contentHTML = `<p class="text-center text-gray-400 py-8">No news or events to display.</p>`;
     } else {
          const items = filter === 'events' ? events : announcements;
-         contentHTML = items.length > 0
-            ? `<div class="grid grid-cols-1 gap-4">${items.map(post => createCard(post, allPlayers, currentUserData)).join('')}</div>`
-            : `<p class="text-center text-gray-400 py-8">No ${filter} to display.</p>`;
+         contentHTML = items.length > 0 ? `<div class="grid grid-cols-1 gap-4">${items.map(post => createCard(post, allPlayers, currentUserData)).join('')}</div>` : `<p class="text-center text-gray-400 py-8">No ${filter} to display.</p>`;
     }
-
     container.innerHTML = contentHTML;
     countdownInterval = setInterval(updateCountdowns, 1000 * 30);
     updateCountdowns();

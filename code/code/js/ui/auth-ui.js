@@ -13,13 +13,9 @@ import { sendVerificationRequest } from '../firestore.js';
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderAuthUI(newState, prevState) {
-    // Only re-render if the user's authentication status has changed
     if (newState.currentUserData === prevState.currentUserData && newState.userNotifications === prevState.userNotifications) return;
-
     const { currentUserData, userNotifications } = newState;
-
     if (currentUserData) {
-        // User is logged in
         document.getElementById('username-display').textContent = currentUserData.username;
         updateAvatarDisplay(currentUserData);
         updatePlayerProfileDropdown(currentUserData, userNotifications);
@@ -28,94 +24,62 @@ function renderAuthUI(newState, prevState) {
         document.getElementById('mobile-auth-container').classList.add('logged-in');
         document.getElementById('login-btn-mobile').classList.add('hidden');
     } else {
-        // User is logged out
         document.getElementById('login-btn').classList.remove('hidden');
         const userProfileNavItem = document.getElementById('user-profile-nav-item');
         userProfileNavItem.classList.add('hidden');
-        userProfileNavItem.classList.remove('open'); // Close dropdown on logout
+        userProfileNavItem.classList.remove('open');
         document.getElementById('mobile-auth-container').classList.remove('logged-in');
     }
 }
 
 export function initializeAuthUI() {
-    // Subscribe to state changes to automatically update the UI
     subscribe(renderAuthUI);
 }
 
-
-// --- UI HELPER FUNCTIONS (Most of these are from the original file) ---
+// --- UI HELPER FUNCTIONS ---
 
 export function updateAvatarDisplay(data) {
     if (!data) return;
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
     const rankBorder = getRankBorderClass(data);
-
     const userAvatarButton = document.getElementById('user-avatar-button');
     userAvatarButton.src = avatarUrl;
     userAvatarButton.className = `w-6 h-6 rounded-full object-cover ${rankBorder}`;
-
     const userAvatarMobile = document.getElementById('user-avatar-mobile');
     userAvatarMobile.src = avatarUrl;
     userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${rankBorder}`;
-
     document.getElementById('mobile-avatar-alliance').textContent = `[${data.alliance}]`;
     document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
 }
 
-export function updatePlayerProfileDropdown(currentUserData, userNotifications = []) {
+export function updatePlayerProfileDropdown(currentUserData, userNotifications) { // FIX: Removed default empty array
     if (!currentUserData) return;
-
     const dropdownContainer = document.getElementById('player-profile-dropdown');
     if (!dropdownContainer) return;
-
     const canCreatePost = currentUserData.isAdmin || (currentUserData.isVerified && (currentUserData.allianceRank === 'R5' || currentUserData.allianceRank === 'R4'));
-
     let postButtonsHTML = '';
     if (canCreatePost) {
         postButtonsHTML = `
-            <button id="admin-create-event-dropdown-btn" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-calendar-plus fa-fw w-6 text-center mr-2"></i>Create Event</span>
-            </button>
-            <button id="admin-create-announcement-dropdown-btn" class="dropdown-link profile-menu-link">
-                <span><i class="fas fa-bullhorn fa-fw w-6 text-center mr-2"></i>Create Announcement</span>
-            </button>
+            <button id="admin-create-event-dropdown-btn" class="dropdown-link profile-menu-link"><span><i class="fas fa-calendar-plus fa-fw w-6 text-center mr-2"></i>Create Event</span></button>
+            <button id="admin-create-announcement-dropdown-btn" class="dropdown-link profile-menu-link"><span><i class="fas fa-bullhorn fa-fw w-6 text-center mr-2"></i>Create Announcement</span></button>
             <div class="p-1"><hr class="border-t border-white/10"></div>
         `;
     }
-
     dropdownContainer.innerHTML = `
-        <div class="p-2 mb-2 border-b border-white/10">
-            <p class="text-sm text-gray-400">Total Power</p>
-            <p id="profile-dropdown-power" class="text-lg font-bold text-white">${(currentUserData.power || 0).toLocaleString()}</p>
-        </div>
+        <div class="p-2 mb-2 border-b border-white/10"><p class="text-sm text-gray-400">Total Power</p><p id="profile-dropdown-power" class="text-lg font-bold text-white">${(currentUserData.power || 0).toLocaleString()}</p></div>
         ${postButtonsHTML}
-        <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link">
-            <span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span>
-            <span class="badge hidden">0</span>
-        </button>
-        <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link">
-            <span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span>
-            <span class="badge hidden">0</span>
-        </button>
-        <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link">
-            <span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span>
-        </button>
-        <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link">
-            <span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span>
-        </button>
+        <button id="profile-dropdown-friends" class="dropdown-link profile-menu-link"><span><i class="fas fa-user-plus fa-fw w-6 text-center mr-2"></i>Friend Requests</span><span class="badge hidden">0</span></button>
+        <button id="profile-dropdown-messages" class="dropdown-link profile-menu-link"><span><i class="fas fa-envelope fa-fw w-6 text-center mr-2"></i>Private Messages</span><span class="badge hidden">0</span></button>
+        <button id="profile-dropdown-edit" class="dropdown-link profile-menu-link"><span><i class="fas fa-edit fa-fw w-6 text-center mr-2"></i>Edit Profile</span></button>
+        <button id="profile-dropdown-avatar" class="dropdown-link profile-menu-link"><span><i class="fas fa-camera fa-fw w-6 text-center mr-2"></i>Change Avatar</span></button>
         <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
         <div class="p-1"><hr class="border-t border-white/10"></div>
-        <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left">
-            <span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span>
-        </button>
+        <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left"><span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span></button>
     `;
-
-    // This part remains the same, handling the dynamic badge updates
     const friendReqBtn = document.getElementById('profile-dropdown-friends');
-    if (friendReqBtn) {
+    if (friendReqBtn && userNotifications) { // FIX: Added guard for userNotifications
         const friendRequests = userNotifications.filter(n => n.type === 'friend_request' && !n.isRead);
         const friendReqBadge = friendReqBtn.querySelector('.badge');
-
         if (friendRequests.length > 0) {
             friendReqBadge.textContent = friendRequests.length;
             friendReqBadge.classList.remove('hidden');
@@ -125,12 +89,8 @@ export function updatePlayerProfileDropdown(currentUserData, userNotifications =
             friendReqBtn.disabled = true;
         }
     }
-
     const messagesBtn = document.getElementById('profile-dropdown-messages');
-    if (messagesBtn) {
-        // Logic for private message notifications will go here
-        messagesBtn.disabled = true; // For now
-    }
+    if (messagesBtn) messagesBtn.disabled = true;
 }
 
 
