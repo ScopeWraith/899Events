@@ -436,11 +436,11 @@ export function setupEmojiButton(buttonId, inputId) {
         }
     });
 }
-
-// --- MODIFIED FUNCTION ---
 export function updateUIForLoggedInUser() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
+
+    document.body.classList.add('logged-in');
 
     getElement('username-display').textContent = currentUserData.username;
     updateAvatarDisplay(currentUserData);
@@ -449,7 +449,6 @@ export function updateUIForLoggedInUser() {
     getElement('user-profile-nav-item').classList.remove('hidden');
     getElement('mobile-auth-container').classList.add('logged-in');
     getElement('login-btn-mobile').classList.add('hidden');
-    getElement('feed-nav-item').classList.remove('hidden');
 
     const adminActionsContainer = getElement('admin-actions-container');
     if (adminActionsContainer) {
@@ -463,19 +462,17 @@ export function updateUIForLoggedInUser() {
     }
 }
 
-// --- MODIFIED FUNCTION ---
 export function updateUIForLoggedOutUser() {
+    document.body.classList.remove('logged-in');
+
     getElement('login-btn').classList.remove('hidden');
     const userProfileNavItem = getElement('user-profile-nav-item');
     userProfileNavItem.classList.add('hidden');
     userProfileNavItem.classList.remove('open');
     getElement('mobile-auth-container').classList.remove('logged-in');
     getElement('login-btn-mobile').classList.remove('hidden');
-    getElement('feed-nav-item').classList.add('hidden');
 }
 
-
-// --- MODIFIED FUNCTION ---
 export function buildMobileNav() {
     const { currentUserData } = getState();
     const mobileNavLinksContainer = getElement('mobile-nav-links');
@@ -486,14 +483,10 @@ export function buildMobileNav() {
         const link = item.querySelector('.nav-link');
         const mainTarget = link.dataset.mainTarget;
 
-        // NEW: Conditionally create the Feed link
-        if (mainTarget === 'page-feed' && !currentUserData) {
-            return; // Skip creating this link if user is not logged in
-        }
-
         const newLink = document.createElement('a');
         newLink.href = '#';
         newLink.className = 'mobile-nav-link';
+        newLink.dataset.mainTarget = mainTarget;
         newLink.innerHTML = `<i class="${link.querySelector('i').className} w-6 text-center mr-3"></i>${link.querySelector('span').textContent}`;
         
         newLink.addEventListener('click', (e) => {
