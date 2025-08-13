@@ -106,7 +106,7 @@ function createAllianceCard(alliance, state) {
         const rankBorder = memberData ? getRankBorderClass(memberData) : 'rank-border-r1';
         return `
             <div class="core-member">
-                <img src="${avatarUrl}" class="core-member-avatar ${rankBorder}" alt="${member.role}">
+                <img src="${avatarUrl}" class="core-member-avatar ${rankBorder}" alt="${member.role}" loading="lazy">
                 <p class="core-member-role">${member.role}</p>
                 <p class="core-member-name">${member.username}</p>
             </div>
@@ -118,7 +118,7 @@ function createAllianceCard(alliance, state) {
             ${editButtonHTML}
             <div class="alliance-card-header">
                 <div class="alliance-card-avatar-wrapper">
-                    <img src="${alliance.avatarUrl || 'https://placehold.co/128x128/161B22/FFFFFF?text=?'}" class="alliance-card-avatar" alt="${alliance.name} Avatar">
+                    <img src="${alliance.avatarUrl || 'https://placehold.co/128x128/161B22/FFFFFF?text=?'}" class="alliance-card-avatar" alt="${alliance.name} Avatar" loading="lazy">
                 </div>
                 <div class="alliance-card-title-section">
                     <p class="alliance-card-tag">[${alliance.tag}]</p>
@@ -128,7 +128,7 @@ function createAllianceCard(alliance, state) {
             <div class="alliance-card-body">
                 <div class="alliance-card-leader-section">
                     <div class="leader-identity">
-                        <img src="${leaderAvatarUrl}" class="leader-avatar ${leaderRankBorder}" alt="Leader">
+                        <img src="${leaderAvatarUrl}" class="leader-avatar ${primaryColor}" alt="Leader" loading="lazy">
                         <div class="leader-info">
                             <span class="leader-title">LEADER (R5)</span>
                             <span class="leader-name">${alliance.r5Name || 'N/A'}</span>

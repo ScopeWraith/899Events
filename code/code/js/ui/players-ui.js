@@ -109,7 +109,7 @@ export function renderPlayers(players) {
             ${gearIconHTML}
             <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
                 <div class="avatar-container mr-4">
-                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${rankBorder}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${rankBorder}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';" loading="lazy">
                     <div class="player-badge">[${player.alliance}] ${player.allianceRank}</div>
                 </div>
                 <div>
@@ -121,18 +121,6 @@ export function renderPlayers(players) {
                 <div class="flex justify-between items-center text-sm">
                     <span class="text-gray-400 flex items-center"><i class="fas fa-fist-raised w-6 text-center mr-2" style="color: var(--color-primary);"></i>Total Power</span>
                     <span class="font-bold text-white">${(player.power || 0).toLocaleString()}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-400 flex items-center"><i class="fas fa-truck-monster w-6 text-center mr-2" style="color: var(--color-primary);"></i>Tank Power</span>
-                    <span class="font-bold text-white">${(player.tankPower || 0).toLocaleString()}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-400 flex items-center"><i class="fas fa-fighter-jet w-6 text-center mr-2" style="color: var(--color-primary);"></i>Air Power</span>
-                    <span class="font-bold text-white">${(player.airPower || 0).toLocaleString()}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-400 flex items-center"><i class="fas fa-rocket w-6 text-center mr-2" style="color: var(--color-primary);"></i>Missile Power</span>
-                    <span class="font-bold text-white">${(player.missilePower || 0).toLocaleString()}</span>
                 </div>
             </div>
             <div class="flex justify-around items-center pt-3 border-t border-white/10">
