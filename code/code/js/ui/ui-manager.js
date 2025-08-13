@@ -493,6 +493,20 @@ export function buildMobileNav() {
             showPage(mainTarget);
             toggleSubNav(submenuId);
             
+            let defaultSubTarget;
+            switch (mainTarget) {
+                case 'page-social':
+                    defaultSubTarget = 'social-chat';
+                    break;
+                case 'page-server':
+                    defaultSubTarget = 'server-alliances';
+                    break;
+                case 'page-news':
+                default:
+                    defaultSubTarget = 'news-all';
+                    break;
+            }
+            
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
 

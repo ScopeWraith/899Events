@@ -119,6 +119,20 @@ export function initializeAllEventListeners() {
 
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
+            let defaultSubTarget;
+            switch (mainTarget) {
+                case 'page-social':
+                    defaultSubTarget = 'social-chat';
+                    break;
+                case 'page-server':
+                    defaultSubTarget = 'server-alliances';
+                    break;
+                case 'page-news':
+                default:
+                    defaultSubTarget = 'news-all';
+                    break;
+            }
+            handleSubNavClick(defaultSubTarget);
         });
     });
     document.querySelectorAll('.sub-nav-link').forEach(link => {
