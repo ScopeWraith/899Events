@@ -11,8 +11,6 @@ let resizedAllianceAvatarBlob = null;
 
 export function renderAlliances(alliances) {
     const container = document.getElementById('alliances-list-container');
-    const skeletonContainer = document.getElementById('alliances-skeleton-container');
-    if (skeletonContainer) skeletonContainer.innerHTML = ''; // Clear skeletons
     const pageHeader = document.querySelector('#sub-page-server-alliances h2');
     if (!container || !pageHeader) return;
 

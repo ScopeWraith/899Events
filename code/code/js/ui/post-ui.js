@@ -12,8 +12,6 @@ let resizedThumbnailBlob = null;
 
 // --- RENDERING POSTS (Existing code, unchanged) ---
 export function renderNews(filter = 'all') {
-    const skeletonContainer = document.getElementById('news-skeleton-container');
-    if (skeletonContainer) skeletonContainer.innerHTML = ''; // Clear skeletons
     let { allPlayers, allPosts, currentUserData, countdownInterval } = getState();
     const now = new Date();
 

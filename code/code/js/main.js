@@ -28,39 +28,29 @@ setCallbacks({
 
 onAuthStateChanged(auth, (user) => {
     detachAllListeners();
-    const appPreloader = document.getElementById('app-preloader');
-    const appContainer = document.getElementById('app-container');
 
-    // --- ⬇️ NEW LOADING LOGIC ⬇️ ---
-    // 1. Show the main app shell and navigation immediately.
-    appPreloader.style.opacity = '0';
-    setTimeout(() => {
-        appPreloader.style.display = 'none';
-        appContainer.style.display = 'block';
-    }, 500);
+    const onDataReady = () => {
+        restoreLastViewedPage();
+        // Fade in the app content once data is ready
+        const appPreloader = document.getElementById('app-preloader');
+        const appContainer = document.getElementById('app-container');
+        appPreloader.style.opacity = '0';
+        setTimeout(() => {
+            appPreloader.style.display = 'none';
+            appContainer.style.display = 'block';
+        }, 500);
+    };
 
-    // 2. Render skeleton loaders for content pages.
-    renderSkeletons('news');
-    renderSkeletons('players');
-    renderSkeletons('alliances');
-    
-    // 3. Setup UI based on authentication state.
     if (user) {
-        updateUIForLoggedInUser();
         setupPresenceManagement(user);
-        // 4. Fetch all data. Listeners will replace skeletons with real content.
-        setupAllListeners(user, () => {
-             restoreLastViewedPage(); // Restore page only after all data is loaded
-        });
+        updateUIForLoggedInUser(); // Update UI immediately
+        setupAllListeners(user, onDataReady); // Pass callback
     } else {
-        updateUIForLoggedOutUser();
-        // 4. Fetch public data. Listeners will replace skeletons.
-        fetchInitialData(() => {
-            restoreLastViewedPage();
-        });
+        updateUIForLoggedOutUser(); // Update UI immediately
+        fetchInitialData(onDataReady); // Fetch public data and then restore view
     }
     
-    buildMobileNav(); // Build nav for both logged-in and out states
+    buildMobileNav();
 });
 
 function restoreLastViewedPage() {
