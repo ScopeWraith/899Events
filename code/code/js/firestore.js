@@ -45,8 +45,28 @@ export async function togglePostReaction(postId, reactionType) {
     }
 }
 
+// ** MODIFIED FUNCTION **
+// This now waits for ALL necessary data before calling the onInitialDataLoaded callback.
 export function setupAllListeners(user, onInitialDataLoaded) {
     const listeners = {};
+    // We now wait for 7 initial data loads for a logged-in user.
+    const requiredLoads = ['userDoc', 'notifications', 'friends', 'alliances', 'users', 'posts', 'sessions'];
+    let loadedCount = 0;
+
+    const checkAllLoaded = (source) => {
+        // Only count the first successful load from each source
+        if (requiredLoads.includes(source)) {
+            loadedCount++;
+            // Remove the source from the list to prevent counting it again
+            requiredLoads.splice(requiredLoads.indexOf(source), 1); 
+        }
+
+        // Once all required sources have loaded, fire the callback
+        if (loadedCount >= 7 && onInitialDataLoaded) {
+            onInitialDataLoaded();
+            onInitialDataLoaded = null; // Prevent multiple calls
+        }
+    };
 
     // User-specific listeners
     listeners.userDoc = onSnapshot(doc(db, "users", user.uid), (userDoc) => {
@@ -54,7 +74,8 @@ export function setupAllListeners(user, onInitialDataLoaded) {
             updateState({ currentUserData: { uid: user.uid, ...userDoc.data() } });
             getState().callbacks.onAuthChange(user);
         }
-    });
+        checkAllLoaded('userDoc');
+    }, () => checkAllLoaded('userDoc'));
 
     const notificationsQuery = query(collection(db, "notifications"), where("recipientUid", "==", user.uid), orderBy("timestamp", "desc"));
     listeners.notifications = onSnapshot(notificationsQuery, (snapshot) => {
@@ -62,33 +83,38 @@ export function setupAllListeners(user, onInitialDataLoaded) {
         updateState({ userNotifications });
         renderNotifications(userNotifications);
         updatePlayerProfileDropdown();
-    });
+        checkAllLoaded('notifications');
+    }, () => checkAllLoaded('notifications'));
 
     const friendsQuery = collection(db, `users/${user.uid}/friends`);
     listeners.friends = onSnapshot(friendsQuery, (snapshot) => {
         const userFriends = snapshot.docs.map(doc => doc.id);
         updateState({ userFriends });
-    });
+        checkAllLoaded('friends');
+    }, () => checkAllLoaded('friends'));
 
-    // Public data listeners
+    // Public data listeners (now part of the main setup)
     listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
         const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateState({ allAlliances });
         const alliancesSubPage = document.getElementById('sub-page-server-alliances');
         if (alliancesSubPage && alliancesSubPage.style.display !== 'none') {
-            renderAlliances(alliances);
+            renderAlliances(allAlliances);
         }
-    });
+        checkAllLoaded('alliances');
+    }, () => checkAllLoaded('alliances'));
 
     listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
         const allPlayers = querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
         updateState({ allPlayers });
-    });
+        checkAllLoaded('users');
+    }, () => checkAllLoaded('users'));
 
     listeners.posts = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
         const allPosts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateState({ allPosts });
-    });
+        checkAllLoaded('posts');
+    }, () => checkAllLoaded('posts'));
 
     listeners.sessions = onSnapshot(collection(db, 'sessions'), (snapshot) => {
         const userSessions = getState().userSessions || {};
@@ -96,31 +122,45 @@ export function setupAllListeners(user, onInitialDataLoaded) {
             userSessions[change.doc.id] = change.doc.data();
         });
         updateState({ userSessions });
-    });
+        checkAllLoaded('sessions');
+    }, () => checkAllLoaded('sessions'));
 
     updateState({ listeners });
-
-    // Directly call the loader-hiding callback once listeners are attached.
-    if (onInitialDataLoaded) {
-        onInitialDataLoaded();
-    }
 }
 
+// ** MODIFIED FUNCTION **
+// This is now simplified for only logged-out users.
 export function fetchInitialData(onPublicDataLoaded) {
     const { listeners } = getState();
+    // Now waiting for 4 public data sources
+    const requiredPublicLoads = ['users', 'posts', 'sessions', 'alliances'];
+    let loadedCount = 0;
 
-    // Attach listeners if they don't exist
+    const checkPublicLoaded = (source) => {
+        if (requiredPublicLoads.includes(source)) {
+            loadedCount++;
+            requiredPublicLoads.splice(requiredPublicLoads.indexOf(source), 1);
+        }
+        // Now checks for >= 4
+        if (loadedCount >= 4 && onPublicDataLoaded) {
+            onPublicDataLoaded();
+            onPublicDataLoaded = null;
+        }
+    };
+
     if (!listeners.users) {
         listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
             const allPlayers = querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
             updateState({ allPlayers });
-        });
+            checkPublicLoaded('users');
+        }, () => checkPublicLoaded('users'));
     }
     if (!listeners.posts) {
         listeners.posts = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
             const allPosts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             updateState({ allPosts });
-        });
+            checkPublicLoaded('posts');
+        }, () => checkPublicLoaded('posts'));
     }
     if (!listeners.sessions) {
         listeners.sessions = onSnapshot(collection(db, 'sessions'), (snapshot) => {
@@ -129,14 +169,27 @@ export function fetchInitialData(onPublicDataLoaded) {
                 userSessions[change.doc.id] = change.doc.data();
             });
             updateState({ userSessions });
-        });
+            checkPublicLoaded('sessions');
+        }, () => checkPublicLoaded('sessions'));
     }
-    updateState({ listeners });
+    
+    // --- THIS IS THE NEW LISTENER ---
+    if (!listeners.alliances) {
+        listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
+            const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            updateState({ allAlliances });
+            checkPublicLoaded('alliances');
+        }, () => checkPublicLoaded('alliances'));
+    }
+    // --- END NEW LISTENER ---
 
-    if (onPublicDataLoaded) {
-        onPublicDataLoaded();
-    }
+    updateState({ listeners });
 }
+
+// All other functions from here down remain unchanged.
+// (setupChatListeners, setupPrivateChatListener, detachAllListeners, handleSendMessage, etc.)
+// The file is too long to paste in its entirety, but only the two functions above were modified.
+// This preserves the rest of your firestore.js logic.
 
 // --- The rest of your firestore.js functions remain unchanged ---
 export function setupChatListeners(activeChatId) {

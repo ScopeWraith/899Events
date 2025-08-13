@@ -30,6 +30,7 @@ onAuthStateChanged(auth, (user) => {
     detachAllListeners();
 
     const onDataReady = () => {
+        restoreLastViewedPage();
         // Fade in the app content once data is ready
         const appPreloader = document.getElementById('app-preloader');
         const appContainer = document.getElementById('app-container');
@@ -44,13 +45,11 @@ onAuthStateChanged(auth, (user) => {
         setupPresenceManagement(user);
         updateUIForLoggedInUser(); // Update UI immediately
         setupAllListeners(user, onDataReady); // Pass callback
-        restoreLastViewedPage(); // Restore the view immediately
     } else {
         updateUIForLoggedOutUser(); // Update UI immediately
         fetchInitialData(onDataReady); // Fetch public data and then restore view
-        restoreLastViewedPage(); // Restore the view immediately
     }
-
+    
     buildMobileNav();
 });
 
@@ -59,7 +58,7 @@ function restoreLastViewedPage() {
     const lastSubPage = localStorage.getItem('lastActiveSubPage');
 
     showPage(lastPage);
-
+    
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         const isActive = link.dataset.mainTarget === lastPage;
         link.classList.toggle('active', isActive);
@@ -69,30 +68,31 @@ function restoreLastViewedPage() {
         }
     });
 
-    // --- START: MODIFIED CODE ---
-    let subPageToLoad;
-    const mainPageId = lastPage.replace('page-', ''); // "page-news" -> "news"
-
-    // Check if the saved sub-page is valid for the current main page
-    if (lastSubPage && lastSubPage.startsWith(mainPageId)) {
-        subPageToLoad = lastSubPage;
+    if (lastSubPage) {
+        handleSubNavClick(lastSubPage);
     } else {
-        // If not valid, or doesn't exist, fall back to the default for the current main page
-        switch (mainPageId) {
-            case 'social':
-                subPageToLoad = 'social-chat';
+        // --- THIS IS THE CORRECTED LOGIC ---
+        // If no sub-page is saved, determine the default based on the main page.
+        let defaultSubTarget;
+        switch (lastPage) {
+            case 'page-social':
+                defaultSubTarget = 'social-chat';
                 break;
-            case 'server':
-                subPageToLoad = 'server-alliances';
+            case 'page-server':
+                defaultSubTarget = 'server-alliances';
                 break;
-            case 'news':
+            case 'page-news':
             default:
-                subPageToLoad = 'news-all';
+                defaultSubTarget = 'news-all';
                 break;
         }
+        
+        const defaultSubNavLink = document.querySelector(`.sub-nav-link[data-sub-target="${defaultSubTarget}"]`);
+        if (defaultSubNavLink) {
+            defaultSubNavLink.click();
+        }
+        // --- END CORRECTION ---
     }
-    handleSubNavClick(subPageToLoad);
-    // --- END: MODIFIED CODE ---
 }
 
 document.addEventListener('DOMContentLoaded', () => {
