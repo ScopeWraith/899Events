@@ -30,7 +30,6 @@ onAuthStateChanged(auth, (user) => {
     detachAllListeners();
 
     const onDataReady = () => {
-        restoreLastViewedPage();
         // Fade in the app content once data is ready
         const appPreloader = document.getElementById('app-preloader');
         const appContainer = document.getElementById('app-container');
@@ -45,11 +44,13 @@ onAuthStateChanged(auth, (user) => {
         setupPresenceManagement(user);
         updateUIForLoggedInUser(); // Update UI immediately
         setupAllListeners(user, onDataReady); // Pass callback
+        restoreLastViewedPage(); // Restore the view immediately
     } else {
         updateUIForLoggedOutUser(); // Update UI immediately
         fetchInitialData(onDataReady); // Fetch public data and then restore view
+        restoreLastViewedPage(); // Restore the view immediately
     }
-    
+
     buildMobileNav();
 });
 
@@ -58,7 +59,7 @@ function restoreLastViewedPage() {
     const lastSubPage = localStorage.getItem('lastActiveSubPage');
 
     showPage(lastPage);
-    
+
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         const isActive = link.dataset.mainTarget === lastPage;
         link.classList.toggle('active', isActive);
@@ -72,7 +73,7 @@ function restoreLastViewedPage() {
     if (lastSubPage) {
         handleSubNavClick(lastSubPage);
     } else {
-        // Otherwise, find the *active* sub-nav menu and click its first link.
+        // Otherwise, determine the default based on the active main page.
         let defaultSubPage;
         switch (lastPage) {
             case 'page-social':
