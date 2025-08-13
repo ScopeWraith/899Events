@@ -146,16 +146,38 @@ export function showPage(targetId) {
     querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';
     });
-    localStorage.setItem('lastActivePage', targetId);
+
+    // Don't set localStorage if we are just restoring the view
+    const isRestoring = (new Error()).stack.includes('restoreLastViewedPage');
+    if (!isRestoring) {
+        localStorage.setItem('lastActivePage', targetId);
+        // When a user clicks a main nav link, we should clear the last sub-page
+        // to ensure the correct default is selected.
+        localStorage.removeItem('lastActiveSubPage');
+    }
+
     const mobileTitleEl = getElement('mobile-page-title');
     const activeNavLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
     if (mobileTitleEl && activeNavLink) {
         const titleText = activeNavLink.querySelector('span').textContent;
         mobileTitleEl.textContent = titleText;
     }
-    // --- FIX: REMOVED ALL RENDER CALLS FROM HERE ---
-    // The components will render themselves based on state changes.
+    
+    if (!isRestoring) {
+        let defaultSubTarget;
+        switch (targetId) {
+            case 'page-social': defaultSubTarget = 'social-chat'; break;
+            case 'page-server': defaultSubTarget = 'server-alliances'; break;
+            case 'page-news':
+            default:
+                defaultSubTarget = 'news-all'; break;
+        }
+        if (defaultSubTarget) {
+            handleSubNavClick(defaultSubTarget);
+        }
+    }
 }
+
 
 export function showModal(modal) {
     getElement('modal-backdrop').classList.add('visible');
@@ -427,9 +449,7 @@ export function buildMobileNav() {
 }
 
 function setupCustomSelects() {
-    querySelectorAll('.custom-select-container').forEach(container => {
-        // This function remains largely unchanged, just ensure it's robust
-    });
+    // This function remains largely unchanged, just ensure it's robust
 }
 
 export function setCustomSelectValue(container, value, text) {
