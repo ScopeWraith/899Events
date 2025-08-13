@@ -655,41 +655,66 @@ function setupParticleCanvas() {
     resizeCanvas(); createParticles(); animateParticles();
 }
 
-export function createSkeletonCard() {
-    return `
-        <div class="post-card skeleton-card">
-            <div class="post-card-thumbnail-wrapper">
-                <div class="post-card-thumbnail skeleton-loader"></div>
-            </div>
-            <div class="post-card-body">
-                <div class="post-card-content">
-                    <div class="post-card-header">
-                        <div class="skeleton-loader h-5 w-24"></div>
-                    </div>
-                    <div class="skeleton-loader h-8 w-4/5 mt-2"></div>
-                    <div class="skeleton-loader h-4 w-full mt-2"></div>
-                    <div class="skeleton-loader h-4 w-2/3 mt-1"></div>
-                </div>
-                <div class="post-card-status">
-                    <div class="skeleton-loader h-4 w-16 mb-2"></div>
-                    <div class="skeleton-loader h-7 w-24"></div>
-                </div>
-            </div>
-        </div>
-    `;
+export function renderSkeletons(type) {
+    let container;
+    let skeletonHTML = '';
+    let count = 4; // Default number of skeletons
+
+    switch (type) {
+        case 'news':
+            container = document.getElementById('news-skeleton-container');
+            if (container) {
+                for (let i = 0; i < count; i++) { skeletonHTML += createSkeletonCard('post'); }
+                container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${skeletonHTML}</div>`;
+            }
+            break;
+        case 'players':
+            container = document.getElementById('players-skeleton-container');
+            if (container) {
+                for (let i = 0; i < 8; i++) { skeletonHTML += createSkeletonCard('player'); }
+                container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${skeletonHTML}</div>`;
+            }
+            break;
+        case 'alliances':
+             container = document.getElementById('alliances-skeleton-container');
+             if (container) {
+                for (let i = 0; i < 3; i++) { skeletonHTML += createSkeletonCard('alliance'); }
+                 container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">${skeletonHTML}</div>`;
+             }
+             break;
+    }
 }
 
-export function renderSkeletons() {
-    const appContainer = getElement('page-news');
-    if (!appContainer) return;
-    appContainer.innerHTML = `
-        <div id="sub-page-news-all" class="sub-page">
-             <div class="grid grid-cols-1 gap-4">
-                ${createSkeletonCard()}
-                ${createSkeletonCard()}
+export function createSkeletonCard(type) {
+    if (type === 'player') {
+        return `
+            <div class="player-card glass-pane p-4 flex flex-col opacity-50">
+                <div class="flex items-center pb-3 border-b" style="border-color: rgba(255,255,255,0.1);">
+                    <div class="w-12 h-12 rounded-full skeleton-loader mr-4"></div>
+                    <div class="w-full">
+                        <div class="h-5 w-3/5 skeleton-loader mb-2"></div>
+                        <div class="h-4 w-2/5 skeleton-loader"></div>
+                    </div>
+                </div>
+                <div class="flex-grow my-4 space-y-3">
+                    <div class="h-5 w-full skeleton-loader"></div>
+                    <div class="h-5 w-full skeleton-loader"></div>
+                </div>
+            </div>`;
+    }
+    if (type === 'alliance') {
+        return `<div class="alliance-card opacity-50">
+            <div class="alliance-card-header"><div class="w-[60px] h-[60px] rounded-full skeleton-loader"></div><div class="w-full"><div class="h-6 w-40 skeleton-loader mx-auto"></div></div></div>
+            <div class="alliance-card-body"><div class="h-16 w-full skeleton-loader rounded-lg"></div><div class="h-24 w-full skeleton-loader rounded-lg mt-4"></div></div>
+        </div>`;
+    }
+    // Default to post skeleton
+    return `
+        <div class="post-card skeleton-card opacity-50">
+            <div class="post-card-body p-4">
+                <div class="flex items-center mb-3"><div class="w-10 h-10 rounded-full skeleton-loader"></div><div class="ml-3 w-full"><div class="h-4 w-3/4 skeleton-loader"></div><div class="h-3 w-1/2 skeleton-loader mt-1"></div></div></div>
+                <div class="h-5 w-4/5 skeleton-loader mb-2"></div>
+                <div class="h-4 w-full skeleton-loader"></div>
             </div>
-        </div>
-        <div id="sub-page-news-events" class="sub-page" style="display:none;"></div>
-        <div id="sub-page-news-announcements" class="sub-page" style="display:none;"></div>
-    `;
+        </div>`;
 }

@@ -48,7 +48,8 @@ function createPlayerSkeletonCard() {
 }
 export function renderPlayers(players) {
     const playerListContainer = document.getElementById('player-list-container');
-    const { currentUserData, userSessions } = getState();
+    const skeletonContainer = document.getElementById('players-skeleton-container');
+    if (skeletonContainer) skeletonContainer.innerHTML = '';
 
     playerListContainer.innerHTML = '';
     if (!players) { // Check for undefined/null, data is loading
