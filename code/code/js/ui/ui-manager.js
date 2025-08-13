@@ -24,30 +24,24 @@ export function showAccessDeniedModal() {
     showModal(getElement('access-denied-modal-container'));
 }
 
-// --- NEW UNIFIED NAVIGATION FUNCTION ---
 export function navigateTo({ mainTarget, subTarget }) {
     const { currentUserData } = getState();
 
-    // 1. Centralized access control
     if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
         showAccessDeniedModal();
         return;
     }
 
-    // 2. Show the main page and save state
     showPage(mainTarget);
 
-    // 3. Update the active main nav link visually
     document.querySelectorAll('#main-nav .nav-link').forEach(l => {
         l.classList.toggle('active', l.dataset.mainTarget === mainTarget);
     });
 
-    // 4. Handle the sub-navigation menu visibility
     const navItem = document.querySelector(`#main-nav .nav-link[data-main-target="${mainTarget}"]`).closest('.nav-item');
     const submenuId = navItem ? navItem.dataset.submenuId : null;
     toggleSubNav(submenuId);
 
-    // 5. Determine the final sub-page to show (either the provided one or a default)
     let finalSubTarget = subTarget;
     if (!finalSubTarget) {
         switch (mainTarget) {
@@ -57,10 +51,8 @@ export function navigateTo({ mainTarget, subTarget }) {
         }
     }
     
-    // 6. Show the correct sub-page content
     handleSubNavClick(finalSubTarget);
 }
-
 
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
     if (convoCount !== undefined) socialBadges.convoCount = convoCount;
@@ -78,11 +70,7 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
         friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
     }
 }
-
 export function handleSubNavClick(subTargetId) {
-    // This function now ONLY handles the logic for switching sub-pages.
-    // The decision of which sub-page to show is made by navigateTo.
-    
     localStorage.setItem('lastActiveSubPage', subTargetId);
     
     querySelectorAll('.sub-nav-link').forEach(link => {
@@ -448,6 +436,8 @@ export function setupEmojiButton(buttonId, inputId) {
         }
     });
 }
+
+// --- MODIFIED FUNCTION ---
 export function updateUIForLoggedInUser() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
@@ -459,7 +449,9 @@ export function updateUIForLoggedInUser() {
     getElement('user-profile-nav-item').classList.remove('hidden');
     getElement('mobile-auth-container').classList.add('logged-in');
     getElement('login-btn-mobile').classList.add('hidden');
-    getElement('feed-nav-item').classList.remove('hidden');
+    
+    // The 'hidden' class is managed by md:flex, so we don't need to toggle it here.
+    // getElement('feed-nav-item').classList.remove('hidden'); 
 
     const adminActionsContainer = getElement('admin-actions-container');
     if (adminActionsContainer) {
@@ -473,6 +465,7 @@ export function updateUIForLoggedInUser() {
     }
 }
 
+// --- MODIFIED FUNCTION ---
 export function updateUIForLoggedOutUser() {
     getElement('login-btn').classList.remove('hidden');
     const userProfileNavItem = getElement('user-profile-nav-item');
@@ -480,9 +473,13 @@ export function updateUIForLoggedOutUser() {
     userProfileNavItem.classList.remove('open');
     getElement('mobile-auth-container').classList.remove('logged-in');
     getElement('login-btn-mobile').classList.remove('hidden');
-    getElement('feed-nav-item').classList.add('hidden');
+    
+    // The 'hidden' class is managed by md:flex, so we don't need to toggle it here.
+    // getElement('feed-nav-item').classList.add('hidden');
 }
 
+
+// --- MODIFIED FUNCTION ---
 export function buildMobileNav() {
     const { currentUserData } = getState();
     const mobileNavLinksContainer = getElement('mobile-nav-links');
@@ -491,6 +488,13 @@ export function buildMobileNav() {
 
     desktopNav.querySelectorAll('.nav-item').forEach(item => {
         const link = item.querySelector('.nav-link');
+        const mainTarget = link.dataset.mainTarget;
+
+        // NEW: Conditionally create the Feed link
+        if (mainTarget === 'page-feed' && !currentUserData) {
+            return; // Skip creating this link if user is not logged in
+        }
+
         const newLink = document.createElement('a');
         newLink.href = '#';
         newLink.className = 'mobile-nav-link';
@@ -498,10 +502,7 @@ export function buildMobileNav() {
         
         newLink.addEventListener('click', (e) => {
             e.preventDefault();
-            const mainTarget = link.dataset.mainTarget;
-            
             navigateTo({ mainTarget: mainTarget });
-
             getElement('mobile-nav-menu').classList.remove('open');
             getElement('modal-backdrop').classList.remove('visible');
         });
