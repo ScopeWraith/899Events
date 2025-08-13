@@ -73,15 +73,20 @@ function restoreLastViewedPage() {
         handleSubNavClick(lastSubPage);
     } else {
         // Otherwise, find the *active* sub-nav menu and click its first link.
-        const activeSubmenu = document.querySelector('.sub-nav-content:not(.hidden)');
-        if (activeSubmenu) {
-            const firstSubNavLink = activeSubmenu.querySelector('.sub-nav-link');
-            if (firstSubNavLink) {
-                // We use click() here to ensure all associated logic runs,
-                // not just the content switching part of handleSubNavClick.
-                firstSubNavLink.click();
-            }
+        let defaultSubPage;
+        switch (lastPage) {
+            case 'page-social':
+                defaultSubPage = 'social-chat';
+                break;
+            case 'page-server':
+                defaultSubPage = 'server-alliances';
+                break;
+            case 'page-news':
+            default:
+                defaultSubPage = 'news-all';
+                break;
         }
+        handleSubNavClick(defaultSubPage);
     }
 }
 
