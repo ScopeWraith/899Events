@@ -19,7 +19,8 @@ function renderAlliancesUI(newState, prevState) {
         newState.allPlayers !== prevState.allPlayers ||
         newState.userFriends !== prevState.userFriends
     ) {
-        renderAlliances(newState.allAlliances, newState);
+        // Pass the entire state to the render function to ensure it has all necessary data
+        renderAlliances(newState);
     }
 }
 
@@ -30,20 +31,24 @@ export function initializeAlliancesUI() {
 
 // --- UI HELPER & RENDERING FUNCTIONS ---
 
-export function renderAlliances(alliances, state) {
+export function renderAlliances(state) {
+    const { allAlliances, currentUserData } = state;
     const container = document.getElementById('alliances-list-container');
     const pageHeader = document.querySelector('#sub-page-server-alliances h2');
-    if (!container || !pageHeader) return;
 
-    const { currentUserData } = state;
+    // GUARD CLAUSE: Exit if the container or essential data isn't ready.
+    if (!container || !pageHeader || !allAlliances) {
+        return;
+    }
 
     let headerActionHTML = '';
+    // Check if allAlliances exists before calling .some()
     if (
         currentUserData &&
         currentUserData.isVerified &&
         currentUserData.allianceRank === 'R5' &&
         currentUserData.alliance &&
-        !alliances.some(a => a.tag === currentUserData.alliance)
+        !allAlliances.some(a => a.tag === currentUserData.alliance)
     ) {
         headerActionHTML = `
             <div class="text-center mb-6">
@@ -61,27 +66,21 @@ export function renderAlliances(alliances, state) {
     }
     actionContainer.innerHTML = headerActionHTML;
 
-    if (!alliances) { // Data is still loading
-        let skeletonHTML = '';
-        for (let i = 0; i < 6; i++) {
-            skeletonHTML += createAllianceSkeletonCard();
-        }
-        container.innerHTML = skeletonHTML;
-        return;
-    }
-
-    if (alliances.length === 0) {
+    if (allAlliances.length === 0) {
         container.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No alliances have been registered yet.</p>`;
-        return;
-    } 
-    container.innerHTML = alliances.map(alliance => createAllianceCard(alliance, state)).join('');
+    } else {
+        container.innerHTML = allAlliances.map(alliance => createAllianceCard(alliance, state)).join('');
+    }
 }
 
 function createAllianceCard(alliance, state) {
     const { currentUserData, allPlayers, userFriends } = state;
+
+    // GUARD CLAUSE: Don't render a card if we don't have player data yet
+    if (!allPlayers) return '';
+
     const primaryColor = alliance.primaryColor || 'var(--color-primary)';
     const secondaryColor = alliance.secondaryColor || 'var(--color-highlight)';
-
     const canEdit = currentUserData?.isVerified && currentUserData.allianceRank === 'R5' && currentUserData.alliance === alliance.tag;
     const editButtonHTML = canEdit ? `<button class="alliance-card-edit-btn" data-alliance-tag="${alliance.tag}"><i class="fas fa-cog"></i></button>` : '';
 
@@ -90,9 +89,8 @@ function createAllianceCard(alliance, state) {
     const r5Data = getRoleMember(alliance.r5Name);
     const leaderAvatarUrl = r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?';
     const leaderRankBorder = r5Data ? getRankBorderClass(r5Data) : 'rank-border-r5';
-
     const isSelf = currentUserData && r5Data && currentUserData.uid === r5Data.uid;
-    const isFriend = r5Data && userFriends.includes(r5Data.uid);
+    const isFriend = r5Data && userFriends && userFriends.includes(r5Data.uid);
     const showLeaderActionButtons = currentUserData && r5Data;
 
     const coreMembers = [
@@ -124,7 +122,7 @@ function createAllianceCard(alliance, state) {
                 </div>
                 <div class="alliance-card-title-section">
                     <p class="alliance-card-tag">[${alliance.tag}]</p>
-                    <h2 class="alliance-card-name">${alliance.name || 'Alliance Name'}</h2>           
+                    <h2 class="alliance-card-name">${alliance.name || 'Alliance Name'}</h2>
                 </div>
             </div>
             <div class="alliance-card-body">
@@ -138,24 +136,16 @@ function createAllianceCard(alliance, state) {
                     </div>
                     ${showLeaderActionButtons ? `
                         <div class="leader-actions">
-                            <button class="leader-action-btn message-player-btn" 
-                                    data-uid="${r5Data.uid}" 
-                                    title="${isSelf ? 'Cannot message yourself' : 'Message Leader'}" 
-                                    ${isSelf ? 'disabled' : ''}>
+                            <button class="leader-action-btn message-player-btn" data-uid="${r5Data.uid}" title="${isSelf ? 'Cannot message yourself' : 'Message Leader'}" ${isSelf ? 'disabled' : ''}>
                                 <i class="fas fa-comment-dots"></i>
                             </button>
-                            <button class="leader-action-btn add-friend-btn" 
-                                    data-uid="${r5Data.uid}" 
-                                    title="${isSelf ? 'Cannot add yourself' : (isFriend ? 'Already Friends' : 'Add Friend')}" 
-                                    ${isSelf || isFriend ? 'disabled' : ''}>
+                            <button class="leader-action-btn add-friend-btn" data-uid="${r5Data.uid}" title="${isSelf ? 'Cannot add yourself' : (isFriend ? 'Already Friends' : 'Add Friend')}" ${isSelf || isFriend ? 'disabled' : ''}>
                                 <i class="fas ${isFriend ? 'fa-user-check' : 'fa-user-plus'}"></i>
                             </button>
                         </div>
                     ` : ''}
                 </div>
-
                 ${coreMembers.length > 0 ? `<div class="alliance-card-core-members">${coreMembersHTML}</div>` : ''}
-
                 <div class="alliance-card-details">
                     <h4>Details</h4>
                     <p>${alliance.details || 'No details provided.'}</p>
@@ -164,31 +154,6 @@ function createAllianceCard(alliance, state) {
             <div class="alliance-card-footer">
                 <h4>Recruitment Requirements</h4>
                 <p>${alliance.recruitmentInfo || 'Contact leadership for details.'}</p>
-            </div>
-        </div>
-    `;
-}
-
-function createAllianceSkeletonCard() {
-    return `
-        <div class="alliance-card opacity-50">
-            <div class="alliance-card-header">
-                <div class="alliance-card-avatar-wrapper">
-                    <div class="w-[60px] h-[60px] rounded-full skeleton-loader"></div>
-                </div>
-                <div class="alliance-card-title-section w-full">
-                    <div class="h-5 w-24 skeleton-loader mb-2 mx-auto"></div>
-                    <div class="h-6 w-40 skeleton-loader mx-auto"></div>
-                </div>
-            </div>
-            <div class="alliance-card-body">
-                <div class="h-16 w-full skeleton-loader rounded-lg"></div>
-                <div class="grid grid-cols-4 gap-4">
-                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
-                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
-                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
-                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
-                </div>
             </div>
         </div>
     `;
@@ -262,15 +227,10 @@ export async function handleAllianceRegisterSubmit(e) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Registering...';
     const allianceDocRef = doc(db, "alliances", allianceTag);
     const newAllianceData = {
-        tag: allianceTag,
-        name: allianceName,
-        details: allianceDetails,
-        r5Name: currentUserData.username,
+        tag: allianceTag, name: allianceName, details: allianceDetails, r5Name: currentUserData.username,
         warlord: '', recruiter: '', muse: '', butler: '',
-        recruitmentInfo: 'Contact leadership for details.',
-        avatarUrl: '',
-        primaryColor: '#00BFFF',
-        secondaryColor: '#F87171'
+        recruitmentInfo: 'Contact leadership for details.', avatarUrl: '',
+        primaryColor: '#00BFFF', secondaryColor: '#F87171'
     };
     try {
         await setDoc(allianceDocRef, newAllianceData);
