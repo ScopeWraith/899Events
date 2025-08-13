@@ -365,7 +365,6 @@ export function buildMobileNav() {
     divider.className = 'border-t border-white/10 my-2';
     mobileNavLinksContainer.appendChild(divider);
 
-    // --- FIX: Add check for user permissions before creating mobile admin links ---
     const canCreatePost = currentUserData && (currentUserData.isAdmin || (currentUserData.isVerified && (currentUserData.allianceRank === 'R5' || currentUserData.allianceRank === 'R4')));
     if (canCreatePost) {
         const createEventLink = document.createElement('a');

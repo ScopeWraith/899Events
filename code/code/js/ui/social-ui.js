@@ -32,6 +32,7 @@ function renderSocialUI(newState, prevState) {
     }
 }
 
+
 export function initializeSocialUI() {
     subscribe(renderSocialUI);
 }
