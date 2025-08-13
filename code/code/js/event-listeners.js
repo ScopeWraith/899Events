@@ -15,7 +15,7 @@ import {
 } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePostFormForEdit } from './ui/post-ui.js';
-import { applyPlayerFilters } from './ui/players-ui.js';
+import { applyPlayerFilters } from './players-ui.js';
 import {
     handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend,
     removeFriend, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend
@@ -124,16 +124,22 @@ export function initializeAllEventListeners() {
                 showAccessDeniedModal();
                 return;
             }
-            // Just call showPage. It will handle everything else.
+
+            const navItem = link.closest('.nav-item');
+            const submenuId = navItem.dataset.submenuId || null;
+
             showPage(mainTarget);
+            toggleSubNav(submenuId);
+
+            document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
         });
     });
-
-    // Sub Navigation Links
     document.querySelectorAll('.sub-nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            handleSubNavClick(link.dataset.subTarget);
+            const subTarget = link.dataset.subTarget;
+            handleSubNavClick(subTarget);
         });
     });
     addListener('mobile-auth-container', 'click', () => {
