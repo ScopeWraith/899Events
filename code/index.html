@@ -700,92 +700,58 @@
                             </div>
                         </div>
                         <div id="sub-page-server-nap" class="sub-page" style="display: none;">
-                            <div class="nap-header">
-                                <i class="fas fa-shield-alt fa-2x text-white/50"></i>
-                                <h2 class="text-4xl font-bold text-white tracking-wider gradient-text">
-                                    Server NAP Rules
-                                </h2>
-                                <p class="text-lg text-gray-400 mt-2">Non-Aggression Pact for the Top 12 Alliances</p>
-                            </div>
+                            <div class="nap-container space-y-6">
+                                <div class="text-center mb-10">
+                                    <h2 class="text-4xl font-black uppercase tracking-wider text-white">Server NAP</h2>
+                                    <p class="text-lg text-gray-400 mt-1">Non-Aggression Pact & Rules of Engagement</p>
+                                </div>
 
-                            <div class="nap-container space-y-4">
-                                <div class="nap-section glass-pane open">
-                                    <button class="nap-section-header">
-                                        <div class="flex items-center gap-4">
-                                            <i class="fas fa-scroll fa-fw"></i>
-                                            <h3 class="text-xl font-bold">The Spirit of the Pact</h3>
-                                        </div>
-                                        <i class="fas fa-chevron-down-rules"></i>
-                                    </button>
-                                    <div class="nap-section-content" style="max-height: 1000px; padding: 1.5rem;">
-                                        <p class="text-gray-300">
-                                            The Non-Aggression Pact (NAP) is in effect for the <span class="font-bold text-purple-400">Top 12 alliances</span> on the server. Its purpose is to foster strategic growth, diplomacy, and focused competition, rather than constant, chaotic warfare. Adherence to these rules is mandatory for all members of NAP alliances.
-                                        </p>
+                                <div class="nap-card glass-pane">
+                                    <div class="nap-card-header">
+                                        <i class="fas fa-scroll"></i>
+                                        <h3 class="text-xl font-bold">The Spirit of the Pact</h3>
+                                    </div>
+                                    <div class="nap-card-body">
+                                        <p>The Non-Aggression Pact (NAP) is in effect for the <span class="font-bold text-blue-400">Top 12 alliances</span> on the server. Its purpose is to foster strategic growth and diplomacy. Adherence to these rules is mandatory.</p>
                                     </div>
                                 </div>
 
-                                <div class="nap-section glass-pane">
-                                    <button class="nap-section-header">
-                                        <div class="flex items-center gap-4">
-                                            <i class="fas fa-check-circle fa-fw"></i>
-                                            <h3 class="text-xl font-bold">Rules of Engagement</h3>
-                                        </div>
-                                        <i class="fas fa-chevron-down-rules"></i>
-                                    </button>
-                                    <div class="nap-section-content">
-                                        <ul class="roe-list">
-                                            <li>
-                                                <span class="text-green-400 font-bold mr-2">✔</span>
-                                                <div><span class="font-semibold text-white">Diplomacy First:</span> No base hits or resource tile hits are permitted unless previously and clearly agreed upon by the leadership of both alliances involved.</div>
-                                            </li>
-                                            <li>
-                                                <span class="text-green-400 font-bold mr-2">✔</span>
-                                                <div><span class="font-semibold text-white">Limited PvP:</span> Small-scale, organized PvP is allowed. This encourages tactical skirmishes over server-wide chaos.</div>
-                                            </li>
+                                <div class="nap-card glass-pane">
+                                    <div class="nap-card-header">
+                                        <i class="fas fa-check-circle"></i>
+                                        <h3 class="text-xl font-bold">Rules of Engagement</h3>
+                                    </div>
+                                    <div class="nap-card-body">
+                                        <ul class="nap-rule-list">
+                                            <li><span class="font-semibold text-white">Diplomacy First:</span> No base or tile hits are permitted without prior agreement from leadership.</li>
+                                            <li><span class="font-semibold text-white">Limited PvP:</span> Small-scale, organized PvP is allowed to encourage tactical skirmishes.</li>
                                         </ul>
                                     </div>
                                 </div>
 
-                                <div class="nap-section glass-pane">
-                                    <button class="nap-section-header">
-                                        <div class="flex items-center gap-4">
-                                            <i class="fas fa-times-circle fa-fw"></i>
-                                            <h3 class="text-xl font-bold">Prohibited Actions</h3>
-                                        </div>
-                                        <i class="fas fa-chevron-down-rules"></i>
-                                    </button>
-                                    <div class="nap-section-content">
-                                        <ul class="roe-list">
-                                            <li>
-                                                <span class="text-red-400 font-bold mr-2">✖</span>
-                                                <div><span class="font-semibold text-white">No Unapproved Aggression:</span> Random attacks on bases, resource tile stealing, or any solo PvP without explicit prior approval from both alliances is strictly forbidden.</div>
-                                            </li>
-                                            <li>
-                                                <span class="text-red-400 font-bold mr-2">✖</span>
-                                                <div><span class="font-semibold text-white">Attack Limits:</span> Do not attack more than <span class="font-bold text-purple-400">5 members</span> per enemy alliance per day. This prevents targeted harassment.</div>
-                                            </li>
-                                            <li>
-                                                <span class="text-red-400 font-bold mr-2">✖</span>
-                                                <div><span class="font-semibold text-white">No Full-Scale War:</span> Do not launch full alliance invasions or make attempts to "full wipe" an opponent. Coordinated mass attacks are a violation of the NAP.</div>
-                                            </li>
+                                <div class="nap-card glass-pane">
+                                    <div class="nap-card-header prohibited">
+                                        <i class="fas fa-times-circle"></i>
+                                        <h3 class="text-xl font-bold">Prohibited Actions</h3>
+                                    </div>
+                                    <div class="nap-card-body">
+                                        <ul class="nap-rule-list">
+                                            <li><span class="font-semibold text-white">No Unapproved Aggression:</span> Random attacks, tile stealing, or unapproved solo PvP is forbidden.</li>
+                                            <li><span class="font-semibold text-white">Attack Limits:</span> Do not attack more than <span class="font-bold text-blue-400">5 members</span> from the same alliance per day.</li>
+                                            <li><span class="font-semibold text-white">No Full-Scale War:</span> Coordinated mass attacks or attempts to "full wipe" an opponent are a violation of the NAP.</li>
                                         </ul>
                                     </div>
                                 </div>
-                                
-                                <div class="nap-section glass-pane">
-                                    <button class="nap-section-header">
-                                        <div class="flex items-center gap-4">
-                                            <i class="fas fa-gavel fa-fw"></i>
-                                            <h3 class="text-xl font-bold">Consequences for Violations</h3>
-                                        </div>
-                                        <i class="fas fa-chevron-down-rules"></i>
-                                    </button>
-                                    <div class="nap-section-content">
-                                        <p class="text-gray-300">
-                                            Accountability is crucial for the NAP's success. Players who break these rules will face immediate consequences to maintain fairness and order on the server.
-                                        </p>
+
+                                <div class="nap-card glass-pane">
+                                    <div class="nap-card-header consequence">
+                                        <i class="fas fa-gavel"></i>
+                                        <h3 class="text-xl font-bold">Consequences</h3>
+                                    </div>
+                                    <div class="nap-card-body">
+                                        <p>Accountability is crucial. Players who break these rules will face immediate consequences to maintain order.</p>
                                         <div class="consequence-box">
-                                            <p class="text-lg font-semibold text-purple-300">Violators will be <span class="font-extrabold">banned from joining any Top 12 NAP alliance for 7 days.</span></p>
+                                            <p class="text-lg font-semibold">Violators will be <span class="font-extrabold text-red-400">banned from joining any Top 12 NAP alliance for 7 days.</span></p>
                                         </div>
                                     </div>
                                 </div>
