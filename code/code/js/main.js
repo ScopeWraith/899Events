@@ -38,6 +38,7 @@ onAuthStateChanged(auth, (user) => {
         setTimeout(() => {
             appPreloader.style.display = 'none';
             appContainer.style.display = 'block';
+            appContainer.style.opacity = '1';
         }, 500);
     };
 
