@@ -168,6 +168,7 @@ export function detachAllListeners() {
     }
     setState({ listeners: {} });
 }
+
 export function setupChatListeners(activeChatId) {
     const { currentUserData, listeners } = getState();
     if (!currentUserData) return;
@@ -212,16 +213,6 @@ export function setupPrivateChatListener(chatId) {
         setState({ activeChatMessages: [] });
     });
     setState({ listeners });
-}
-
-export function detachAllListeners() {
-    const { listeners } = getState();
-    if (listeners && typeof listeners === 'object') { // ADDED SAFETY CHECK
-        Object.values(listeners).forEach(unsubscribe => {
-            if (typeof unsubscribe === 'function') unsubscribe();
-        });
-    }
-    setState({ listeners: {} });
 }
 
 export async function handleSendMessage(e, chatType, text) {
