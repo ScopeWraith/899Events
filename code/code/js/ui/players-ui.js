@@ -8,7 +8,6 @@ import { canManageUser, getRankBorderClass} from '../utils.js';
 function renderPlayersUI(newState, prevState) {
     // Re-render the player list if the list of players or the current user changes.
     if (newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData) {
-        // We only need to re-apply filters, as it will trigger a re-render.
         applyPlayerFilters();
     }
 }
@@ -16,7 +15,6 @@ function renderPlayersUI(newState, prevState) {
 export function initializePlayersUI() {
     subscribe(renderPlayersUI);
 }
-
 
 // --- UI HELPER & RENDERING FUNCTIONS ---
 
@@ -27,10 +25,16 @@ export function applyPlayerFilters() {
     }
 
     const { allPlayers } = getState();
+    // --- FIX: ADD THIS GUARD CLAUSE ---
+    if (!allPlayers) {
+        // If players aren't loaded yet, we can render skeletons or just exit.
+        renderPlayers(null); // Passing null will trigger the skeleton loader
+        return;
+    }
+
     const searchTermInput = document.getElementById('player-search-input');
     const allianceFilterInput = document.getElementById('alliance-filter');
 
-    // Ensure elements exist before getting their value
     const searchTerm = searchTermInput ? searchTermInput.value.toLowerCase() : '';
     const allianceFilter = allianceFilterInput ? allianceFilterInput.value : '';
 
@@ -68,9 +72,9 @@ export function renderPlayers(players) {
     if (!playerListContainer) return;
 
     const { currentUserData, userSessions } = getState();
-
     playerListContainer.innerHTML = '';
-    if (!players) { // Data is loading
+
+    if (players === null) { // Data is loading, show skeletons
         let skeletonHTML = '';
         for (let i = 0; i < 8; i++) {
             skeletonHTML += createPlayerSkeletonCard();
@@ -97,7 +101,7 @@ export function renderPlayers(players) {
         }
 
         const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
-        const session = userSessions[player.uid];
+        const session = userSessions ? userSessions[player.uid] : null;
         const statusClass = session ? session.status : 'offline';
         const rankBorder = getRankBorderClass(player);
 
