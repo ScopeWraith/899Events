@@ -1,10 +1,11 @@
-// code/js/state.js - Refactored version
+// code/js/state.js - Corrected version
 
 let currentState = {
     user: null,
     isLoggedIn: false,
     unreadMessagesCount: 0,
-    unreadFriendRequestsCount: 0
+    unreadFriendRequestsCount: 0,
+    listeners: {} // This ensures listeners is never undefined
 };
 
 const listeners = [];
