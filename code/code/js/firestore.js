@@ -4,7 +4,6 @@ import { db, storage } from './firebase-config.js';
 import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { setState, getState } from './state.js';
-import { renderNotifications } from './ui/notifications-ui.js';
 import { isUserLeader } from './utils.js';
 
 export async function togglePostReaction(postId, reactionType) {
@@ -46,8 +45,9 @@ export function setupAllListeners(user, onInitialDataLoaded) {
 
     const checkAllLoaded = (source) => {
         if (requiredLoads.includes(source)) {
+            const index = requiredLoads.indexOf(source);
+            if (index > -1) requiredLoads.splice(index, 1);
             loadedCount++;
-            requiredLoads.splice(requiredLoads.indexOf(source), 1);
         }
         if (loadedCount >= 7 && onInitialDataLoaded) {
             onInitialDataLoaded();
@@ -66,6 +66,7 @@ export function setupAllListeners(user, onInitialDataLoaded) {
     listeners.notifications = onSnapshot(notificationsQuery, (snapshot) => {
         const userNotifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setState({ userNotifications });
+        checkAllLoaded('notifications');
     }, () => checkAllLoaded('notifications'));
 
     const friendsQuery = collection(db, `users/${user.uid}/friends`);
@@ -108,14 +109,14 @@ export function setupAllListeners(user, onInitialDataLoaded) {
 export function fetchInitialData(onPublicDataLoaded) {
     let { listeners } = getState();
     if (!listeners) listeners = {};
-
     const requiredPublicLoads = ['users', 'posts', 'sessions', 'alliances'];
     let loadedCount = 0;
 
     const checkPublicLoaded = (source) => {
         if (requiredPublicLoads.includes(source)) {
+            const index = requiredPublicLoads.indexOf(source);
+            if (index > -1) requiredPublicLoads.splice(index, 1);
             loadedCount++;
-            requiredPublicLoads.splice(requiredPublicLoads.indexOf(source), 1);
         }
         if (loadedCount >= 4 && onPublicDataLoaded) {
             onPublicDataLoaded();
@@ -158,6 +159,15 @@ export function fetchInitialData(onPublicDataLoaded) {
     setState({ listeners });
 }
 
+export function detachAllListeners() {
+    const { listeners } = getState();
+    if (listeners && typeof listeners === 'object') {
+        Object.values(listeners).forEach(unsubscribe => {
+            if (typeof unsubscribe === 'function') unsubscribe();
+        });
+    }
+    setState({ listeners: {} });
+}
 export function setupChatListeners(activeChatId) {
     const { currentUserData, listeners } = getState();
     if (!currentUserData) return;

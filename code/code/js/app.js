@@ -17,15 +17,14 @@ import { initializeAllEventListeners } from './event-listeners.js';
 import { initializeAuthUI } from './ui/auth-ui.js';
 import { initializeSocialUI } from './ui/social-ui.js';
 import { initializePostUI } from './ui/post-ui.js';
-import { initializePlayersUI } from './ui/players-ui.js';   // New import
-import { initializeAlliancesUI } from './ui/alliances-ui.js'; // New import
+import { initializePlayersUI } from './ui/players-ui.js';
+import { initializeAlliancesUI } from './ui/alliances-ui.js';
+import { initializeNotificationsUI } from './ui/notifications-ui.js'; // New import
 
 function restoreLastViewedPage() {
     const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
     const lastSubPage = localStorage.getItem('lastActiveSubPage');
-
     showPage(lastPage);
-
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         const isActive = link.dataset.mainTarget === lastPage;
         link.classList.toggle('active', isActive);
@@ -34,7 +33,6 @@ function restoreLastViewedPage() {
             toggleSubNav(submenuId);
         }
     });
-
     if (lastSubPage) {
         handleSubNavClick(lastSubPage);
     } else {
@@ -65,19 +63,17 @@ export function initializeApp() {
             buildMobileNav();
         }
         if (newState.userNotifications !== prevState.userNotifications) {
-            const unreadFriendRequests = newState.userNotifications.filter(n => n.type === 'friend_request' && !n.isRead).length;
+            const unreadFriendRequests = (newState.userNotifications || []).filter(n => n.type === 'friend_request' && !n.isRead).length;
             updateSocialNavBadges({ friendRequestCount: unreadFriendRequests });
         }
     });
 
     onAuthStateChanged(auth, (user) => {
         detachAllListeners();
-
         const onDataReady = () => {
             restoreLastViewedPage();
             showAppContent();
         };
-
         if (user) {
             setupPresenceManagement(user);
             setupAllListeners(user, onDataReady);
@@ -87,12 +83,13 @@ export function initializeApp() {
         }
         buildMobileNav();
     });
-
+    
     setupInitialUI();
     initializeAllEventListeners();
     initializeAuthUI();
     initializeSocialUI();
     initializePostUI();
-    initializePlayersUI();   // Initialize players component
-    initializeAlliancesUI(); // Initialize alliances component
+    initializePlayersUI();
+    initializeAlliancesUI();
+    initializeNotificationsUI(); // Initialize our new component
 }
