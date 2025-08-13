@@ -1,5 +1,4 @@
 // code/js/ui/ui-manager.js
-
 import { getState, updateState } from '../state.js';
 import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS } from '../constants.js';
 import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown, handleLogout } from './auth-ui.js';
@@ -12,48 +11,15 @@ import { renderFriendsList, renderConversations, renderFriendsPage, renderChatCh
 import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
 import { applyPlayerFilters } from './players-ui.js';
 import { renderAlliances } from './alliances-ui.js';
-
+// --- DOM ELEMENT GETTERS ---
 const getElement = (id) => document.getElementById(id);
 const querySelector = (selector) => document.querySelector(selector);
 const querySelectorAll = (selector) => document.querySelectorAll(selector);
 
+// NEW: Store badge counts in the state
 let socialBadges = { convoCount: 0, friendRequestCount: 0 };
 
-export function showAccessDeniedModal() {
-    hideAllModals();
-    showModal(getElement('access-denied-modal-container'));
-}
-
-export function navigateTo({ mainTarget, subTarget }) {
-    const { currentUserData } = getState();
-
-    if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
-        showAccessDeniedModal();
-        return;
-    }
-
-    showPage(mainTarget);
-
-    document.querySelectorAll('#main-nav .nav-link').forEach(l => {
-        l.classList.toggle('active', l.dataset.mainTarget === mainTarget);
-    });
-
-    const navItem = document.querySelector(`#main-nav .nav-link[data-main-target="${mainTarget}"]`).closest('.nav-item');
-    const submenuId = navItem ? navItem.dataset.submenuId : null;
-    toggleSubNav(submenuId);
-
-    let finalSubTarget = subTarget;
-    if (!finalSubTarget) {
-        switch (mainTarget) {
-            case 'page-social': finalSubTarget = 'social-chat'; break;
-            case 'page-server': finalSubTarget = 'server-alliances'; break;
-            default: finalSubTarget = 'news-all'; break;
-        }
-    }
-    
-    handleSubNavClick(finalSubTarget);
-}
-
+// NEW: Function to update the social nav badges
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
     if (convoCount !== undefined) socialBadges.convoCount = convoCount;
     if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;
@@ -70,10 +36,11 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
         friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
     }
 }
+// --- PAGE & MODAL MANAGEMENT ---
 export function handleSubNavClick(subTargetId) {
     localStorage.setItem('lastActiveSubPage', subTargetId);
-    
-    querySelectorAll('.sub-nav-link').forEach(link => {
+    const allSubNavLinks = querySelectorAll('.sub-nav-link');
+    allSubNavLinks.forEach(link => {
         link.classList.toggle('active', link.dataset.subTarget === subTargetId);
     });
 
@@ -87,6 +54,8 @@ export function handleSubNavClick(subTargetId) {
     const targetSubPage = getElement(`sub-page-${subTargetId}`);
     if (targetSubPage) {
         targetSubPage.style.display = 'block';
+    } else {
+        console.warn(`Sub-page with id "sub-page-${subTargetId}" not found.`);
     }
 
     const { listeners } = getState();
@@ -112,8 +81,9 @@ export function handleSubNavClick(subTargetId) {
             applyPlayerFilters();
             break;
         case 'server-alliances':
+            // Call the new render function
             const { allAlliances } = getState();
-            renderAlliances(allAlliances);
+            renderAlliances(allAlliances || []);
             break;
         case 'server-nap':
             break;
@@ -192,17 +162,38 @@ export function toggleSubNav(activeSubmenuId) {
 }
 
 export function showPage(targetId) {
-    localStorage.setItem('lastActivePage', targetId);
-    
     querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';
     });
-    
+    localStorage.setItem('lastActivePage', targetId);
     const mobileTitleEl = getElement('mobile-page-title');
     const activeNavLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
     if (mobileTitleEl && activeNavLink) {
         const titleText = activeNavLink.querySelector('span').textContent;
         mobileTitleEl.textContent = titleText;
+    }
+    
+    if (targetId === 'page-news') {
+        renderNews('all');
+    } else if (targetId === 'page-feed') {
+        const { currentUserData } = getState();
+        const welcomeContainer = getElement('feed-welcome-message');
+        
+        if (currentUserData && welcomeContainer) {
+            welcomeContainer.innerHTML = `
+                <h2 class="text-3xl font-bold text-white tracking-wider">Welcome Back, <span style="color: var(--color-primary);">${currentUserData.username}</span>!</h2>
+                <p class="text-gray-400 mt-1">Here's what's happening in the community.</p>
+            `;
+        }
+        renderFeedActivity();
+    } else if (targetId === 'page-social') {
+        handleSubNavClick('social-chat');
+    } else if (targetId === 'page-server') {
+        const alliancesSubpage = getElement('sub-page-server-alliances');
+        if(alliancesSubpage) {
+            alliancesSubpage.style.display = 'block';
+        }
+        applyPlayerFilters();
     }
 }
 
@@ -215,6 +206,7 @@ export function hideAllModals() {
     getElement('modal-backdrop').classList.remove('visible');
     querySelectorAll('.modal-container').forEach(modal => modal.classList.remove('visible'));
     
+    // NEW: Also close the emoji picker
     const emojiPickerContainer = getElement('emoji-picker-container');
     if (emojiPickerContainer) emojiPickerContainer.classList.remove('visible');
     
@@ -238,6 +230,7 @@ export function showAuthModal(formToShow) {
         getElement('register-form-container').classList.add('active');
     } else {
         getElement('login-form-container').classList.add('active');
+        // --- NEW: Pre-fill email ---
         const rememberedEmail = localStorage.getItem('rememberedEmail');
         if (rememberedEmail) {
             getElement('login-email').value = rememberedEmail;
@@ -278,12 +271,29 @@ export function showConfirmationModal(title, message, onConfirm) {
     getElement('confirmation-message').textContent = message;
 
     const confirmBtn = getElement('confirmation-confirm-btn');
+    const cancelBtn = getElement('confirmation-cancel-btn');
+
+    const closeConfirmationModal = () => {
+        confirmationModal.classList.remove('visible');
+        const anyOtherModalsVisible = document.querySelectorAll('.modal-container.visible').length > 0;
+        if (!anyOtherModalsVisible) {
+            getElement('modal-backdrop').classList.remove('visible');
+        }
+    };
+
+    // Clone and replace buttons to remove old event listeners
     const newConfirmBtn = confirmBtn.cloneNode(true);
+    const newCancelBtn = cancelBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
     newConfirmBtn.addEventListener('click', () => {
         onConfirm();
-        hideAllModals();
+        closeConfirmationModal();
+    });
+
+    newCancelBtn.addEventListener('click', () => {
+        closeConfirmationModal();
     });
 
     showModal(confirmationModal);
@@ -407,6 +417,7 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
         setupChatListeners(chatType, 'fullscreen');
     }
 }
+// --- UI INITIALIZATION & UPDATES ---
 
 export function setupInitialUI() {
     setupCustomSelects();
@@ -430,18 +441,16 @@ export function setupEmojiButton(buttonId, inputId) {
         e.stopPropagation();
     });
 
+    // Close the picker if the user clicks anywhere else
     document.addEventListener('click', (e) => {
         if (!e.target.closest('#emoji-picker-container') && !e.target.closest(`#${buttonId}`)) {
             emojiPickerContainer.classList.remove('visible');
         }
     });
 }
-
 export function updateUIForLoggedInUser() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
-
-    document.body.classList.add('logged-in');
 
     getElement('username-display').textContent = currentUserData.username;
     updateAvatarDisplay(currentUserData);
@@ -449,7 +458,6 @@ export function updateUIForLoggedInUser() {
     getElement('login-btn').classList.add('hidden');
     getElement('user-profile-nav-item').classList.remove('hidden');
     getElement('mobile-auth-container').classList.add('logged-in');
-    getElement('login-btn-mobile').classList.add('hidden');
 
     const adminActionsContainer = getElement('admin-actions-container');
     if (adminActionsContainer) {
@@ -464,14 +472,11 @@ export function updateUIForLoggedInUser() {
 }
 
 export function updateUIForLoggedOutUser() {
-    document.body.classList.remove('logged-in');
-
     getElement('login-btn').classList.remove('hidden');
     const userProfileNavItem = getElement('user-profile-nav-item');
     userProfileNavItem.classList.add('hidden');
     userProfileNavItem.classList.remove('open');
     getElement('mobile-auth-container').classList.remove('logged-in');
-    getElement('login-btn-mobile').classList.remove('hidden');
 }
 
 export function buildMobileNav() {
@@ -482,17 +487,23 @@ export function buildMobileNav() {
 
     desktopNav.querySelectorAll('.nav-item').forEach(item => {
         const link = item.querySelector('.nav-link');
-        const mainTarget = link.dataset.mainTarget;
-
         const newLink = document.createElement('a');
         newLink.href = '#';
         newLink.className = 'mobile-nav-link';
-        newLink.dataset.mainTarget = mainTarget;
         newLink.innerHTML = `<i class="${link.querySelector('i').className} w-6 text-center mr-3"></i>${link.querySelector('span').textContent}`;
         
         newLink.addEventListener('click', (e) => {
             e.preventDefault();
-            navigateTo({ mainTarget: mainTarget });
+            const mainTarget = link.dataset.mainTarget;
+            const parentNavItem = link.closest('.nav-item');
+            const submenuId = parentNavItem ? parentNavItem.dataset.submenuId : null;
+
+            showPage(mainTarget);
+            toggleSubNav(submenuId);
+            
+            document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+
             getElement('mobile-nav-menu').classList.remove('open');
             getElement('modal-backdrop').classList.remove('visible');
         });
@@ -535,12 +546,7 @@ export function buildMobileNav() {
         logoutMobile.href = '#';
         logoutMobile.className = 'mobile-nav-link';
         logoutMobile.innerHTML = `<i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>Logout`;
-        logoutMobile.onclick = (e) => { 
-            e.preventDefault(); 
-            getElement('mobile-nav-menu').classList.remove('open');
-            getElement('modal-backdrop').classList.remove('visible');
-            handleLogout(); 
-        };
+        logoutMobile.onclick = (e) => { e.preventDefault(); auth.signOut(); };
         mobileNavLinksContainer.appendChild(logoutMobile);
     } else {
         const loginMobile = document.createElement('a');

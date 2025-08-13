@@ -13,6 +13,7 @@ service cloud.firestore {
     }
 
     function getUserData(userId) {
+      // Caching user data reads can optimize rule execution.
       return get(/databases/$(database)/documents/users/$(userId)).data;
     }
 
@@ -32,18 +33,30 @@ service cloud.firestore {
     function isMemberOf(allianceId) {
         return isSignedIn() && getUserData(request.auth.uid).alliance == allianceId;
     }
-
+    // NEW HELPER FUNCTION
     function isUpdatingReactionsOnly() {
+      // The set of fields a user is allowed to modify for reactions.
       let allowedFields = ['likes', 'hearts', 'likedBy', 'heartedBy'];
+      // The set of fields included in the user's request.
       let requestKeys = request.resource.data.keys();
+      // The set of fields that existed on the document before the change.
       let resourceKeys = resource.data.keys();
       
+      // Allow update if the keys being changed are a subset of the allowed fields.
       return requestKeys.removeAll(resourceKeys).hasOnly(allowedFields);
     }
-    
+
+    // --- POSTS (ANNOUNCEMENTS & EVENTS) ---
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if canCreatePost(request.resource.data);
+      // UPDATED RULE
+      allow update: if (isOwner(resource.data.authorUid) || isAdmin()) || (isSignedIn() && isUpdatingReactionsOnly());
+      allow delete: if isOwner(resource.data.authorUid) || isAdmin();
+    }
     // --- USER DATA, FRIENDS & PRESENCE ---
     match /users/{userId} {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || canManageUser(userId);
       allow delete: if isOwner(userId);
@@ -51,73 +64,63 @@ service cloud.firestore {
     
     // Friend requests, friends list, etc.
     match /users/{userId}/friends/{friendId} {
-        allow read: if isSignedIn() && isOwner(userId);
-        allow write: if (isOwner(userId) && request.resource.data.keys().hasAll(['since'])) || (request.auth.uid == friendId);
-        allow delete: if isSignedIn() && isOwner(userId);
+        allow read, write, delete: if isSignedIn() && isOwner(userId);
     }
 
+    // This collection stores the real-time presence status of users.
     match /sessions/{userId} {
+      // Everyone can read presence information to see who is online.
       allow read: if true; 
+      // A user can only write to their own session document.
       allow write: if isOwner(userId);
     }
     
     // --- NOTIFICATIONS ---
     match /notifications/{notificationId} {
         allow read, update, delete: if isSignedIn() && isOwner(resource.data.recipientUid);
-        allow create: if isSignedIn();
+        allow create: if isSignedIn(); // Any signed-in user can create a notification (e.g., friend request)
     }
 
-    // This function now uses 'in' instead of 'includes'
-    function canManageUser(targetUserId) {
-        let managerData = getUserData(request.auth.uid);
-        let targetData = getUserData(targetUserId);
-        return isSignedIn() &&
-               request.auth.uid != targetUserId &&
-               (
-                   managerData.isAdmin == true ||
-                   (
-                       managerData.alliance == targetData.alliance &&
-                       (
-                           (managerData.allianceRank == 'R5' && 
-                               (targetData.allianceRank == 'R4' || targetData.allianceRank == 'R3' || targetData.allianceRank == 'R2' || targetData.allianceRank == 'R1')) ||
-                           (managerData.allianceRank == 'R4' && 
-                               (targetData.allianceRank == 'R3' || targetData.allianceRank == 'R2' || targetData.allianceRank == 'R1'))
-                       )
-                   )
-               );
-    }
-    
+
+function canManageUser(targetUserId) {
+    let managerData = getUserData(request.auth.uid);
+    let targetData = getUserData(targetUserId);
+    return isSignedIn() && (
+        managerData.isAdmin == true ||
+        (
+            managerData.alliance == targetData.alliance &&
+            (
+                (managerData.allianceRank == 'R5' && targetData.allianceRank in ['R4', 'R3', 'R2', 'R1']) ||
+                (managerData.allianceRank == 'R4' && targetData.allianceRank in ['R3', 'R2', 'R1'])
+            )
+        )
+    );
+}
+
     // --- POSTS (ANNOUNCEMENTS & EVENTS) ---
     match /posts/{postId} {
       allow read: if true;
       allow create: if canCreatePost(request.resource.data);
-      allow update: if (isOwner(resource.data.authorUid) || isAdmin()) ||
-                    (isSignedIn() && isUpdatingReactionsOnly());
+      allow update: if isOwner(resource.data.authorUid) || isAdmin();
       allow delete: if isOwner(resource.data.authorUid) || isAdmin();
     }
     
-    function canCreatePost(postData) {
-        let user = getUserData(request.auth.uid);
-        let userRank = user.allianceRank;
-
-        return request.auth.uid == postData.authorUid &&
-               (
-                   // Admins can create any post.
-                   user.isAdmin == true ||
-                   // Verified R5s and R4s can create alliance-specific announcements.
-                   (isVerified() && postData.alliance == user.alliance && (userRank == 'R5' || userRank == 'R4') && postData.mainType == 'announcement' && postData.subType == 'alliance') ||
-                   // Verified R5s and R4s can create alliance-specific events.
-                   (isVerified() && postData.alliance == user.alliance && (userRank == 'R5' || userRank == 'R4') && postData.mainType == 'event' && postData.subType == 'alliance') ||
-                   // Verified R5s can create leadership announcements.
-                   (isVerified() && userRank == 'R5' && postData.mainType == 'announcement' && postData.subType == 'leadership')
-               );
-    }
-    // --- ALLIANCE DATA ---
-    match /alliances/{allianceId} {
-      allow read: if true;
-      allow create: if isLeader() && request.resource.data.tag == getUserData(request.auth.uid).alliance;
-      allow update: if isLeader() && resource.data.tag == getUserData(request.auth.uid).alliance;
-    }
+function canCreatePost(postData) {
+  let userRank = getUserData(request.auth.uid).allianceRank;
+ return isOwner(postData.authorUid) && (
+    isAdmin() ||
+    (
+      !(postData.subType == 'server' || postData.subType == 'seasonal' || postData.subType == 'hot_deals' || postData.subType == 'wanted_boss' || postData.subType == 'campaign' || postData.subType == 'vs') &&
+      !(!isVerified() && postData.mainType == 'event') && // isVerified is required for ALL events now
+      !(postData.subType == 'alliance' && postData.mainType == 'announcement' && !isVerified() && userRank == 'R4') && // R4s need to be verified for announcements
+      (
+        (postData.subType == 'alliance' && (userRank == 'R5' || userRank == 'R4')) ||
+        (postData.subType == 'leadership' && userRank == 'R5')
+      )
+    )
+  );
+}
+    
     // --- CHAT CHANNELS ---
     match /world_chat/{messageId} {
         allow read: if isSignedIn();
@@ -130,29 +133,28 @@ service cloud.firestore {
         allow update, delete: if isAdmin() || isOwner(resource.data.authorUid);
     }
     
-    match /alliance_chats/{allianceId}/messages/{messageId} {
-        allow read, create: if isMemberOf(allianceId) && isVerified();
-        allow update, delete: if (isLeader() && isMemberOf(allianceId)) || isOwner(resource.data.authorUid);
-    }
+match /alliance_chats/{allianceId}/messages/{messageId} {
+    allow read, create: if isMemberOf(allianceId) && isVerified();
+    allow update, delete: if (isLeader() && isMemberOf(allianceId)) || isOwner(resource.data.authorUid);
+}
 
     // --- PRIVATE CHAT ---
     match /private_chats/{chatId} {
-        // A user can read or update a chat document only if they are a participant.
-        allow write: if isSignedIn() && request.auth.uid in request.resource.data.participants;
-        allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      // Allow a user to read or update a chat document only if they are a participant.
+      allow read, update: if isSignedIn() && request.auth.uid in resource.data.participants;
 
-        match /messages/{messageId} {
-            // Allow message creation if the author is who they say they are, AND they are a participant in the parent chat room.
-            allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid &&
-                          request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
-            // Allow users to read messages if they are a participant in the chat.
-            allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
-            // Allow a user to mark a message as read.
-            allow update: if isSignedIn() && 
-                          request.resource.data.isRead == true &&
-                          resource.data.authorUid != request.auth.uid;
-            allow delete: if isOwner(resource.data.authorUid);
-        }
+      // Allow a user to create a new chat document only if their UID is in the "participants" array of the document being created.
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+
+      match /messages/{messageId} {
+        // Allow message creation if the author is who they say they are, AND they are a participant in the parent chat room.
+      	allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid &&
+                      request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
+        // Allow users to read messages if they are a participant in the chat.
+        allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/private_chats/$(chatId)).data.participants;
+      	allow update: if false; // Messages are still immutable
+        allow delete: if isOwner(resource.data.authorUid);
+      }
     }
     
     // --- ALLIANCE-SPECIFIC EVENTS & ANNOUNCEMENTS ---
@@ -166,4 +168,4 @@ service cloud.firestore {
         allow create, update, delete: if isLeader() && isMemberOf(allianceId);
     }
   }
-}
+

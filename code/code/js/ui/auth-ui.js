@@ -1,5 +1,3 @@
-// code/js/ui/auth-ui.js
-
 import { auth, db, storage } from '../firebase-config.js';
 import { signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -8,21 +6,10 @@ import { getState, updateState } from '../state.js';
 import { resizeImage , getAvatarSkinClass, getRankBorderClass} from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
-import { sendVerificationRequest } from '../firestore.js';
+import { sendVerificationRequest } from '../firestore.js'; // New Import
 
 let currentRegStep = 1;
 let resizedAvatarBlob = null;
-
-export function handleLogout() {
-    signOut(auth).then(() => {
-        localStorage.removeItem('lastActivePage');
-        localStorage.removeItem('lastActiveSubPage');
-        // Passing 'true' forces a hard reload from the server
-        window.location.reload(true);
-    }).catch((error) => {
-        console.error("Logout Error:", error);
-    });
-}
 
 export function initializeRegistrationStepper() {
     currentRegStep = 1;
@@ -33,6 +20,7 @@ export function initializeRegistrationStepper() {
     document.getElementById('registration-success').style.display = 'none';
 }
 function buildSkinSelectors() {
+    // Build Rank Color Legend
     const rankLegend = document.getElementById('rank-color-legend');
     if(rankLegend) {
         rankLegend.innerHTML = Object.entries(RANK_STYLES).map(([rank, style]) => `
@@ -42,6 +30,17 @@ function buildSkinSelectors() {
             </div>
         `).join('');
     }
+}
+export function handleLogout() {
+    signOut(auth).then(() => {
+        // Clear the saved page state from localStorage
+        localStorage.removeItem('lastActivePage');
+        localStorage.removeItem('lastActiveSubPage');
+        // Reload the entire application
+        window.location.reload();
+    }).catch((error) => {
+        console.error("Logout Error:", error);
+    });
 }
 function showRegStep(stepIndex) {
     const registrationFlow = document.getElementById('registration-flow');
@@ -56,7 +55,7 @@ function showRegStep(stepIndex) {
     const currentSlide = registrationFlow.querySelector(`.form-slide[data-slide="${stepIndex}"]`);
     if(currentSlide) currentSlide.classList.add('active');
 
-    regProgressSteps.forEach((index, step) => step.classList.toggle('active', index < stepIndex));
+    regProgressSteps.forEach((step, index) => step.classList.toggle('active', index < stepIndex));
     regProgressBarLine.style.width = `${((stepIndex - 1) / (regFormSlides.length - 1)) * 100}%`;
     regBackBtn.style.visibility = stepIndex === 1 ? 'hidden' : 'visible';
     regNextBtn.classList.toggle('hidden', stepIndex === regFormSlides.length);
@@ -141,6 +140,7 @@ export async function handleRegistrationSubmit(e) {
             registrationTimestampUTC: new Date().toISOString(),
         };
 
+        // If the user is not an admin, set their alliance to 'Pending Alliance'
         if (!userProfile.isAdmin) {
             userProfile.alliance = 'Pending Alliance';
             userProfile.isVerified = false;
@@ -148,6 +148,7 @@ export async function handleRegistrationSubmit(e) {
 
         await setDoc(doc(db, "users", user.uid), userProfile);
         
+        // Create verification notifications for leaders
         const leadersQuery = query(collection(db, 'users'), where('alliance', '==', alliance), where('allianceRank', 'in', ['R5', 'R4']));
         const leadersSnapshot = await getDocs(leadersQuery);
         const batch = writeBatch(db);
@@ -190,6 +191,7 @@ export function handleLoginSubmit(e) {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Logging In...';
 
+    // Store or clear the email based on the checkbox
     if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
     } else {
@@ -198,11 +200,12 @@ export function handleLoginSubmit(e) {
 
     signInWithEmailAndPassword(auth, email, password)
         .then(() => {
+            // --- NEW: Instant feedback and modal close ---
             successMessage.classList.remove('hidden');
             setTimeout(() => {
                 hideAllModals();
-                successMessage.classList.add('hidden');
-            }, 1000);
+                successMessage.classList.add('hidden'); // Reset for next time
+            }, 1000); // 1-second delay to show success message
         })
         .catch((error) => {
             console.error("Login Error:", error);
@@ -224,12 +227,14 @@ export function handleForgotPassword(e) {
         .catch((error) => alert(error.message));
 }
 
+/* code/js/ui/auth-ui.js */
 export function populateEditForm() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
     
-    buildSkinSelectors();
+    buildSkinSelectors(); // Still need this for the legend
 
+    // -- Populate Stats Tab --
     document.getElementById('edit-username').value = currentUserData.username;
     const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
     const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
@@ -241,6 +246,8 @@ export function populateEditForm() {
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
 
+    // -- Populate Skin Tab --
+    // Helper to set active button and hidden input
     const setActiveSkin = (containerId, inputId, value, defaultValue) => {
         const finalValue = value || defaultValue;
         const container = document.getElementById(containerId);
@@ -282,9 +289,11 @@ export async function handleEditProfileSubmit(e) {
     let oldAlliance = currentUserData.alliance;
     let newAlliance = updatedData.alliance;
 
+    // Check if the user changed their alliance or rank
     if (currentUserData && (newAlliance !== oldAlliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
         needsReverification = true;
+        // Only set alliance to pending if they changed alliances
         if (newAlliance !== oldAlliance) {
              updatedData.alliance = 'Pending Alliance';
         }
@@ -294,6 +303,7 @@ export async function handleEditProfileSubmit(e) {
         await updateDoc(doc(db, "users", user.uid), updatedData);
         hideAllModals();
 
+        // If re-verification is needed, send notification to leaders of the new/current alliance
         if (needsReverification) {
             await sendVerificationRequest(user.uid, updatedData.username, newAlliance);
             alert("Profile updated! You have been un-verified and will need to be approved by a leader in your alliance to access all features.");
@@ -328,10 +338,11 @@ export async function handleAvatarUpload(e) {
 
 export function updateAvatarDisplay(data) {
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-    const rankBorder = getRankBorderClass(data);
+    const rankBorder = getRankBorderClass(data); // Use the new helper
 
     const userAvatarButton = document.getElementById('user-avatar-button');
     userAvatarButton.src = avatarUrl;
+    // This now just uses the rank border, no custom skin
     userAvatarButton.className = `w-6 h-6 rounded-full object-cover ${rankBorder}`; 
 
     const userAvatarMobile = document.getElementById('user-avatar-mobile');
@@ -342,6 +353,10 @@ export function updateAvatarDisplay(data) {
     document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
 }
 
+// code/js/ui/auth-ui.js
+
+// ...existing code...
+
 export function updatePlayerProfileDropdown() {
     const { currentUserData, userNotifications } = getState();
     if (!currentUserData) return;
@@ -349,6 +364,7 @@ export function updatePlayerProfileDropdown() {
     const dropdownContainer = document.getElementById('player-profile-dropdown');
     if (!dropdownContainer) return;
     
+    // Check if the user is an Admin, R5, or a verified R4
     const canCreatePost = currentUserData.isAdmin || (currentUserData.isVerified && (currentUserData.allianceRank === 'R5' || currentUserData.allianceRank === 'R4'));
 
     let postButtonsHTML = '';
@@ -364,6 +380,7 @@ export function updatePlayerProfileDropdown() {
         `;
     }
 
+    // --- START: Dropdown Template ---
     dropdownContainer.innerHTML = `
         <div class="p-2 mb-2 border-b border-white/10">
             <p class="text-sm text-gray-400">Total Power</p>
@@ -391,8 +408,10 @@ export function updatePlayerProfileDropdown() {
         </button>
     `;
 
+    // --- Common Logic for Both ---
     document.getElementById('profile-dropdown-power').textContent = (currentUserData.power || 0).toLocaleString();
 
+    // Only update badges if the elements exist
     const friendReqBtn = document.getElementById('profile-dropdown-friends');
     if (friendReqBtn) {
         const friendRequests = userNotifications.filter(n => n.type === 'friend_request' && !n.isRead);
@@ -410,6 +429,6 @@ export function updatePlayerProfileDropdown() {
     
     const messagesBtn = document.getElementById('profile-dropdown-messages');
     if (messagesBtn) {
-        messagesBtn.disabled = true;
+        messagesBtn.disabled = true; // Placeholder logic
     }
 }

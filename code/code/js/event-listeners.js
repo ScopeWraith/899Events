@@ -55,11 +55,6 @@ export function initializeAllEventListeners() {
     }
 
     // --- The rest of your event-listeners.js file remains unchanged ---
-    addListener('close-access-denied-modal-btn', 'click', hideAllModals);
-    addListener('access-denied-login-btn', 'click', () => {
-        hideAllModals();
-        showAuthModal('login');
-    });
     addListener('close-register-alliance-modal-btn', 'click', hideAllModals);
     addListener('register-alliance-form', 'submit', handleAllianceRegisterSubmit);
     addListener('close-edit-alliance-modal-btn', 'click', hideAllModals);
@@ -102,37 +97,17 @@ export function initializeAllEventListeners() {
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const { currentUserData } = getState(); 
+
             const mainTarget = link.dataset.mainTarget;
-
-            // This condition now checks for 'page-social' OR 'page-feed'
-            if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
-                showAccessDeniedModal();
-                return;
-            }
-
             const navItem = link.closest('.nav-item');
             const submenuId = navItem.dataset.submenuId || null;
 
             showPage(mainTarget);
+
             toggleSubNav(submenuId);
 
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
-            let defaultSubTarget;
-            switch (mainTarget) {
-                case 'page-social':
-                    defaultSubTarget = 'social-chat';
-                    break;
-                case 'page-server':
-                    defaultSubTarget = 'server-alliances';
-                    break;
-                case 'page-news':
-                default:
-                    defaultSubTarget = 'news-all';
-                    break;
-            }
-            handleSubNavClick(defaultSubTarget);
         });
     });
     document.querySelectorAll('.sub-nav-link').forEach(link => {
@@ -180,7 +155,6 @@ export function initializeAllEventListeners() {
         });
     }
     addListener('login-btn', 'click', () => showAuthModal('login'));
-    addListener('login-btn-mobile', 'click', () => showAuthModal('login'));
     addListener('close-auth-modal-btn', 'click', hideAllModals);
     addListener('close-edit-modal-btn', 'click', hideAllModals);
     addListener('close-view-post-modal-btn', 'click', hideAllModals);
