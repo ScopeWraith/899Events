@@ -190,51 +190,6 @@ export function showViewPostModal(post) {
     showModal(getElement('view-post-modal-container'));
 }
 
-export function showPage(targetId) {
-    // Hide all pages, then show the target page
-    querySelectorAll('.page-content').forEach(page => {
-        page.style.display = page.id === targetId ? 'block' : 'none';
-    });
-    localStorage.setItem('lastActivePage', targetId);
-
-    // Update main navigation link styles
-    const navLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
-    querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
-    if (navLink) {
-        navLink.classList.add('active');
-        // Update mobile page title
-        const mobileTitleEl = getElement('mobile-page-title');
-        if (mobileTitleEl) {
-            mobileTitleEl.textContent = navLink.querySelector('span').textContent;
-        }
-    }
-
-    // Toggle the correct sub-navigation menu visibility
-    const navItem = navLink ? navLink.closest('.nav-item') : null;
-    toggleSubNav(navItem ? navItem.dataset.submenuId : null);
-
-    // --- FIX: Logic to select a default sub-nav item ---
-    const activeSubNavLink = querySelector('.sub-nav-link.active');
-    const parentPageOfActiveSubNav = activeSubNavLink ? activeSubNavLink.closest('.page-content') : null;
-
-    // Only select a default if no sub-nav is active or if the active one isn't on the current page
-    if (!activeSubNavLink || (parentPageOfActiveSubNav && parentPageOfActiveSubNav.id !== targetId)) {
-        let defaultSubTarget;
-        switch (targetId) {
-            case 'page-news':   defaultSubTarget = 'news-all'; break;
-            case 'page-social': defaultSubTarget = 'social-chat'; break;
-            case 'page-server': defaultSubTarget = 'server-alliances'; break;
-        }
-        if (defaultSubTarget) {
-            const defaultSubNavLink = querySelector(`.sub-nav-link[data-sub-target="${defaultSubTarget}"]`);
-            if (defaultSubNavLink) {
-                // We use .click() to ensure all associated logic in handleSubNavClick runs
-                defaultSubNavLink.click();
-            }
-        }
-    }
-}
-
 export function showModal(modal) {
     getElement('modal-backdrop').classList.add('visible');
     modal.classList.add('visible');
