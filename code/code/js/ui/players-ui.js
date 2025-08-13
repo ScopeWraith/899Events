@@ -51,6 +51,9 @@ export function renderPlayers(players) {
     const skeletonContainer = document.getElementById('players-skeleton-container');
     if (skeletonContainer) skeletonContainer.innerHTML = '';
 
+    // FIX: Get currentUserData and userSessions from the global state.
+    const { currentUserData, userSessions } = getState();
+
     playerListContainer.innerHTML = '';
     if (!players) { // Check for undefined/null, data is loading
         let skeletonHTML = '';
@@ -71,6 +74,7 @@ export function renderPlayers(players) {
         card.dataset.uid = player.uid;
 
         let gearIconHTML = '';
+        // This check will now work correctly without causing a ReferenceError.
         if (currentUserData && currentUserData.uid !== player.uid) {
             if(canManageUser(currentUserData, player)) {
                 gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
@@ -78,9 +82,10 @@ export function renderPlayers(players) {
         }
 
         const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
-        const session = userSessions[player.uid];
+        // This check will also work correctly now.
+        const session = userSessions ? userSessions[player.uid] : null;
         const statusClass = session ? session.status : 'offline';
-        const rankBorder = getRankBorderClass(player); // Correctly using the helper
+        const rankBorder = getRankBorderClass(player); 
 
         card.innerHTML = `
             ${gearIconHTML}
@@ -121,4 +126,3 @@ export function renderPlayers(players) {
         playerListContainer.appendChild(card);
     });
 }
-
