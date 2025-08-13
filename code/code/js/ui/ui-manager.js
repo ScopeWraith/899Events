@@ -436,6 +436,7 @@ export function setupEmojiButton(buttonId, inputId) {
         }
     });
 }
+
 export function updateUIForLoggedInUser() {
     const { currentUserData } = getState();
     if (!currentUserData) return;

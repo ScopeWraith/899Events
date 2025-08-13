@@ -3,7 +3,7 @@
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { initializeAllEventListeners } from './event-listeners.js';
-import { setupInitialUI, buildMobileNav, updateUIForLoggedInUser, updateUIForLoggedOutUser, toggleSubNav, updateSocialNavBadges, navigateTo } from './ui/ui-manager.js';
+import { setupInitialUI, showPage, buildMobileNav, updateUIForLoggedInUser, updateUIForLoggedOutUser, renderSkeletons, toggleSubNav, updateSocialNavBadges, handleSubNavClick } from './ui/ui-manager.js';
 import { setupAllListeners, detachAllListeners, fetchInitialData } from './firestore.js';
 import { setupPresenceManagement } from './presence.js';
 import { setCallbacks } from './state.js';
@@ -43,11 +43,11 @@ onAuthStateChanged(auth, (user) => {
 
     if (user) {
         setupPresenceManagement(user);
-        updateUIForLoggedInUser();
-        setupAllListeners(user, onDataReady);
+        updateUIForLoggedInUser(); // Update UI immediately
+        setupAllListeners(user, onDataReady); // Pass callback
     } else {
-        updateUIForLoggedOutUser();
-        fetchInitialData(onDataReady);
+        updateUIForLoggedOutUser(); // Update UI immediately
+        fetchInitialData(onDataReady); // Fetch public data and then restore view
     }
     
     buildMobileNav();
@@ -57,8 +57,42 @@ function restoreLastViewedPage() {
     const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
     const lastSubPage = localStorage.getItem('lastActiveSubPage');
 
-    // Restore the session using the unified navigation function
-    navigateTo({ mainTarget: lastPage, subTarget: lastSubPage });
+    showPage(lastPage);
+    
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+        const isActive = link.dataset.mainTarget === lastPage;
+        link.classList.toggle('active', isActive);
+        if (isActive) {
+            const submenuId = link.closest('.nav-item').dataset.submenuId;
+            toggleSubNav(submenuId);
+        }
+    });
+
+    if (lastSubPage) {
+        handleSubNavClick(lastSubPage);
+    } else {
+        // --- THIS IS THE CORRECTED LOGIC ---
+        // If no sub-page is saved, determine the default based on the main page.
+        let defaultSubTarget;
+        switch (lastPage) {
+            case 'page-social':
+                defaultSubTarget = 'social-chat';
+                break;
+            case 'page-server':
+                defaultSubTarget = 'server-alliances';
+                break;
+            case 'page-news':
+            default:
+                defaultSubTarget = 'news-all';
+                break;
+        }
+        
+        const defaultSubNavLink = document.querySelector(`.sub-nav-link[data-sub-target="${defaultSubTarget}"]`);
+        if (defaultSubNavLink) {
+            defaultSubNavLink.click();
+        }
+        // --- END CORRECTION ---
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -132,8 +132,7 @@ export function setupAllListeners(user, onInitialDataLoaded) {
 // This is now simplified for only logged-out users.
 export function fetchInitialData(onPublicDataLoaded) {
     const { listeners } = getState();
-    // Now waiting for 4 public data sources
-    const requiredPublicLoads = ['users', 'posts', 'sessions', 'alliances'];
+    const requiredPublicLoads = ['users', 'posts', 'sessions'];
     let loadedCount = 0;
 
     const checkPublicLoaded = (source) => {
@@ -141,10 +140,9 @@ export function fetchInitialData(onPublicDataLoaded) {
             loadedCount++;
             requiredPublicLoads.splice(requiredPublicLoads.indexOf(source), 1);
         }
-        // Now checks for >= 4
-        if (loadedCount >= 4 && onPublicDataLoaded) {
+        if (loadedCount >= 3 && onPublicDataLoaded) {
             onPublicDataLoaded();
-            onPublicDataLoaded = null;
+            onPublicDataLoaded = null; // Prevent multiple calls
         }
     };
 
@@ -172,17 +170,6 @@ export function fetchInitialData(onPublicDataLoaded) {
             checkPublicLoaded('sessions');
         }, () => checkPublicLoaded('sessions'));
     }
-    
-    // --- THIS IS THE NEW LISTENER ---
-    if (!listeners.alliances) {
-        listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
-            const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            updateState({ allAlliances });
-            checkPublicLoaded('alliances');
-        }, () => checkPublicLoaded('alliances'));
-    }
-    // --- END NEW LISTENER ---
-
     updateState({ listeners });
 }
 
