@@ -322,40 +322,81 @@ export function setupEmojiButton(buttonId, inputId) {
 export function buildMobileNav() {
     const { currentUserData } = getState();
     const mobileNavLinksContainer = getElement('mobile-nav-links');
+    if (!mobileNavLinksContainer) return;
+
     mobileNavLinksContainer.innerHTML = '';
     const desktopNav = getElement('main-nav');
+
     desktopNav.querySelectorAll('.nav-item').forEach(item => {
         const link = item.querySelector('.nav-link');
+        if (!link) return;
         const newLink = document.createElement('a');
         newLink.href = '#';
         newLink.className = 'mobile-nav-link';
         newLink.innerHTML = `<i class="${link.querySelector('i').className} w-6 text-center mr-3"></i>${link.querySelector('span').textContent}`;
+        
         newLink.addEventListener('click', (e) => {
             e.preventDefault();
-            const { currentUserData } = getState();
+            const state = getState(); 
             const mainTarget = link.dataset.mainTarget;
-            if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
+
+            if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !state.currentUserData) {
                 getElement('mobile-nav-menu').classList.remove('open');
                 showAccessDeniedModal();
                 return;
             }
+            
             const parentNavItem = link.closest('.nav-item');
             const submenuId = parentNavItem ? parentNavItem.dataset.submenuId : null;
+
             showPage(mainTarget);
             toggleSubNav(submenuId);
+            
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
+
             getElement('mobile-nav-menu').classList.remove('open');
             getElement('modal-backdrop').classList.remove('visible');
         });
         mobileNavLinksContainer.appendChild(newLink);
     });
+
     const divider = document.createElement('hr');
     divider.className = 'border-t border-white/10 my-2';
     mobileNavLinksContainer.appendChild(divider);
-    if (currentUserData?.isAdmin) {
-        // Add admin links
+
+    // --- FIX: Add check for user permissions before creating mobile admin links ---
+    const canCreatePost = currentUserData && (currentUserData.isAdmin || (currentUserData.isVerified && (currentUserData.allianceRank === 'R5' || currentUserData.allianceRank === 'R4')));
+    if (canCreatePost) {
+        const createEventLink = document.createElement('a');
+        createEventLink.href = '#';
+        createEventLink.className = 'mobile-nav-link';
+        createEventLink.innerHTML = `<i class="fas fa-calendar-plus fa-fw w-6 text-center mr-3"></i>Create Event`;
+        createEventLink.onclick = (e) => { 
+            e.preventDefault(); 
+            getElement('mobile-nav-menu').classList.remove('open');
+            getElement('modal-backdrop').classList.remove('visible');
+            showCreatePostModal('event'); 
+        };
+        mobileNavLinksContainer.appendChild(createEventLink);
+
+        const createAnnouncementLink = document.createElement('a');
+        createAnnouncementLink.href = '#';
+        createAnnouncementLink.className = 'mobile-nav-link';
+        createAnnouncementLink.innerHTML = `<i class="fas fa-bullhorn fa-fw w-6 text-center mr-3"></i>Create Announcement`;
+        createAnnouncementLink.onclick = (e) => { 
+            e.preventDefault(); 
+            getElement('mobile-nav-menu').classList.remove('open');
+            getElement('modal-backdrop').classList.remove('visible');
+            showCreatePostModal('announcement'); 
+        };
+        mobileNavLinksContainer.appendChild(createAnnouncementLink);
+
+        const adminDivider = document.createElement('hr');
+        adminDivider.className = 'border-t border-white/10 my-2';
+        mobileNavLinksContainer.appendChild(adminDivider);
     }
+    
     if (currentUserData) {
         const editProfileMobile = document.createElement('a');
         editProfileMobile.href = '#';
@@ -363,11 +404,17 @@ export function buildMobileNav() {
         editProfileMobile.innerHTML = `<i class="fas fa-user-edit w-6 text-center mr-3"></i>Edit Profile`;
         editProfileMobile.onclick = (e) => { e.preventDefault(); getElement('mobile-nav-menu').classList.remove('open'); showEditProfileModal(); };
         mobileNavLinksContainer.appendChild(editProfileMobile);
+
         const logoutMobile = document.createElement('a');
         logoutMobile.href = '#';
         logoutMobile.className = 'mobile-nav-link';
         logoutMobile.innerHTML = `<i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>Logout`;
-        logoutMobile.onclick = (e) => { e.preventDefault(); getElement('mobile-nav-menu').classList.remove('open'); getElement('modal-backdrop').classList.remove('visible'); handleLogout(); };
+        logoutMobile.onclick = (e) => { 
+            e.preventDefault(); 
+            getElement('mobile-nav-menu').classList.remove('open');
+            getElement('modal-backdrop').classList.remove('visible');
+            handleLogout(); 
+        };
         mobileNavLinksContainer.appendChild(logoutMobile);
     } else {
         const loginMobile = document.createElement('a');
