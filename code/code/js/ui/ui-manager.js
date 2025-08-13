@@ -23,6 +23,45 @@ export function showAccessDeniedModal() {
     hideAllModals();
     showModal(getElement('access-denied-modal-container'));
 }
+
+// --- NEW UNIFIED NAVIGATION FUNCTION ---
+export function navigateTo({ mainTarget, subTarget }) {
+    const { currentUserData } = getState();
+
+    // 1. Centralized access control
+    if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
+        showAccessDeniedModal();
+        return;
+    }
+
+    // 2. Show the main page and save state
+    showPage(mainTarget);
+
+    // 3. Update the active main nav link visually
+    document.querySelectorAll('#main-nav .nav-link').forEach(l => {
+        l.classList.toggle('active', l.dataset.mainTarget === mainTarget);
+    });
+
+    // 4. Handle the sub-navigation menu visibility
+    const navItem = document.querySelector(`#main-nav .nav-link[data-main-target="${mainTarget}"]`).closest('.nav-item');
+    const submenuId = navItem ? navItem.dataset.submenuId : null;
+    toggleSubNav(submenuId);
+
+    // 5. Determine the final sub-page to show (either the provided one or a default)
+    let finalSubTarget = subTarget;
+    if (!finalSubTarget) {
+        switch (mainTarget) {
+            case 'page-social': finalSubTarget = 'social-chat'; break;
+            case 'page-server': finalSubTarget = 'server-alliances'; break;
+            default: finalSubTarget = 'news-all'; break;
+        }
+    }
+    
+    // 6. Show the correct sub-page content
+    handleSubNavClick(finalSubTarget);
+}
+
+
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
     if (convoCount !== undefined) socialBadges.convoCount = convoCount;
     if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;
@@ -39,10 +78,14 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
         friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
     }
 }
+
 export function handleSubNavClick(subTargetId) {
+    // This function now ONLY handles the logic for switching sub-pages.
+    // The decision of which sub-page to show is made by navigateTo.
+    
     localStorage.setItem('lastActiveSubPage', subTargetId);
-    const allSubNavLinks = querySelectorAll('.sub-nav-link');
-    allSubNavLinks.forEach(link => {
+    
+    querySelectorAll('.sub-nav-link').forEach(link => {
         link.classList.toggle('active', link.dataset.subTarget === subTargetId);
     });
 
@@ -56,8 +99,6 @@ export function handleSubNavClick(subTargetId) {
     const targetSubPage = getElement(`sub-page-${subTargetId}`);
     if (targetSubPage) {
         targetSubPage.style.display = 'block';
-    } else {
-        console.warn(`Sub-page with id "sub-page-${subTargetId}" not found.`);
     }
 
     const { listeners } = getState();
@@ -163,38 +204,17 @@ export function toggleSubNav(activeSubmenuId) {
 }
 
 export function showPage(targetId) {
+    localStorage.setItem('lastActivePage', targetId);
+    
     querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';
     });
-    localStorage.setItem('lastActivePage', targetId);
+    
     const mobileTitleEl = getElement('mobile-page-title');
     const activeNavLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
     if (mobileTitleEl && activeNavLink) {
         const titleText = activeNavLink.querySelector('span').textContent;
         mobileTitleEl.textContent = titleText;
-    }
-    
-    if (targetId === 'page-news') {
-        renderNews('all');
-    } else if (targetId === 'page-feed') {
-        const { currentUserData } = getState();
-        const welcomeContainer = getElement('feed-welcome-message');
-        
-        if (currentUserData && welcomeContainer) {
-            welcomeContainer.innerHTML = `
-                <h2 class="text-3xl font-bold text-white tracking-wider">Welcome Back, <span style="color: var(--color-primary);">${currentUserData.username}</span>!</h2>
-                <p class="text-gray-400 mt-1">Here's what's happening in the community.</p>
-            `;
-        }
-        renderFeedActivity();
-    } else if (targetId === 'page-social') {
-        handleSubNavClick('social-chat');
-    } else if (targetId === 'page-server') {
-        const alliancesSubpage = getElement('sub-page-server-alliances');
-        if(alliancesSubpage) {
-            alliancesSubpage.style.display = 'block';
-        }
-        applyPlayerFilters();
     }
 }
 
@@ -458,6 +478,7 @@ export function updateUIForLoggedOutUser() {
     userProfileNavItem.classList.add('hidden');
     userProfileNavItem.classList.remove('open');
     getElement('mobile-auth-container').classList.remove('logged-in');
+    getElement('login-btn-mobile').classList.remove('hidden');
 }
 
 export function buildMobileNav() {
@@ -475,40 +496,9 @@ export function buildMobileNav() {
         
         newLink.addEventListener('click', (e) => {
             e.preventDefault();
-            // Re-fetch state on click to ensure it's current
-            const { currentUserData } = getState(); 
             const mainTarget = link.dataset.mainTarget;
-
-            // --- THIS LOGIC IS NEW FOR MOBILE ---
-            if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
-                getElement('mobile-nav-menu').classList.remove('open');
-                showAccessDeniedModal();
-                return;
-            }
-            // --- END NEW LOGIC ---
-
-            const parentNavItem = link.closest('.nav-item');
-            const submenuId = parentNavItem ? parentNavItem.dataset.submenuId : null;
-
-            showPage(mainTarget);
-            toggleSubNav(submenuId);
             
-            let defaultSubTarget;
-            switch (mainTarget) {
-                case 'page-social':
-                    defaultSubTarget = 'social-chat';
-                    break;
-                case 'page-server':
-                    defaultSubTarget = 'server-alliances';
-                    break;
-                case 'page-news':
-                default:
-                    defaultSubTarget = 'news-all';
-                    break;
-            }
-            
-            document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
+            navigateTo({ mainTarget: mainTarget });
 
             getElement('mobile-nav-menu').classList.remove('open');
             getElement('modal-backdrop').classList.remove('visible');
@@ -554,7 +544,6 @@ export function buildMobileNav() {
         logoutMobile.innerHTML = `<i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>Logout`;
         logoutMobile.onclick = (e) => { 
             e.preventDefault(); 
-            // ** THIS IS THE FIX **
             getElement('mobile-nav-menu').classList.remove('open');
             getElement('modal-backdrop').classList.remove('visible');
             handleLogout(); 

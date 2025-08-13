@@ -3,7 +3,7 @@
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getState, updateState } from './state.js';
-import { setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal } from './ui/ui-manager.js';
+import { setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal, showCreatePostModal, showConfirmationModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal, handleSubNavClick, toggleSubNav, showViewPostModal, showAccessDeniedModal, navigateTo } from './ui/ui-manager.js';
 import { handleLogout, handleLoginSubmit, handleForgotPassword, handleRegistrationNext, handleRegistrationBack, handleAvatarSelection, handleRegistrationSubmit, handleEditProfileSubmit, handleAvatarUpload } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit} from './ui/post-ui.js';
@@ -20,6 +20,25 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
+
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const mainTarget = link.dataset.mainTarget;
+            navigateTo({ mainTarget: mainTarget });
+        });
+    });
+
+    document.querySelectorAll('.sub-nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const subTarget = link.dataset.subTarget;
+            localStorage.setItem('lastActiveSubPage', subTarget); // Explicitly save on direct click
+            handleSubNavClick(subTarget);
+        });
+    });
+    
+    // ... (rest of the listeners are unchanged, this file is now much cleaner)
 
     const serverPage = getElement('page-server');
     if (serverPage) {
@@ -54,7 +73,6 @@ export function initializeAllEventListeners() {
         });
     }
 
-    // --- The rest of your event-listeners.js file remains unchanged ---
     addListener('close-access-denied-modal-btn', 'click', hideAllModals);
     addListener('access-denied-login-btn', 'click', () => {
         hideAllModals();
@@ -98,49 +116,6 @@ export function initializeAllEventListeners() {
         const reactionType = reactionBtn.dataset.reaction;
         togglePostReaction(actionPostId, reactionType);
     }
-    });
-    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const { currentUserData } = getState(); 
-            const mainTarget = link.dataset.mainTarget;
-
-            // This condition now checks for 'page-social' OR 'page-feed'
-            if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
-                showAccessDeniedModal();
-                return;
-            }
-
-            const navItem = link.closest('.nav-item');
-            const submenuId = navItem.dataset.submenuId || null;
-
-            showPage(mainTarget);
-            toggleSubNav(submenuId);
-
-            document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-            let defaultSubTarget;
-            switch (mainTarget) {
-                case 'page-social':
-                    defaultSubTarget = 'social-chat';
-                    break;
-                case 'page-server':
-                    defaultSubTarget = 'server-alliances';
-                    break;
-                case 'page-news':
-                default:
-                    defaultSubTarget = 'news-all';
-                    break;
-            }
-            handleSubNavClick(defaultSubTarget);
-        });
-    });
-    document.querySelectorAll('.sub-nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const subTarget = link.dataset.subTarget;
-            handleSubNavClick(subTarget);
-        });
     });
     addListener('mobile-auth-container', 'click', () => {
         showEditProfileModal();
