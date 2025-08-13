@@ -7,7 +7,10 @@ import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
 import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc, getDocs, updateDoc, collection, where, query, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { initializePostStepper, populatePostFormForEdit } from './post-ui.js';
+import { initializePostStepper, populatePostFormForEdit, renderNews } from './post-ui.js';
+import { renderChatChannels, renderConversations, renderFriendsPage } from './social-ui.js';
+import { applyPlayerFilters } from './players-ui.js';
+import { renderAlliances } from './alliances-ui.js';
 import { formatTimeAgo, autoLinkText } from '../utils.js';
 
 const getElement = (id) => document.getElementById(id);
@@ -42,19 +45,42 @@ export function handleSubNavClick(subTargetId) {
     querySelectorAll('.sub-nav-link').forEach(link => {
         link.classList.toggle('active', link.dataset.subTarget === subTargetId);
     });
-
     const activePage = querySelector('.page-content[style*="display: block"]');
     if (activePage) {
         activePage.querySelectorAll('.sub-page').forEach(page => {
             page.style.display = 'none';
         });
     }
-
     const targetSubPage = getElement(`sub-page-${subTargetId}`);
     if (targetSubPage) {
         targetSubPage.style.display = 'block';
     }
-    // No need to call render functions here anymore, the components handle it.
+
+    // --- FIX: Re-introduce render calls on sub-nav click ---
+    switch (subTargetId) {
+        case 'news-all':
+        case 'news-events':
+        case 'news-announcements':
+            const [, filter] = subTargetId.split('-');
+            renderNews(filter, getState());
+            break;
+        case 'social-chat':
+            renderChatChannels(getState().currentUserData);
+            break;
+        case 'social-convo':
+            renderConversations();
+            break;
+        case 'social-friends':
+            const { userFriends, allPlayers } = getState();
+            renderFriendsPage(userFriends, allPlayers);
+            break;
+        case 'server-players':
+            applyPlayerFilters();
+            break;
+        case 'server-alliances':
+            renderAlliances(getState());
+            break;
+    }
 }
 
 export function showViewPostModal(post) {
