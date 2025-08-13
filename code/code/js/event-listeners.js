@@ -124,22 +124,16 @@ export function initializeAllEventListeners() {
                 showAccessDeniedModal();
                 return;
             }
-
-            const navItem = link.closest('.nav-item');
-            const submenuId = navItem.dataset.submenuId || null;
-
+            // Just call showPage. It will handle everything else.
             showPage(mainTarget);
-            toggleSubNav(submenuId);
-
-            document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
         });
     });
+
+    // Sub Navigation Links
     document.querySelectorAll('.sub-nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const subTarget = link.dataset.subTarget;
-            handleSubNavClick(subTarget);
+            handleSubNavClick(link.dataset.subTarget);
         });
     });
     addListener('mobile-auth-container', 'click', () => {

@@ -40,11 +40,61 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
         friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
     }
 }
+export function showPage(targetId) {
+    // Hide all pages, then show the target page
+    querySelectorAll('.page-content').forEach(page => {
+        page.style.display = page.id === targetId ? 'block' : 'none';
+    });
+    localStorage.setItem('lastActivePage', targetId);
+
+    // Update main navigation link styles and mobile title
+    const navLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
+    querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
+    if (navLink) {
+        navLink.classList.add('active');
+        const mobileTitleEl = getElement('mobile-page-title');
+        if (mobileTitleEl) {
+            mobileTitleEl.textContent = navLink.querySelector('span').textContent;
+        }
+    }
+
+    // Determine which sub-navigation menu to show
+    const navItem = navLink ? navLink.closest('.nav-item') : null;
+    const submenuId = navItem ? navItem.dataset.submenuId : null;
+    toggleSubNav(submenuId);
+
+    // --- NEW, ROBUST LOGIC FOR SELECTING A SUB-PAGE ---
+    const lastSubPageForThisSection = localStorage.getItem(`lastSubPage_${targetId}`);
+    let subTargetToSelect = lastSubPageForThisSection;
+
+    // If no last-visited sub-page for this section, set a default
+    if (!subTargetToSelect) {
+        switch (targetId) {
+            case 'page-news':   subTargetToSelect = 'news-all'; break;
+            case 'page-social': subTargetToSelect = 'social-chat'; break;
+            case 'page-server': subTargetToSelect = 'server-alliances'; break;
+        }
+    }
+
+    // Find the sub-nav link and click it to trigger all related logic
+    if (subTargetToSelect) {
+        const subNavLink = querySelector(`.sub-nav-link[data-sub-target="${subTargetToSelect}"]`);
+        if (subNavLink) {
+            subNavLink.click();
+        }
+    }
+}
+
 export function handleSubNavClick(subTargetId) {
-    localStorage.setItem('lastActiveSubPage', subTargetId);
+    // When a sub-nav is clicked, save it as the last visited for its parent section
+    const parentPageId = querySelector(`[data-sub-target="${subTargetId}"]`).closest('.page-content').id;
+    localStorage.setItem(`lastSubPage_${parentPageId}`, subTargetId);
+
+    // Update active styles and show the correct sub-page content
     querySelectorAll('.sub-nav-link').forEach(link => {
         link.classList.toggle('active', link.dataset.subTarget === subTargetId);
     });
+
     const activePage = querySelector('.page-content[style*="display: block"]');
     if (activePage) {
         activePage.querySelectorAll('.sub-page').forEach(page => {
@@ -56,12 +106,10 @@ export function handleSubNavClick(subTargetId) {
         targetSubPage.style.display = 'block';
     }
 
+    // Render the content for the selected sub-page
     switch (subTargetId) {
-        case 'news-all':
-        case 'news-events':
-        case 'news-announcements':
-            const [, filter] = subTargetId.split('-');
-            renderNews(filter, getState());
+        case 'news-all': case 'news-events': case 'news-announcements':
+            renderNews(subTargetId.split('-')[1], getState());
             break;
         case 'social-chat':
             renderChatChannels(getState().currentUserData);
@@ -82,6 +130,24 @@ export function handleSubNavClick(subTargetId) {
     }
 }
 
+export function toggleSubNav(activeSubmenuId) {
+    const subNavContainer = document.getElementById('sub-nav-container');
+    if (!subNavContainer) return;
+
+    subNavContainer.querySelectorAll('.sub-nav-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+
+    if (activeSubmenuId) {
+        const activeContent = document.getElementById(activeSubmenuId);
+        if (activeContent) {
+            activeContent.classList.remove('hidden');
+            subNavContainer.classList.add('open');
+        }
+    } else {
+        subNavContainer.classList.remove('open');
+    }
+}
 export function showViewPostModal(post) {
     if (!post) return;
     const { allPlayers, currentUserData } = getState();

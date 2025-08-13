@@ -9,9 +9,7 @@ import {
     setupInitialUI,
     buildMobileNav,
     updateSocialNavBadges,
-    showPage,
-    toggleSubNav,
-    handleSubNavClick
+    showPage
 } from './ui/ui-manager.js';
 import { initializeAllEventListeners } from './event-listeners.js';
 import { initializeAuthUI } from './ui/auth-ui.js';
@@ -22,21 +20,10 @@ import { initializeAlliancesUI } from './ui/alliances-ui.js';
 import { initializeNotificationsUI } from './ui/notifications-ui.js';
 
 function restoreLastViewedPage() {
+    // Get the last main page, or default to news
     const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
-    const lastSubPage = localStorage.getItem('lastActiveSubPage');
-
-    // Show the main page first
+    // The intelligent showPage function will handle the rest
     showPage(lastPage);
-
-    // If there's a specific sub-page saved, click it.
-    // Otherwise, the showPage function will now handle picking the default.
-    if (lastSubPage) {
-        // We find the link and click it to ensure all related logic runs
-        const subNavLink = document.querySelector(`.sub-nav-link[data-sub-target="${lastSubPage}"]`);
-        if (subNavLink) {
-            subNavLink.click();
-        }
-    }
 }
 
 function showAppContent() {
