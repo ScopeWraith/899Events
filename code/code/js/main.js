@@ -69,26 +69,30 @@ function restoreLastViewedPage() {
         }
     });
 
-    // If there's a specific sub-page saved, go there.
-    if (lastSubPage) {
-        handleSubNavClick(lastSubPage);
+    // --- START: MODIFIED CODE ---
+    let subPageToLoad;
+    const mainPageId = lastPage.replace('page-', ''); // "page-news" -> "news"
+
+    // Check if the saved sub-page is valid for the current main page
+    if (lastSubPage && lastSubPage.startsWith(mainPageId)) {
+        subPageToLoad = lastSubPage;
     } else {
-        // Otherwise, determine the default based on the active main page.
-        let defaultSubPage;
-        switch (lastPage) {
-            case 'page-social':
-                defaultSubPage = 'social-chat';
+        // If not valid, or doesn't exist, fall back to the default for the current main page
+        switch (mainPageId) {
+            case 'social':
+                subPageToLoad = 'social-chat';
                 break;
-            case 'page-server':
-                defaultSubPage = 'server-alliances';
+            case 'server':
+                subPageToLoad = 'server-alliances';
                 break;
-            case 'page-news':
+            case 'news':
             default:
-                defaultSubPage = 'news-all';
+                subPageToLoad = 'news-all';
                 break;
         }
-        handleSubNavClick(defaultSubPage);
     }
+    handleSubNavClick(subPageToLoad);
+    // --- END: MODIFIED CODE ---
 }
 
 document.addEventListener('DOMContentLoaded', () => {
