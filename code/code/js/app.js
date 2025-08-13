@@ -5,9 +5,9 @@ import { auth } from './firebase-config.js';
 import { subscribe, setState } from './state.js';
 import { setupAllListeners, detachAllListeners, fetchInitialData } from './firestore.js';
 import { setupPresenceManagement } from './presence.js';
-import { 
-    setupInitialUI, 
-    buildMobileNav, 
+import {
+    setupInitialUI,
+    buildMobileNav,
     updateSocialNavBadges,
     showPage,
     toggleSubNav,
@@ -19,31 +19,23 @@ import { initializeSocialUI } from './ui/social-ui.js';
 import { initializePostUI } from './ui/post-ui.js';
 import { initializePlayersUI } from './ui/players-ui.js';
 import { initializeAlliancesUI } from './ui/alliances-ui.js';
-import { initializeNotificationsUI } from './ui/notifications-ui.js'; // New import
+import { initializeNotificationsUI } from './ui/notifications-ui.js';
 
 function restoreLastViewedPage() {
     const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
     const lastSubPage = localStorage.getItem('lastActiveSubPage');
+
+    // Show the main page first
     showPage(lastPage);
-    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
-        const isActive = link.dataset.mainTarget === lastPage;
-        link.classList.toggle('active', isActive);
-        if (isActive) {
-            const submenuId = link.closest('.nav-item').dataset.submenuId;
-            toggleSubNav(submenuId);
-        }
-    });
+
+    // If there's a specific sub-page saved, click it.
+    // Otherwise, the showPage function will now handle picking the default.
     if (lastSubPage) {
-        handleSubNavClick(lastSubPage);
-    } else {
-        let defaultSubTarget;
-        switch (lastPage) {
-            case 'page-social': defaultSubTarget = 'social-chat'; break;
-            case 'page-server': defaultSubTarget = 'server-alliances'; break;
-            case 'page-news': default: defaultSubTarget = 'news-all'; break;
+        // We find the link and click it to ensure all related logic runs
+        const subNavLink = document.querySelector(`.sub-nav-link[data-sub-target="${lastSubPage}"]`);
+        if (subNavLink) {
+            subNavLink.click();
         }
-        const defaultSubNavLink = document.querySelector(`.sub-nav-link[data-sub-target="${defaultSubTarget}"]`);
-        if (defaultSubNavLink) defaultSubNavLink.click();
     }
 }
 
@@ -91,5 +83,5 @@ export function initializeApp() {
     initializePostUI();
     initializePlayersUI();
     initializeAlliancesUI();
-    initializeNotificationsUI(); // Initialize our new component
+    initializeNotificationsUI();
 }
