@@ -1,15 +1,14 @@
 // code/js/ui/ui-manager.js
 
-import { getState, updateState } from '../state.js';
+import { getState, setState } from '../state.js';
 import { AVATAR_BORDERS, CHAT_BUBBLE_BORDERS, ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS } from '../constants.js';
-import { populateEditForm, updateAvatarDisplay, updatePlayerProfileDropdown, handleLogout } from './auth-ui.js';
+import { populateEditForm, handleLogout } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
-import { auth, db } from '../firebase-config.js';
+import { db } from '../firebase-config.js';
 import { doc, deleteDoc, setDoc, getDocs, updateDoc, collection, where, query, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { initializePostStepper, populatePostFormForEdit, renderFeedActivity, renderNews } from './post-ui.js';
 import { renderFriendsList, renderConversations, renderFriendsPage, renderChatChannels } from './social-ui.js';
-import { formatTimeAgo, autoLinkText, getRankBorderClass, formatEventDateTime } from '../utils.js';
 import { applyPlayerFilters } from './players-ui.js';
 import { renderAlliances } from './alliances-ui.js';
 
@@ -62,7 +61,7 @@ export function handleSubNavClick(subTargetId) {
 
     const { listeners } = getState();
     if (listeners.convoList) listeners.convoList();
-    
+
     switch (subTargetId) {
         case 'news-all':
         case 'news-events':
@@ -94,7 +93,7 @@ export function handleSubNavClick(subTargetId) {
 export function showViewPostModal(post) {
     if (!post) return;
     const { allPlayers, currentUserData } = getState();
-    updateState({ actionPostId: post.id });
+    setState({ actionPostId: post.id });
 
     const author = allPlayers.find(p => p.uid === post.authorUid);
     const authorSection = getElement('view-post-author-section');
@@ -116,9 +115,9 @@ export function showViewPostModal(post) {
     const categoryEl = getElement('view-post-category');
     categoryEl.textContent = categoryInfo.text || 'Post';
     categoryEl.style.backgroundColor = categoryStyle.color || 'var(--color-primary)';
-    
+
     getElement('view-post-title').textContent = post.title;
-    
+
     const thumbnailSection = getElement('view-post-thumbnail-section');
     if (post.thumbnailUrl) {
         thumbnailSection.style.display = 'block';
@@ -173,13 +172,13 @@ export function showPage(targetId) {
         const titleText = activeNavLink.querySelector('span').textContent;
         mobileTitleEl.textContent = titleText;
     }
-    
+
     if (targetId === 'page-news') {
         renderNews('all');
     } else if (targetId === 'page-feed') {
         const { currentUserData } = getState();
         const welcomeContainer = getElement('feed-welcome-message');
-        
+
         if (currentUserData && welcomeContainer) {
             welcomeContainer.innerHTML = `
                 <h2 class="text-3xl font-bold text-white tracking-wider">Welcome Back, <span style="color: var(--color-primary);">${currentUserData.username}</span>!</h2>
@@ -206,11 +205,11 @@ export function showModal(modal) {
 export function hideAllModals() {
     getElement('modal-backdrop').classList.remove('visible');
     querySelectorAll('.modal-container').forEach(modal => modal.classList.remove('visible'));
-    
+
     const emojiPickerContainer = getElement('emoji-picker-container');
     if (emojiPickerContainer) emojiPickerContainer.classList.remove('visible');
-    
-    updateState({ 
+
+    setState({ 
         activePlayerSettingsUID: null, 
         editingPostId: null,
         actionPostId: null,
@@ -225,7 +224,7 @@ export function showAuthModal(formToShow) {
     hideAllModals();
     showModal(getElement('auth-modal-container'));
     querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-    
+
     if (formToShow === 'register') {
         getElement('register-form-container').classList.add('active');
     } else {
@@ -245,14 +244,14 @@ export function showEditProfileModal() {
 }
 
 export function showPlayerSettingsModal(player) {
-    updateState({ activePlayerSettingsUID: player.uid });
+    setState({ activePlayerSettingsUID: player.uid });
     hideAllModals();
     showModal(getElement('player-settings-modal-container'));
     populatePlayerSettingsForm(player);
 }
 
 export function showCreatePostModal(mainType) {
-    updateState({ editingPostId: null });
+    setState({ editingPostId: null });
     getElement('create-post-form').reset();
     getElement('post-nav-container').style.display = 'flex';
     hideAllModals();
@@ -328,7 +327,7 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
     getElement('chat-header-user-info').style.display = 'none';
     getElement('chat-header-channel-info').style.display = 'none';
     getElement('fullscreen-chat-window').innerHTML = '';
-    
+
     const { listeners } = getState();
     if (listeners.privateChat) listeners.privateChat();
     if (listeners.worldChat) listeners.worldChat();
@@ -348,7 +347,7 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
             await setDoc(chatDocRef, {
                 participants: [currentUserData.uid, targetPlayer.uid]
             }, { merge: true });
-            
+
             const messagesQuery = query(collection(db, `private_chats/${chatId}/messages`), where('authorUid', '!=', currentUserData.uid), where('isRead', '==', false));
             const unreadMessages = await getDocs(messagesQuery);
             if (!unreadMessages.empty) {
@@ -359,7 +358,7 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
                 await batch.commit();
             }
 
-            updateState({
+            setState({
                 activePrivateChatPartner: targetPlayer,
                 activePrivateChatId: chatId
             });
@@ -415,7 +414,7 @@ export function setupEmojiButton(buttonId, inputId) {
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         emojiPickerContainer.classList.toggle('visible');
-        updateState({ activeEmojiInput: input });
+        setState({ activeEmojiInput: input });
     });
 
     emojiPickerContainer.addEventListener('click', (e) => {
@@ -427,37 +426,6 @@ export function setupEmojiButton(buttonId, inputId) {
             emojiPickerContainer.classList.remove('visible');
         }
     });
-}
-export function updateUIForLoggedInUser() {
-    const { currentUserData } = getState();
-    if (!currentUserData) return;
-
-    getElement('username-display').textContent = currentUserData.username;
-    updateAvatarDisplay(currentUserData);
-    updatePlayerProfileDropdown();
-    getElement('login-btn').classList.add('hidden');
-    getElement('user-profile-nav-item').classList.remove('hidden');
-    getElement('mobile-auth-container').classList.add('logged-in');
-    getElement('login-btn-mobile').classList.add('hidden');
-
-    const adminActionsContainer = getElement('admin-actions-container');
-    if (adminActionsContainer) {
-        if (currentUserData.isAdmin) {
-            adminActionsContainer.classList.remove('hidden');
-            adminActionsContainer.classList.add('md:flex');
-        } else {
-            adminActionsContainer.classList.add('hidden');
-            adminActionsContainer.classList.remove('md:flex');
-        }
-    }
-}
-
-export function updateUIForLoggedOutUser() {
-    getElement('login-btn').classList.remove('hidden');
-    const userProfileNavItem = getElement('user-profile-nav-item');
-    userProfileNavItem.classList.add('hidden');
-    userProfileNavItem.classList.remove('open');
-    getElement('mobile-auth-container').classList.remove('logged-in');
 }
 
 export function buildMobileNav() {
@@ -472,27 +440,24 @@ export function buildMobileNav() {
         newLink.href = '#';
         newLink.className = 'mobile-nav-link';
         newLink.innerHTML = `<i class="${link.querySelector('i').className} w-6 text-center mr-3"></i>${link.querySelector('span').textContent}`;
-        
+
         newLink.addEventListener('click', (e) => {
             e.preventDefault();
-            // Re-fetch state on click to ensure it's current
             const { currentUserData } = getState(); 
             const mainTarget = link.dataset.mainTarget;
 
-            // --- THIS LOGIC IS NEW FOR MOBILE ---
             if ((mainTarget === 'page-social' || mainTarget === 'page-feed') && !currentUserData) {
                 getElement('mobile-nav-menu').classList.remove('open');
                 showAccessDeniedModal();
                 return;
             }
-            // --- END NEW LOGIC ---
 
             const parentNavItem = link.closest('.nav-item');
             const submenuId = parentNavItem ? parentNavItem.dataset.submenuId : null;
 
             showPage(mainTarget);
             toggleSubNav(submenuId);
-            
+
             document.querySelectorAll('#main-nav .nav-link').forEach(l => l.classList.remove('active'));
             link.classList.add('active');
 
@@ -525,7 +490,7 @@ export function buildMobileNav() {
         adminDivider.className = 'border-t border-white/10 my-2';
         mobileNavLinksContainer.appendChild(adminDivider);
     }
-    
+
     if (currentUserData) {
         const editProfileMobile = document.createElement('a');
         editProfileMobile.href = '#';
@@ -540,7 +505,6 @@ export function buildMobileNav() {
         logoutMobile.innerHTML = `<i class="fas fa-sign-out-alt w-6 text-center mr-3"></i>Logout`;
         logoutMobile.onclick = (e) => { 
             e.preventDefault(); 
-            // ** THIS IS THE FIX **
             getElement('mobile-nav-menu').classList.remove('open');
             getElement('modal-backdrop').classList.remove('visible');
             handleLogout(); 
@@ -563,7 +527,7 @@ function setupCustomSelects() {
         const optionsContainer = container.querySelector('.custom-select-options');
         const searchInput = container.querySelector('.custom-select-search');
         const optionsList = container.querySelector('.options-list');
-        
+
         let sourceData = [];
         if (type === 'alliance') sourceData = ALLIANCES.map(a => ({value: a, text: a}));
         else if (type === 'avatar-border') sourceData = AVATAR_BORDERS;

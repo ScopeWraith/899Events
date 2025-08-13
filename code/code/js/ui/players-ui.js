@@ -1,23 +1,38 @@
 // code/js/ui/players-ui.js
 
-/**
- * This module handles all UI logic related to the Players page,
- * including filtering the player list and rendering player cards.
- */
+import { subscribe, getState } from '../state.js';
+import { canManageUser, getRankBorderClass} from '../utils.js';
 
-import { getState } from '../state.js';
-import { canManageUser , getAvatarSkinClass , getRankBorderClass} from '../utils.js';
+// --- STATE & RENDER FUNCTIONS ---
+
+function renderPlayersUI(newState, prevState) {
+    // Re-render the player list if the list of players or the current user changes.
+    if (newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData) {
+        // We only need to re-apply filters, as it will trigger a re-render.
+        applyPlayerFilters();
+    }
+}
+
+export function initializePlayersUI() {
+    subscribe(renderPlayersUI);
+}
+
+
+// --- UI HELPER & RENDERING FUNCTIONS ---
 
 export function applyPlayerFilters() {
     const playerListContainer = document.getElementById('player-list-container');
-    // FIX: Add a guard clause to ensure the function only runs when the Players page is visible.
     if (!playerListContainer) {
         return;
     }
 
     const { allPlayers } = getState();
-    const searchTerm = document.getElementById('player-search-input').value.toLowerCase();
-    const allianceFilter = document.getElementById('alliance-filter').value;
+    const searchTermInput = document.getElementById('player-search-input');
+    const allianceFilterInput = document.getElementById('alliance-filter');
+
+    // Ensure elements exist before getting their value
+    const searchTerm = searchTermInput ? searchTermInput.value.toLowerCase() : '';
+    const allianceFilter = allianceFilterInput ? allianceFilterInput.value : '';
 
     const filteredPlayers = allPlayers.filter(player => {
         if (!player.username) return false;
@@ -27,6 +42,7 @@ export function applyPlayerFilters() {
     });
     renderPlayers(filteredPlayers);
 }
+
 function createPlayerSkeletonCard() {
     return `
         <div class="player-card glass-pane p-4 flex flex-col opacity-50">
@@ -46,12 +62,15 @@ function createPlayerSkeletonCard() {
         </div>
     `;
 }
+
 export function renderPlayers(players) {
     const playerListContainer = document.getElementById('player-list-container');
+    if (!playerListContainer) return;
+
     const { currentUserData, userSessions } = getState();
 
     playerListContainer.innerHTML = '';
-    if (!players) { // Check for undefined/null, data is loading
+    if (!players) { // Data is loading
         let skeletonHTML = '';
         for (let i = 0; i < 8; i++) {
             skeletonHTML += createPlayerSkeletonCard();
@@ -63,6 +82,7 @@ export function renderPlayers(players) {
         playerListContainer.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No players match the current filters.</p>`;
         return;
     }
+
     players.forEach(player => {
         const card = document.createElement('div');
         card.className = 'player-card glass-pane p-4 flex flex-col relative';
@@ -71,7 +91,7 @@ export function renderPlayers(players) {
 
         let gearIconHTML = '';
         if (currentUserData && currentUserData.uid !== player.uid) {
-            if(canManageUser(currentUserData, player)) {
+            if (canManageUser(currentUserData, player)) {
                 gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
             }
         }
@@ -79,7 +99,7 @@ export function renderPlayers(players) {
         const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
         const session = userSessions[player.uid];
         const statusClass = session ? session.status : 'offline';
-        const rankBorder = getRankBorderClass(player); // Correctly using the helper
+        const rankBorder = getRankBorderClass(player);
 
         card.innerHTML = `
             ${gearIconHTML}
@@ -120,4 +140,3 @@ export function renderPlayers(players) {
         playerListContainer.appendChild(card);
     });
 }
-

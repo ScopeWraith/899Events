@@ -1,34 +1,34 @@
-// code/js/state.js
+// code/js/state.js - Refactored version
 
-let state = {
-    currentUserData: null,
-    allPlayers: [],
-    allPosts: [],
-    allAlliances: [],
-    userSessions: {},
-    userNotifications: [],
-    userFriends: [],
-    activeFilter: 'all',
-    countdownInterval: null,
-    editingPostId: null,
-    actionPostId: null,
-    activePrivateChatId: null,
-    activePrivateChatPartner: null,
-    isFriendsListCollapsed: false,
-    listeners: {}, // To hold unsubscribe functions for Firestore listeners
-    awayTimer: null,
-    callbacks: {}, // For simple pub/sub
-    activeEmojiInput: null, // NEW: Tracks the current input field for the emoji picker
+let currentState = {
+    user: null,
+    isLoggedIn: false,
+    unreadMessagesCount: 0,
+    unreadFriendRequestsCount: 0
 };
 
+const listeners = [];
+
 export function getState() {
-    return state;
+    return Object.freeze({ ...currentState });
 }
 
-export function updateState(newState) {
-    state = { ...state, ...newState };
+export function subscribe(callback) {
+    listeners.push(callback);
+    return () => {
+        const index = listeners.indexOf(callback);
+        if (index > -1) {
+            listeners.splice(index, 1);
+        }
+    };
 }
 
-export function setCallbacks(callbacks) {
-    state.callbacks = callbacks;
+export function setState(newState) {
+    const prevState = { ...currentState };
+    currentState = { ...currentState, ...newState };
+
+    // Notify all listeners of the change
+    listeners.forEach(callback => {
+        callback(currentState, prevState);
+    });
 }

@@ -1,6 +1,6 @@
 // code/js/ui/alliances-ui.js
 
-import { getState } from '../state.js';
+import { subscribe, getState } from '../state.js';
 import { db, storage } from '../firebase-config.js';
 import { doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -9,20 +9,42 @@ import { resizeImage, getRankBorderClass } from '../utils.js';
 
 let resizedAllianceAvatarBlob = null;
 
-export function renderAlliances(alliances) {
+// --- STATE & RENDER FUNCTIONS ---
+
+function renderAlliancesUI(newState, prevState) {
+    // Re-render alliances if any of this data changes
+    if (
+        newState.allAlliances !== prevState.allAlliances ||
+        newState.currentUserData !== prevState.currentUserData ||
+        newState.allPlayers !== prevState.allPlayers ||
+        newState.userFriends !== prevState.userFriends
+    ) {
+        renderAlliances(newState.allAlliances, newState);
+    }
+}
+
+export function initializeAlliancesUI() {
+    subscribe(renderAlliancesUI);
+}
+
+
+// --- UI HELPER & RENDERING FUNCTIONS ---
+
+export function renderAlliances(alliances, state) {
     const container = document.getElementById('alliances-list-container');
     const pageHeader = document.querySelector('#sub-page-server-alliances h2');
     if (!container || !pageHeader) return;
 
-    let headerActionHTML = '';
-    const { currentUserData } = getState();
+    const { currentUserData } = state;
 
-    if (currentUserData &&
+    let headerActionHTML = '';
+    if (
+        currentUserData &&
         currentUserData.isVerified &&
         currentUserData.allianceRank === 'R5' &&
         currentUserData.alliance &&
-        !alliances.some(a => a.tag === currentUserData.alliance))
-    {
+        !alliances.some(a => a.tag === currentUserData.alliance)
+    ) {
         headerActionHTML = `
             <div class="text-center mb-6">
                 <button id="show-register-alliance-modal-btn" class="primary-btn px-6 py-3 rounded-lg text-lg">
@@ -31,7 +53,7 @@ export function renderAlliances(alliances) {
             </div>
         `;
     }
-    
+
     const actionContainer = document.getElementById('alliance-action-container') || document.createElement('div');
     if (!actionContainer.id) {
         actionContainer.id = 'alliance-action-container';
@@ -39,7 +61,7 @@ export function renderAlliances(alliances) {
     }
     actionContainer.innerHTML = headerActionHTML;
 
-    if (!alliances) { // Check for undefined/null, meaning data is still loading
+    if (!alliances) { // Data is still loading
         let skeletonHTML = '';
         for (let i = 0; i < 6; i++) {
             skeletonHTML += createAllianceSkeletonCard();
@@ -48,29 +70,27 @@ export function renderAlliances(alliances) {
         return;
     }
 
-    if (!alliances || alliances.length === 0) {
+    if (alliances.length === 0) {
         container.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No alliances have been registered yet.</p>`;
         return;
     } 
-    container.innerHTML = alliances.map(alliance => createAllianceCard(alliance)).join('');
-
+    container.innerHTML = alliances.map(alliance => createAllianceCard(alliance, state)).join('');
 }
 
-function createAllianceCard(alliance) {
-    const { currentUserData, allPlayers, userFriends } = getState();
-
+function createAllianceCard(alliance, state) {
+    const { currentUserData, allPlayers, userFriends } = state;
     const primaryColor = alliance.primaryColor || 'var(--color-primary)';
     const secondaryColor = alliance.secondaryColor || 'var(--color-highlight)';
-    
+
     const canEdit = currentUserData?.isVerified && currentUserData.allianceRank === 'R5' && currentUserData.alliance === alliance.tag;
     const editButtonHTML = canEdit ? `<button class="alliance-card-edit-btn" data-alliance-tag="${alliance.tag}"><i class="fas fa-cog"></i></button>` : '';
 
     const getRoleMember = (username) => allPlayers.find(p => p.username === username);
-    
+
     const r5Data = getRoleMember(alliance.r5Name);
     const leaderAvatarUrl = r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?';
     const leaderRankBorder = r5Data ? getRankBorderClass(r5Data) : 'rank-border-r5';
-    
+
     const isSelf = currentUserData && r5Data && currentUserData.uid === r5Data.uid;
     const isFriend = r5Data && userFriends.includes(r5Data.uid);
     const showLeaderActionButtons = currentUserData && r5Data;
@@ -133,12 +153,8 @@ function createAllianceCard(alliance) {
                         </div>
                     ` : ''}
                 </div>
-                
-                ${coreMembers.length > 0 ? `
-                    <div class="alliance-card-core-members">
-                        ${coreMembersHTML}
-                    </div>
-                ` : ''}
+
+                ${coreMembers.length > 0 ? `<div class="alliance-card-core-members">${coreMembersHTML}</div>` : ''}
 
                 <div class="alliance-card-details">
                     <h4>Details</h4>
@@ -153,7 +169,31 @@ function createAllianceCard(alliance) {
     `;
 }
 
-// ... (The rest of the file is unchanged) ...
+function createAllianceSkeletonCard() {
+    return `
+        <div class="alliance-card opacity-50">
+            <div class="alliance-card-header">
+                <div class="alliance-card-avatar-wrapper">
+                    <div class="w-[60px] h-[60px] rounded-full skeleton-loader"></div>
+                </div>
+                <div class="alliance-card-title-section w-full">
+                    <div class="h-5 w-24 skeleton-loader mb-2 mx-auto"></div>
+                    <div class="h-6 w-40 skeleton-loader mx-auto"></div>
+                </div>
+            </div>
+            <div class="alliance-card-body">
+                <div class="h-16 w-full skeleton-loader rounded-lg"></div>
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
+                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
+                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
+                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 export function showEditAllianceModal(alliance) {
     const { allPlayers, currentUserData } = getState();
     if (!alliance) return;
@@ -190,6 +230,7 @@ export async function handleAllianceAvatarSelection(e) {
     resizedAllianceAvatarBlob = await resizeImage(file, { maxWidth: 512, maxHeight: 512 });
     document.getElementById('edit-alliance-avatar-preview').src = URL.createObjectURL(resizedAllianceAvatarBlob);
 }
+
 export function showRegisterAllianceModal() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
@@ -242,6 +283,7 @@ export async function handleAllianceRegisterSubmit(e) {
         submitBtn.innerHTML = 'Complete Registration';
     }
 }
+
 export async function handleAllianceEditSubmit(e) {
     e.preventDefault();
     const errorElement = document.getElementById('edit-alliance-error');
@@ -282,28 +324,4 @@ export async function handleAllianceEditSubmit(e) {
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Save Changes';
     }
-}
-function createAllianceSkeletonCard() {
-    return `
-        <div class="alliance-card opacity-50">
-            <div class="alliance-card-header">
-                <div class="alliance-card-avatar-wrapper">
-                    <div class="w-[60px] h-[60px] rounded-full skeleton-loader"></div>
-                </div>
-                <div class="alliance-card-title-section w-full">
-                    <div class="h-5 w-24 skeleton-loader mb-2 mx-auto"></div>
-                    <div class="h-6 w-40 skeleton-loader mx-auto"></div>
-                </div>
-            </div>
-            <div class="alliance-card-body">
-                <div class="h-16 w-full skeleton-loader rounded-lg"></div>
-                <div class="grid grid-cols-4 gap-4">
-                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
-                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
-                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
-                    <div class="h-24 w-full skeleton-loader rounded-lg"></div>
-                </div>
-            </div>
-        </div>
-    `;
 }

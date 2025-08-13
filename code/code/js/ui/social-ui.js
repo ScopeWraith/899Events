@@ -1,17 +1,42 @@
 // code/js/ui/social-ui.js
 
-import { getState, updateState } from '../state.js';
-import { isUserLeader } from '../utils.js';
-import { handleSendMessage, fetchConversations, addFriend, setupChatListeners, handleImageAttachment, setupConversationListListener } from '../firestore.js';
-import { formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarSkinClass, getRankBorderClass } from '../utils.js';
-import { canDeleteMessage } from '../utils.js';
+import { subscribe, setState, getState } from '../state.js';
+import { isUserLeader, formatMessageTimestamp, autoLinkText, formatTimeAgo, getRankBorderClass, canDeleteMessage } from '../utils.js';
+import { setupConversationListListener } from '../firestore.js';
 import { showFullscreenChatModal, showPage } from './ui-manager.js';
 import { CHAT_CHANNELS } from '../constants.js';
 
-export function renderChatChannels() {
+// --- STATE & RENDER FUNCTIONS ---
+
+function renderSocialUI(newState, prevState) {
+    // Determine what changed and re-render only the necessary parts.
+    const { currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed, activePrivateChatId } = newState;
+
+    // Re-render chat channels if user data changes (affects permissions)
+    if (currentUserData !== prevState.currentUserData) {
+        renderChatChannels(currentUserData);
+    }
+
+    // Re-render friends list if any of these data points change
+    if (currentUserData !== prevState.currentUserData || userFriends !== prevState.userFriends || allPlayers !== prevState.allPlayers || userSessions !== prevState.userSessions || isFriendsListCollapsed !== prevState.isFriendsListCollapsed) {
+        renderFriendsList(currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed);
+        renderFriendsPage(userFriends, allPlayers); // Also update the dedicated friends page
+    }
+
+    // The conversation list is handled by its own listener, but we could trigger it here if needed.
+}
+
+export function initializeSocialUI() {
+    // Subscribe to state changes to automatically update the social UI
+    subscribe(renderSocialUI);
+}
+
+
+// --- UI HELPER & RENDERING FUNCTIONS (from original file) ---
+
+export function renderChatChannels(currentUserData) {
     const container = document.getElementById('chat-selectors');
     if (!container) return;
-    const { currentUserData } = getState();
 
     container.innerHTML = Object.values(CHAT_CHANNELS).map(channel => {
         let isVisible = true;
@@ -30,18 +55,18 @@ export function renderChatChannels() {
     }).join('');
 }
 
-export function renderFriendsList() {
+export function renderFriendsList(currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed) {
     const container = document.getElementById('friends-list-social-page');
-    const { currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed } = getState();
-
     const friendsContainer = document.getElementById('friends-list-container-social');
+
     if (friendsContainer) {
         friendsContainer.classList.toggle('collapsed', isFriendsListCollapsed);
     }
 
-    if (!container) return;
-    if (!currentUserData) { /* ... */ return; }
-    if (userFriends.length === 0) { /* ... */ return; }
+    if (!container || !currentUserData || userFriends.length === 0) {
+        if (container) container.innerHTML = '<p class="text-xs text-center text-gray-500 p-4">Add friends from the Players page.</p>';
+        return;
+    }
 
     container.innerHTML = '';
     userFriends.forEach(friendId => {
@@ -78,13 +103,7 @@ export function renderMessages(messages, container, chatType) {
     const { currentUserData, allPlayers } = getState();
     if (!currentUserData || !container) return;
 
-    const getRankBorderClass = (player) => {
-        if (player?.isAdmin) return 'rank-border-admin';
-        const rank = player?.allianceRank;
-        return `rank-border-${rank?.toLowerCase() || 'r1'}`;
-    };
-
-    container.innerHTML = ''; 
+    container.innerHTML = '';
     if (messages.length === 0) {
         container.innerHTML = `<p class="text-center text-gray-500 m-auto">No messages yet. Be the first to say something!</p>`;
         return;
@@ -97,17 +116,14 @@ export function renderMessages(messages, container, chatType) {
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
         const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
         const rankBorder = getRankBorderClass(authorData);
-    
+
         const canDelete = canDeleteMessage(currentUserData, authorData);
-        let messageActionsHTML = '';
-        if (canDelete) {
-            messageActionsHTML = `
-                <div class="message-actions">
-                    <button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>
-                    <button class="message-action-btn confirm-delete-btn hidden" title="Confirm Delete"><i class="fas fa-check"></i></button>
-                </div>
-            `;
-        }
+        const messageActionsHTML = canDelete ? `
+            <div class="message-actions">
+                <button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button>
+                <button class="message-action-btn confirm-delete-btn hidden" title="Confirm Delete"><i class="fas fa-check"></i></button>
+            </div>
+        ` : '';
 
         const reactions = msg.reactions || {};
         const reactionPillsHTML = Object.entries(reactions)
@@ -125,17 +141,18 @@ export function renderMessages(messages, container, chatType) {
 
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
+        messageEl.dataset.messageId = msg.id;
         messageEl.innerHTML = `
             <div class="chat-message-identity">
                 <div class="avatar-container">
                     <img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder}" alt="${authorUsername}">
-                    <div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>                
+                    <div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div>
                 </div>
                 <p class="chat-message-timestamp">${timestamp}</p>
                 ${messageActionsHTML}
             </div>
             <div class="chat-message-main">
-                <div class="chat-message-bubble ${rankBorder}" data-message-id="${msg.id}" data-chat-type="${chatType}">
+                <div class="chat-message-bubble ${getRankBorderClass(authorData, true)}" data-chat-type="${chatType}">
                     ${messageContent}
                 </div>
                 <div class="chat-reactions-container">${reactionPillsHTML}</div>
@@ -143,24 +160,22 @@ export function renderMessages(messages, container, chatType) {
         `;
         container.appendChild(messageEl);
     });
-    
+
     container.scrollTop = container.scrollHeight;
 }
 
-
-// Entry point function called from ui-manager
 export function renderConversations() {
+    // This function now only needs to set up the listener. The rendering is handled by the listener itself.
     setupConversationListListener();
 }
 
-// Actual rendering function called by the real-time listener
 export function renderConversationsList(conversations) {
     const container = document.getElementById('sub-page-social-convo');
     if (!container) return;
 
     const { allPlayers, userSessions } = getState();
     const listContainer = document.getElementById('convo-list');
-    
+
     conversations.sort((a, b) => {
         const timeA = a.lastMessage?.timestamp?.toDate() || new Date(0);
         const timeB = b.lastMessage?.timestamp?.toDate() || new Date(0);
@@ -172,7 +187,7 @@ export function renderConversationsList(conversations) {
         return;
     }
 
-    const filteredConversations = conversations.filter(convo => 
+    const filteredConversations = conversations.filter(convo =>
         allPlayers.find(p => p.uid === convo.partnerId)
     );
 
@@ -188,7 +203,7 @@ export function renderConversationsList(conversations) {
         if (convo.lastMessage?.imageUrl && !lastMessageText) {
             lastMessageText = '<i>[Image]</i>';
         }
-        
+
         const unreadClass = convo.unreadCount > 0 ? 'unread-convo' : '';
         const unreadBadge = convo.unreadCount > 0 ? `<span class="badge">${convo.unreadCount}</span>` : '';
 
@@ -216,16 +231,12 @@ export function renderConversationsList(conversations) {
     }).join('');
 }
 
-// ** MODIFIED FUNCTION **
-export function renderFriendsPage() {
+export function renderFriendsPage(userFriends, allPlayers) {
     const container = document.getElementById('sub-page-social-friends');
     if (!container) return;
 
-    const { userFriends, allPlayers } = getState();
-
-    // The data might not be ready, so we check.
     if (!userFriends || !allPlayers) {
-        container.innerHTML = '<div class="spinner mx-auto mt-8"></div>'; // Show a spinner
+        container.innerHTML = '<div class="spinner mx-auto mt-8"></div>';
         return;
     }
 
@@ -264,15 +275,15 @@ export function renderFriendsPage() {
         </div>
     `;
 
-    // Re-attach listeners since we overwrite the HTML
     document.getElementById('add-friend-main-btn').addEventListener('click', () => {
         showPage('page-server');
-        handleSubNavClick('server-players'); // Directly navigate to players sub-page
+        document.querySelector('.sub-nav-link[data-sub-target="server-players"]').click();
     });
-    
+
     document.getElementById('friends-page-list').addEventListener('click', (e) => {
         const messageBtn = e.target.closest('.message-player-btn');
         if(messageBtn) {
+            const { allPlayers } = getState();
             const partnerData = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
             if(partnerData) showFullscreenChatModal({ targetPlayer: partnerData });
         }

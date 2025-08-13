@@ -2,27 +2,30 @@
 
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { auth } from './firebase-config.js';
-import { setCallbacks } from './state.js';
+import { subscribe, setState } from './state.js';
 import { setupAllListeners, detachAllListeners, fetchInitialData } from './firestore.js';
 import { setupPresenceManagement } from './presence.js';
 import { 
     setupInitialUI, 
     buildMobileNav, 
-    updateUIForLoggedInUser, 
-    updateUIForLoggedOutUser,
     updateSocialNavBadges,
     showPage,
     toggleSubNav,
     handleSubNavClick
 } from './ui/ui-manager.js';
 import { initializeAllEventListeners } from './event-listeners.js';
+import { initializeAuthUI } from './ui/auth-ui.js';
+import { initializeSocialUI } from './ui/social-ui.js';
+import { initializePostUI } from './ui/post-ui.js';
+import { initializePlayersUI } from './ui/players-ui.js';   // New import
+import { initializeAlliancesUI } from './ui/alliances-ui.js'; // New import
 
 function restoreLastViewedPage() {
     const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
     const lastSubPage = localStorage.getItem('lastActiveSubPage');
 
     showPage(lastPage);
-    
+
     document.querySelectorAll('#main-nav .nav-link').forEach(link => {
         const isActive = link.dataset.mainTarget === lastPage;
         link.classList.toggle('active', isActive);
@@ -57,26 +60,19 @@ function showAppContent() {
 }
 
 export function initializeApp() {
-    setCallbacks({
-        onAuthChange: (user) => {
-            if (user) {
-                updateUIForLoggedInUser();
-            } else {
-                updateUIForLoggedOutUser();
-            }
+    subscribe((newState, prevState) => {
+        if (newState.currentUserData !== prevState.currentUserData) {
             buildMobileNav();
-        },
-        onUnreadMessagesUpdate: (unreadCount) => {
-            updateSocialNavBadges({ convoCount: unreadCount });
-        },
-        onUnreadFriendRequestsUpdate: (requestCount) => {
-            updateSocialNavBadges({ friendRequestCount: requestCount });
+        }
+        if (newState.userNotifications !== prevState.userNotifications) {
+            const unreadFriendRequests = newState.userNotifications.filter(n => n.type === 'friend_request' && !n.isRead).length;
+            updateSocialNavBadges({ friendRequestCount: unreadFriendRequests });
         }
     });
 
     onAuthStateChanged(auth, (user) => {
         detachAllListeners();
-        
+
         const onDataReady = () => {
             restoreLastViewedPage();
             showAppContent();
@@ -84,15 +80,19 @@ export function initializeApp() {
 
         if (user) {
             setupPresenceManagement(user);
-            updateUIForLoggedInUser();
             setupAllListeners(user, onDataReady);
         } else {
-            updateUIForLoggedOutUser();
+            setState({ currentUserData: null });
             fetchInitialData(onDataReady);
         }
         buildMobileNav();
     });
-    
+
     setupInitialUI();
     initializeAllEventListeners();
+    initializeAuthUI();
+    initializeSocialUI();
+    initializePostUI();
+    initializePlayersUI();   // Initialize players component
+    initializeAlliancesUI(); // Initialize alliances component
 }
