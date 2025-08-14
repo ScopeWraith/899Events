@@ -13,11 +13,11 @@ export const RANK_STYLES = {
     R2:    { color: '#FFFFFF', shadow: 'rgba(255, 255, 255, 0.5)' },
     R1:    { color: '#8b949e', shadow: 'rgba(139, 148, 158, 0.4)' }
 };
-export const ALLIANCES = ["THOR", "fAfO", "HeRA", "pHNx", "TroW", "VaLT", "COLD", "Tone", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL", "TCM1", "BLSD", "REI", "wpg1", "SHRK"];
+export const ALLIANCES = ["THOR", "fAfO", "pHNx", "HeRA", "TroW", "VaLT", "Tone", "COLD", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL"];
 
 export const ALLIANCE_RANKS = [
-    { value: 'R5', text: 'R5 (Leader)'}, { value: 'R4', text: 'R4'}, { value: 'R3', text: 'R3'},
-    { value: 'R2', text: 'R2'}, { value: 'R1', text: 'R1 (Member)'},
+    { value: 'R1', text: 'R1'}, { value: 'R2', text: 'R2'}, { value: 'R3', text: 'R3'},
+    { value: 'R4', text: 'R4'}, { value: 'R5', text: 'R5'},
 ];
 
 export const ALLIANCE_ROLES = [
