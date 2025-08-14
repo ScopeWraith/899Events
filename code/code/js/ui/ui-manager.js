@@ -449,7 +449,43 @@ export function buildMobileNav() {
 }
 
 function setupCustomSelects() {
-    // This function remains largely unchanged, just ensure it's robust
+    document.querySelectorAll('.custom-select-container').forEach(container => {
+        const valueBtn = container.querySelector('.custom-select-value');
+        const optionsContainer = container.querySelector('.custom-select-options');
+        const searchInput = container.querySelector('.custom-select-search');
+
+        valueBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Close all other open selects
+            document.querySelectorAll('.custom-select-container').forEach(c => {
+                if (c !== container) c.classList.remove('open');
+            });
+            container.classList.toggle('open');
+        });
+
+        optionsContainer.addEventListener('click', (e) => {
+            const option = e.target.closest('.custom-select-option');
+            if (option) {
+                setCustomSelectValue(container, option.dataset.value, option.textContent);
+                container.classList.remove('open');
+                // Trigger change event for listeners
+                const hiddenInput = container.querySelector('input[type="hidden"]');
+                if (hiddenInput) {
+                    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                optionsContainer.querySelectorAll('.custom-select-option').forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    option.style.display = text.includes(searchTerm) ? 'block' : 'none';
+                });
+            });
+        }
+    });
 }
 
 export function setCustomSelectValue(container, value, text) {
