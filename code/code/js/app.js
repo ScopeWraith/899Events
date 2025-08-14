@@ -3,7 +3,7 @@
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { auth } from './firebase-config.js';
 import { subscribe, setState } from './state.js';
-import { setupAllListeners, detachAllListeners, fetchInitialData } from './firestore.js';
+import { setupAllListeners, detachAllListeners, fetchInitialData, setupUnverifiedPlayersListener } from './firestore.js';
 import { setupPresenceManagement } from './presence.js';
 import { 
     setupInitialUI, 
@@ -19,7 +19,7 @@ import { initializeSocialUI } from './ui/social-ui.js';
 import { initializePostUI } from './ui/post-ui.js';
 import { initializePlayersUI } from './ui/players-ui.js';
 import { initializeAlliancesUI } from './ui/alliances-ui.js';
-import { initializeNotificationsUI } from './ui/notifications-ui.js'; // New import
+import { initializeNotificationsUI } from './ui/notifications-ui.js'; 
 
 function restoreLastViewedPage() {
     const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
@@ -92,9 +92,17 @@ export function initializeApp() {
         };
         if (user) {
             setupPresenceManagement(user);
-            setupAllListeners(user, onDataReady);
+            setupAllListeners(user, () => {
+                // Now that the user's data is loaded (including isAdmin status),
+                // we can set up the verification listener.
+                const { currentUserData } = getState();
+                if (currentUserData) {
+                    setupUnverifiedPlayersListener(currentUserData);
+                }
+                onDataReady();
+            });
         } else {
-            setState({ currentUserData: null });
+            setState({ currentUserData: null, unverifiedPlayers: [] });
             fetchInitialData(onDataReady);
         }
         buildMobileNav();
@@ -107,5 +115,5 @@ export function initializeApp() {
     initializePostUI();
     initializePlayersUI();
     initializeAlliancesUI();
-    initializeNotificationsUI(); // Initialize our new component
+    initializeNotificationsUI(); 
 }

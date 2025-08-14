@@ -289,8 +289,7 @@ export async function handleNotificationAction(notificationId, action, senderUid
         const { allPlayers } = getState();
         const targetPlayer = allPlayers.find(p => p.uid === targetUid);
         if (!targetPlayer) return;
-
-        // CORRECTED: Admins should verify a player into that player's intended alliance, not their own.
+        
         const allianceToVerify = targetPlayer.alliance; 
         const targetUsername = targetPlayer.username || 'A new member';
 
@@ -403,13 +402,11 @@ export function setupUnverifiedPlayersListener(user) {
 
     let unverifiedPlayersQuery;
     if (user.isAdmin) {
-        // Admins see all unverified players
         unverifiedPlayersQuery = query(collection(db, 'users'), where('isVerified', '==', false));
     } else if (isUserLeader(user) && user.alliance !== 'Pending Alliance') {
-        // Leaders see unverified players in their own alliance
         unverifiedPlayersQuery = query(collection(db, 'users'), where('alliance', '==', user.alliance), where('isVerified', '==', false));
     } else {
-        // Not an admin or leader, don't set up the listener
+        setState({ unverifiedPlayers: [] });
         return;
     }
 
