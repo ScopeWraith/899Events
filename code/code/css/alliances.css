@@ -7,7 +7,7 @@
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
-    border-top: 4px solid var(--primary-color);
+    border-top: 3px solid var(--primary-color);
 }
 .alliance-card:before {
     content: '';
