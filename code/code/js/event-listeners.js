@@ -155,12 +155,12 @@ export function initializeAllEventListeners() {
     const editProfileModal = getElement('edit-profile-modal-container');
     if (editProfileModal) {
         editProfileModal.addEventListener('click', (e) => {
-            const tabBtn = e.target.closest('.modal-tab-btn');
+            const tabBtn = e.target.closest('.modal-v-tab-btn');
             if (tabBtn) {
                 e.preventDefault();
                 const tabName = tabBtn.dataset.tab;
 
-                editProfileModal.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
+                editProfileModal.querySelectorAll('.modal-v-tab-btn').forEach(btn => btn.classList.remove('active'));
                 tabBtn.classList.add('active');
 
                 editProfileModal.querySelectorAll('.modal-tab-pane').forEach(pane => {

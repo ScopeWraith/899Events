@@ -1138,3 +1138,32 @@ body {
     padding-top: 1.5rem;
     border-top: 1px solid rgba(255,255,255,0.1);
 }
+
+@media (max-width: 767px) {
+    #edit-profile-modal-container {
+        max-width: 450px;
+    }
+    #edit-profile-modal-container .glass-pane {
+        flex-direction: column;
+    }
+    .modal-v-nav {
+        flex-direction: row;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.5rem;
+    }
+    .modal-v-tab-btn {
+        flex-grow: 1;
+        justify-content: center;
+    }
+    .modal-v-tab-btn span {
+        display: none;
+    }
+    .modal-v-tab-btn.active {
+        background: rgba(0, 191, 255, 0.1);
+        border-bottom: 3px solid var(--color-primary);
+        border-radius: 0;
+        box-shadow: none;
+    }
+}
