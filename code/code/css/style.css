@@ -1027,7 +1027,7 @@ body {
 
 
 .nap-card-body {
-    padding: 0rem 1.5rem 1.5rem
+    padding: 0rem 1.5rem 1.5rem;
     font-size: 1rem;
     line-height: 1.6;
     color: #c9d1d9;
@@ -1043,10 +1043,10 @@ body {
 }
 
 .nap-rule-list li {
-    background-color: rgba(0,0,0,0.2);
+    background-color: linear-gradient(180deg, color-mix(in srgb, var(--color-primary), black 70%), rgb(33 40 50 / 65%) 10%, rgb(19 24 32 / 84%) 100%);
     padding: 0.75rem 1rem;
     border-radius: 8px;
-    border-left: 3px solid rgba(255,255,255,0.1);
+    border-left: 3px solid var(--color-primary);
 }
 
 .consequence-box {
