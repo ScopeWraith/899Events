@@ -281,7 +281,8 @@
             
             <div id="edit-profile-modal-container" class="modal-container" style="max-width: 500px;">
                 <div class="glass-pane">
-                    <div class="modal-content-wrapper p-0 flex flex-col">
+                    <div id="edit-profile-bg" class="absolute inset-0 z-0 opacity-10"></div>
+                    <div class="modal-content-wrapper p-0 flex flex-col z-10">
                         <div class="p-4 flex justify-between items-center border-b border-white/10 flex-shrink-0">
                             <h2 class="text-xl font-bold text-white">Edit Profile</h2>
                             <button id="close-edit-modal-btn" class="text-gray-500 hover:text-white transition-colors z-10">
@@ -294,73 +295,75 @@
                             <button class="modal-tab-btn" data-tab="power"><i class="fas fa-fist-raised md:mr-2"></i><span class="hidden md:inline">Power</span></button>
                             <button class="modal-tab-btn" data-tab="skin"><i class="fas fa-paint-brush md:mr-2"></i><span class="hidden md:inline">Skin</span></button>
                         </nav>
-                        <form id="edit-profile-form" class="p-6 space-y-6 overflow-y-auto flex-grow themed-scrollbar">
-                            <div id="edit-profile-tab-account" class="modal-tab-pane active">
-                                <div class="flex flex-col items-center gap-4">
-                                    <div class="relative">
-                                        <img id="edit-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=?" class="w-32 h-32 rounded-full object-cover">
-                                        <div id="edit-avatar-border-preview" class="w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none"></div>
+                        <div class="p-4 overflow-y-auto flex-grow themed-scrollbar">
+                            <form id="edit-profile-form" class="space-y-4">
+                                <div id="edit-profile-tab-account" class="modal-tab-pane active">
+                                    <div class="flex flex-col items-center gap-4">
+                                        <div class="relative">
+                                            <img id="edit-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=?" class="w-32 h-32 rounded-full object-cover">
+                                            <div id="edit-avatar-border-preview" class="w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none"></div>
+                                        </div>
+                                        <button type="button" id="edit-avatar-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-upload mr-2"></i>Change Avatar</button>
                                     </div>
-                                    <button type="button" id="edit-avatar-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-upload mr-2"></i>Change Avatar</button>
+                                    <div class="input-group mt-6">
+                                        <i class="fas fa-user input-icon"></i>
+                                        <input type="text" id="edit-username" placeholder="Username" class="form-input" required>
+                                    </div>
                                 </div>
-                                <div class="input-group mt-6">
-                                    <i class="fas fa-user input-icon"></i>
-                                    <input type="text" id="edit-username" placeholder="Username" class="form-input" required>
-                                </div>
-                            </div>
-                            <div id="edit-profile-tab-alliance" class="modal-tab-pane">
-                                <div class="space-y-4">
-                                    <div class="flex items-center gap-4 bg-black/20 p-3 rounded-lg">
-                                        <img id="edit-alliance-avatar" src="https://placehold.co/64x64/161B22/FFFFFF?text=?" class="w-16 h-16 rounded-full object-cover border-2 border-white/20">
-                                        <div class="flex-grow">
-                                            <div class="custom-select-container" data-type="alliance">
-                                                <input type="hidden" id="edit-alliance" name="alliance" required>
-                                                <button type="button" class="custom-select-value form-input !bg-transparent !border-0"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                                <div class="custom-select-options"><input type="text" class="custom-select-search" placeholder="Search..."><div class="options-list"></div></div>
+                                <div id="edit-profile-tab-alliance" class="modal-tab-pane">
+                                    <div class="space-y-4">
+                                        <div class="flex items-center gap-4 bg-black/20 p-3 rounded-lg">
+                                            <img id="edit-alliance-avatar" src="https://placehold.co/64x64/161B22/FFFFFF?text=?" class="w-16 h-16 rounded-full object-cover border-2 border-white/20">
+                                            <div class="flex-grow">
+                                                <div class="custom-select-container" data-type="alliance">
+                                                    <input type="hidden" id="edit-alliance" name="alliance" required>
+                                                    <button type="button" class="custom-select-value form-input !bg-transparent !border-0"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                                    <div class="custom-select-options"><input type="text" class="custom-select-search" placeholder="Search..."><div class="options-list"></div></div>
+                                                </div>
+                                                <div class="custom-select-container mt-2" data-type="rank">
+                                                    <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
+                                                    <button type="button" class="custom-select-value form-input !bg-transparent !border-0"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                                    <div class="custom-select-options"><div class="options-list"></div></div>
+                                                </div>
                                             </div>
-                                            <div class="custom-select-container mt-2" data-type="rank">
-                                                <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
-                                                <button type="button" class="custom-select-value form-input !bg-transparent !border-0"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                                <div class="custom-select-options"><div class="options-list"></div></div>
+                                        </div>
+                                        <div id="verification-status-indicator" class="p-3 rounded-lg flex items-center gap-3">
+                                            <i class="fas"></i>
+                                            <span class="font-semibold"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="edit-profile-tab-power" class="modal-tab-pane">
+                                    <div class="space-y-4">
+                                        <div class="power-input-grid">
+                                            <label for="edit-power"><i class="fas fa-fist-raised input-icon"></i>Total</label>
+                                            <input type="text" id="edit-power" class="power-input form-input" required>
+                                            <label for="edit-tank-power"><i class="fas fa-truck-monster input-icon"></i>Tank</label>
+                                            <input type="text" id="edit-tank-power" class="power-input form-input">
+                                            <label for="edit-air-power"><i class="fas fa-fighter-jet input-icon"></i>Air</label>
+                                            <input type="text" id="edit-air-power" class="power-input form-input">
+                                            <label for="edit-missile-power"><i class="fas fa-rocket input-icon"></i>Missile</label>
+                                            <input type="text" id="edit-missile-power" class="power-input form-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="edit-profile-tab-skin" class="modal-tab-pane">
+                                    <div class="coming-soon-overlay">
+                                        <div class="space-y-6">
+                                            <div>
+                                                <h4 class="text-base font-bold text-white mb-2">Avatar Border</h4>
+                                                <div class="skin-select-container h-24 bg-black/20 rounded-lg"></div>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-base font-bold text-white mb-2">Chat Bubble Border</h4>
+                                                <div class="skin-select-container h-24 bg-black/20 rounded-lg"></div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div id="verification-status-indicator" class="p-3 rounded-lg flex items-center gap-3">
-                                        <i class="fas"></i>
-                                        <span class="font-semibold"></span>
+                                        <div class="coming-soon-text">Coming Soon!</div>
                                     </div>
                                 </div>
-                            </div>
-                            <div id="edit-profile-tab-power" class="modal-tab-pane">
-                                <div class="space-y-4">
-                                    <div class="power-input-grid">
-                                        <label for="edit-power"><i class="fas fa-fist-raised input-icon"></i>Total</label>
-                                        <input type="text" id="edit-power" class="power-input form-input" required>
-                                        <label for="edit-tank-power"><i class="fas fa-truck-monster input-icon"></i>Tank</label>
-                                        <input type="text" id="edit-tank-power" class="power-input form-input">
-                                        <label for="edit-air-power"><i class="fas fa-fighter-jet input-icon"></i>Air</label>
-                                        <input type="text" id="edit-air-power" class="power-input form-input">
-                                        <label for="edit-missile-power"><i class="fas fa-rocket input-icon"></i>Missile</label>
-                                        <input type="text" id="edit-missile-power" class="power-input form-input">
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="edit-profile-tab-skin" class="modal-tab-pane">
-                                <div class="coming-soon-overlay">
-                                    <div class="space-y-6">
-                                        <div>
-                                            <h4 class="text-base font-bold text-white mb-2">Avatar Border</h4>
-                                            <div class="skin-select-container h-24 bg-black/20 rounded-lg"></div>
-                                        </div>
-                                        <div>
-                                            <h4 class="text-base font-bold text-white mb-2">Chat Bubble Border</h4>
-                                            <div class="skin-select-container h-24 bg-black/20 rounded-lg"></div>
-                                        </div>
-                                    </div>
-                                    <div class="coming-soon-text">Coming Soon!</div>
-                                </div>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                         <div class="p-4 border-t border-white/10 flex-shrink-0">
                             <p id="edit-profile-error" class="text-red-400 text-center text-sm mb-4 form-error"></p>
                             <button type="submit" form="edit-profile-form" class="w-full p-3 rounded-lg primary-btn">Save Changes</button>

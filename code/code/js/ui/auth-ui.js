@@ -327,15 +327,18 @@ export function populateEditForm() {
     const { currentUserData, allAlliances } = getState();
     if (!currentUserData) return;
 
+    // Set dynamic background
+    const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
+    const primaryColor = allianceData?.primaryColor || 'var(--color-primary)';
+    document.getElementById('edit-profile-bg').style.backgroundImage = `radial-gradient(circle, ${primaryColor} 0%, transparent 70%)`;
+
     // Account Tab
     document.getElementById('edit-username').value = currentUserData.username;
     document.getElementById('edit-avatar-preview').src = currentUserData.avatarUrl || `https://placehold.co/128x128/161B22/FFFFFF?text=${currentUserData.username.charAt(0).toUpperCase()}`;
     document.getElementById('edit-avatar-border-preview').className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${getRankBorderClass(currentUserData)}`;
 
     // Alliance Tab
-    const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
     document.getElementById('edit-alliance-avatar').src = allianceData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
-
     const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
     const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
     setCustomSelectValue(editAllianceSelect, currentUserData.alliance, currentUserData.alliance);

@@ -591,6 +591,11 @@ body {
 @keyframes pulse-legendary { 0% { filter: brightness(1); } 50% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
 
 /* --- MODAL TAB STYLES --- */
+#edit-profile-bg {
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.5s ease-in-out;
+}
 .modal-tab-nav {
     display: flex;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
