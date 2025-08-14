@@ -294,7 +294,12 @@ export async function handleNotificationAction(notificationId, action, senderUid
         const targetUsername = targetPlayer.username || 'A new member';
 
         await updateDoc(doc(db, 'users', targetUid), { isVerified: true, alliance: allianceToVerify });
-        await updateDoc(doc(db, 'notifications', notificationId), { type: 'user_verified_record', isRead: true, message: `${targetUsername} has been verified in ${allianceToVerify}.` });
+
+        if (notificationId.startsWith('verify-')) {
+            // This was a synthetic notification, no DB object to update/delete
+        } else {
+            await updateDoc(doc(db, 'notifications', notificationId), { type: 'user_verified_record', isRead: true, message: `${targetUsername} has been verified in ${allianceToVerify}.` });
+        }
     } else {
         await updateDoc(doc(db, 'notifications', notificationId), { isRead: true });
     }

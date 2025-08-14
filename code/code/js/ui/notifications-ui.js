@@ -1,25 +1,25 @@
 // code/js/ui/notifications-ui.js
 
-import { subscribe } from '../state.js';
+import { subscribe, getState } from '../state.js';
 import { formatTimeAgo } from '../utils.js';
 
 function renderNotificationsUI(newState, prevState) {
-    // Only re-render if notifications have changed.
-    if (newState.userNotifications === prevState.userNotifications) return;
+    // Re-render if notifications OR unverified players have changed.
+    if (newState.userNotifications === prevState.userNotifications && newState.unverifiedPlayers === prevState.unverifiedPlayers) return;
     
-    renderNotifications(newState.userNotifications || []);
+    renderNotifications(newState.userNotifications || [], newState.unverifiedPlayers || []);
 }
 
 export function initializeNotificationsUI() {
     subscribe(renderNotificationsUI);
 }
 
-function renderNotifications(notifications) {
+function renderNotifications(notifications, unverifiedPlayers) {
     const feedDropdown = document.getElementById('feed-dropdown');
     const feedActionContainer = document.getElementById('feed-action-container');
     const notificationBadge = document.getElementById('notification-badge');
 
-    if (!feedDropdown || !notificationBadge) {
+    if (!feedDropdown || !notificationBadge || !feedActionContainer) {
         return;
     }
 
@@ -38,21 +38,31 @@ function renderNotifications(notifications) {
         feedDropdown.innerHTML = notifications.slice(0, 5).map(n => createNotificationHTML(n)).join('');
     }
 
-    const actionableNotifications = notifications.filter(n => 
-        n.type === 'friend_request' || n.type === 'verification_request'
-    );
+    // Combine friend requests from notifications and verification requests from unverifiedPlayers
+    const friendRequests = notifications.filter(n => n.type === 'friend_request');
+    
+    // Convert unverified players into a notification-like format for display
+    const verificationRequests = unverifiedPlayers.map(player => ({
+        id: `verify-${player.uid}`,
+        type: 'verification_request',
+        message: `${player.username} [${player.alliance}] is awaiting verification.`,
+        senderUid: player.uid,
+        isRead: false, // Treat all as actionable
+        timestamp: player.registrationTimestampUTC ? new Date(player.registrationTimestampUTC) : new Date()
+    }));
 
-    if (feedActionContainer) {
-        if (actionableNotifications.length === 0) {
-            feedActionContainer.innerHTML = '<p class="text-center text-gray-500 p-4">No pending actions.</p>';
-        } else {
-            feedActionContainer.innerHTML = actionableNotifications.map(n => createNotificationHTML(n)).join('');
-        }
+    const actionableNotifications = [...friendRequests, ...verificationRequests]
+        .sort((a, b) => (b.timestamp?.toDate ? b.timestamp.toDate() : b.timestamp) - (a.timestamp?.toDate ? a.timestamp.toDate() : a.timestamp));
+
+    if (actionableNotifications.length === 0) {
+        feedActionContainer.innerHTML = '<p class="text-center text-gray-500 p-4">No pending actions.</p>';
+    } else {
+        feedActionContainer.innerHTML = actionableNotifications.map(n => createNotificationHTML(n)).join('');
     }
 }
 
 function createNotificationHTML(notification) {
-    const timeAgo = notification.timestamp ? formatTimeAgo(notification.timestamp.toDate()) : '';
+    const timeAgo = notification.timestamp ? formatTimeAgo(notification.timestamp.toDate ? notification.timestamp.toDate() : notification.timestamp) : '';
     const isReadClass = notification.isRead ? '' : 'is-read';
     
     let iconHTML = '';
@@ -72,13 +82,11 @@ function createNotificationHTML(notification) {
             break;
         case 'verification_request':
              iconHTML = `<div class="notification-icon bg-yellow-500/20 text-yellow-400"><i class="fas fa-user-check"></i></div>`;
-             if (!notification.isRead) {
-                 actionsHTML = `
-                    <div class="notification-actions">
-                         <button class="notification-action-btn primary-btn" data-action="verify-user" data-target-uid="${notification.senderUid}">Verify User</button>
-                    </div>
-                 `;
-             }
+             actionsHTML = `
+                <div class="notification-actions">
+                     <button class="notification-action-btn primary-btn" data-action="verify-user" data-target-uid="${notification.senderUid}">Verify User</button>
+                </div>
+             `;
             break;
         case 'alliance_announcement':
             iconHTML = `<div class="notification-icon bg-red-500/20 text-red-400"><i class="fas fa-bullhorn"></i></div>`;
