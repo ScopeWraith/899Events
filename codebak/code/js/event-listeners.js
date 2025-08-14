@@ -43,7 +43,13 @@ export function initializeAllEventListeners() {
             const messageBtn = e.target.closest('.leader-action-btn.message-player-btn');
             const addFriendBtn = e.target.closest('.leader-action-btn.add-friend-btn');
             const { allAlliances, allPlayers } = getState();
-
+            const napHeader = e.target.closest('.nap-section-header');
+            if (napHeader) {
+                const section = napHeader.closest('.nap-section');
+                if (section) {
+                    section.classList.toggle('open');
+                }
+            }
             if (registerBtn) {
                 showRegisterAllianceModal();
             }
