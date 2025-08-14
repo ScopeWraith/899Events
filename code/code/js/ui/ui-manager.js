@@ -464,88 +464,39 @@ export function setCustomSelectValue(container, value, text) {
 function setupParticleCanvas() {
     const canvas = document.getElementById('particle-canvas');
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
-    let particles = [];
-    const numParticles = 100;
-
-    // Get color from CSS variable
-    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
-
-    const resizeCanvas = () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    };
-
-    class Particle {
-        constructor() {
-            this.x = Math.random() * canvas.width;
-            this.y = Math.random() * canvas.height;
-            this.size = Math.random() * 2 + 1;
-            this.speedX = Math.random() * 1 - 0.5;
-            this.speedY = Math.random() * 1 - 0.5;
-        }
-        update() {
-            this.x += this.speedX;
-            this.y += this.speedY;
-
-            if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
-            if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
-        }
-        draw() {
-            ctx.fillStyle = primaryColor;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const particles = [];
+    const particleCount = 50;
+    for (let i = 0; i < particleCount; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: Math.random() * 0.2 - 0.1,
+            vy: Math.random() * 0.2 - 0.1,
+            size: Math.random() * 1.5 + 0.5,
+            color: 'rgba(0, 191, 255, 0.5)'
+        });
     }
 
-    const init = () => {
-        particles = [];
-        for (let i = 0; i < numParticles; i++) {
-            particles.push(new Particle());
-        }
-    };
-
-    const connect = () => {
-        for (let a = 0; a < particles.length; a++) {
-            for (let b = a; b < particles.length; b++) {
-                const dx = particles[a].x - particles[b].x;
-                const dy = particles[a].y - particles[b].y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                if (distance < 100) {
-                    ctx.strokeStyle = primaryColor;
-                    ctx.lineWidth = 0.2;
-                    ctx.beginPath();
-                    ctx.moveTo(particles[a].x, particles[a].y);
-                    ctx.lineTo(particles[b].x, particles[b].y);
-                    ctx.stroke();
-                }
-            }
-        }
-    };
-
-    const animate = () => {
+    function animateParticles() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => {
-            p.update();
-            p.draw();
-        });
-        connect();
-        requestAnimationFrame(animate);
-    };
-
-    window.addEventListener('resize', () => {
-        resizeCanvas();
-        init();
-    });
-
-    resizeCanvas();
-    init();
-    animate();
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+            ctx.beginPath();
+            ctx.fillStyle = p.color;
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
 }
-
 
 export function createSkeletonCard() {
     return `
