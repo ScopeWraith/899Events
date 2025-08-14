@@ -155,12 +155,16 @@ function showRegStep(stepIndex) {
     const currentSlide = registrationFlow.querySelector(`.form-slide[data-slide="${stepIndex}"]`);
     if(currentSlide) currentSlide.classList.add('active');
 
-    regProgressSteps.forEach((index, step) => step.classList.toggle('active', index < stepIndex));
+    regProgressSteps.forEach((step, index) => {
+        step.classList.toggle('active', (index + 1) <= stepIndex);
+    });
+    
     regProgressBarLine.style.width = `${((stepIndex - 1) / (regFormSlides.length - 1)) * 100}%`;
     regBackBtn.style.visibility = stepIndex === 1 ? 'hidden' : 'visible';
     regNextBtn.classList.toggle('hidden', stepIndex === regFormSlides.length);
     regSubmitBtn.classList.toggle('hidden', stepIndex !== regFormSlides.length);
 }
+
 
 function validateRegStep(stepIndex) {
     const registerError = document.getElementById('register-error');
