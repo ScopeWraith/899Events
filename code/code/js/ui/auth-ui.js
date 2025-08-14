@@ -340,7 +340,7 @@ export function populateEditForm() {
     if (userAlliance && userAlliance.avatarUrl) {
         allianceLogo.src = userAlliance.avatarUrl;
     } else {
-        allianceLogo.src = `https://placehold.co/128x128/161B22/FFFFFF?text=${currentUserData.alliance.charAt(0).toUpperCase()}`;
+        allianceLogo.src = `https://placehold.co/128x128/161B22/FFFFFF?text=${currentUserData.alliance ? currentUserData.alliance.charAt(0).toUpperCase() : '?'}`;
     }
 
 
