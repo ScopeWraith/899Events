@@ -155,12 +155,12 @@ export function initializeAllEventListeners() {
     const editProfileModal = getElement('edit-profile-modal-container');
     if (editProfileModal) {
         editProfileModal.addEventListener('click', (e) => {
-            const tabBtn = e.target.closest('.modal-v-tab-btn');
+            const tabBtn = e.target.closest('.modal-tab-btn');
             if (tabBtn) {
                 e.preventDefault();
                 const tabName = tabBtn.dataset.tab;
 
-                editProfileModal.querySelectorAll('.modal-v-tab-btn').forEach(btn => btn.classList.remove('active'));
+                editProfileModal.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
                 tabBtn.classList.add('active');
 
                 editProfileModal.querySelectorAll('.modal-tab-pane').forEach(pane => {
@@ -467,7 +467,4 @@ export function initializeAllEventListeners() {
             }
         });
     }
-
-    // Add event listener for the new avatar button in the edit profile modal
-    addListener('edit-avatar-btn', 'click', () => getElement('avatar-upload-input').click());
 }
