@@ -289,30 +289,25 @@ export async function handleNotificationAction(notificationId, action, senderUid
         const { allPlayers } = getState();
         const targetPlayer = allPlayers.find(p => p.uid === targetUid);
         if (!targetPlayer) return;
-        
-        // Admins can verify anyone into their CURRENT alliance, leaders verify into their own.
-        const allianceToVerify = currentUserData.isAdmin ? targetPlayer.alliance : currentUserData.alliance;
+
+        // CORRECTED: Admins should verify a player into that player's intended alliance, not their own.
+        const allianceToVerify = targetPlayer.alliance; 
         const targetUsername = targetPlayer.username || 'A new member';
 
         await updateDoc(doc(db, 'users', targetUid), { isVerified: true, alliance: allianceToVerify });
 
         if (notificationId.startsWith('verify-')) {
-            // This is a synthetic notification from the unverifiedPlayers list,
-            // so we look for the original notification to update/delete if it exists.
             const q = query(collection(db, 'notifications'), where('senderUid', '==', targetUid), where('type', '==', 'verification_request'));
             const notificationSnapshot = await getDocs(q);
             const batch = writeBatch(db);
             notificationSnapshot.forEach(doc => {
-                // You could delete it or update it to be a record. Let's update it for history.
                  batch.update(doc.ref, { type: 'user_verified_record', isRead: true, message: `${targetUsername} has been verified in ${allianceToVerify}.` });
             });
             await batch.commit();
         } else {
-             // This was a direct notification click
             await updateDoc(doc(db, 'notifications', notificationId), { type: 'user_verified_record', isRead: true, message: `${targetUsername} has been verified in ${allianceToVerify}.` });
         }
     } else {
-        // This handles "read" action
         await updateDoc(doc(db, 'notifications', notificationId), { isRead: true });
     }
 }

@@ -4,7 +4,7 @@ import { getState } from '../state.js';
 import { canManageUser } from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { ALLIANCE_RANKS, ALLIANCE_ROLES } from '../constants.js';
-import { sendVerificationRequest } from '../firestore.js'; // New Import
+import { sendVerificationRequest } from '../firestore.js'; 
 
 export function populatePlayerSettingsForm(player) {
     const { currentUserData } = getState();
@@ -17,7 +17,6 @@ export function populatePlayerSettingsForm(player) {
     setCustomSelectValue(roleSelect, player.allianceRole, ALLIANCE_ROLES.find(r => r.value === player.allianceRole)?.text);
     verifiedCheckbox.checked = player.isVerified || false;
 
-    // Use canManageUser which now correctly incorporates the isAdmin check
     const canManage = canManageUser(currentUserData, player);
     document.getElementById('verification-toggle-container').style.display = canManage ? 'flex' : 'none';
     document.getElementById('setting-alliance-rank').closest('.input-group').style.display = canManage ? 'flex' : 'none';
@@ -44,12 +43,11 @@ export async function handlePlayerSettingsSubmit(e) {
         allianceRole: newAllianceRole,
     };
     
-    // Check if rank or verification status has changed
     const rankHasChanged = newAllianceRank !== targetPlayer.allianceRank;
 
     if (canManageUser(currentUserData, targetPlayer) || currentUserData.isAdmin) {
         if (rankHasChanged) {
-            updatedData.isVerified = false; // Always un-verify on rank change by a manager
+            updatedData.isVerified = false; 
         } else {
             updatedData.isVerified = isVerifiedChecked;
         }
@@ -59,7 +57,6 @@ export async function handlePlayerSettingsSubmit(e) {
         await updateDoc(doc(db, "users", activePlayerSettingsUID), updatedData);
         hideAllModals();
 
-        // If the rank has changed, send a verification request
         if (rankHasChanged) {
             await sendVerificationRequest(targetPlayer.uid, targetPlayer.username, targetPlayer.alliance);
         }
