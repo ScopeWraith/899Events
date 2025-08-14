@@ -206,7 +206,7 @@
                             </form>
                         </div>
                         <div id="register-form-container" class="auth-form">
-                            <form id="registration-flow">
+                            <div id="registration-flow">
                                 <div class="progress-bar mb-6">
                                     <div class="line"></div>
                                     <div class="progress-step active" data-step="1"><i class="fas fa-user-circle"></i></div>
@@ -214,48 +214,50 @@
                                     <div class="progress-step" data-step="3"><i class="fas fa-fist-raised"></i></div>
                                     <div class="progress-step" data-step="4"><i class="fas fa-image"></i></div>
                                 </div>
-                                <div id="register-form" class="relative">
-                                    <div class="form-slide active" data-slide="1">
-                                        <h3 class="text-xl font-bold text-white text-center mb-4">Account Info</h3>
-                                        <div class="space-y-4">
-                                            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password" class="form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
-                                        </div>
-                                    </div>
-                                    <div class="form-slide" data-slide="2">
-                                        <h3 class="text-xl font-bold text-white text-center mb-4">Alliance Info</h3>
-                                        <div class="space-y-4">
-                                            <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
-                                                <div class="custom-select-container w-full" data-type="alliance">
-                                                    <input type="hidden" id="register-alliance" name="alliance" required><button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><input type="text" class="custom-select-search" placeholder="Search alliances..."><div class="options-list"></div></div>
-                                                </div>
-                                            </div>
-                                            <div class="input-group"><i class="fas fa-star input-icon"></i>
-                                                <div class="custom-select-container w-full" data-type="rank">
-                                                    <input type="hidden" id="register-alliance-rank" name="alliance-rank" required><button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
-                                                </div>
+                                <div id="register-form-content">
+                                    <form id="register-form" class="relative">
+                                        <div class="form-slide active" data-slide="1">
+                                            <h3 class="text-xl font-bold text-white text-center mb-4">Account Info</h3>
+                                            <div class="space-y-4">
+                                                <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="register-username" placeholder="Username" class="form-input" required></div>
+                                                <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="register-email" placeholder="Email" class="form-input" required></div>
+                                                <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="register-password" placeholder="Password" class="form-input" required></div>
+                                                <div class="input-group"><i class="fas fa-check-circle input-icon"></i><input type="password" id="register-password-verify" placeholder="Verify Password" class="form-input" required></div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="form-slide" data-slide="3">
-                                        <h3 class="text-xl font-bold text-white text-center mb-4">Player Power</h3>
-                                        <div class="space-y-4">
-                                            <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power" class="power-input form-input" required></div>
-                                            <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power (Optional)" class="power-input form-input"></div>
-                                            <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power (Optional)" class="power-input form-input"></div>
-                                            <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power (Optional)" class="power-input form-input"></div>
+                                        <div class="form-slide" data-slide="2">
+                                            <h3 class="text-xl font-bold text-white text-center mb-4">Alliance Info</h3>
+                                            <div class="space-y-4">
+                                                <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
+                                                    <div class="custom-select-container w-full" data-type="alliance">
+                                                        <input type="hidden" id="register-alliance" name="alliance" required><button type="button" class="custom-select-value form-input"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><input type="text" class="custom-select-search" placeholder="Search alliances..."><div class="options-list"></div></div>
+                                                    </div>
+                                                </div>
+                                                <div class="input-group"><i class="fas fa-star input-icon"></i>
+                                                    <div class="custom-select-container w-full" data-type="rank">
+                                                        <input type="hidden" id="register-alliance-rank" name="alliance-rank" required><button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="form-slide" data-slide="4">
-                                        <h3 class="text-xl font-bold text-white text-center mb-4">Choose Avatar</h3>
-                                        <div class="flex flex-col items-center gap-4">
-                                            <img id="register-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover border-4 border-white/20">
-                                            <button type="button" id="register-avatar-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-upload mr-2"></i>Choose Image</button>
-                                            <input type="file" id="register-avatar-input" class="hidden" accept="image/*">
+                                        <div class="form-slide" data-slide="3">
+                                            <h3 class="text-xl font-bold text-white text-center mb-4">Player Power</h3>
+                                            <div class="space-y-4">
+                                                <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="register-power" placeholder="Total Power" class="power-input form-input" required></div>
+                                                <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="register-tank-power" placeholder="Tank Power (Optional)" class="power-input form-input"></div>
+                                                <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="register-air-power" placeholder="Air Power (Optional)" class="power-input form-input"></div>
+                                                <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="register-missile-power" placeholder="Missile Power (Optional)" class="power-input form-input"></div>
+                                            </div>
                                         </div>
-                                    </div>
+                                        <div class="form-slide" data-slide="4">
+                                            <h3 class="text-xl font-bold text-white text-center mb-4">Choose Avatar</h3>
+                                            <div class="flex flex-col items-center gap-4">
+                                                <img id="register-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover border-4 border-white/20">
+                                                <button type="button" id="register-avatar-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-upload mr-2"></i>Choose Image</button>
+                                                <input type="file" id="register-avatar-input" class="hidden" accept="image/*">
+                                            </div>
+                                        </div>
+                                    </form>
                                 </div>
                                 <p id="register-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
                                 <div class="flex items-center justify-between mt-6">
@@ -263,7 +265,7 @@
                                     <button type="button" id="register-next-btn" class="primary-btn rounded-lg px-6 py-3">Next</button>
                                     <button type="submit" form="register-form" id="register-submit-btn" class="primary-btn rounded-lg px-6 py-3 hidden"><i class="fas fa-check-circle mr-2"></i>Register</button>
                                 </div>
-                            </form>
+                            </div>
                             <div id="registration-success" class="text-center" style="display: none;">
                                 <div class="w-16 h-16 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl animate-[success-pop_0.5s_ease-out_forwards]">
                                     <i class="fas fa-check"></i>
