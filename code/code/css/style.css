@@ -1050,8 +1050,8 @@ body {
 
 .consequence-box {
     margin-top: 1rem;
-    background-color: rgba(113, 190, 248, 0.1);
-    border: 1px solid rgba(113, 190, 248, 0.3);
+    background-color: rgb(248 113 120 / 7%);
+    border: 1px solid rgb(255 0 0 / 54%);
     padding: 1rem;
     border-radius: 0.5rem;
     text-align: center;
