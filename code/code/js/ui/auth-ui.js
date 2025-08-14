@@ -59,9 +59,17 @@ export function updateAvatarDisplay(data) {
     const userAvatarMobile = document.getElementById('user-avatar-mobile');
     userAvatarMobile.src = avatarUrl;
     userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${rankBorder}`;
-    document.getElementById('mobile-avatar-alliance').textContent = `[${data.alliance}]`;
-    document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
+    
+    const mobileAlliance = document.getElementById('mobile-avatar-alliance');
+    const mobileRank = document.getElementById('mobile-avatar-rank');
+    mobileAlliance.textContent = `[${data.alliance}]`;
+    mobileRank.textContent = data.allianceRank;
+    
+    // Apply unverified style if necessary
+    mobileAlliance.classList.toggle('unverified-player-text', !data.isVerified);
+    mobileRank.classList.toggle('unverified-player-text', !data.isVerified);
 }
+
 
 export function updatePlayerProfileDropdown(currentUserData, userNotifications) { // FIX: Removed default empty array
     if (!currentUserData) return;
@@ -243,30 +251,12 @@ export async function handleRegistrationSubmit(e) {
             isAdmin: email === 'mikestancato@gmail.com',
             registrationTimestampUTC: new Date().toISOString(),
         };
-
-        if (!userProfile.isAdmin) {
-            userProfile.alliance = 'Pending Alliance';
-            userProfile.isVerified = false;
-        }
+        
+        // Removed the logic that sets alliance to 'Pending Alliance'
 
         await setDoc(doc(db, "users", user.uid), userProfile);
-
-        const leadersQuery = query(collection(db, 'users'), where('alliance', '==', alliance), where('allianceRank', 'in', ['R5', 'R4']));
-        const leadersSnapshot = await getDocs(leadersQuery);
-        const batch = writeBatch(db);
-        leadersSnapshot.forEach(leaderDoc => {
-            const notificationRef = doc(collection(db, 'notifications'));
-            batch.set(notificationRef, {
-                recipientUid: leaderDoc.id,
-                senderUid: user.uid,
-                senderUsername: username,
-                type: 'verification_request',
-                message: `${username} has joined your alliance and is awaiting verification.`,
-                isRead: false,
-                timestamp: serverTimestamp()
-            });
-        });
-        await batch.commit();
+        
+        await sendVerificationRequest(user.uid, username, alliance);
 
         document.getElementById('registration-flow').style.display = 'none';
         document.getElementById('registration-success').style.display = 'block';
@@ -358,10 +348,6 @@ export function populateEditForm() {
         verificationIndicator.classList.add('verified');
         icon.className = 'fas fa-check-circle';
         text.textContent = 'Verified Member';
-    } else if (currentUserData.alliance === 'Pending Alliance') {
-        verificationIndicator.classList.add('pending');
-        icon.className = 'fas fa-clock';
-        text.textContent = 'Pending Verification';
     } else {
         verificationIndicator.classList.add('unverified');
         icon.className = 'fas fa-exclamation-triangle';
@@ -403,12 +389,10 @@ export async function handleEditProfileSubmit(e) {
     let oldAlliance = currentUserData.alliance;
     let newAlliance = updatedData.alliance;
 
+    // If alliance or rank changes, user needs to be reverified.
     if (currentUserData && (newAlliance !== oldAlliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
         needsReverification = true;
-        if (newAlliance !== oldAlliance) {
-             updatedData.alliance = 'Pending Alliance';
-        }
     }
 
     try {
@@ -417,7 +401,7 @@ export async function handleEditProfileSubmit(e) {
 
         if (needsReverification) {
             await sendVerificationRequest(user.uid, updatedData.username, newAlliance);
-            alert("Profile updated! You have been un-verified and will need to be approved by a leader in your alliance to access all features.");
+            alert("Profile updated! You have been marked as unverified and will need to be approved by a leader in your new alliance to access all features.");
         }
     } catch (error) {
         console.error("Update profile error:", error);
