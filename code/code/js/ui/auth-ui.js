@@ -34,6 +34,17 @@ function renderAuthUI(newState, prevState) {
 
 export function initializeAuthUI() {
     subscribe(renderAuthUI);
+    // Add event listeners for power input formatting
+    document.querySelectorAll('.power-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/,/g, '');
+            if (isNaN(value) || value === '') {
+                e.target.value = '';
+            } else {
+                e.target.value = parseInt(value, 10).toLocaleString('en-US');
+            }
+        });
+    });
 }
 
 // --- UI HELPER FUNCTIONS ---
@@ -316,33 +327,44 @@ export function populateEditForm() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
 
-    buildSkinSelectors();
-
+    // Account Tab
     document.getElementById('edit-username').value = currentUserData.username;
+    document.getElementById('edit-avatar-preview').src = currentUserData.avatarUrl || `https://placehold.co/128x128/161B22/FFFFFF?text=${currentUserData.username.charAt(0).toUpperCase()}`;
+
+    // Alliance Tab
     const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
     const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
     setCustomSelectValue(editAllianceSelect, currentUserData.alliance, currentUserData.alliance);
     const rankData = ALLIANCE_RANKS.find(r => r.value === currentUserData.allianceRank);
     setCustomSelectValue(editRankSelect, currentUserData.allianceRank, rankData ? rankData.text : currentUserData.allianceRank);
+    
+    // Verification Status
+    const verificationIndicator = document.getElementById('verification-status-indicator');
+    const icon = verificationIndicator.querySelector('i');
+    const text = verificationIndicator.querySelector('span');
+    verificationIndicator.className = 'p-3 rounded-lg flex items-center gap-3'; // Reset classes
+    if (currentUserData.isVerified) {
+        verificationIndicator.classList.add('verified');
+        icon.className = 'fas fa-check-circle';
+        text.textContent = 'Verified Member';
+    } else if (currentUserData.alliance === 'Pending Alliance') {
+        verificationIndicator.classList.add('pending');
+        icon.className = 'fas fa-clock';
+        text.textContent = 'Pending Verification';
+    } else {
+        verificationIndicator.classList.add('unverified');
+        icon.className = 'fas fa-exclamation-triangle';
+        text.textContent = 'Unverified Member';
+    }
+
+    // Power Tab
     document.getElementById('edit-power').value = (currentUserData.power || 0).toLocaleString();
     document.getElementById('edit-tank-power').value = (currentUserData.tankPower || 0).toLocaleString();
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
 
-    const setActiveSkin = (containerId, inputId, value, defaultValue) => {
-        const finalValue = value || defaultValue;
-        const container = document.getElementById(containerId);
-        const input = document.getElementById(inputId);
-        if (container && input) {
-            input.value = finalValue;
-            container.querySelectorAll('.skin-select-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.value === finalValue);
-            });
-        }
-    };
-
-    setActiveSkin('avatar-border-selector', 'edit-avatar-border', currentUserData.avatarBorder, 'avatar-border-none');
-    setActiveSkin('chat-bubble-border-selector', 'edit-chat-bubble-border', currentUserData.chatBubbleBorder, 'chat-bubble-border-none');
+    // Skin Tab (Placeholder)
+    // Future logic to populate skins will go here
 }
 
 export async function handleEditProfileSubmit(e) {
