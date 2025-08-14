@@ -280,23 +280,22 @@
             </div>
             
             <div id="edit-profile-modal-container" class="modal-container">
-                <div class="glass-pane">
-                    <div class="modal-content-wrapper">
+                <div class="glass-pane flex !flex-row">
+                    <nav class="modal-v-nav">
+                        <button class="modal-v-tab-btn active" data-tab="account"><i class="fas fa-user-circle fa-fw w-6"></i><span>Account</span></button>
+                        <button class="modal-v-tab-btn" data-tab="alliance"><i class="fas fa-shield-alt fa-fw w-6"></i><span>Alliance</span></button>
+                        <button class="modal-v-tab-btn" data-tab="power"><i class="fas fa-fist-raised fa-fw w-6"></i><span>Power</span></button>
+                        <button class="modal-v-tab-btn" data-tab="skin"><i class="fas fa-paint-brush fa-fw w-6"></i><span>Skin</span></button>
+                    </nav>
+
+                    <div class="modal-v-content">
                         <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10">
                             <i class="fas fa-times fa-lg"></i>
                         </button>
                         
-                        <h2 class="text-2xl font-bold text-white text-center mb-4">Edit Profile</h2>
-
-                        <nav class="modal-tab-nav">
-                            <button class="modal-tab-btn active" data-tab="account"><i class="fas fa-user-circle mr-2"></i>Account</button>
-                            <button class="modal-tab-btn" data-tab="alliance"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
-                            <button class="modal-tab-btn" data-tab="power"><i class="fas fa-fist-raised mr-2"></i>Power</button>
-                            <button class="modal-tab-btn" data-tab="skin"><i class="fas fa-paint-brush mr-2"></i>Skin</button>
-                        </nav>
-
                         <form id="edit-profile-form">
                             <div id="edit-profile-tab-account" class="modal-tab-pane active">
+                                <h3 class="modal-content-header">Account Settings</h3>
                                 <div class="space-y-4">
                                     <div class="flex flex-col items-center gap-4">
                                         <img id="edit-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=Avatar" class="w-32 h-32 rounded-full object-cover">
@@ -306,6 +305,7 @@
                                 </div>
                             </div>
                             <div id="edit-profile-tab-alliance" class="modal-tab-pane">
+                                <h3 class="modal-content-header">Alliance Details</h3>
                                 <div class="space-y-4">
                                     <div class="flex justify-center mb-4">
                                         <img id="edit-alliance-logo" src="https://placehold.co/128x128/161B22/FFFFFF?text=?" class="w-24 h-24 rounded-full object-cover border-4 border-white/10">
@@ -327,6 +327,7 @@
                                 </div>
                             </div>
                              <div id="edit-profile-tab-power" class="modal-tab-pane">
+                                <h3 class="modal-content-header">Power Stats</h3>
                                 <div class="space-y-4">
                                     <div>
                                         <label for="edit-power" class="power-label">Total Power</label>
@@ -347,10 +348,13 @@
                                 </div>
                             </div>
                             <div id="edit-profile-tab-skin" class="modal-tab-pane">
+                                <h3 class="modal-content-header">Customize Appearance</h3>
                                 </div>
 
-                            <p id="edit-profile-error" class="text-red-400 text-center text-sm mt-4 form-error"></p>
-                            <button type="submit" class="w-full p-3 rounded-lg primary-btn mt-6">Save Changes</button>
+                            <div class="modal-v-footer">
+                                <p id="edit-profile-error" class="text-red-400 text-center text-sm form-error"></p>
+                                <button type="submit" class="w-full p-3 rounded-lg primary-btn">Save Changes</button>
+                            </div>
                         </form>
                     </div>
                 </div>
