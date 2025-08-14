@@ -1045,6 +1045,7 @@ body {
 .nap-rule-list li {  
     padding: 0.75rem 1rem;
     border-radius: 8px;
+    background-color: #ffffff0a;
 }
 
 .consequence-box {
