@@ -298,33 +298,37 @@
                         <div class="p-4 overflow-y-auto flex-grow themed-scrollbar">
                             <form id="edit-profile-form" class="space-y-4">
                                 <div id="edit-profile-tab-account" class="modal-tab-pane active">
-                                    <div class="flex flex-col items-center gap-4">
-                                        <div class="relative">
-                                            <img id="edit-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=?" class="w-32 h-32 rounded-full object-cover">
-                                            <div id="edit-avatar-border-preview" class="w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none"></div>
+                                    <div class="space-y-4">
+                                        <div class="flex flex-col items-center gap-4">
+                                            <div class="relative">
+                                                <img id="edit-avatar-preview" src="https://placehold.co/128x128/161B22/FFFFFF?text=?" class="w-32 h-32 rounded-full object-cover">
+                                                <div id="edit-avatar-border-preview" class="w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none"></div>
+                                            </div>
+                                            <button type="button" id="edit-avatar-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-upload mr-2"></i>Change Avatar</button>
                                         </div>
-                                        <button type="button" id="edit-avatar-btn" class="w-full p-3 rounded-lg secondary-btn"><i class="fas fa-upload mr-2"></i>Change Avatar</button>
-                                    </div>
-                                    <div class="input-group mt-6">
-                                        <i class="fas fa-user input-icon"></i>
-                                        <input type="text" id="edit-username" placeholder="Username" class="form-input" required>
+                                        <div class="profile-input-grid">
+                                            <label for="edit-username"><i class="fas fa-user input-icon"></i>Player Name</label>
+                                            <input type="text" id="edit-username" placeholder="Username" class="form-input" required>
+                                        </div>
                                     </div>
                                 </div>
                                 <div id="edit-profile-tab-alliance" class="modal-tab-pane">
                                     <div class="space-y-4">
-                                        <div class="flex items-center gap-4 bg-black/20 p-3 rounded-lg">
-                                            <img id="edit-alliance-avatar" src="https://placehold.co/64x64/161B22/FFFFFF?text=?" class="w-16 h-16 rounded-full object-cover border-2 border-white/20">
-                                            <div class="flex-grow">
-                                                <div class="custom-select-container" data-type="alliance">
+                                        <div class="profile-input-grid">
+                                            <label><i class="fas fa-shield-alt input-icon"></i>Alliance</label>
+                                            <div class="flex items-center gap-4 bg-black/20 p-2 rounded-lg">
+                                                <img id="edit-alliance-avatar" src="https://placehold.co/64x64/161B22/FFFFFF?text=?" class="w-12 h-12 rounded-full object-cover border-2 border-white/20">
+                                                <div class="custom-select-container flex-grow" data-type="alliance">
                                                     <input type="hidden" id="edit-alliance" name="alliance" required>
                                                     <button type="button" class="custom-select-value form-input !bg-transparent !border-0"><span>Select Alliance</span><i class="fas fa-chevron-down text-xs"></i></button>
                                                     <div class="custom-select-options"><input type="text" class="custom-select-search" placeholder="Search..."><div class="options-list"></div></div>
                                                 </div>
-                                                <div class="custom-select-container mt-2" data-type="rank">
-                                                    <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
-                                                    <button type="button" class="custom-select-value form-input !bg-transparent !border-0"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
-                                                    <div class="custom-select-options"><div class="options-list"></div></div>
-                                                </div>
+                                            </div>
+                                            <label><i class="fas fa-star input-icon"></i>Rank</label>
+                                            <div class="custom-select-container" data-type="rank">
+                                                <input type="hidden" id="edit-alliance-rank" name="alliance-rank" required>
+                                                <button type="button" class="custom-select-value form-input"><span>Select Alliance Rank</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                                <div class="custom-select-options"><div class="options-list"></div></div>
                                             </div>
                                         </div>
                                         <div id="verification-status-indicator" class="p-3 rounded-lg flex items-center gap-3">
