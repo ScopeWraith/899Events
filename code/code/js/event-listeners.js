@@ -236,16 +236,37 @@ export function initializeAllEventListeners() {
             }
         }
     });
-    addListener('profile-dropdown-logout', 'click', handleLogout);
-    addListener('profile-dropdown-edit', 'click', () => {
-        getElement('user-profile-nav-item').classList.remove('open');
-        showEditProfileModal();
+
+    // Consolidated event listener for the player profile dropdown
+    addListener('player-profile-dropdown', 'click', (e) => {
+        const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
+        const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
+        const editProfileBtn = e.target.closest('#profile-dropdown-edit');
+        const friendsBtn = e.target.closest('#profile-dropdown-friends');
+        const avatarBtn = e.target.closest('#profile-dropdown-avatar');
+        const logoutBtn = e.target.closest('#profile-dropdown-logout');
+
+        // Close the dropdown after any action
+        const userProfileNavItem = getElement('user-profile-nav-item');
+        if (userProfileNavItem) {
+            userProfileNavItem.classList.remove('open');
+        }
+
+        if (createEventBtn) {
+            showCreatePostModal('event');
+        } else if (createAnnouncementBtn) {
+            showCreatePostModal('announcement');
+        } else if (editProfileBtn) {
+            showEditProfileModal();
+        } else if (friendsBtn) {
+            showPage('page-feed');
+        } else if (avatarBtn) {
+            getElement('avatar-upload-input').click();
+        } else if (logoutBtn) {
+            handleLogout();
+        }
     });
-    addListener('profile-dropdown-friends', 'click', () => {
-        getElement('user-profile-nav-item').classList.remove('open');
-        showPage('page-feed');
-    });
-    addListener('profile-dropdown-avatar', 'click', () => getElement('avatar-upload-input').click());
+
     addListener('avatar-upload-input', 'change', handleAvatarUpload);
     addListener('edit-profile-form', 'submit', handleEditProfileSubmit);
     addListener('player-settings-form', 'submit', handlePlayerSettingsSubmit);
@@ -392,18 +413,6 @@ export function initializeAllEventListeners() {
         });
     }
 
-    addListener('player-profile-dropdown', 'click', (e) => {
-        const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
-        const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
-
-        if (createEventBtn) {
-            getElement('user-profile-nav-item').classList.remove('open');
-            showCreatePostModal('event');
-        } else if (createAnnouncementBtn) {
-            getElement('user-profile-nav-item').classList.remove('open');
-            showCreatePostModal('announcement');
-        }
-    });
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.nav-item')) {
             document.querySelectorAll('.nav-item.open').forEach(item => item.classList.remove('open'));

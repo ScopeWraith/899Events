@@ -313,7 +313,7 @@ export function handleForgotPassword(e) {
 }
 
 export function populateEditForm() {
-    const { currentUserData, allAlliances } = getState();
+    const { currentUserData } = getState();
     if (!currentUserData) return;
 
     buildSkinSelectors();
@@ -328,21 +328,6 @@ export function populateEditForm() {
     document.getElementById('edit-tank-power').value = (currentUserData.tankPower || 0).toLocaleString();
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
-
-    // Populate new avatar section
-    const avatarPreview = document.getElementById('edit-avatar-preview');
-    avatarPreview.src = currentUserData.avatarUrl || `https://placehold.co/128x128/161B22/FFFFFF?text=${currentUserData.username.charAt(0).toUpperCase()}`;
-    avatarPreview.className = `w-32 h-32 rounded-full object-cover ${getRankBorderClass(currentUserData)}`;
-
-    // Populate alliance logo
-    const allianceLogo = document.getElementById('edit-alliance-logo');
-    const userAlliance = allAlliances.find(a => a.tag === currentUserData.alliance);
-    if (userAlliance && userAlliance.avatarUrl) {
-        allianceLogo.src = userAlliance.avatarUrl;
-    } else {
-        allianceLogo.src = `https://placehold.co/128x128/161B22/FFFFFF?text=${currentUserData.alliance ? currentUserData.alliance.charAt(0).toUpperCase() : '?'}`;
-    }
-
 
     const setActiveSkin = (containerId, inputId, value, defaultValue) => {
         const finalValue = value || defaultValue;
