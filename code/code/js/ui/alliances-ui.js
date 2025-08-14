@@ -128,7 +128,7 @@ function createAllianceCard(alliance, state) {
             <div class="alliance-card-body">
                 <div class="alliance-card-leader-section">
                     <div class="leader-identity">
-                        <img src="${leaderAvatarUrl}" class="leader-avatar ${leaderRankBorder}" style="border: 2px solid var(--primary-color);" alt="Leader">
+                        <img src="${leaderAvatarUrl}" class="leader-avatar ${leaderRankBorder}" style="border: 2px solid var(--primary-color); box-shadow: 0 0 10px -2px var(--primary-color);" alt="Leader">
                         <div class="leader-info">
                             <span class="leader-title">LEADER (R5)</span>
                             <span class="leader-name">${alliance.r5Name || 'N/A'}</span>
