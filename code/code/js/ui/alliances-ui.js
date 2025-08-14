@@ -118,7 +118,7 @@ function createAllianceCard(alliance, state) {
             ${editButtonHTML}
             <div class="alliance-card-header">
                 <div class="alliance-card-avatar-wrapper">
-                    <img src="${alliance.avatarUrl || 'https://placehold.co/128x128/161B22/FFFFFF?text=?'}" class="alliance-card-avatar" alt="${alliance.name} Avatar">
+                    <img src="${alliance.avatarUrl || 'https://placehold.co/128x128/161B22/FFFFFF?text=?'}" class="alliance-card-avatar" style="border: 2px solid var(--primary-color);" alt="${alliance.name} Avatar">
                 </div>
                 <div class="alliance-card-title-section">
                     <p class="alliance-card-tag">[${alliance.tag}]</p>
