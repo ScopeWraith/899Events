@@ -467,4 +467,7 @@ export function initializeAllEventListeners() {
             }
         });
     }
+
+    // Add event listener for the new avatar button in the edit profile modal
+    addListener('edit-avatar-btn', 'click', () => getElement('avatar-upload-input').click());
 }
