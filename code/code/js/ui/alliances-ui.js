@@ -106,7 +106,7 @@ function createAllianceCard(alliance, state) {
         const rankBorder = memberData ? getRankBorderClass(memberData) : 'rank-border-r1';
         return `
             <div class="core-member">
-                <img src="${avatarUrl}" class="core-member-avatar" style="border: 2px solid var(${primaryColor});" alt="${member.role}">
+                <img src="${avatarUrl}" class="core-member-avatar" style="border: 2px solid var(--primary-color);" alt="${member.role}">
                 <p class="core-member-role">${member.role}</p>
                 <p class="core-member-name">${member.username}</p>
             </div>
