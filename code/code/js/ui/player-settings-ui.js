@@ -17,8 +17,11 @@ export function populatePlayerSettingsForm(player) {
     setCustomSelectValue(roleSelect, player.allianceRole, ALLIANCE_ROLES.find(r => r.value === player.allianceRole)?.text);
     verifiedCheckbox.checked = player.isVerified || false;
 
-    const canVerify = canManageUser(currentUserData, player);
-    document.getElementById('verification-toggle-container').style.display = canVerify ? 'flex' : 'none';
+    // Use canManageUser which now correctly incorporates the isAdmin check
+    const canManage = canManageUser(currentUserData, player);
+    document.getElementById('verification-toggle-container').style.display = canManage ? 'flex' : 'none';
+    document.getElementById('setting-alliance-rank').closest('.input-group').style.display = canManage ? 'flex' : 'none';
+    document.getElementById('setting-alliance-role').closest('.input-group').style.display = canManage ? 'flex' : 'none';
 }
 
 export async function handlePlayerSettingsSubmit(e) {
@@ -43,11 +46,10 @@ export async function handlePlayerSettingsSubmit(e) {
     
     // Check if rank or verification status has changed
     const rankHasChanged = newAllianceRank !== targetPlayer.allianceRank;
-    const verificationHasChanged = isVerifiedChecked !== targetPlayer.isVerified;
 
     if (canManageUser(currentUserData, targetPlayer) || currentUserData.isAdmin) {
         if (rankHasChanged) {
-            updatedData.isVerified = false;
+            updatedData.isVerified = false; // Always un-verify on rank change by a manager
         } else {
             updatedData.isVerified = isVerifiedChecked;
         }
