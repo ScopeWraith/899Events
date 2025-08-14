@@ -450,43 +450,68 @@ export function buildMobileNav() {
 
 function setupCustomSelects() {
     document.querySelectorAll('.custom-select-container').forEach(container => {
-        const valueBtn = container.querySelector('.custom-select-value');
-        const optionsContainer = container.querySelector('.custom-select-options');
-        const searchInput = container.querySelector('.custom-select-search');
+        const type = container.dataset.type;
+        const optionsList = container.querySelector('.options-list');
+        if (!optionsList) return;
 
-        valueBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // Close all other open selects
-            document.querySelectorAll('.custom-select-container').forEach(c => {
-                if (c !== container) c.classList.remove('open');
-            });
-            container.classList.toggle('open');
-        });
+        let optionsData = [];
+        switch (type) {
+            case 'alliance':
+                optionsData = ALLIANCES.map(name => ({ value: name, text: name }));
+                break;
+            case 'alliance-filter':
+                 optionsData = [{ value: '', text: 'All Alliances' }, ...ALLIANCES.map(name => ({ value: name, text: name }))];
+                break;
+            case 'rank':
+                optionsData = ALLIANCE_RANKS;
+                break;
+            case 'role':
+                optionsData = ALLIANCE_ROLES;
+                break;
+            case 'day-of-week':
+                optionsData = DAYS_OF_WEEK;
+                break;
+            case 'hour-of-day':
+                optionsData = HOURS_OF_DAY;
+                break;
+            case 'repeat-type':
+                optionsData = REPEAT_TYPES;
+                break;
+            case 'announcement-expiration':
+                optionsData = ANNOUNCEMENT_EXPIRATION_DAYS;
+                break;
+        }
 
-        optionsContainer.addEventListener('click', (e) => {
+        optionsList.innerHTML = optionsData.map(opt => `<div class="custom-select-option" data-value="${opt.value}">${opt.text}</div>`).join('');
+    });
+
+    document.body.addEventListener('click', e => {
+        const openSelect = document.querySelector('.custom-select-container.open');
+        const container = e.target.closest('.custom-select-container');
+
+        if (openSelect && openSelect !== container) {
+            openSelect.classList.remove('open');
+        }
+
+        if (container) {
+            const valueBtn = container.querySelector('.custom-select-value');
+            if (e.target === valueBtn || valueBtn.contains(e.target)) {
+                container.classList.toggle('open');
+            }
+
             const option = e.target.closest('.custom-select-option');
             if (option) {
                 setCustomSelectValue(container, option.dataset.value, option.textContent);
                 container.classList.remove('open');
-                // Trigger change event for listeners
                 const hiddenInput = container.querySelector('input[type="hidden"]');
                 if (hiddenInput) {
                     hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             }
-        });
-
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                optionsContainer.querySelectorAll('.custom-select-option').forEach(option => {
-                    const text = option.textContent.toLowerCase();
-                    option.style.display = text.includes(searchTerm) ? 'block' : 'none';
-                });
-            });
         }
     });
 }
+
 
 export function setCustomSelectValue(container, value, text) {
     const hiddenInput = container.querySelector('input[type="hidden"]');
