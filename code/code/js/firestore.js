@@ -153,7 +153,7 @@ export function fetchInitialData(onPublicDataLoaded) {
             const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setState({ allAlliances });
             checkPublicLoaded('alliances');
-        }, () => checkPublicLoaded('alliances'));
+        }, () => checkAllLoaded('alliances'));
     }
 
     setState({ listeners });
@@ -286,13 +286,20 @@ export async function handleNotificationAction(notificationId, action, senderUid
     } else if (action === 'decline-friend') {
         await deleteDoc(doc(db, 'notifications', notificationId));
     } else if (action === 'verify-user') {
-        const targetUsername = getState().allPlayers.find(p => p.uid === targetUid)?.username || 'A new member';
-        await updateDoc(doc(db, 'users', targetUid), { isVerified: true, alliance: currentUserData.alliance });
-        await updateDoc(doc(db, 'notifications', notificationId), { type: 'user_verified_record', isRead: true, message: `${targetUsername} has been verified in your alliance.` });
+        const { allPlayers } = getState();
+        const targetPlayer = allPlayers.find(p => p.uid === targetUid);
+        if (!targetPlayer) return;
+
+        const allianceToVerify = currentUserData.isAdmin ? targetPlayer.alliance : currentUserData.alliance;
+        const targetUsername = targetPlayer.username || 'A new member';
+
+        await updateDoc(doc(db, 'users', targetUid), { isVerified: true, alliance: allianceToVerify });
+        await updateDoc(doc(db, 'notifications', notificationId), { type: 'user_verified_record', isRead: true, message: `${targetUsername} has been verified in ${allianceToVerify}.` });
     } else {
         await updateDoc(doc(db, 'notifications', notificationId), { isRead: true });
     }
 }
+
 
 export async function addFriend(recipientUid) {
     const { currentUserData } = getState();
@@ -380,9 +387,20 @@ export function setupConversationListListener() {
 export function setupUnverifiedPlayersListener(user) {
     const { listeners } = getState();
     if (listeners.unverifiedPlayers) listeners.unverifiedPlayers();
-    if (!user || !isUserLeader(user) || user.alliance === 'Pending Alliance') return;
+    if (!user) return;
 
-    const unverifiedPlayersQuery = query(collection(db, 'users'), where('alliance', '==', user.alliance), where('isVerified', '==', false));
+    let unverifiedPlayersQuery;
+    if (user.isAdmin) {
+        // Admins see all unverified players
+        unverifiedPlayersQuery = query(collection(db, 'users'), where('isVerified', '==', false));
+    } else if (isUserLeader(user) && user.alliance !== 'Pending Alliance') {
+        // Leaders see unverified players in their own alliance
+        unverifiedPlayersQuery = query(collection(db, 'users'), where('alliance', '==', user.alliance), where('isVerified', '==', false));
+    } else {
+        // Not an admin or leader, don't set up the listener
+        return;
+    }
+
     listeners.unverifiedPlayers = onSnapshot(unverifiedPlayersQuery, (snapshot) => {
         const unverifiedPlayers = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
         setState({ unverifiedPlayers });

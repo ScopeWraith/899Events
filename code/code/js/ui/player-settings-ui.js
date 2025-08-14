@@ -45,7 +45,7 @@ export async function handlePlayerSettingsSubmit(e) {
     const rankHasChanged = newAllianceRank !== targetPlayer.allianceRank;
     const verificationHasChanged = isVerifiedChecked !== targetPlayer.isVerified;
 
-    if (canManageUser(currentUserData, targetPlayer)) {
+    if (canManageUser(currentUserData, targetPlayer) || currentUserData.isAdmin) {
         if (rankHasChanged) {
             updatedData.isVerified = false;
         } else {
