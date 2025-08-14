@@ -2,7 +2,7 @@
 
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { auth } from './firebase-config.js';
-import { subscribe, setState } from './state.js';
+import { subscribe, setState, getState } from './state.js';
 import { setupAllListeners, detachAllListeners, fetchInitialData, setupUnverifiedPlayersListener } from './firestore.js';
 import { setupPresenceManagement } from './presence.js';
 import { 
