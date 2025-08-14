@@ -290,7 +290,7 @@
 
                         <nav class="modal-tab-nav">
                             <button class="modal-tab-btn active" data-tab="account"><i class="fas fa-user-circle mr-2"></i>Account</button>
-                            <button class="modal-tab-btn" data-tab="profile"><i class="fas fa-shield-alt mr-2"></i>Profile</button>
+                            <button class="modal-tab-btn" data-tab="alliance"><i class="fas fa-shield-alt mr-2"></i>Alliance</button>
                             <button class="modal-tab-btn" data-tab="power"><i class="fas fa-fist-raised mr-2"></i>Power</button>
                             <button class="modal-tab-btn" data-tab="skin"><i class="fas fa-paint-brush mr-2"></i>Skin</button>
                         </nav>
@@ -305,8 +305,11 @@
                                     <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="edit-username" placeholder="Username" class="form-input" required></div>
                                 </div>
                             </div>
-                            <div id="edit-profile-tab-profile" class="modal-tab-pane">
+                            <div id="edit-profile-tab-alliance" class="modal-tab-pane">
                                 <div class="space-y-4">
+                                    <div class="flex justify-center mb-4">
+                                        <img id="edit-alliance-logo" src="https://placehold.co/128x128/161B22/FFFFFF?text=?" class="w-24 h-24 rounded-full object-cover border-4 border-white/10">
+                                    </div>
                                     <div class="input-group"><i class="fas fa-shield-alt input-icon"></i>
                                         <div class="custom-select-container w-full" data-type="alliance">
                                             <input type="hidden" id="edit-alliance" name="alliance" required>
@@ -325,10 +328,22 @@
                             </div>
                              <div id="edit-profile-tab-power" class="modal-tab-pane">
                                 <div class="space-y-4">
-                                    <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
-                                    <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input"></div>
-                                    <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input"></div>
-                                    <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input"></div>
+                                    <div>
+                                        <label for="edit-power" class="power-label">Total Power</label>
+                                        <div class="input-group"><i class="fas fa-fist-raised input-icon"></i><input type="text" id="edit-power" placeholder="Total Power" class="power-input form-input" required></div>
+                                    </div>
+                                    <div>
+                                        <label for="edit-tank-power" class="power-label">Tank Power</label>
+                                        <div class="input-group"><i class="fas fa-truck-monster input-icon"></i><input type="text" id="edit-tank-power" placeholder="Tank Power" class="power-input form-input"></div>
+                                    </div>
+                                    <div>
+                                        <label for="edit-air-power" class="power-label">Air Power</label>
+                                        <div class="input-group"><i class="fas fa-fighter-jet input-icon"></i><input type="text" id="edit-air-power" placeholder="Air Power" class="power-input form-input"></div>
+                                    </div>
+                                    <div>
+                                        <label for="edit-missile-power" class="power-label">Missile Power</label>
+                                        <div class="input-group"><i class="fas fa-rocket input-icon"></i><input type="text" id="edit-missile-power" placeholder="Missile Power" class="power-input form-input"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div id="edit-profile-tab-skin" class="modal-tab-pane">
