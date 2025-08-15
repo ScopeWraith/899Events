@@ -189,9 +189,6 @@ export function getAvatarBorderClass(player, allianceData) {
     const skinType = player.avatarBorderSkin || 'rank';
 
     if (skinType === 'alliance' && allianceData) {
-        // This is a placeholder for a future system. 
-        // For now, we'll just return a class and style it with the alliance color.
-        // We will need a new CSS class for this.
         return 'alliance-border';
     }
     
