@@ -28,6 +28,59 @@
         </div>
 
         <div id="modal-container-all">
+            <div id="border-editor-modal-container" class="modal-container full-screen-modal">
+                <div class="glass-pane flex flex-col h-full overflow-hidden">
+                    <div class="flex items-center p-3 border-b border-white/10 flex-shrink-0">
+                        <button id="close-border-editor-modal-btn" class="text-gray-500 hover:text-white transition-colors mr-3"><i class="fas fa-arrow-left"></i></button>
+                        <h2 class="text-xl font-bold text-white">Border Editor</h2>
+                    </div>
+                    <div class="flex flex-col md:flex-row flex-grow overflow-hidden">
+                        <div class="w-full md:w-1/2 flex items-center justify-center p-8 bg-black/20">
+                            <div id="border-editor-preview-box" class="relative w-48 h-48">
+                                <img src="https://placehold.co/128x128/161B22/FFFFFF?text=PREVIEW" class="w-full h-full rounded-full object-cover">
+                                <div id="border-editor-live-preview" class="absolute inset-0 rounded-full" style="border: 5px solid white;"></div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/2 p-6 overflow-y-auto themed-scrollbar space-y-4">
+                            <div>
+                                <label for="border-style-select" class="font-bold text-white">Border Style</label>
+                                <div class="custom-select-container" data-type="border-style">
+                                    <input type="hidden" id="border-style-select">
+                                    <button type="button" class="custom-select-value form-input"><span>Solid</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options"><div class="options-list"></div></div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="border-width-slider" class="font-bold text-white">Border Width: <span id="border-width-value">5</span>px</label>
+                                <input type="range" id="border-width-slider" min="1" max="10" value="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label for="border-color-picker" class="font-bold text-white">Border Color</label>
+                                <input type="color" id="border-color-picker" value="#FFFFFF" class="w-full h-10 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer">
+                            </div>
+                            <div>
+                                <label for="box-shadow-blur-slider" class="font-bold text-white">Glow (Blur): <span id="box-shadow-blur-value">10</span>px</label>
+                                <input type="range" id="box-shadow-blur-slider" min="0" max="50" value="10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label for="box-shadow-color-picker" class="font-bold text-white">Glow Color</label>
+                                <input type="color" id="box-shadow-color-picker" value="#FFFFFF" class="w-full h-10 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer">
+                            </div>
+                            <div>
+                                <label for="animation-select" class="font-bold text-white">Animation</label>
+                                <div class="custom-select-container" data-type="animation-style">
+                                    <input type="hidden" id="animation-select">
+                                    <button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                    <div class="custom-select-options"><div class="options-list"></div></div>
+                                </div>
+                            </div>
+                            <div class="pt-4">
+                                <button class="w-full p-3 rounded-lg primary-btn">Save Border</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="access-denied-modal-container" class="modal-container">
                 <div class="glass-pane">
                     <div class="modal-content-wrapper p-6 text-center">

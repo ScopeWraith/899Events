@@ -24,6 +24,11 @@ export function showAccessDeniedModal() {
     showModal(getElement('access-denied-modal-container'));
 }
 
+export function showBorderEditorModal() {
+    hideAllModals();
+    showModal(getElement('border-editor-modal-container'));
+}
+
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
     if (convoCount !== undefined) socialBadges.convoCount = convoCount;
     if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;

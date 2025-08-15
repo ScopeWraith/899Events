@@ -2,6 +2,7 @@
 
 import { getState } from '../state.js';
 import { getAvatarBorderClass } from '../utils.js';
+import { showBorderEditorModal } from './ui-manager.js';
 
 export function initializeSkinUI() {
     const editProfileModal = document.getElementById('edit-profile-modal-container');
@@ -9,6 +10,10 @@ export function initializeSkinUI() {
         editProfileModal.addEventListener('click', (e) => {
             const skinBtn = e.target.closest('.skin-select-btn');
             if (skinBtn) {
+                if (skinBtn.id === 'add-new-border-btn') {
+                    showBorderEditorModal();
+                    return;
+                }
                 const skinId = skinBtn.dataset.value;
                 document.getElementById('avatar-border-skin-input').value = skinId;
                 updateSkinSelection('avatar-border-selector', skinId);
@@ -34,7 +39,7 @@ export function buildAvatarBorderSkins() {
         skins.push({ id: 'admin', label: 'Admin' });
     }
 
-    container.innerHTML = skins.map(skin => {
+    let skinsHTML = skins.map(skin => {
         const previewData = { ...currentUserData, avatarBorderSkin: skin.id };
         const border = getAvatarBorderClass(previewData, allianceData);
 
@@ -48,6 +53,19 @@ export function buildAvatarBorderSkins() {
             </button>
         `;
     }).join('');
+
+    if (currentUserData.isAdmin) {
+        skinsHTML += `
+            <button type="button" id="add-new-border-btn" class="skin-select-btn">
+                <div class="preview !bg-transparent">
+                    <i class="fas fa-plus text-2xl text-gray-500"></i>
+                </div>
+                <span class="label">New...</span>
+            </button>
+        `;
+    }
+
+    container.innerHTML = skinsHTML;
 }
 
 export function updateSkinSelection(containerId, selectedValue) {

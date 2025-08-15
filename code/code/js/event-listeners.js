@@ -6,7 +6,7 @@ import { getState, setState } from './state.js'; // CHANGED HERE
 import {
     setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal,
     showCreatePostModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal,
-    handleSubNavClick, toggleSubNav, showViewPostModal
+    handleSubNavClick, toggleSubNav, showViewPostModal, showBorderEditorModal
 } from './ui/ui-manager.js';
 import {
     handleLogout, handleLoginSubmit, handleForgotPassword, handleRegistrationNext,
@@ -34,6 +34,8 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
+    
+    addListener('close-border-editor-modal-btn', 'click', hideAllModals);
 
     const serverPage = getElement('page-server');
     if (serverPage) {
