@@ -71,7 +71,7 @@ export function renderPlayers(players) {
     const playerListContainer = document.getElementById('player-list-container');
     if (!playerListContainer) return;
 
-    const { currentUserData, userSessions } = getState();
+    const { currentUserData, userSessions, allAlliances } = getState();
     playerListContainer.innerHTML = '';
 
     if (players === null) { // Data is loading, show skeletons
@@ -103,14 +103,15 @@ export function renderPlayers(players) {
         const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
         const session = userSessions ? userSessions[player.uid] : null;
         const statusClass = session ? session.status : 'offline';
-        const rankBorder = getAvatarBorderClass(player);
+        const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
+        const borderClass = getAvatarBorderClass(player, allianceData);
         const unverifiedClass = player.isVerified ? '' : 'unverified-player-text';
 
         card.innerHTML = `
             ${gearIconHTML}
             <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
                 <div class="avatar-container mr-4">
-                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${rankBorder}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${borderClass}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
                     <div class="player-badge ${unverifiedClass}">[${player.alliance}] ${player.allianceRank}</div>
                 </div>
                 <div>

@@ -9,6 +9,7 @@ import { resizeImage , getAvatarBorderClass} from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 import { sendVerificationRequest } from '../firestore.js';
+import { buildAvatarBorderSkins, updateSkinSelection, updateAvatarBorderPreview } from './skin-ui.js';
 
 // --- STATE & RENDER FUNCTIONS ---
 
@@ -54,15 +55,15 @@ export function updateAvatarDisplay(data) {
     const { allAlliances } = getState();
     const allianceData = allAlliances ? allAlliances.find(a => a.tag === data.alliance) : null;
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-    const rankBorder = getAvatarBorderClass(data, allianceData); // Use the new centralized function
+    const borderClass = getAvatarBorderClass(data, allianceData); 
 
     const userAvatarButton = document.getElementById('user-avatar-button');
     userAvatarButton.src = avatarUrl;
-    userAvatarButton.className = `w-6 h-6 rounded-full mr-2 object-cover ${rankBorder}`;
+    userAvatarButton.className = `w-6 h-6 rounded-full mr-2 object-cover ${borderClass}`;
     
     const userAvatarMobile = document.getElementById('user-avatar-mobile');
     userAvatarMobile.src = avatarUrl;
-    userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${rankBorder}`;
+    userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${borderClass}`;
     
     const mobileAlliance = document.getElementById('mobile-avatar-alliance');
     const mobileRank = document.getElementById('mobile-avatar-rank');
@@ -142,17 +143,6 @@ export function initializeRegistrationStepper() {
 }
 
 // ... (and so on for all the other functions)
-function buildSkinSelectors() {
-    const rankLegend = document.getElementById('rank-color-legend');
-    if(rankLegend) {
-        rankLegend.innerHTML = Object.entries(RANK_STYLES).map(([rank, style]) => `
-            <div class="rank-legend-item">
-                <div class="rank-legend-color" style="background-color: ${style.color};"></div>
-                <span class="font-semibold text-white">${rank}</span>
-            </div>
-        `).join('');
-    }
-}
 function showRegStep(stepIndex) {
     const registrationFlow = document.getElementById('registration-flow');
     const regFormSlides = registrationFlow.querySelectorAll('.form-slide');
@@ -250,7 +240,7 @@ export async function handleRegistrationSubmit(e) {
 
         let userProfile = {
             username, email, alliance, allianceRank, power, tankPower, airPower, missilePower,
-            likes: 0, allianceRole: '', isVerified: false, avatarUrl,
+            likes: 0, allianceRole: '', isVerified: false, avatarUrl, avatarBorderSkin: 'rank',
             isAdmin: email === 'mikestancato@gmail.com',
             registrationTimestampUTC: new Date().toISOString(),
         };
@@ -396,7 +386,6 @@ export async function handleEditProfileSubmit(e) {
     let oldAlliance = currentUserData.alliance;
     let newAlliance = updatedData.alliance;
 
-    // If alliance or rank changes, user needs to be reverified.
     if (currentUserData && (newAlliance !== oldAlliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
         needsReverification = true;
@@ -415,66 +404,6 @@ export async function handleEditProfileSubmit(e) {
         errorElement.textContent = "Failed to update profile.";
     }
 }
-
-function buildAvatarBorderSkins() {
-    const container = document.getElementById('avatar-border-selector');
-    if (!container) return;
-
-    const { currentUserData, allAlliances } = getState();
-    const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
-    
-    const skins = [
-        { id: 'rank', label: 'Rank', borderClass: getAvatarBorderClass(currentUserData, null) },
-        { id: 'alliance', label: 'Alliance', borderClass: getAvatarBorderClass(currentUserData, allianceData) }
-    ];
-
-    container.innerHTML = skins.map(skin => `
-        <button type="button" class="skin-select-btn" data-value="${skin.id}">
-            <div class="preview">
-                <div class="preview-icon"></div>
-                <div class="preview-border ${skin.borderClass}" style="${skin.id === 'alliance' && allianceData ? `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};` : ''}"></div>
-            </div>
-            <span class="label">${skin.label}</span>
-        </button>
-    `).join('');
-
-    container.querySelectorAll('.skin-select-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const skinId = btn.dataset.value;
-            document.getElementById('avatar-border-skin-input').value = skinId;
-            updateSkinSelection('avatar-border-selector', skinId);
-            updateAvatarBorderPreview();
-        });
-    });
-}
-
-
-function updateSkinSelection(containerId, selectedValue) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.querySelectorAll('.skin-select-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.value === selectedValue);
-    });
-}
-
-function updateAvatarBorderPreview() {
-    const { currentUserData, allAlliances } = getState();
-    const selectedSkin = document.getElementById('avatar-border-skin-input').value;
-    const previewData = { ...currentUserData, avatarBorderSkin: selectedSkin };
-    const allianceData = allAlliances.find(a => a.tag === previewData.alliance);
-    
-    const previewElement = document.getElementById('edit-avatar-border-preview');
-    previewElement.className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${getAvatarBorderClass(previewData, allianceData)}`;
-
-    if (selectedSkin === 'alliance' && allianceData) {
-        previewElement.style.borderColor = allianceData.primaryColor;
-        previewElement.style.boxShadow = `0 0 10px -2px ${allianceData.primaryColor}`;
-    } else {
-        previewElement.style.borderColor = '';
-        previewElement.style.boxShadow = '';
-    }
-}
-
 
 export async function handleAvatarUpload(e) {
     const file = e.target.files[0];
