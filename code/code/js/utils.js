@@ -219,50 +219,62 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
 export function applyCustomBorderStyle(css) {
     if (!css) return '';
 
-    // --- MAIN BORDER STYLES (for the element itself) ---
+    // --- MAIN BORDER STYLES ---
     const colors = [css.borderColor1, css.borderColor2, css.borderColor3, css.borderColor4, css.borderColor5].filter((c, i) => i < 2 || css[`enableColor${i + 1}`]);
     const gradientMode = css.gradientMode || 'linear-gradient';
-    let gradientString;
+    let gradientString = `${gradientMode}(from ${css.gradientAngle}deg, ${colors.join(', ')})`;
     if (gradientMode === 'radial-gradient') {
         gradientString = `radial-gradient(circle, ${colors.join(', ')})`;
-    } else {
-        gradientString = `${gradientMode}(from ${css.gradientAngle}deg, ${colors.join(', ')})`;
     }
 
     let borderStyle = css.borderStyle === 'marching-ants' ? 'dashed' : css.borderStyle;
     
-    let mainAnimationStyle = '';
-    if (css.animationName && css.animationName !== 'none' && css.animationName !== 'shimmer' && css.animationName !== 'glow') {
-        mainAnimationStyle = `animation: ${css.animationName} ${css.animationDuration}s infinite ${css.animationDirection};`;
+    // --- ANIMATIONS ---
+    let mainAnimation = '';
+    if (css.animationName && css.animationName !== 'none' && !['shimmer', 'glow', 'particles'].includes(css.animationName)) {
+        mainAnimation = `${css.animationName} ${css.animationDuration}s infinite ${css.animationDirection}`;
     }
-     if (css.borderStyle === 'marching-ants') {
-        mainAnimationStyle += ` animation: marching-ants 10s linear infinite;`;
+    if (css.borderStyle === 'marching-ants') {
+        mainAnimation += (mainAnimation ? ', ' : '') + 'marching-ants 10s linear infinite';
     }
     if (css.animateGradient) {
-        mainAnimationStyle += ' animation: gradient-shift 5s ease infinite; background-size: 200% 200%;';
+        mainAnimation += (mainAnimation ? ', ' : '') + 'gradient-shift 5s ease infinite';
     }
 
-    // --- GLOW STYLES (for the ::before pseudo-element) ---
-    // Use a conic-gradient for the border glow image
+    // --- GLOW & SHADOWS ---
     const glowGradient = `conic-gradient(from ${css.glowAngle}deg, ${css.boxShadowColor}, ${css.boxShadowColor2}, ${css.boxShadowColor})`;
-    let glowAnimationStyle = '';
+    let glowAnimation = '';
     if (css.animationName === 'glow') {
-         glowAnimationStyle = `animation: glow ${css.animationDuration}s infinite alternate;`;
+         glowAnimation = `glow ${css.animationDuration}s infinite alternate`;
     } else if (css.animationName === 'shimmer') {
-        glowAnimationStyle = `animation: shimmer-spin 4s linear infinite;`;
+        glowAnimation = `shimmer-spin 4s linear infinite`;
     }
 
+    const boxShadow = `inset 0 0 10px 2px ${css.innerGlowColor || '#000000'}`;
 
-    // Combine all styles into a single string for the style attribute
-    return `
-        --border-width: ${css.borderWidth}px;
-        --border-style: ${borderStyle};
-        --border-image: ${gradientString};
-        --scale: ${css.borderSize};
-        --main-animation: ${mainAnimationStyle};
-        
-        --glow-image: ${glowGradient};
-        --glow-blur: ${css.boxShadowBlur}px;
-        --glow-animation: ${glowAnimationStyle};
-    `;
+    // --- TEXTURES ---
+    const textureClass = css.borderTexture !== 'none' ? `texture-${css.borderTexture}` : '';
+
+    // --- PARTICLES ---
+    const particleAnimation = css.animationName === 'particles' ? 'particles-anim 10s linear infinite' : 'none';
+
+    // Combine all styles into a string for the style attribute and class updates
+    return {
+        style: `
+            --border-width: ${css.borderWidth}px;
+            --border-style: ${borderStyle};
+            --border-image: ${gradientString};
+            --scale: ${css.borderSize};
+            --main-animation: ${mainAnimation || 'none'};
+            --box-shadow: ${boxShadow};
+            --glow-image: ${glowGradient};
+            --glow-blur: ${css.boxShadowBlur}px;
+            --glow-spread: ${css.boxShadowSpread}px;
+            --glow-animation: ${glowAnimation || 'none'};
+            --particle-animation: ${particleAnimation};
+        `,
+        textureClass: textureClass,
+        // Add background-size only when gradient animation is active
+        backgroundSize: css.animateGradient ? '200% 200%' : 'auto'
+    };
 }

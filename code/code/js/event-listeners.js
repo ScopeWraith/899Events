@@ -54,8 +54,19 @@ function updateBorderEditorPreview() {
         animationDirection: document.getElementById('animation-direction-select').value,
         innerGlowColor: document.getElementById('inner-glow-color-picker').value, // NEW
         animateGradient: document.getElementById('animate-gradient-toggle').checked, // NEW
+        borderTexture: document.getElementById('border-texture-select').value,
     };
+    const styles = applyCustomBorderStyle(css);
+    
+    // --- FIX: Apply styles correctly ---
+    preview.style.cssText = styles.style;
+    preview.style.backgroundSize = styles.backgroundSize;
 
+    // --- FIX: Handle texture classes ---
+    preview.classList.remove('texture-electric', 'texture-cracks', 'texture-lines');
+    if (styles.textureClass) {
+        preview.classList.add(styles.textureClass);
+    }
     preview.style.cssText = applyCustomBorderStyle(css);
     document.getElementById('border-size-value').textContent = parseFloat(css.borderSize).toFixed(2);
     document.getElementById('border-width-value').textContent = css.borderWidth;

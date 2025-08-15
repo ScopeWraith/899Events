@@ -144,7 +144,8 @@ export const ANIMATION_STYLES = [
     { value: 'spin', text: 'Spin' },
     { value: 'pulse', text: 'Pulse' },
     { value: 'glow', text: 'Glow' },
-    { value: 'shimmer', text: 'Shimmer' }, // New animation
+    { value: 'shimmer', text: 'Shimmer' },
+    { value: 'particles', text: 'Particles' }, // NEW
 ];
 
 export const ANIMATION_DIRECTIONS = [
@@ -158,4 +159,11 @@ export const GRADIENT_MODES = [
     { value: 'linear-gradient', text: 'Linear' },
     { value: 'radial-gradient', text: 'Radial' },
     { value: 'conic-gradient', text: 'Conic' },
+];
+
+export const BORDER_TEXTURES = [
+    { value: 'none', text: 'None' },
+    { value: 'electric', text: 'Electric' },
+    { value: 'cracks', text: 'Cracks' },
+    { value: 'lines', text: 'Lines' },
 ];

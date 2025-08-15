@@ -580,6 +580,8 @@ body {
     border-color: transparent; /* Fallback */
     background: var(--border-image);
     animation: var(--main-animation);
+    box-shadow: var(--box-shadow);
+    background-size: var(--background-size, auto); /* NEW */
 }
 
 .rank-border-admin { 
@@ -1126,4 +1128,29 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
+}
+
+.avatar-border::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-size: cover;
+    mix-blend-mode: overlay;
+    opacity: 0.3;
+    pointer-events: none;
+}
+.avatar-border.texture-electric::after { background-image: url('https://www.transparenttextures.com/patterns/simple-dashed.png'); opacity: 0.1; }
+.avatar-border.texture-cracks::after { background-image: url('https://www.transparenttextures.com/patterns/worn-dots.png'); opacity: 0.2; }
+.avatar-border.texture-lines::after { background-image: url('https://www.transparenttextures.com/patterns/vertical-lines.png'); opacity: 0.05; }
+
+/* --- NEW: Particle System --- */
+.avatar-border .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: var(--particle-animation);
+}
+@keyframes particles-anim {
+    /* Complex particle animation keyframes */
 }
