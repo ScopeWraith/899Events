@@ -1067,3 +1067,18 @@ body {
     cursor: pointer;
     border-radius: 50%;
 }
+
+/* Add these new keyframes to your style.css file */
+
+@keyframes marching-ants {
+    to {
+        stroke-dashoffset: 100%;
+        border-image-source:-webkit-linear-gradient(22deg, rgba(206, 2, 189, 1) 0%, rgba(7, 191, 228, 1) 100%);
+    }
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}

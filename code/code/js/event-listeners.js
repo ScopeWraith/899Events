@@ -34,8 +34,15 @@ function updateBorderEditorPreview() {
         borderSize: document.getElementById('border-size-slider').value,
         borderStyle: document.getElementById('border-style-select').value,
         borderWidth: document.getElementById('border-width-slider').value,
+        gradientMode: document.getElementById('gradient-mode-select').value, // NEW
         borderColor1: document.getElementById('border-color-1').value,
         borderColor2: document.getElementById('border-color-2').value,
+        borderColor3: document.getElementById('border-color-3').value, // NEW
+        borderColor4: document.getElementById('border-color-4').value, // NEW
+        borderColor5: document.getElementById('border-color-5').value, // NEW
+        enableColor3: document.getElementById('enable-color-3').checked, // NEW
+        enableColor4: document.getElementById('enable-color-4').checked, // NEW
+        enableColor5: document.getElementById('enable-color-5').checked, // NEW
         gradientAngle: document.getElementById('gradient-angle-slider').value,
         boxShadowBlur: document.getElementById('box-shadow-blur-slider').value,
         boxShadowSpread: document.getElementById('box-shadow-spread-slider').value,
@@ -43,6 +50,7 @@ function updateBorderEditorPreview() {
         animationName: document.getElementById('animation-select').value,
         animationDuration: document.getElementById('animation-duration-slider').value,
         animationDirection: document.getElementById('animation-direction-select').value,
+        animateGradient: document.getElementById('animate-gradient-toggle').checked, // NEW
     };
 
     preview.style.cssText = applyCustomBorderStyle(css);

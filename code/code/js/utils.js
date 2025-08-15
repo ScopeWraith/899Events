@@ -216,23 +216,48 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
 
 // code/js/utils.js
 
-// code/js/utils.js
-
 export function applyCustomBorderStyle(css) {
     if (!css) return '';
 
-    let style = `
-        border-style: ${css.borderStyle};
-        border-width: ${css.borderWidth}px;
-        /* The conflicting 'border-image' property has been removed from here. */
-        background: linear-gradient(${css.gradientAngle}deg, ${css.borderColor1}, ${css.borderColor2});
-        box-shadow: 0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor};
-        transform: translate(-50%, -50%) scale(${css.borderSize});
-    `;
+    // Collect active colors
+    const colors = [css.borderColor1, css.borderColor2];
+    if (css.enableColor3) colors.push(css.borderColor3);
+    if (css.enableColor4) colors.push(css.borderColor4);
+    if (css.enableColor5) colors.push(css.borderColor5);
 
-    if (css.animationName && css.animationName !== 'none') {
-        style += `animation: ${css.animationName} ${css.animationDuration}s infinite ${css.animationDirection};`;
+    // Build gradient string
+    let gradientString;
+    const gradientMode = css.gradientMode || 'linear-gradient';
+    if (gradientMode === 'linear-gradient') {
+        gradientString = `linear-gradient(${css.gradientAngle}deg, ${colors.join(', ')})`;
+    } else if (gradientMode === 'radial-gradient') {
+        gradientString = `radial-gradient(circle, ${colors.join(', ')})`;
+    } else { // conic-gradient
+        gradientString = `conic-gradient(from ${css.gradientAngle}deg, ${colors.join(', ')})`;
     }
 
+    let borderStyle = css.borderStyle;
+    let animationStyle = css.animationName && css.animationName !== 'none' ? `animation: ${css.animationName} ${css.animationDuration}s infinite ${css.animationDirection};` : '';
+
+    if (borderStyle === 'marching-ants') {
+        borderStyle = 'dashed'; // Use dashed style as the base
+        animationStyle += ' animation: marching-ants 10s linear infinite;';
+    }
+    
+    // Animate gradient background position
+    if (css.animateGradient) {
+        animationStyle += ' animation: gradient-shift 5s ease infinite; background-size: 200% 200%;';
+    }
+
+
+    let style = `
+        border-style: ${borderStyle};
+        border-width: ${css.borderWidth}px;
+        background: ${gradientString};
+        box-shadow: 0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor};
+        transform: translate(-50%, -50%) scale(${css.borderSize});
+        ${animationStyle}
+    `;
+    
     return style;
 }
