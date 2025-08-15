@@ -183,24 +183,29 @@ export function autoLinkText(text) {
     });
 }
 
-export function getAvatarBorderClass(player, allianceData) {
+export function getAvatarBorderClass(player, allianceData, customBorders) {
     if (!player) return { className: 'rank-border-r1', style: '' };
 
-    const skinType = player.avatarBorderSkin || 'rank';
+    const skinId = player.avatarBorderSkin || 'rank';
 
-    if (skinType === 'alliance' && allianceData?.primaryColor) {
+    const customBorder = customBorders && customBorders.find(b => b.id === skinId);
+    if (customBorder) {
+        return { className: 'custom-border', style: applyCustomBorderStyle(customBorder.css) };
+    }
+    
+    if (skinId === 'alliance' && allianceData?.primaryColor) {
         return {
             className: 'alliance-border',
-            style: `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`
+            style: `background: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`
         };
     }
     
-    if (skinType === 'admin' && player.isAdmin) {
+    if (skinId === 'admin' && player.isAdmin) {
         return { className: 'rank-border-admin', style: '' };
     }
     
     // Default to rank-based border
-    if (player.isAdmin && skinType === 'rank') {
+    if (player.isAdmin && skinId === 'rank') {
         return { className: 'rank-border-admin', style: '' };
     }
     
@@ -208,14 +213,16 @@ export function getAvatarBorderClass(player, allianceData) {
     return { className: `rank-border-${rank}`, style: '' };
 }
 
+
 export function applyCustomBorderStyle(css) {
     if (!css) return '';
 
     let style = `
         border-style: ${css.borderStyle};
         border-width: ${css.borderWidth}px;
-        border-image: linear-gradient(${css.gradientAngle}deg, ${css.borderColor1}, ${css.borderColor2}) 1;
+        background: linear-gradient(${css.gradientAngle}deg, ${css.borderColor1}, ${css.borderColor2});
         box-shadow: 0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor};
+        transform: scale(${css.borderSize});
     `;
 
     if (css.animationName && css.animationName !== 'none') {

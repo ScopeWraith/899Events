@@ -14,7 +14,7 @@ import { buildAvatarBorderSkins, updateSkinSelection, updateAvatarBorderPreview 
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderAuthUI(newState, prevState) {
-    if (newState.currentUserData !== prevState.currentUserData) {
+    if (newState.currentUserData !== prevState.currentUserData || newState.customBorders !== prevState.customBorders) {
         updateAvatarDisplay(newState.currentUserData);
         buildMobileNav(); // Rebuild mobile nav when user data changes
     }
@@ -42,7 +42,7 @@ export function initializeAuthUI() {
 // --- UI HELPER FUNCTIONS ---
 
 export function updateAvatarDisplay(data) {
-    const { allAlliances } = getState();
+    const { allAlliances, customBorders } = getState();
     const loginBtn = document.getElementById('login-btn');
     const userProfileNavItem = document.getElementById('user-profile-nav-item');
     const mobileAuthContainer = document.getElementById('mobile-auth-container');
@@ -58,17 +58,19 @@ export function updateAvatarDisplay(data) {
         
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === data.alliance) : null;
         const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-        const border = getAvatarBorderClass(data, allianceData);
+        const border = getAvatarBorderClass(data, allianceData, customBorders);
 
         const userAvatarButton = document.getElementById('user-avatar-button');
         userAvatarButton.src = avatarUrl;
-        userAvatarButton.className = `w-6 h-6 rounded-full mr-2 object-cover ${border.className}`;
-        userAvatarButton.style.cssText = border.style;
-
+        
         const userAvatarMobile = document.getElementById('user-avatar-mobile');
         userAvatarMobile.src = avatarUrl;
-        userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${border.className}`;
-        userAvatarMobile.style.cssText = border.style;
+
+        const borderElements = document.querySelectorAll('#user-profile-nav-item .avatar-border, #mobile-auth-container .avatar-border');
+        borderElements.forEach(el => {
+            el.className = `avatar-border ${border.className}`;
+            el.style.cssText = border.style;
+        });
         
         const mobileAlliance = document.getElementById('mobile-avatar-alliance');
         const mobileRank = document.getElementById('mobile-avatar-rank');

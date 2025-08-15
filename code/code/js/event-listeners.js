@@ -31,6 +31,7 @@ function updateBorderEditorPreview() {
     if (!preview) return;
 
     const css = {
+        borderSize: document.getElementById('border-size-slider').value,
         borderStyle: document.getElementById('border-style-select').value,
         borderWidth: document.getElementById('border-width-slider').value,
         borderColor1: document.getElementById('border-color-1').value,
@@ -45,6 +46,7 @@ function updateBorderEditorPreview() {
     };
 
     preview.style.cssText = applyCustomBorderStyle(css);
+    document.getElementById('border-size-value').textContent = parseFloat(css.borderSize).toFixed(2);
     document.getElementById('border-width-value').textContent = css.borderWidth;
     document.getElementById('gradient-angle-value').textContent = css.gradientAngle;
     document.getElementById('box-shadow-blur-value').textContent = css.boxShadowBlur;
