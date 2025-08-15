@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=Oswald:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="code/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/split-type@0.3.4/umd/split-type.min.js"></script>
 </head>
 <body>
     <div id="app-preloader" class="flex flex-col items-center justify-center">
@@ -58,6 +60,14 @@
                             <div class="editor-group">
                                 <h3 class="editor-group-title">Border Shape</h3>
                                 <div class="editor-group-content">
+                                    <div class="control-group">
+                                        <label for="text-effect-select">Text Effect</label>
+                                        <div class="custom-select-container" data-type="text-effect">
+                                            <input type="hidden" id="text-effect-select" value="none">
+                                            <button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                            <div class="custom-select-options"><div class="options-list"></div></div>
+                                        </div>
+                                    </div>
                                     <div class="control-group">
                                         <label for="border-size-slider">Border Size: <span id="border-size-value">1.1</span></label>
                                         <input type="range" id="border-size-slider" min="1.05" max="1.5" step="0.01" value="1.1" class="w-full custom-slider">

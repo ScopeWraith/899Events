@@ -139,15 +139,6 @@ export const BORDER_STYLES = [
     { value: 'marching-ants', text: 'Marching Ants' }
 ];
 
-export const ANIMATION_STYLES = [
-    { value: 'none', text: 'None' },
-    { value: 'spin', text: 'Spin' },
-    { value: 'pulse', text: 'Pulse' },
-    { value: 'glow', text: 'Glow' },
-    { value: 'shimmer', text: 'Shimmer' },
-    { value: 'particles', text: 'Particles' }, // NEW
-];
-
 export const ANIMATION_DIRECTIONS = [
     { value: 'normal', text: 'Normal' },
     { value: 'reverse', text: 'Reverse' },
@@ -161,9 +152,26 @@ export const GRADIENT_MODES = [
     { value: 'conic-gradient', text: 'Conic' },
 ];
 
+export const ANIMATION_STYLES = [
+    { value: 'none', text: 'None' },
+    { value: 'spin', text: 'Spin' },
+    { value: 'pulse', text: 'Pulse' },
+    { value: 'glow', text: 'Glow' },
+    { value: 'shimmer', text: 'Shimmer' },
+    { value: 'particles', text: 'Particles' },
+    { value: 'cosmic', text: 'Cosmic' }, // NEW
+];
+
 export const BORDER_TEXTURES = [
     { value: 'none', text: 'None' },
     { value: 'electric', text: 'Electric' },
     { value: 'cracks', text: 'Cracks' },
     { value: 'lines', text: 'Lines' },
+];
+
+// NEW: TEXT_EFFECTS
+export const TEXT_EFFECTS = [
+    { value: 'none', text: 'None' },
+    { value: 'matrix', text: 'Matrix' },
+    { value: 'scramble', text: 'Scramble' },
 ];

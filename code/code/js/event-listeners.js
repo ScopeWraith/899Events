@@ -57,6 +57,19 @@ function updateBorderEditorPreview() {
         borderTexture: document.getElementById('border-texture-select').value,
     };
     const styles = applyCustomBorderStyle(css);
+    preview.style.cssText = styles.style;
+    // ... (apply texture classes and background size) ...
+
+    // NEW: Handle Text Animations
+    const previewText = document.querySelector('#border-editor-preview-box .preview-text-element');
+    if (previewText._split) previewText._split.revert(); // Revert previous split
+
+    if (styles.textEffect === 'matrix' || styles.textEffect === 'scramble') {
+        previewText._split = new SplitType(previewText, { types: 'chars' });
+        gsap.from(previewText.querySelectorAll('.char'), {
+            // ... GSAP animation logic for matrix or scramble ...
+        });
+    }
     
     // --- FIX: Apply styles correctly ---
     preview.style.cssText = styles.style;
