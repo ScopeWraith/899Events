@@ -6,7 +6,7 @@ import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, 
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { subscribe, setState, getState } from '../state.js';
 import { resizeImage , getAvatarBorderClass} from '../utils.js';
-import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
+import { hideAllModals, setCustomSelectValue, buildMobileNav } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 import { sendVerificationRequest } from '../firestore.js';
 import { buildAvatarBorderSkins, updateSkinSelection, updateAvatarBorderPreview } from './skin-ui.js';
