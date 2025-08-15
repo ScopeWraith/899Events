@@ -33,7 +33,7 @@ export function showBorderEditorModal() {
         }
     }
     
-    showModal(document.getElementById('border-editor-modal-container'));
+    showModal(getElement('border-editor-modal-container'));
 }
 
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
