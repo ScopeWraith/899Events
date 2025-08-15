@@ -51,7 +51,7 @@ export function buildAvatarBorderSkins() {
     }).join('');
 }
 
-function updateSkinSelection(containerId, selectedValue) {
+export function updateSkinSelection(containerId, selectedValue) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.querySelectorAll('.skin-select-btn').forEach(btn => {
@@ -59,7 +59,7 @@ function updateSkinSelection(containerId, selectedValue) {
     });
 }
 
-function updateAvatarBorderPreview() {
+export function updateAvatarBorderPreview() {
     const { currentUserData, allAlliances } = getState();
     const selectedSkin = document.getElementById('avatar-border-skin-input').value;
     const previewData = { ...currentUserData, avatarBorderSkin: selectedSkin };
