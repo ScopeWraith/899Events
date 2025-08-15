@@ -136,6 +136,7 @@ export const BORDER_STYLES = [
     { value: 'ridge', text: 'Ridge' },
     { value: 'inset', text: 'Inset' },
     { value: 'outset', text: 'Outset' },
+    { value: 'marching-ants', text: 'Marching Ants' }
 ];
 
 export const ANIMATION_STYLES = [
@@ -150,4 +151,10 @@ export const ANIMATION_DIRECTIONS = [
     { value: 'reverse', text: 'Reverse' },
     { value: 'alternate', text: 'Alternate' },
     { value: 'alternate-reverse', text: 'Alternate-Reverse' },
+];
+
+export const GRADIENT_MODES = [
+    { value: 'linear-gradient', text: 'Linear' },
+    { value: 'radial-gradient', text: 'Radial' },
+    { value: 'conic-gradient', text: 'Conic' },
 ];

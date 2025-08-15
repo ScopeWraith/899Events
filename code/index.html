@@ -126,7 +126,50 @@
                                     <div class="custom-select-options"><div class="options-list"></div></div>
                                 </div>
                             </div>
+                            <div class="control-group col-span-full">
+                    <label for="gradient-mode-select">Gradient Mode</label>
+                            <div class="custom-select-container" data-type="gradient-mode">
+                                <input type="hidden" id="gradient-mode-select" value="linear-gradient">
+                                <button type="button" class="custom-select-value form-input"><span>Linear</span><i class="fas fa-chevron-down text-xs"></i></button>
+                                <div class="custom-select-options"><div class="options-list"></div></div>
+                            </div>
+                        </div>
 
+                        <div class="control-group col-span-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                            <div>
+                                <label for="border-color-1">Color 1</label>
+                                <input type="color" id="border-color-1" value="#FF00FF" class="w-full h-10 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer">
+                            </div>
+                            <div>
+                                <label for="border-color-2">Color 2</label>
+                                <input type="color" id="border-color-2" value="#00FFFF" class="w-full h-10 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer">
+                            </div>
+                            <div>
+                                <label for="border-color-3" class="flex items-center gap-2">Color 3 <input type="checkbox" id="enable-color-3" class="form-checkbox h-4 w-4"></label>
+                                <input type="color" id="border-color-3" value="#FFFF00" class="w-full h-10 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer disabled:opacity-30" disabled>
+                            </div>
+                            <div>
+                                <label for="border-color-4" class="flex items-center gap-2">Color 4 <input type="checkbox" id="enable-color-4" class="form-checkbox h-4 w-4"></label>
+                                <input type="color" id="border-color-4" value="#00FF00" class="w-full h-10 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer disabled:opacity-30" disabled>
+                            </div>
+                            <div>
+                                <label for="border-color-5" class="flex items-center gap-2">Color 5 <input type="checkbox" id="enable-color-5" class="form-checkbox h-4 w-4"></label>
+                                <input type="color" id="border-color-5" value="#FF0000" class="w-full h-10 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer disabled:opacity-30" disabled>
+                            </div>
+                        </div>
+
+                        <div class="control-group col-span-full">
+                            <label for="gradient-angle-slider">Gradient Angle: <span id="gradient-angle-value">90</span>deg</label>
+                            <input type="range" id="gradient-angle-slider" min="0" max="360" value="90" class="w-full custom-slider">
+                        </div>
+
+                        <div class="control-group col-span-full flex items-center justify-between bg-black/20 p-3 rounded-lg border border-white/10">
+                            <label for="animate-gradient-toggle" class="font-semibold text-white flex items-center gap-3 m-0"><i class="fas fa-paint-brush text-blue-400"></i>Animate Gradient</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="animate-gradient-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                         </div>
                     </div>
                 </div>
