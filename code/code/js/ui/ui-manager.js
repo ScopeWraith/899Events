@@ -25,7 +25,9 @@ export function showAccessDeniedModal() {
 }
 
 export function showBorderEditorModal() {
+    const { currentUserData } = getState(); // Correctly get user data from state
     hideAllModals();
+
     if (currentUserData && currentUserData.avatarUrl) {
         const previewImg = document.querySelector('#border-editor-preview-box img');
         if (previewImg) {
@@ -33,7 +35,7 @@ export function showBorderEditorModal() {
         }
     }
     
-    showModal(getElement('border-editor-modal-container'));
+    showModal(document.getElementById('border-editor-modal-container'));
 }
 
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
