@@ -1,7 +1,7 @@
 // code/js/ui/players-ui.js
 
 import { subscribe, getState } from '../state.js';
-import { canManageUser, getRankBorderClass} from '../utils.js';
+import { canManageUser, getAvatarBorderClass} from '../utils.js';
 
 // --- STATE & RENDER FUNCTIONS ---
 
@@ -103,7 +103,7 @@ export function renderPlayers(players) {
         const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
         const session = userSessions ? userSessions[player.uid] : null;
         const statusClass = session ? session.status : 'offline';
-        const rankBorder = getRankBorderClass(player);
+        const rankBorder = getAvatarBorderClass(player);
         const unverifiedClass = player.isVerified ? '' : 'unverified-player-text';
 
         card.innerHTML = `
