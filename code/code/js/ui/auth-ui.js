@@ -9,27 +9,18 @@ import { resizeImage , getAvatarBorderClass} from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 import { sendVerificationRequest } from '../firestore.js';
-import { buildAvatarBorderSkins, updateSkinSelection } from './skin-ui.js';
+import { buildAvatarBorderSkins, updateSkinSelection, updateAvatarBorderPreview } from './skin-ui.js';
 
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderAuthUI(newState, prevState) {
-    if (newState.currentUserData === prevState.currentUserData && newState.userNotifications === prevState.userNotifications) return;
-    const { currentUserData, userNotifications } = newState;
-    if (currentUserData) {
-        document.getElementById('username-display').textContent = currentUserData.username;
-        updateAvatarDisplay(currentUserData);
-        updatePlayerProfileDropdown(currentUserData, userNotifications);
-        document.getElementById('login-btn').classList.add('hidden');
-        document.getElementById('user-profile-nav-item').classList.remove('hidden');
-        document.getElementById('mobile-auth-container').classList.add('logged-in');
-        document.getElementById('login-btn-mobile').classList.add('hidden');
-    } else {
-        document.getElementById('login-btn').classList.remove('hidden');
-        const userProfileNavItem = document.getElementById('user-profile-nav-item');
-        userProfileNavItem.classList.add('hidden');
-        userProfileNavItem.classList.remove('open');
-        document.getElementById('mobile-auth-container').classList.remove('logged-in');
+    if (newState.currentUserData !== prevState.currentUserData) {
+        updateAvatarDisplay(newState.currentUserData);
+        buildMobileNav(); // Rebuild mobile nav when user data changes
+    }
+
+    if (newState.userNotifications !== prevState.userNotifications) {
+        updatePlayerProfileDropdown(newState.currentUserData, newState.userNotifications);
     }
 }
 
@@ -51,27 +42,49 @@ export function initializeAuthUI() {
 // --- UI HELPER FUNCTIONS ---
 
 export function updateAvatarDisplay(data) {
-    if (!data) return;
     const { allAlliances } = getState();
-    const allianceData = allAlliances ? allAlliances.find(a => a.tag === data.alliance) : null;
-    const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-    const borderClass = getAvatarBorderClass(data, allianceData); 
+    const loginBtn = document.getElementById('login-btn');
+    const userProfileNavItem = document.getElementById('user-profile-nav-item');
+    const mobileAuthContainer = document.getElementById('mobile-auth-container');
+    const loginBtnMobile = document.getElementById('login-btn-mobile');
 
-    const userAvatarButton = document.getElementById('user-avatar-button');
-    userAvatarButton.src = avatarUrl;
-    userAvatarButton.className = `w-6 h-6 rounded-full mr-2 object-cover ${borderClass}`;
-    
-    const userAvatarMobile = document.getElementById('user-avatar-mobile');
-    userAvatarMobile.src = avatarUrl;
-    userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${borderClass}`;
-    
-    const mobileAlliance = document.getElementById('mobile-avatar-alliance');
-    const mobileRank = document.getElementById('mobile-avatar-rank');
-    mobileAlliance.textContent = `[${data.alliance}]`;
-    mobileRank.textContent = data.allianceRank;
-    
-    mobileAlliance.classList.toggle('unverified-player-text', !data.isVerified);
-    mobileRank.classList.toggle('unverified-player-text', !data.isVerified);
+    if (data) {
+        loginBtn.classList.add('hidden');
+        userProfileNavItem.classList.remove('hidden');
+        mobileAuthContainer.classList.add('logged-in');
+        loginBtnMobile.classList.add('hidden');
+
+        document.getElementById('username-display').textContent = data.username;
+        
+        const allianceData = allAlliances ? allAlliances.find(a => a.tag === data.alliance) : null;
+        const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
+        const border = getAvatarBorderClass(data, allianceData);
+
+        const userAvatarButton = document.getElementById('user-avatar-button');
+        userAvatarButton.src = avatarUrl;
+        userAvatarButton.className = `w-6 h-6 rounded-full mr-2 object-cover ${border.className}`;
+        userAvatarButton.style.cssText = border.style;
+
+        const userAvatarMobile = document.getElementById('user-avatar-mobile');
+        userAvatarMobile.src = avatarUrl;
+        userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${border.className}`;
+        userAvatarMobile.style.cssText = border.style;
+        
+        const mobileAlliance = document.getElementById('mobile-avatar-alliance');
+        const mobileRank = document.getElementById('mobile-avatar-rank');
+        mobileAlliance.textContent = `[${data.alliance}]`;
+        mobileRank.textContent = data.allianceRank;
+        
+        mobileAlliance.classList.toggle('unverified-player-text', !data.isVerified);
+        mobileRank.classList.toggle('unverified-player-text', !data.isVerified);
+
+    } else {
+        loginBtn.classList.remove('hidden');
+        userProfileNavItem.classList.add('hidden');
+        userProfileNavItem.classList.remove('open');
+        mobileAuthContainer.classList.remove('logged-in');
+        loginBtnMobile.classList.remove('hidden');
+    }
 }
 
 
@@ -357,7 +370,7 @@ export function populateEditForm() {
     const currentSkin = currentUserData.avatarBorderSkin || 'rank';
     document.getElementById('avatar-border-skin-input').value = currentSkin;
     updateSkinSelection('avatar-border-selector', currentSkin);
-    // updateAvatarBorderPreview(); // This is now handled within initializeSkinUI
+    updateAvatarBorderPreview(); // Initial preview update
 }
 
 export async function handleEditProfileSubmit(e) {

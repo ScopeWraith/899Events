@@ -88,7 +88,7 @@ function createAllianceCard(alliance, state) {
 
     const r5Data = getRoleMember(alliance.r5Name);
     const leaderAvatarUrl = r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?';
-    const leaderRankBorder = r5Data ? getAvatarBorderClass(r5Data, alliance) : 'rank-border-r5';
+    const leaderBorder = getAvatarBorderClass(r5Data, alliance);
     const isSelf = currentUserData && r5Data && currentUserData.uid === r5Data.uid;
     const isFriend = r5Data && userFriends && userFriends.includes(r5Data.uid);
     const showLeaderActionButtons = currentUserData && r5Data;
@@ -103,7 +103,8 @@ function createAllianceCard(alliance, state) {
     const coreMembersHTML = coreMembers.map(member => {
         const memberData = getRoleMember(member.username);
         const avatarUrl = memberData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
-        const rankBorder = memberData ? getAvatarBorderClass(memberData, alliance) : 'rank-border-r1';
+        const memberAllianceData = memberData ? allPlayers.find(p => p.alliance === memberData.alliance) : null;
+        const rankBorder = getAvatarBorderClass(memberData, memberAllianceData);
         return `
             <div class="core-member">
                 <img src="${avatarUrl}" class="core-member-avatar" style="border: 2px solid var(--primary-color);" alt="${member.role}">
@@ -128,7 +129,7 @@ function createAllianceCard(alliance, state) {
             <div class="alliance-card-body">
                 <div class="alliance-card-leader-section">
                     <div class="leader-identity">
-                        <img src="${leaderAvatarUrl}" class="leader-avatar ${leaderRankBorder}" style="border: 2px solid var(--primary-color); box-shadow: 0 0 10px -2px var(--primary-color);" alt="Leader">
+                        <img src="${leaderAvatarUrl}" class="leader-avatar ${leaderBorder.className}" style="${leaderBorder.style}" alt="Leader">
                         <div class="leader-info">
                             <span class="leader-title">LEADER (R5)</span>
                             <span class="leader-name">${alliance.r5Name || 'N/A'}</span>
