@@ -396,6 +396,7 @@ export async function handleEditProfileSubmit(e) {
     let oldAlliance = currentUserData.alliance;
     let newAlliance = updatedData.alliance;
 
+    // If alliance or rank changes, user needs to be reverified.
     if (currentUserData && (newAlliance !== oldAlliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
         needsReverification = true;
@@ -431,7 +432,7 @@ function buildAvatarBorderSkins() {
         <button type="button" class="skin-select-btn" data-value="${skin.id}">
             <div class="preview">
                 <div class="preview-icon"></div>
-                <div class="preview-border ${skin.borderClass}"></div>
+                <div class="preview-border ${skin.borderClass}" style="${skin.id === 'alliance' && allianceData ? `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};` : ''}"></div>
             </div>
             <span class="label">${skin.label}</span>
         </button>
@@ -447,6 +448,7 @@ function buildAvatarBorderSkins() {
     });
 }
 
+
 function updateSkinSelection(containerId, selectedValue) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -460,7 +462,17 @@ function updateAvatarBorderPreview() {
     const selectedSkin = document.getElementById('avatar-border-skin-input').value;
     const previewData = { ...currentUserData, avatarBorderSkin: selectedSkin };
     const allianceData = allAlliances.find(a => a.tag === previewData.alliance);
-    document.getElementById('edit-avatar-border-preview').className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${getAvatarBorderClass(previewData, allianceData)}`;
+    
+    const previewElement = document.getElementById('edit-avatar-border-preview');
+    previewElement.className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${getAvatarBorderClass(previewData, allianceData)}`;
+
+    if (selectedSkin === 'alliance' && allianceData) {
+        previewElement.style.borderColor = allianceData.primaryColor;
+        previewElement.style.boxShadow = `0 0 10px -2px ${allianceData.primaryColor}`;
+    } else {
+        previewElement.style.borderColor = '';
+        previewElement.style.boxShadow = '';
+    }
 }
 
 
