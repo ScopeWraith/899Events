@@ -88,7 +88,7 @@ function createAllianceCard(alliance, state) {
 
     const r5Data = getRoleMember(alliance.r5Name);
     const leaderAvatarUrl = r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?';
-    const leaderRankBorder = r5Data ? getAvatarBorderClass(r5Data) : 'rank-border-r5';
+    const leaderRankBorder = r5Data ? getAvatarBorderClass(r5Data, alliance) : 'rank-border-r5';
     const isSelf = currentUserData && r5Data && currentUserData.uid === r5Data.uid;
     const isFriend = r5Data && userFriends && userFriends.includes(r5Data.uid);
     const showLeaderActionButtons = currentUserData && r5Data;
@@ -103,7 +103,7 @@ function createAllianceCard(alliance, state) {
     const coreMembersHTML = coreMembers.map(member => {
         const memberData = getRoleMember(member.username);
         const avatarUrl = memberData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
-        const rankBorder = memberData ? getAvatarBorderClass(memberData) : 'rank-border-r1';
+        const rankBorder = memberData ? getAvatarBorderClass(memberData, alliance) : 'rank-border-r1';
         return `
             <div class="core-member">
                 <img src="${avatarUrl}" class="core-member-avatar" style="border: 2px solid var(--primary-color);" alt="${member.role}">

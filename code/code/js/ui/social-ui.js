@@ -9,18 +9,17 @@ import { CHAT_CHANNELS } from '../constants.js';
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderSocialUI(newState, prevState) {
-    const { currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed, activeChatMessages, conversations } = newState;
+    const { currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed, activeChatMessages, conversations, allAlliances } = newState;
 
     if (currentUserData !== prevState.currentUserData) {
         renderChatChannels(currentUserData);
     }
 
     if (currentUserData !== prevState.currentUserData || userFriends !== prevState.userFriends || allPlayers !== prevState.allPlayers || userSessions !== prevState.userSessions || isFriendsListCollapsed !== prevState.isFriendsListCollapsed) {
-        renderFriendsList(currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed);
+        renderFriendsList(currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed, allAlliances);
         renderFriendsPage(userFriends, allPlayers);
     }
     
-    // --- FIX: Add these listeners for chat and conversations ---
     if (activeChatMessages !== prevState.activeChatMessages) {
         const chatWindow = document.getElementById('fullscreen-chat-window');
         const activeChatType = document.querySelector('#chat-selectors .chat-selector-btn.active')?.dataset.chatType || 'private_chat';
@@ -52,7 +51,7 @@ export function renderChatChannels(currentUserData) {
     }).join('');
 }
 
-export function renderFriendsList(currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed) {
+export function renderFriendsList(currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed, allAlliances) {
     const container = document.getElementById('friends-list-social-page');
     const friendsContainer = document.getElementById('friends-list-container-social');
     if (friendsContainer) friendsContainer.classList.toggle('collapsed', isFriendsListCollapsed);
@@ -68,7 +67,8 @@ export function renderFriendsList(currentUserData, userFriends, allPlayers, user
         const session = userSessions ? userSessions[friendId] : null;
         const statusClass = session ? session.status : 'offline';
         const avatarUrl = friendData.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${friendData.username.charAt(0).toUpperCase()}`;
-        const rankBorder = getAvatarBorderClass(friendData);
+        const allianceData = allAlliances ? allAlliances.find(a => a.tag === friendData.alliance) : null;
+        const rankBorder = getAvatarBorderClass(friendData, allianceData);
         const friendEl = document.createElement('div');
         friendEl.className = 'friend-list-item';
         friendEl.innerHTML = `<div class="flex items-center gap-3"><div class="relative"><img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder}"><span class="status-dot ${statusClass} absolute bottom-0 right-0 border-2 border-gray-800"></span></div><div><p class="font-bold text-white">${friendData.username}</p><p class="text-xs text-gray-400">[${friendData.alliance}] - ${friendData.allianceRank}</p></div></div><div class="flex items-center gap-4"><button class="message-player-btn text-gray-400 hover:text-white" data-uid="${friendId}" title="Message"><i class="fas fa-comment-dots"></i></button></div>`;
@@ -77,7 +77,7 @@ export function renderFriendsList(currentUserData, userFriends, allPlayers, user
 }
 
 export function renderMessages(messages, container, chatType) {
-    const { currentUserData, allPlayers } = getState();
+    const { currentUserData, allPlayers, allAlliances } = getState();
     if (!currentUserData || !container || !allPlayers) return;
     container.innerHTML = '';
     if (!messages || messages.length === 0) {
@@ -90,7 +90,8 @@ export function renderMessages(messages, container, chatType) {
         const authorUsername = authorData?.username || 'Unknown User';
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${authorUsername.charAt(0).toUpperCase()}`;
         const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
-        const rankBorder = getAvatarBorderClass(authorData);
+        const allianceData = allAlliances ? allAlliances.find(a => a.tag === authorData.alliance) : null;
+        const rankBorder = getAvatarBorderClass(authorData, allianceData);
         const canDelete = canDeleteMessage(currentUserData, authorData);
         const messageActionsHTML = canDelete ? `<div class="message-actions"><button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button><button class="message-action-btn confirm-delete-btn hidden" title="Confirm Delete"><i class="fas fa-check"></i></button></div>` : '';
         const reactions = msg.reactions || {};
@@ -107,7 +108,7 @@ export function renderMessages(messages, container, chatType) {
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
         messageEl.dataset.messageId = msg.id;
-        messageEl.innerHTML = `<div class="chat-message-identity"><div class="avatar-container"><img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder}" alt="${authorUsername}"><div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div></div><p class="chat-message-timestamp">${timestamp}</p>${messageActionsHTML}</div><div class="chat-message-main"><div class="chat-message-bubble ${getAvatarBorderClass(authorData, true)}" data-chat-type="${chatType}">${messageContent}</div><div class="chat-reactions-container">${reactionPillsHTML}</div></div>`;
+        messageEl.innerHTML = `<div class="chat-message-identity"><div class="avatar-container"><img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder}" alt="${authorUsername}"><div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div></div><p class="chat-message-timestamp">${timestamp}</p>${messageActionsHTML}</div><div class="chat-message-main"><div class="chat-message-bubble" data-chat-type="${chatType}">${messageContent}</div><div class="chat-reactions-container">${reactionPillsHTML}</div></div>`;
         container.appendChild(messageEl);
     });
     container.scrollTop = container.scrollHeight;
