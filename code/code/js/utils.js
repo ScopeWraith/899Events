@@ -1,17 +1,14 @@
 // code/js/utils.js
 
 /**
- * This module contains utility functions used across the application,
- * such as date formatting, image resizing, and calculating event statuses.
- * This keeps the main logic files cleaner and more focused.
+ * This module contains utility functions used across the application.
  */
+
+// ... (other functions like formatTimeAgo, canManageUser, etc. remain unchanged)
 export function canDeleteMessage(currentUser, messageAuthor) {
     if (!currentUser || !messageAuthor) return false;
-    // An admin can delete any message.
     if (currentUser.isAdmin) return true;
-    // A user can delete their own message.
     if (currentUser.uid === messageAuthor.uid) return true;
-    // A leader can delete a message from someone in their own alliance.
     if (isUserLeader(currentUser) && currentUser.alliance === messageAuthor.alliance) return true;
     return false;
 }
@@ -35,7 +32,6 @@ export function formatTimeAgo(date) {
 
 export function formatEventDateTime(date) {
     if (!date || isNaN(date.getTime())) return 'N/A';
-    // Format: Thu, Jul 31 @ 1:30 PM
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' @ ' +
            date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
@@ -88,27 +84,16 @@ export function calculateNextDateTime(dayOfWeek, hour) {
     const now = new Date();
     
     let resultDate = new Date();
-    
-    // Set the time for the target day
     resultDate.setHours(targetHour, 0, 0, 0);
 
-    // --- START: NEW LOGIC ---
     const currentDay = now.getDay();
     let dayDifference = targetDay - currentDay;
 
-    // If the target day is in the past (e.g., today is Thurs[4] and target is Tues[2]),
-    // this will be negative. Add 7 to move to next week.
-    if (dayDifference < 0) {
-        dayDifference += 7;
-    } 
-    // If it's the same day, but the target hour is in the past, also move to next week.
-    else if (dayDifference === 0 && targetHour < now.getHours()) {
+    if (dayDifference < 0 || (dayDifference === 0 && targetHour < now.getHours())) {
         dayDifference += 7;
     }
     
     resultDate.setDate(now.getDate() + dayDifference);
-    // --- END: NEW LOGIC ---
-
     return resultDate;
 }
 
@@ -151,11 +136,8 @@ export function resizeImage(file, options) {
 
 export function canManageUser(manager, targetUser) {
     if (!manager || !targetUser) return false;
-    // Admins can manage any user, regardless of alliance or rank
     if (manager.isAdmin) return true;
-    // User cannot manage themselves
     if (manager.uid === targetUser.uid) return false;
-    // Ranks R5 and R4 can manage lower ranks in their own alliance
     if (manager.alliance !== targetUser.alliance) return false;
     if (manager.allianceRank === 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
     if (manager.allianceRank === 'R4' && ['R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
@@ -169,107 +151,81 @@ export function isUserLeader(user) {
 
 export function formatMessageTimestamp(date) {
     if (!date) return '';
-    return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    });
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
 export function autoLinkText(text) {
     const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-    return text.replace(urlRegex, function(url) {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${url}</a>`;
-    });
+    return text.replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${url}</a>`);
 }
 
 export function getAvatarBorderClass(player, allianceData, customBorders) {
     if (!player) return { className: 'rank-border-r1', style: '' };
-
     const skinId = player.avatarBorderSkin || 'rank';
-
     const customBorder = customBorders && customBorders.find(b => b.id === skinId);
     if (customBorder) {
         const styles = applyCustomBorderStyle(customBorder.css);
-        // For legacy usage, we just return the main style block
-        return { 
-            className: `custom-border ${styles.textureClass}`, 
-            style: styles.main.style // Use the main style block
-        };
+        return { className: 'custom-border', style: styles.main.style };
     }
-    
     if (skinId === 'alliance' && allianceData?.primaryColor) {
-        return {
-            className: 'alliance-border',
-            style: `background: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`
-        };
+        return { className: 'alliance-border', style: `background: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};` };
     }
-    
     if (skinId === 'admin' && player.isAdmin) {
         return { className: 'rank-border-admin', style: '' };
     }
-    
-    // Default to rank-based border
     if (player.isAdmin && skinId === 'rank') {
         return { className: 'rank-border-admin', style: '' };
     }
-    
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
 }
 
-
 /**
  * ===================================================================================
- * REVAMPED BORDER STYLE GENERATOR
+ * BORDER STYLE GENERATOR - FINAL VERSION
  * ===================================================================================
- * This function is the new engine for creating complex, multi-layered border styles.
- * It returns an object with separate style blocks for the main element, and its
- * ::before and ::after pseudo-elements, allowing for sophisticated visual effects.
  */
 export function applyCustomBorderStyle(css) {
     if (!css) return { main: { style: '' }, before: { style: '' }, after: { style: '' }, particles: [], textEffect: 'none' };
 
     const mainStyles = {};
-    const beforeStyles = {};
-    const afterStyles = {};
+    const beforeStyles = { content: "''", position: 'absolute', zIndex: '-1', borderRadius: '50%' };
+    const afterStyles = { content: "''", position: 'absolute', inset: '0', borderRadius: '50%', pointerEvents: 'none', zIndex: '1' };
     let particles = [];
 
     // --- Sizing & Core Shape ---
     mainStyles['--scale'] = css.borderSize;
     mainStyles['--border-width'] = `${css.borderWidth}px`;
-    mainStyles['border-style'] = css.borderStyle === 'marching-ants' ? 'dashed' : css.borderStyle;
+    mainStyles['border-style'] = css.borderStyle;
 
     // --- Main Gradient Fill ---
     const colors = [css.borderColor1, css.borderColor2, css.borderColor3, css.borderColor4, css.borderColor5]
                    .filter((c, i) => i < 2 || css[`enableColor${i + 1}`]);
     const gradientMode = css.gradientMode || 'linear-gradient';
     let gradientString = `${gradientMode}(${gradientMode === 'conic-gradient' ? `from ${css.gradientAngle}deg, ` : ''}${colors.join(', ')})`;
-    if (gradientMode === 'radial-gradient') {
-        gradientString = `radial-gradient(circle, ${colors.join(', ')})`;
+    if (gradientMode === 'radial-gradient') gradientString = `radial-gradient(circle, ${colors.join(', ')})`;
+    
+    if (css.borderStyle === 'marching-ants') {
+        mainStyles['border-image-source'] = gradientString;
+        mainStyles['border-image-slice'] = 1;
+        mainStyles['background'] = 'transparent';
+    } else {
+        mainStyles['background'] = gradientString;
     }
-    mainStyles['background'] = gradientString;
+    
     mainStyles['background-size'] = css.animateGradient ? '200% 200%' : 'auto';
 
     // --- Animations ---
     let mainAnimation = [];
-    if (css.animateGradient) {
-        mainAnimation.push(`gradient-shift 5s ease infinite`);
-    }
+    if (css.animateGradient) mainAnimation.push(`gradient-shift 5s ease infinite`);
+    if (css.borderStyle === 'marching-ants') mainAnimation.push(`marching-ants 1s linear infinite`);
 
     // --- Inner Shadow ---
     mainStyles['box-shadow'] = `inset 0 0 10px 2px ${css.innerGlowColor || 'transparent'}`;
 
-    // --- TEXTURE (uses ::after pseudo-element) ---
+    // --- TEXTURE (uses ::after) ---
     if (css.borderTexture !== 'none') {
-        afterStyles['content'] = "''";
-        afterStyles['position'] = 'absolute';
-        afterStyles['inset'] = '0';
-        afterStyles['border-radius'] = '50%';
-        afterStyles['background-size'] = 'cover';
         afterStyles['mix-blend-mode'] = 'overlay';
-        afterStyles['pointer-events'] = 'none';
-        afterStyles['z-index'] = '1';
         switch(css.borderTexture) {
             case 'electric': 
                 afterStyles['background-image'] = `url('https://www.transparenttextures.com/patterns/simple-dashed.png')`;
@@ -286,14 +242,8 @@ export function applyCustomBorderStyle(css) {
         }
     }
 
-    // --- COMPLEX ANIMATIONS & GLOW (uses ::before pseudo-element) ---
+    // --- GLOW & SPECIAL ANIMATIONS (uses ::before) ---
     const glowGradient = `conic-gradient(from ${css.glowAngle}deg, ${css.boxShadowColor}, ${css.boxShadowColor2}, ${css.boxShadowColor})`;
-
-    beforeStyles['content'] = "''";
-    beforeStyles['position'] = 'absolute';
-    beforeStyles['z-index'] = '-1';
-    beforeStyles['border-radius'] = '50%';
-
     let beforeAnimation = [];
     
     switch (css.animationName) {
@@ -301,32 +251,29 @@ export function applyCustomBorderStyle(css) {
             beforeStyles['inset'] = `-${css.boxShadowSpread}px`;
             beforeStyles['background'] = glowGradient;
             beforeStyles['filter'] = `blur(${css.boxShadowBlur}px)`;
+            beforeStyles['opacity'] = '0.7';
             beforeAnimation.push(`pulse ${css.animationDuration}s infinite alternate`);
             break;
         case 'shimmer':
             beforeStyles['inset'] = '0';
             beforeStyles['background'] = glowGradient;
-            beforeStyles['background-size'] = '200% 200%';
+            beforeStyles['background-size'] = '150% 150%';
             beforeAnimation.push(`shimmer-spin ${css.animationDuration}s linear infinite`);
             break;
         case 'cosmic':
              beforeStyles['inset'] = `-${css.boxShadowSpread}px`;
              beforeStyles['background'] = glowGradient;
+             beforeStyles['filter'] = `blur(${css.boxShadowBlur}px)`;
              beforeAnimation.push(`cosmic-glow ${css.animationDuration}s infinite`);
             break;
         case 'particles':
-            // Particles are handled separately below, not with pseudo-elements
             for (let i = 0; i < 20; i++) {
-                const duration = 2 + Math.random() * 3;
-                const delay = Math.random() * 5;
-                const size = 1 + Math.random() * 2;
-                const radius = `calc(50% + ${css.borderWidth / 2}px)`;
                 particles.push({
                     style: `
-                        width: ${size}px;
-                        height: ${size}px;
-                        --radius: ${radius};
-                        animation: particle-flow ${duration}s linear ${delay}s infinite;
+                        width: ${1 + Math.random() * 2}px;
+                        height: ${1 + Math.random() * 2}px;
+                        --radius: calc(50% + ${css.borderWidth / 2}px);
+                        animation: particle-flow ${2 + Math.random() * 3}s linear ${Math.random() * 5}s infinite;
                     `
                 });
             }
@@ -340,7 +287,6 @@ export function applyCustomBorderStyle(css) {
     mainStyles['animation'] = mainAnimation.join(', ') || 'none';
     beforeStyles['animation'] = beforeAnimation.join(', ') || 'none';
     
-    // Convert style objects to CSS text
     const toCssText = (styleObj) => Object.entries(styleObj).map(([key, value]) => `${key}: ${value};`).join(' ');
 
     return {
