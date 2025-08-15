@@ -47,6 +47,8 @@ function updateBorderEditorPreview() {
         boxShadowBlur: document.getElementById('box-shadow-blur-slider').value,
         boxShadowSpread: document.getElementById('box-shadow-spread-slider').value,
         boxShadowColor: document.getElementById('box-shadow-color-picker').value,
+        boxShadowColor2: document.getElementById('box-shadow-color-picker-2').value, // NEW
+        glowAngle: document.getElementById('glow-angle-slider').value, // NEW
         animationName: document.getElementById('animation-select').value,
         animationDuration: document.getElementById('animation-duration-slider').value,
         animationDirection: document.getElementById('animation-direction-select').value,
@@ -61,6 +63,7 @@ function updateBorderEditorPreview() {
     document.getElementById('box-shadow-blur-value').textContent = css.boxShadowBlur;
     document.getElementById('box-shadow-spread-value').textContent = css.boxShadowSpread;
     document.getElementById('animation-duration-value').textContent = parseFloat(css.animationDuration).toFixed(1);
+    document.getElementById('glow-angle-value').textContent = css.glowAngle; // NEW
 }
 
 

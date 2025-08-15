@@ -144,6 +144,7 @@ export const ANIMATION_STYLES = [
     { value: 'spin', text: 'Spin' },
     { value: 'pulse', text: 'Pulse' },
     { value: 'glow', text: 'Glow' },
+    { value: 'shimmer', text: 'Shimmer' }, // New animation
 ];
 
 export const ANIMATION_DIRECTIONS = [

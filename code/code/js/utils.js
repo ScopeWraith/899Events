@@ -219,49 +219,50 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
 export function applyCustomBorderStyle(css) {
     if (!css) return '';
 
-    // Collect active colors
-    const colors = [css.borderColor1, css.borderColor2];
-    if (css.enableColor3) colors.push(css.borderColor3);
-    if (css.enableColor4) colors.push(css.borderColor4);
-    if (css.enableColor5) colors.push(css.borderColor5);
-
-    // Build gradient string
-    let gradientString;
+    // --- MAIN BORDER STYLES (for the element itself) ---
+    const colors = [css.borderColor1, css.borderColor2, css.borderColor3, css.borderColor4, css.borderColor5].filter((c, i) => i < 2 || css[`enableColor${i + 1}`]);
     const gradientMode = css.gradientMode || 'linear-gradient';
-    if (gradientMode === 'linear-gradient') {
-        gradientString = `linear-gradient(${css.gradientAngle}deg, ${colors.join(', ')})`;
-    } else if (gradientMode === 'radial-gradient') {
+    let gradientString;
+    if (gradientMode === 'radial-gradient') {
         gradientString = `radial-gradient(circle, ${colors.join(', ')})`;
-    } else { // conic-gradient
-        gradientString = `conic-gradient(from ${css.gradientAngle}deg, ${colors.join(', ')})`;
+    } else {
+        gradientString = `${gradientMode}(from ${css.gradientAngle}deg, ${colors.join(', ')})`;
     }
 
-    let borderStyle = css.borderStyle;
-    const boxShadow = `
-        inset 0 0 10px 2px ${css.innerGlowColor || '#000000'},
-        0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor}
-    `;
-    let animationStyle = css.animationName && css.animationName !== 'none' ? `animation: ${css.animationName} ${css.animationDuration}s infinite ${css.animationDirection};` : '';
-
-    if (borderStyle === 'marching-ants') {
-        borderStyle = 'dashed'; // Use dashed style as the base
-        animationStyle += ' animation: marching-ants 10s linear infinite;';
-    }
+    let borderStyle = css.borderStyle === 'marching-ants' ? 'dashed' : css.borderStyle;
     
-    // Animate gradient background position
+    let mainAnimationStyle = '';
+    if (css.animationName && css.animationName !== 'none' && css.animationName !== 'shimmer' && css.animationName !== 'glow') {
+        mainAnimationStyle = `animation: ${css.animationName} ${css.animationDuration}s infinite ${css.animationDirection};`;
+    }
+     if (css.borderStyle === 'marching-ants') {
+        mainAnimationStyle += ` animation: marching-ants 10s linear infinite;`;
+    }
     if (css.animateGradient) {
-        animationStyle += ' animation: gradient-shift 5s ease infinite; background-size: 200% 200%;';
+        mainAnimationStyle += ' animation: gradient-shift 5s ease infinite; background-size: 200% 200%;';
+    }
+
+    // --- GLOW STYLES (for the ::before pseudo-element) ---
+    // Use a conic-gradient for the border glow image
+    const glowGradient = `conic-gradient(from ${css.glowAngle}deg, ${css.boxShadowColor}, ${css.boxShadowColor2}, ${css.boxShadowColor})`;
+    let glowAnimationStyle = '';
+    if (css.animationName === 'glow') {
+         glowAnimationStyle = `animation: glow ${css.animationDuration}s infinite alternate;`;
+    } else if (css.animationName === 'shimmer') {
+        glowAnimationStyle = `animation: shimmer-spin 4s linear infinite;`;
     }
 
 
-    let style = `
-        border-style: ${borderStyle};
-        border-width: ${css.borderWidth}px;
-        background: ${gradientString};
-        box-shadow: 0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor};
-        transform: translate(-50%, -50%) scale(${css.borderSize});
-        ${animationStyle}
+    // Combine all styles into a single string for the style attribute
+    return `
+        --border-width: ${css.borderWidth}px;
+        --border-style: ${borderStyle};
+        --border-image: ${gradientString};
+        --scale: ${css.borderSize};
+        --main-animation: ${mainAnimationStyle};
+        
+        --glow-image: ${glowGradient};
+        --glow-blur: ${css.boxShadowBlur}px;
+        --glow-animation: ${glowAnimationStyle};
     `;
-    
-    return style;
 }

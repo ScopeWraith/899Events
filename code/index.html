@@ -39,11 +39,13 @@
                     </div>
                     <div class="flex flex-col md:flex-row flex-grow overflow-hidden">
                         <div class="w-full md:w-1/3 flex-shrink-0 flex flex-col items-center justify-center p-8 bg-black/20 relative">
-                            <div id="border-editor-preview-box" class="avatar-wrapper w-40 h-40 mb-4">
-                                <div id="border-editor-live-preview" class="avatar-border"></div>
-                                <img src="https://placehold.co/128x128/161B22/FFFFFF?text=PREVIEW" class="w-full h-full rounded-full object-cover relative z-10">
+                            <div id="border-editor-preview-box" class="w-48 h-48 relative">
+                                <div class="avatar-wrapper w-full h-full">
+                                    <div id="border-editor-live-preview" class="avatar-border"></div>
+                                    <img src="https://placehold.co/128x128/161B22/FFFFFF?text=PREVIEW" class="w-full h-full rounded-full object-cover relative z-10">
+                                </div>
                             </div>
-                            <div class="w-full max-w-xs">
+                            <div class="w-full max-w-xs mt-6">
                                 <label for="border-name-input" class="font-bold text-white">Border Name</label>
                                 <div class="input-group">
                                     <i class="fas fa-paint-brush input-icon"></i>
@@ -174,6 +176,14 @@
                         <div class="control-group">
                             <label for="inner-glow-color-picker">Inner Glow Color</label>
                             <input type="color" id="inner-glow-color-picker" value="#000000" class="w-full h-10 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer">
+                        </div>
+                        <div class="control-group">
+                            <label for="box-shadow-color-picker-2">Glow Color 2</label>
+                            <input type="color" id="box-shadow-color-picker-2" value="#00FFFF" class="w-full h-10 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer">
+                        </div>
+                        <div class="control-group col-span-full">
+                            <label for="glow-angle-slider">Glow Angle: <span id="glow-angle-value">90</span>deg</label>
+                            <input type="range" id="glow-angle-slider" min="0" max="360" value="90" class="w-full custom-slider">
                         </div>
                     </div>
                 </div>
