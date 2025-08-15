@@ -152,8 +152,8 @@ export function fetchInitialData(onPublicDataLoaded) {
         listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
             const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setState({ allAlliances });
-            checkAllLoaded('alliances');
-        }, () => checkAllLoaded('alliances'));
+            checkPublicLoaded('alliances');
+        }, () => checkPublicLoaded('alliances'));
     }
 
     setState({ listeners });
