@@ -55,7 +55,7 @@ export function buildAvatarBorderSkins() {
     let skinsHTML = skins.map(skin => {
         let border;
         if (skin.isCustom) {
-            border = { className: '', style: applyCustomBorderStyle(skin.css) };
+            border = { className: 'custom-border', style: applyCustomBorderStyle(skin.css) };
         } else {
             const previewData = { ...currentUserData, avatarBorderSkin: skin.id };
             border = getAvatarBorderClass(previewData, allianceData);
@@ -105,14 +105,14 @@ export function updateAvatarBorderPreview() {
     const customBorder = customBorders && customBorders.find(b => b.id === selectedSkinId);
 
     if (customBorder) {
-        previewElement.className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none`;
+        previewElement.className = `avatar-border custom-border`;
         previewElement.style.cssText = applyCustomBorderStyle(customBorder.css);
     } else {
         const previewData = { ...currentUserData, avatarBorderSkin: selectedSkinId };
         const allianceData = allAlliances.find(a => a.tag === previewData.alliance);
         const border = getAvatarBorderClass(previewData, allianceData);
         
-        previewElement.className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${border.className}`;
+        previewElement.className = `avatar-border ${border.className}`;
         previewElement.style.cssText = border.style;
     }
 }
@@ -125,15 +125,18 @@ async function handleSaveBorder() {
     }
 
     const css = {
+        borderSize: document.getElementById('border-size-slider').value,
         borderStyle: document.getElementById('border-style-select').value,
         borderWidth: document.getElementById('border-width-slider').value,
         borderColor1: document.getElementById('border-color-1').value,
         borderColor2: document.getElementById('border-color-2').value,
+        gradientAngle: document.getElementById('gradient-angle-slider').value,
         boxShadowBlur: document.getElementById('box-shadow-blur-slider').value,
         boxShadowSpread: document.getElementById('box-shadow-spread-slider').value,
         boxShadowColor: document.getElementById('box-shadow-color-picker').value,
         animationName: document.getElementById('animation-select').value,
         animationDuration: document.getElementById('animation-duration-slider').value,
+        animationDirection: document.getElementById('animation-direction-select').value,
     };
 
     try {

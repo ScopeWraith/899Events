@@ -220,9 +220,10 @@ export function applyCustomBorderStyle(css) {
     let style = `
         border-style: ${css.borderStyle};
         border-width: ${css.borderWidth}px;
+        border-image: linear-gradient(${css.gradientAngle}deg, ${css.borderColor1}, ${css.borderColor2}) 1;
         background: linear-gradient(${css.gradientAngle}deg, ${css.borderColor1}, ${css.borderColor2});
         box-shadow: 0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor};
-        transform: scale(${css.borderSize});
+        transform: translate(-50%, -50%) scale(${css.borderSize});
     `;
 
     if (css.animationName && css.animationName !== 'none') {

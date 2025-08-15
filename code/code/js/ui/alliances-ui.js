@@ -12,14 +12,13 @@ let resizedAllianceAvatarBlob = null;
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderAlliancesUI(newState, prevState) {
-    // Re-render alliances if any of this data changes
     if (
         newState.allAlliances !== prevState.allAlliances ||
         newState.currentUserData !== prevState.currentUserData ||
         newState.allPlayers !== prevState.allPlayers ||
-        newState.userFriends !== prevState.userFriends
+        newState.userFriends !== prevState.userFriends ||
+        newState.customBorders !== prevState.customBorders
     ) {
-        // Pass the entire state to the render function to ensure it has all necessary data
         renderAlliances(newState);
     }
 }
@@ -36,13 +35,11 @@ export function renderAlliances(state) {
     const container = document.getElementById('alliances-list-container');
     const pageHeader = document.querySelector('#sub-page-server-alliances h2');
 
-    // GUARD CLAUSE: Exit if the container or essential data isn't ready.
     if (!container || !pageHeader || !allAlliances) {
         return;
     }
 
     let headerActionHTML = '';
-    // Check if allAlliances exists before calling .some()
     if (
         currentUserData &&
         currentUserData.isVerified &&
@@ -74,9 +71,8 @@ export function renderAlliances(state) {
 }
 
 function createAllianceCard(alliance, state) {
-    const { currentUserData, allPlayers, userFriends } = state;
+    const { currentUserData, allPlayers, userFriends, customBorders } = state;
 
-    // GUARD CLAUSE: Don't render a card if we don't have player data yet
     if (!allPlayers) return '';
 
     const primaryColor = alliance.primaryColor || 'var(--color-primary)';
@@ -88,7 +84,8 @@ function createAllianceCard(alliance, state) {
 
     const r5Data = getRoleMember(alliance.r5Name);
     const leaderAvatarUrl = r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?';
-    const leaderBorder = getAvatarBorderClass(r5Data, alliance);
+    const leaderBorder = getAvatarBorderClass(r5Data, alliance, customBorders);
+    
     const isSelf = currentUserData && r5Data && currentUserData.uid === r5Data.uid;
     const isFriend = r5Data && userFriends && userFriends.includes(r5Data.uid);
     const showLeaderActionButtons = currentUserData && r5Data;
@@ -104,22 +101,28 @@ function createAllianceCard(alliance, state) {
         const memberData = getRoleMember(member.username);
         const avatarUrl = memberData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
         const memberAllianceData = memberData ? allPlayers.find(p => p.alliance === memberData.alliance) : null;
-        const rankBorder = getAvatarBorderClass(memberData, memberAllianceData);
+        const rankBorder = getAvatarBorderClass(memberData, memberAllianceData, customBorders);
         return `
             <div class="core-member">
-                <img src="${avatarUrl}" class="core-member-avatar ${rankBorder.className}" style="${rankBorder.style}" alt="${member.role}">
+                 <div class="avatar-wrapper w-12 h-12 mx-auto mb-1">
+                    <div class="avatar-border ${rankBorder.className}" style="${rankBorder.style}"></div>
+                    <img src="${avatarUrl}" class="w-full h-full rounded-full object-cover" alt="${member.role}">
+                </div>
                 <p class="core-member-role">${member.role}</p>
                 <p class="core-member-name">${member.username}</p>
             </div>
         `;
     }).join('');
+    
+    const leaderBorderElement = `<div class="avatar-border ${leaderBorder.className}" style="${leaderBorder.style}"></div>`;
 
     return `
         <div class="alliance-card" style="--primary-color: ${primaryColor}; --secondary-color: ${secondaryColor};">
             ${editButtonHTML}
             <div class="alliance-card-header">
-                <div class="alliance-card-avatar-wrapper">
-                    <img src="${alliance.avatarUrl || 'https://placehold.co/128x128/161B22/FFFFFF?text=?'}" class="alliance-card-avatar"  alt="${alliance.name} Avatar">
+                <div class="avatar-wrapper w-[60px] h-[60px]">
+                    <div class="avatar-border" style="border: 2px solid ${primaryColor}; box-shadow: 0 0 15px ${primaryColor};"></div>
+                    <img src="${alliance.avatarUrl || 'https://placehold.co/128x128/161B22/FFFFFF?text=?'}" class="w-full h-full rounded-full object-cover" alt="${alliance.name} Avatar">
                 </div>
                 <div class="alliance-card-title-section">
                     <p class="alliance-card-tag">[${alliance.tag}]</p>
@@ -129,7 +132,10 @@ function createAllianceCard(alliance, state) {
             <div class="alliance-card-body">
                 <div class="alliance-card-leader-section">
                     <div class="leader-identity">
-                        <img src="${leaderAvatarUrl}" class="leader-avatar ${leaderBorder.className}" style="${leaderBorder.style}" alt="Leader">
+                        <div class="avatar-wrapper w-8 h-8">
+                           ${leaderBorderElement}
+                           <img src="${leaderAvatarUrl}" class="w-full h-full rounded-full object-cover" alt="Leader">
+                        </div>
                         <div class="leader-info">
                             <span class="leader-title">LEADER (R5)</span>
                             <span class="leader-name">${alliance.r5Name || 'N/A'}</span>
