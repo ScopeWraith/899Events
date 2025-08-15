@@ -573,9 +573,9 @@ body {
     height: 100%;
     border-radius: 50%;
     pointer-events: none;
-    transform: translate(-50%, -50%) scale(1.1);
+    transform: translate(-50%, -50%) scale(1.15); /* Increased from 1.1 to 1.15 for better visual consistency */
     background-clip: padding-box !important;
-    z-index: 5; 
+    z-index: 5;
 }
 
 .rank-border-admin { 

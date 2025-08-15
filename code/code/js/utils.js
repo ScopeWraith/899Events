@@ -214,13 +214,17 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
 }
 
 
+// code/js/utils.js
+
+// code/js/utils.js
+
 export function applyCustomBorderStyle(css) {
     if (!css) return '';
 
     let style = `
         border-style: ${css.borderStyle};
         border-width: ${css.borderWidth}px;
-        border-image: linear-gradient(${css.gradientAngle}deg, ${css.borderColor1}, ${css.borderColor2}) 1;
+        /* The conflicting 'border-image' property has been removed from here. */
         background: linear-gradient(${css.gradientAngle}deg, ${css.borderColor1}, ${css.borderColor2});
         box-shadow: 0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor};
         transform: translate(-50%, -50%) scale(${css.borderSize});
