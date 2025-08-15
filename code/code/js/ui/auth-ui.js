@@ -52,7 +52,7 @@ export function initializeAuthUI() {
 export function updateAvatarDisplay(data) {
     if (!data) return;
     const { allAlliances } = getState();
-    const allianceData = allAlliances.find(a => a.tag === data.alliance);
+    const allianceData = allAlliances ? allAlliances.find(a => a.tag === data.alliance) : null;
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
     const rankBorder = getAvatarBorderClass(data, allianceData); // Use the new centralized function
 
