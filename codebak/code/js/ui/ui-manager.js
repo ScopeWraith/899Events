@@ -449,8 +449,69 @@ export function buildMobileNav() {
 }
 
 function setupCustomSelects() {
-    // This function remains largely unchanged, just ensure it's robust
+    document.querySelectorAll('.custom-select-container').forEach(container => {
+        const type = container.dataset.type;
+        const optionsList = container.querySelector('.options-list');
+        if (!optionsList) return;
+
+        let optionsData = [];
+        switch (type) {
+            case 'alliance':
+                optionsData = ALLIANCES.map(name => ({ value: name, text: name }));
+                break;
+            case 'alliance-filter':
+                 optionsData = [{ value: '', text: 'All Alliances' }, ...ALLIANCES.map(name => ({ value: name, text: name }))];
+                break;
+            case 'rank':
+                optionsData = ALLIANCE_RANKS;
+                break;
+            case 'role':
+                optionsData = ALLIANCE_ROLES;
+                break;
+            case 'day-of-week':
+                optionsData = DAYS_OF_WEEK;
+                break;
+            case 'hour-of-day':
+                optionsData = HOURS_OF_DAY;
+                break;
+            case 'repeat-type':
+                optionsData = REPEAT_TYPES;
+                break;
+            case 'announcement-expiration':
+                optionsData = ANNOUNCEMENT_EXPIRATION_DAYS;
+                break;
+        }
+
+        optionsList.innerHTML = optionsData.map(opt => `<div class="custom-select-option" data-value="${opt.value}">${opt.text}</div>`).join('');
+    });
+
+    document.body.addEventListener('click', e => {
+        const openSelect = document.querySelector('.custom-select-container.open');
+        const container = e.target.closest('.custom-select-container');
+
+        if (openSelect && openSelect !== container) {
+            openSelect.classList.remove('open');
+        }
+
+        if (container) {
+            const valueBtn = container.querySelector('.custom-select-value');
+            if (e.target === valueBtn || valueBtn.contains(e.target)) {
+                container.classList.toggle('open');
+            }
+
+            const option = e.target.closest('.custom-select-option');
+            if (option) {
+                setCustomSelectValue(container, option.dataset.value, option.textContent);
+                container.classList.remove('open');
+                const hiddenInput = container.querySelector('input[type="hidden"]');
+                if (hiddenInput) {
+                    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        }
+    });
 }
+
 
 export function setCustomSelectValue(container, value, text) {
     const hiddenInput = container.querySelector('input[type="hidden"]');
@@ -462,7 +523,40 @@ export function setCustomSelectValue(container, value, text) {
 }
 
 function setupParticleCanvas() {
-    // Unchanged
+    const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const particles = [];
+    const particleCount = 50;
+    for (let i = 0; i < particleCount; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: Math.random() * 0.2 - 0.1,
+            vy: Math.random() * 0.2 - 0.1,
+            size: Math.random() * 1.5 + 0.5,
+            color: 'rgba(0, 191, 255, 0.5)'
+        });
+    }
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+            ctx.beginPath();
+            ctx.fillStyle = p.color;
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
 }
 
 export function createSkeletonCard() {

@@ -34,6 +34,17 @@ function renderAuthUI(newState, prevState) {
 
 export function initializeAuthUI() {
     subscribe(renderAuthUI);
+    // Add event listeners for power input formatting
+    document.querySelectorAll('.power-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/,/g, '');
+            if (isNaN(value) || value === '') {
+                e.target.value = '';
+            } else {
+                e.target.value = parseInt(value, 10).toLocaleString('en-US');
+            }
+        });
+    });
 }
 
 // --- UI HELPER FUNCTIONS ---
@@ -48,9 +59,17 @@ export function updateAvatarDisplay(data) {
     const userAvatarMobile = document.getElementById('user-avatar-mobile');
     userAvatarMobile.src = avatarUrl;
     userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${rankBorder}`;
-    document.getElementById('mobile-avatar-alliance').textContent = `[${data.alliance}]`;
-    document.getElementById('mobile-avatar-rank').textContent = data.allianceRank;
+    
+    const mobileAlliance = document.getElementById('mobile-avatar-alliance');
+    const mobileRank = document.getElementById('mobile-avatar-rank');
+    mobileAlliance.textContent = `[${data.alliance}]`;
+    mobileRank.textContent = data.allianceRank;
+    
+    // Apply unverified style if necessary
+    mobileAlliance.classList.toggle('unverified-player-text', !data.isVerified);
+    mobileRank.classList.toggle('unverified-player-text', !data.isVerified);
 }
+
 
 export function updatePlayerProfileDropdown(currentUserData, userNotifications) { // FIX: Removed default empty array
     if (!currentUserData) return;
@@ -144,12 +163,16 @@ function showRegStep(stepIndex) {
     const currentSlide = registrationFlow.querySelector(`.form-slide[data-slide="${stepIndex}"]`);
     if(currentSlide) currentSlide.classList.add('active');
 
-    regProgressSteps.forEach((index, step) => step.classList.toggle('active', index < stepIndex));
+    regProgressSteps.forEach((step, index) => {
+        step.classList.toggle('active', (index + 1) <= stepIndex);
+    });
+    
     regProgressBarLine.style.width = `${((stepIndex - 1) / (regFormSlides.length - 1)) * 100}%`;
     regBackBtn.style.visibility = stepIndex === 1 ? 'hidden' : 'visible';
     regNextBtn.classList.toggle('hidden', stepIndex === regFormSlides.length);
     regSubmitBtn.classList.toggle('hidden', stepIndex !== regFormSlides.length);
 }
+
 
 function validateRegStep(stepIndex) {
     const registerError = document.getElementById('register-error');
@@ -228,30 +251,12 @@ export async function handleRegistrationSubmit(e) {
             isAdmin: email === 'mikestancato@gmail.com',
             registrationTimestampUTC: new Date().toISOString(),
         };
-
-        if (!userProfile.isAdmin) {
-            userProfile.alliance = 'Pending Alliance';
-            userProfile.isVerified = false;
-        }
+        
+        // Removed the logic that sets alliance to 'Pending Alliance'
 
         await setDoc(doc(db, "users", user.uid), userProfile);
-
-        const leadersQuery = query(collection(db, 'users'), where('alliance', '==', alliance), where('allianceRank', 'in', ['R5', 'R4']));
-        const leadersSnapshot = await getDocs(leadersQuery);
-        const batch = writeBatch(db);
-        leadersSnapshot.forEach(leaderDoc => {
-            const notificationRef = doc(collection(db, 'notifications'));
-            batch.set(notificationRef, {
-                recipientUid: leaderDoc.id,
-                senderUid: user.uid,
-                senderUsername: username,
-                type: 'verification_request',
-                message: `${username} has joined your alliance and is awaiting verification.`,
-                isRead: false,
-                timestamp: serverTimestamp()
-            });
-        });
-        await batch.commit();
+        
+        await sendVerificationRequest(user.uid, username, alliance);
 
         document.getElementById('registration-flow').style.display = 'none';
         document.getElementById('registration-success').style.display = 'block';
@@ -313,36 +318,50 @@ export function handleForgotPassword(e) {
 }
 
 export function populateEditForm() {
-    const { currentUserData } = getState();
+    const { currentUserData, allAlliances } = getState();
     if (!currentUserData) return;
 
-    buildSkinSelectors();
+    // Set dynamic background
+    const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
+    const primaryColor = allianceData?.primaryColor || 'var(--color-primary)';
+    document.getElementById('edit-profile-bg').style.backgroundImage = `radial-gradient(circle, ${primaryColor} 0%, transparent 70%)`;
 
+    // Account Tab
     document.getElementById('edit-username').value = currentUserData.username;
+    document.getElementById('edit-avatar-preview').src = currentUserData.avatarUrl || `https://placehold.co/128x128/161B22/FFFFFF?text=${currentUserData.username.charAt(0).toUpperCase()}`;
+    document.getElementById('edit-avatar-border-preview').className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${getRankBorderClass(currentUserData)}`;
+
+    // Alliance Tab
+    document.getElementById('edit-alliance-avatar').src = allianceData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
     const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
     const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
     setCustomSelectValue(editAllianceSelect, currentUserData.alliance, currentUserData.alliance);
     const rankData = ALLIANCE_RANKS.find(r => r.value === currentUserData.allianceRank);
     setCustomSelectValue(editRankSelect, currentUserData.allianceRank, rankData ? rankData.text : currentUserData.allianceRank);
+    
+    // Verification Status
+    const verificationIndicator = document.getElementById('verification-status-indicator');
+    const icon = verificationIndicator.querySelector('i');
+    const text = verificationIndicator.querySelector('span');
+    verificationIndicator.className = 'p-3 rounded-lg flex items-center gap-3'; // Reset classes
+    if (currentUserData.isVerified) {
+        verificationIndicator.classList.add('verified');
+        icon.className = 'fas fa-check-circle';
+        text.textContent = 'Verified Member';
+    } else {
+        verificationIndicator.classList.add('unverified');
+        icon.className = 'fas fa-exclamation-triangle';
+        text.textContent = 'Unverified Member';
+    }
+
+    // Power Tab
     document.getElementById('edit-power').value = (currentUserData.power || 0).toLocaleString();
     document.getElementById('edit-tank-power').value = (currentUserData.tankPower || 0).toLocaleString();
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
 
-    const setActiveSkin = (containerId, inputId, value, defaultValue) => {
-        const finalValue = value || defaultValue;
-        const container = document.getElementById(containerId);
-        const input = document.getElementById(inputId);
-        if (container && input) {
-            input.value = finalValue;
-            container.querySelectorAll('.skin-select-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.value === finalValue);
-            });
-        }
-    };
-
-    setActiveSkin('avatar-border-selector', 'edit-avatar-border', currentUserData.avatarBorder, 'avatar-border-none');
-    setActiveSkin('chat-bubble-border-selector', 'edit-chat-bubble-border', currentUserData.chatBubbleBorder, 'chat-bubble-border-none');
+    // Skin Tab (Placeholder)
+    // Future logic to populate skins will go here
 }
 
 export async function handleEditProfileSubmit(e) {
@@ -370,12 +389,10 @@ export async function handleEditProfileSubmit(e) {
     let oldAlliance = currentUserData.alliance;
     let newAlliance = updatedData.alliance;
 
+    // If alliance or rank changes, user needs to be reverified.
     if (currentUserData && (newAlliance !== oldAlliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
         needsReverification = true;
-        if (newAlliance !== oldAlliance) {
-             updatedData.alliance = 'Pending Alliance';
-        }
     }
 
     try {
@@ -384,7 +401,7 @@ export async function handleEditProfileSubmit(e) {
 
         if (needsReverification) {
             await sendVerificationRequest(user.uid, updatedData.username, newAlliance);
-            alert("Profile updated! You have been un-verified and will need to be approved by a leader in your alliance to access all features.");
+            alert("Profile updated! You have been marked as unverified and will need to be approved by a leader in your new alliance to access all features.");
         }
     } catch (error) {
         console.error("Update profile error:", error);

@@ -45,8 +45,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || canManageUser(userId);
-      allow delete: if isOwner(userId);
+      allow update: if isOwner(userId) || canManageUser(userId) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
     }
     
     // Friend requests, friends list, etc.
@@ -76,13 +76,15 @@ service cloud.firestore {
                (
                    managerData.isAdmin == true ||
                    (
-                       managerData.alliance == targetData.alliance &&
+                    
+                    managerData.alliance == targetData.alliance &&
                        (
                            (managerData.allianceRank == 'R5' && 
                                (targetData.allianceRank == 'R4' || targetData.allianceRank == 'R3' || targetData.allianceRank == 'R2' || targetData.allianceRank == 'R1')) ||
                            (managerData.allianceRank == 'R4' && 
                                (targetData.allianceRank == 'R3' || targetData.allianceRank == 'R2' || targetData.allianceRank == 'R1'))
-                       )
+                      
+                   )
                    )
                );
     }
@@ -105,6 +107,7 @@ service cloud.firestore {
                    // Admins can create any post.
                    user.isAdmin == true ||
                    // Verified R5s and R4s can create alliance-specific announcements.
+    
                    (isVerified() && postData.alliance == user.alliance && (userRank == 'R5' || userRank == 'R4') && postData.mainType == 'announcement' && postData.subType == 'alliance') ||
                    // Verified R5s and R4s can create alliance-specific events.
                    (isVerified() && postData.alliance == user.alliance && (userRank == 'R5' || userRank == 'R4') && postData.mainType == 'event' && postData.subType == 'alliance') ||
@@ -140,7 +143,6 @@ service cloud.firestore {
         // A user can read or update a chat document only if they are a participant.
         allow write: if isSignedIn() && request.auth.uid in request.resource.data.participants;
         allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
-
         match /messages/{messageId} {
             // Allow message creation if the author is who they say they are, AND they are a participant in the parent chat room.
             allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid &&
