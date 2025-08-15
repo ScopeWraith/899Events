@@ -190,7 +190,11 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
 
     const customBorder = customBorders && customBorders.find(b => b.id === skinId);
     if (customBorder) {
-        return { className: 'custom-border', style: applyCustomBorderStyle(customBorder.css) };
+        const styles = applyCustomBorderStyle(customBorder.css);
+        return { 
+            className: `custom-border ${styles.textureClass}`, 
+            style: styles.style 
+        };
     }
     
     if (skinId === 'alliance' && allianceData?.primaryColor) {
@@ -231,11 +235,9 @@ export function applyCustomBorderStyle(css) {
     
     // --- ANIMATIONS ---
     let mainAnimation = '';
-    if (css.animationName && css.animationName !== 'none' && !['shimmer', 'glow', 'particles'].includes(css.animationName)) {
+
+    if (css.animationName && css.animationName !== 'none' && !['shimmer', 'glow', 'particles', 'cosmic'].includes(css.animationName)) {
         mainAnimation = `${css.animationName} ${css.animationDuration}s infinite ${css.animationDirection}`;
-    }
-    if (css.borderStyle === 'marching-ants') {
-        mainAnimation += (mainAnimation ? ', ' : '') + 'marching-ants 10s linear infinite';
     }
     if (css.animateGradient) {
         mainAnimation += (mainAnimation ? ', ' : '') + 'gradient-shift 5s ease infinite';
@@ -272,9 +274,13 @@ export function applyCustomBorderStyle(css) {
             --glow-spread: ${css.boxShadowSpread}px;
             --glow-animation: ${glowAnimation || 'none'};
             --particle-animation: ${particleAnimation};
+            textureClass: textureClass,
+            backgroundSize: css.animateGradient ? '200% 200%' : 'auto',
+            textEffect: css.textEffect || 'none' // NEW
         `,
         textureClass: textureClass,
         // Add background-size only when gradient animation is active
         backgroundSize: css.animateGradient ? '200% 200%' : 'auto'
     };
+    
 }
