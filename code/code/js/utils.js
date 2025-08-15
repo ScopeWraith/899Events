@@ -237,6 +237,10 @@ export function applyCustomBorderStyle(css) {
     }
 
     let borderStyle = css.borderStyle;
+    const boxShadow = `
+        inset 0 0 10px 2px ${css.innerGlowColor || '#000000'},
+        0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor}
+    `;
     let animationStyle = css.animationName && css.animationName !== 'none' ? `animation: ${css.animationName} ${css.animationDuration}s infinite ${css.animationDirection};` : '';
 
     if (borderStyle === 'marching-ants') {

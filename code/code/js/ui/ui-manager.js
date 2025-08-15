@@ -26,7 +26,14 @@ export function showAccessDeniedModal() {
 
 export function showBorderEditorModal() {
     hideAllModals();
-    showModal(getElement('border-editor-modal-container'));
+    if (currentUserData && currentUserData.avatarUrl) {
+        const previewImg = document.querySelector('#border-editor-preview-box img');
+        if (previewImg) {
+            previewImg.src = currentUserData.avatarUrl;
+        }
+    }
+    
+    showModal(document.getElementById('border-editor-modal-container'));
 }
 
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {

@@ -50,6 +50,7 @@ function updateBorderEditorPreview() {
         animationName: document.getElementById('animation-select').value,
         animationDuration: document.getElementById('animation-duration-slider').value,
         animationDirection: document.getElementById('animation-direction-select').value,
+        innerGlowColor: document.getElementById('inner-glow-color-picker').value, // NEW
         animateGradient: document.getElementById('animate-gradient-toggle').checked, // NEW
     };
 
