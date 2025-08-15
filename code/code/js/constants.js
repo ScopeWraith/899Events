@@ -159,7 +159,7 @@ export const ANIMATION_STYLES = [
     { value: 'glow', text: 'Glow' },
     { value: 'shimmer', text: 'Shimmer' },
     { value: 'particles', text: 'Particles' },
-    { value: 'cosmic', text: 'Cosmic' }, // NEW
+    { value: 'cosmic', text: 'Cosmic' },
 ];
 
 export const BORDER_TEXTURES = [

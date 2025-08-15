@@ -1,7 +1,7 @@
 // code/js/ui/ui-manager.js
 
 import { getState, setState } from '../state.js';
-import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS, BORDER_STYLES, ANIMATION_STYLES, ANIMATION_DIRECTIONS } from '../constants.js';
+import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS, BORDER_STYLES, ANIMATION_STYLES, ANIMATION_DIRECTIONS, GRADIENT_MODES, BORDER_TEXTURES, TEXT_EFFECTS } from '../constants.js';
 import { populateEditForm, handleLogout } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
@@ -481,6 +481,9 @@ function setupCustomSelects() {
             case 'border-style': optionsData = BORDER_STYLES; break;
             case 'animation-style': optionsData = ANIMATION_STYLES; break;
             case 'animation-direction': optionsData = ANIMATION_DIRECTIONS; break;
+            case 'gradient-mode': optionsData = GRADIENT_MODES; break;
+            case 'border-texture': optionsData = BORDER_TEXTURES; break;
+            case 'text-effect': optionsData = TEXT_EFFECTS; break;
         }
 
         optionsList.innerHTML = optionsData.map(opt => `<div class="custom-select-option" data-value="${opt.value}">${opt.text}</div>`).join('');
