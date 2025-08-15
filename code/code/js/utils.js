@@ -189,7 +189,7 @@ export function getAvatarBorderClass(player, allianceData) {
     const skinType = player.avatarBorderSkin || 'rank';
 
     if (skinType === 'alliance' && allianceData) {
-        return 'alliance-border';
+        return `alliance-border" style="border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`;
     }
     
     // Default to rank-based border
