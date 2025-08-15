@@ -953,3 +953,61 @@ body {
 .unverified-player-text {
     color: #8b949e !important;
 }
+.skin-select-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.75rem;
+}
+
+.skin-select-btn {
+    aspect-ratio: 1 / 1;
+    background-color: rgba(13, 17, 23, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+}
+
+.skin-select-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-primary);
+}
+
+.skin-select-btn.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary-glow);
+    background-color: rgba(0, 191, 255, 0.1);
+}
+
+.skin-select-btn .preview {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.skin-select-btn .preview-border {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    pointer-events: none;
+}
+.skin-select-btn .preview-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #30363d;
+}
+
+.skin-select-btn .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+}

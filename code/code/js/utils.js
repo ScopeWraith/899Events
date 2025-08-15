@@ -182,17 +182,21 @@ export function autoLinkText(text) {
         return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${url}</a>`;
     });
 }
-export function getAvatarSkinClass(player) {
-    if (!player) return 'avatar-skin-r1'; // Default
-    if (player.isAdmin) return 'avatar-skin-admin';
+
+export function getAvatarBorderClass(player, allianceData) {
+    if (!player) return 'rank-border-r1';
+
+    const skinType = player.avatarBorderSkin || 'rank';
+
+    if (skinType === 'alliance' && allianceData) {
+        // This is a placeholder for a future system. 
+        // For now, we'll just return a class and style it with the alliance color.
+        // We will need a new CSS class for this.
+        return 'alliance-border';
+    }
     
-    const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
-    return `avatar-skin-${rank}`;
-}
-export function getRankBorderClass(player) {
-    if (!player) return 'rank-border-r1'; // Default
+    // Default to rank-based border
     if (player.isAdmin) return 'rank-border-admin';
-    
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return `rank-border-${rank}`;
 }

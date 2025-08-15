@@ -5,7 +5,7 @@ import { signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, se
 import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { subscribe, setState, getState } from '../state.js';
-import { resizeImage , getAvatarSkinClass, getRankBorderClass} from '../utils.js';
+import { resizeImage , getAvatarBorderClass} from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 import { sendVerificationRequest } from '../firestore.js';
@@ -51,11 +51,15 @@ export function initializeAuthUI() {
 
 export function updateAvatarDisplay(data) {
     if (!data) return;
+    const { allAlliances } = getState();
+    const allianceData = allAlliances.find(a => a.tag === data.alliance);
     const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-    const rankBorder = getRankBorderClass(data);
+    const rankBorder = getAvatarBorderClass(data, allianceData); // Use the new centralized function
+
     const userAvatarButton = document.getElementById('user-avatar-button');
     userAvatarButton.src = avatarUrl;
-    userAvatarButton.className = `w-6 h-6 rounded-full object-cover ${rankBorder}`;
+    userAvatarButton.className = `w-6 h-6 rounded-full mr-2 object-cover ${rankBorder}`;
+    
     const userAvatarMobile = document.getElementById('user-avatar-mobile');
     userAvatarMobile.src = avatarUrl;
     userAvatarMobile.className = `w-8 h-8 rounded-full object-cover ${rankBorder}`;
@@ -65,7 +69,6 @@ export function updateAvatarDisplay(data) {
     mobileAlliance.textContent = `[${data.alliance}]`;
     mobileRank.textContent = data.allianceRank;
     
-    // Apply unverified style if necessary
     mobileAlliance.classList.toggle('unverified-player-text', !data.isVerified);
     mobileRank.classList.toggle('unverified-player-text', !data.isVerified);
 }
@@ -329,8 +332,7 @@ export function populateEditForm() {
     // Account Tab
     document.getElementById('edit-username').value = currentUserData.username;
     document.getElementById('edit-avatar-preview').src = currentUserData.avatarUrl || `https://placehold.co/128x128/161B22/FFFFFF?text=${currentUserData.username.charAt(0).toUpperCase()}`;
-    document.getElementById('edit-avatar-border-preview').className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${getRankBorderClass(currentUserData)}`;
-
+    
     // Alliance Tab
     document.getElementById('edit-alliance-avatar').src = allianceData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
     const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
@@ -360,8 +362,12 @@ export function populateEditForm() {
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
 
-    // Skin Tab (Placeholder)
-    // Future logic to populate skins will go here
+    // Skin Tab
+    buildAvatarBorderSkins();
+    const currentSkin = currentUserData.avatarBorderSkin || 'rank';
+    document.getElementById('avatar-border-skin-input').value = currentSkin;
+    updateSkinSelection('avatar-border-selector', currentSkin);
+    updateAvatarBorderPreview(); // Initial preview update
 }
 
 export async function handleEditProfileSubmit(e) {
@@ -383,13 +389,13 @@ export async function handleEditProfileSubmit(e) {
         tankPower: parsePower(document.getElementById('edit-tank-power').value),
         airPower: parsePower(document.getElementById('edit-air-power').value),
         missilePower: parsePower(document.getElementById('edit-missile-power').value),
+        avatarBorderSkin: document.getElementById('avatar-border-skin-input').value,
     };
 
     let needsReverification = false;
     let oldAlliance = currentUserData.alliance;
     let newAlliance = updatedData.alliance;
 
-    // If alliance or rank changes, user needs to be reverified.
     if (currentUserData && (newAlliance !== oldAlliance || updatedData.allianceRank !== currentUserData.allianceRank)) {
         updatedData.isVerified = false;
         needsReverification = true;
@@ -407,6 +413,54 @@ export async function handleEditProfileSubmit(e) {
         console.error("Update profile error:", error);
         errorElement.textContent = "Failed to update profile.";
     }
+}
+
+function buildAvatarBorderSkins() {
+    const container = document.getElementById('avatar-border-selector');
+    if (!container) return;
+
+    const { currentUserData, allAlliances } = getState();
+    const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
+    
+    const skins = [
+        { id: 'rank', label: 'Rank', borderClass: getAvatarBorderClass(currentUserData, null) },
+        { id: 'alliance', label: 'Alliance', borderClass: getAvatarBorderClass(currentUserData, allianceData) }
+    ];
+
+    container.innerHTML = skins.map(skin => `
+        <button type="button" class="skin-select-btn" data-value="${skin.id}">
+            <div class="preview">
+                <div class="preview-icon"></div>
+                <div class="preview-border ${skin.borderClass}"></div>
+            </div>
+            <span class="label">${skin.label}</span>
+        </button>
+    `).join('');
+
+    container.querySelectorAll('.skin-select-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const skinId = btn.dataset.value;
+            document.getElementById('avatar-border-skin-input').value = skinId;
+            updateSkinSelection('avatar-border-selector', skinId);
+            updateAvatarBorderPreview();
+        });
+    });
+}
+
+function updateSkinSelection(containerId, selectedValue) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.querySelectorAll('.skin-select-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === selectedValue);
+    });
+}
+
+function updateAvatarBorderPreview() {
+    const { currentUserData, allAlliances } = getState();
+    const selectedSkin = document.getElementById('avatar-border-skin-input').value;
+    const previewData = { ...currentUserData, avatarBorderSkin: selectedSkin };
+    const allianceData = allAlliances.find(a => a.tag === previewData.alliance);
+    document.getElementById('edit-avatar-border-preview').className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${getAvatarBorderClass(previewData, allianceData)}`;
 }
 
 
