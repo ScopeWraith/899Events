@@ -221,15 +221,21 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
 // code/js/utils.js
 
 export function applyCustomBorderStyle(css) {
-    if (!css) return '';
+    if (!css) return { style: '', textureClass: '', backgroundSize: 'auto', textEffect: 'none' };;
 
     // --- MAIN BORDER STYLES ---
     const colors = [css.borderColor1, css.borderColor2, css.borderColor3, css.borderColor4, css.borderColor5].filter((c, i) => i < 2 || css[`enableColor${i + 1}`]);
     const gradientMode = css.gradientMode || 'linear-gradient';
-    let gradientString = `${gradientMode}(from ${css.gradientAngle}deg, ${colors.join(', ')})`;
-    if (gradientMode === 'radial-gradient') {
+    let gradientString;
+    if (gradientMode === 'conic-gradient') {
+        gradientString = `${gradientMode}(from ${css.gradientAngle}deg, ${colors.join(', ')})`;
+    } else if (gradientMode === 'radial-gradient') {
         gradientString = `radial-gradient(circle, ${colors.join(', ')})`;
     }
+    else {
+        gradientString = `linear-gradient(${css.gradientAngle}deg, ${colors.join(', ')})`;
+    }
+
 
     let borderStyle = css.borderStyle === 'marching-ants' ? 'dashed' : css.borderStyle;
     
@@ -274,13 +280,11 @@ export function applyCustomBorderStyle(css) {
             --glow-spread: ${css.boxShadowSpread}px;
             --glow-animation: ${glowAnimation || 'none'};
             --particle-animation: ${particleAnimation};
-            textureClass: textureClass,
-            backgroundSize: css.animateGradient ? '200% 200%' : 'auto',
-            textEffect: css.textEffect || 'none' // NEW
         `,
         textureClass: textureClass,
         // Add background-size only when gradient animation is active
-        backgroundSize: css.animateGradient ? '200% 200%' : 'auto'
+        backgroundSize: css.animateGradient ? '200% 200%' : 'auto',
+        textEffect: css.textEffect || 'none' // NEW
     };
     
 }

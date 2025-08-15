@@ -34,60 +34,59 @@ function updateBorderEditorPreview() {
         borderSize: document.getElementById('border-size-slider').value,
         borderStyle: document.getElementById('border-style-select').value,
         borderWidth: document.getElementById('border-width-slider').value,
-        gradientMode: document.getElementById('gradient-mode-select').value, // NEW
+        gradientMode: document.getElementById('gradient-mode-select').value,
         borderColor1: document.getElementById('border-color-1').value,
         borderColor2: document.getElementById('border-color-2').value,
-        borderColor3: document.getElementById('border-color-3').value, // NEW
-        borderColor4: document.getElementById('border-color-4').value, // NEW
-        borderColor5: document.getElementById('border-color-5').value, // NEW
-        enableColor3: document.getElementById('enable-color-3').checked, // NEW
-        enableColor4: document.getElementById('enable-color-4').checked, // NEW
-        enableColor5: document.getElementById('enable-color-5').checked, // NEW
+        borderColor3: document.getElementById('border-color-3').value,
+        borderColor4: document.getElementById('border-color-4').value,
+        borderColor5: document.getElementById('border-color-5').value,
+        enableColor3: document.getElementById('enable-color-3').checked,
+        enableColor4: document.getElementById('enable-color-4').checked,
+        enableColor5: document.getElementById('enable-color-5').checked,
         gradientAngle: document.getElementById('gradient-angle-slider').value,
         boxShadowBlur: document.getElementById('box-shadow-blur-slider').value,
         boxShadowSpread: document.getElementById('box-shadow-spread-slider').value,
         boxShadowColor: document.getElementById('box-shadow-color-picker').value,
-        boxShadowColor2: document.getElementById('box-shadow-color-picker-2').value, // NEW
-        glowAngle: document.getElementById('glow-angle-slider').value, // NEW
+        boxShadowColor2: document.getElementById('box-shadow-color-picker-2').value,
+        glowAngle: document.getElementById('glow-angle-slider').value,
         animationName: document.getElementById('animation-select').value,
         animationDuration: document.getElementById('animation-duration-slider').value,
         animationDirection: document.getElementById('animation-direction-select').value,
-        innerGlowColor: document.getElementById('inner-glow-color-picker').value, // NEW
-        animateGradient: document.getElementById('animate-gradient-toggle').checked, // NEW
+        innerGlowColor: document.getElementById('inner-glow-color-picker').value,
+        animateGradient: document.getElementById('animate-gradient-toggle').checked,
         borderTexture: document.getElementById('border-texture-select').value,
+        textEffect: document.getElementById('text-effect-select').value
     };
+
     const styles = applyCustomBorderStyle(css);
-    preview.style.cssText = styles.style;
-    // ... (apply texture classes and background size) ...
-
-    // NEW: Handle Text Animations
-    const previewText = document.querySelector('#border-editor-preview-box .preview-text-element');
-    if (previewText._split) previewText._split.revert(); // Revert previous split
-
-    if (styles.textEffect === 'matrix' || styles.textEffect === 'scramble') {
-        previewText._split = new SplitType(previewText, { types: 'chars' });
-        gsap.from(previewText.querySelectorAll('.char'), {
-            // ... GSAP animation logic for matrix or scramble ...
-        });
-    }
     
-    // --- FIX: Apply styles correctly ---
     preview.style.cssText = styles.style;
     preview.style.backgroundSize = styles.backgroundSize;
 
-    // --- FIX: Handle texture classes ---
     preview.classList.remove('texture-electric', 'texture-cracks', 'texture-lines');
     if (styles.textureClass) {
         preview.classList.add(styles.textureClass);
     }
-    preview.style.cssText = applyCustomBorderStyle(css);
+    
+    const previewText = document.querySelector('#border-editor-preview-box .preview-text-element');
+    if (previewText) {
+        if (previewText._split) previewText._split.revert();
+
+        if (styles.textEffect === 'matrix' || styles.textEffect === 'scramble') {
+            previewText._split = new SplitType(previewText, { types: 'chars' });
+            gsap.from(previewText.querySelectorAll('.char'), {
+                // Your GSAP animation logic here
+            });
+        }
+    }
+    
     document.getElementById('border-size-value').textContent = parseFloat(css.borderSize).toFixed(2);
     document.getElementById('border-width-value').textContent = css.borderWidth;
     document.getElementById('gradient-angle-value').textContent = css.gradientAngle;
     document.getElementById('box-shadow-blur-value').textContent = css.boxShadowBlur;
     document.getElementById('box-shadow-spread-value').textContent = css.boxShadowSpread;
     document.getElementById('animation-duration-value').textContent = parseFloat(css.animationDuration).toFixed(1);
-    document.getElementById('glow-angle-value').textContent = css.glowAngle; // NEW
+    document.getElementById('glow-angle-value').textContent = css.glowAngle;
 }
 
 
