@@ -5,7 +5,7 @@ import { doc, addDoc, updateDoc, collection, serverTimestamp } from "https://www
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { subscribe, setState, getState } from '../state.js';
 import { POST_TYPES, POST_STYLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS } from '../constants.js';
-import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage, getRankBorderClass } from '../utils.js';
+import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, calculateNextDateTime, resizeImage, getAvatarBorderClass } from '../utils.js';
 import { hideAllModals, showModal, setCustomSelectValue, createSkeletonCard, showCreatePostModal } from './ui-manager.js';
 
 // --- FIX: Moved module-scoped variables to the top ---
@@ -114,7 +114,7 @@ function createCard(post, allPlayers, currentUserData) {
         return `<div class="post-card event-card cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};"><div class="event-card-background" style="${backgroundStyle}"></div><div class="post-card-content"><span class="post-card-category" style="background-color: ${color};">${categoryText}</span><h3 class="post-card-title">${post.title}</h3><p class="post-card-details">${post.details}</p></div><div class="post-card-status"><div class="status-content-wrapper"></div><div class="status-date"></div></div>${actionsTriggerHTML}</div>`;
     } else {
         const authorData = allPlayers.find(p => p.uid === post.authorUid);
-        const rankBorder = getRankBorderClass(authorData);
+        const rankBorder = getAvatarBorderClass(authorData);
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
         const postDate = post.createdAt?.toDate();
         const hasThumbnailClass = post.thumbnailUrl ? 'has-thumbnail' : '';
