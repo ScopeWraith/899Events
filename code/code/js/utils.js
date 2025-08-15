@@ -191,9 +191,12 @@ export function getAvatarBorderClass(player, allianceData) {
     if (skinType === 'alliance' && allianceData) {
         return `alliance-border" style="border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`;
     }
+    if (skinType === 'admin' && player.isAdmin) {
+        return 'rank-border-admin';
+    }
     
     // Default to rank-based border
-    if (player.isAdmin) return 'rank-border-admin';
+    if (player.isAdmin && skinType === 'rank') return 'rank-border-admin';
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return `rank-border-${rank}`;
 }
