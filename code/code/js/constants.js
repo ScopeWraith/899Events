@@ -144,3 +144,10 @@ export const ANIMATION_STYLES = [
     { value: 'pulse', text: 'Pulse' },
     { value: 'glow', text: 'Glow' },
 ];
+
+export const ANIMATION_DIRECTIONS = [
+    { value: 'normal', text: 'Normal' },
+    { value: 'reverse', text: 'Reverse' },
+    { value: 'alternate', text: 'Alternate' },
+    { value: 'alternate-reverse', text: 'Alternate-Reverse' },
+];

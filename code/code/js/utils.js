@@ -214,12 +214,12 @@ export function applyCustomBorderStyle(css) {
     let style = `
         border-style: ${css.borderStyle};
         border-width: ${css.borderWidth}px;
-        border-image: linear-gradient(to right, ${css.borderColor1}, ${css.borderColor2}) 1;
+        border-image: linear-gradient(${css.gradientAngle}deg, ${css.borderColor1}, ${css.borderColor2}) 1;
         box-shadow: 0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor};
     `;
 
-    if (css.animationName !== 'none') {
-        style += `animation: ${css.animationName} ${css.animationDuration}s infinite linear;`;
+    if (css.animationName && css.animationName !== 'none') {
+        style += `animation: ${css.animationName} ${css.animationDuration}s infinite ${css.animationDirection};`;
     }
 
     return style;

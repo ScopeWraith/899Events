@@ -1,7 +1,7 @@
 // code/js/ui/ui-manager.js
 
 import { getState, setState } from '../state.js';
-import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS } from '../constants.js';
+import { ALLIANCES, ALLIANCE_RANKS, ALLIANCE_ROLES, DAYS_OF_WEEK, HOURS_OF_DAY, REPEAT_TYPES, ANNOUNCEMENT_EXPIRATION_DAYS, POST_STYLES, POST_TYPES, CHAT_CHANNELS, BORDER_STYLES, ANIMATION_STYLES, ANIMATION_DIRECTIONS } from '../constants.js';
 import { populateEditForm, handleLogout } from './auth-ui.js';
 import { populatePlayerSettingsForm } from './player-settings-ui.js';
 import { setupPrivateChatListener, setupChatListeners } from '../firestore.js';
@@ -461,30 +461,17 @@ function setupCustomSelects() {
 
         let optionsData = [];
         switch (type) {
-            case 'alliance':
-                optionsData = ALLIANCES.map(name => ({ value: name, text: name }));
-                break;
-            case 'alliance-filter':
-                 optionsData = [{ value: '', text: 'All Alliances' }, ...ALLIANCES.map(name => ({ value: name, text: name }))];
-                break;
-            case 'rank':
-                optionsData = ALLIANCE_RANKS;
-                break;
-            case 'role':
-                optionsData = ALLIANCE_ROLES;
-                break;
-            case 'day-of-week':
-                optionsData = DAYS_OF_WEEK;
-                break;
-            case 'hour-of-day':
-                optionsData = HOURS_OF_DAY;
-                break;
-            case 'repeat-type':
-                optionsData = REPEAT_TYPES;
-                break;
-            case 'announcement-expiration':
-                optionsData = ANNOUNCEMENT_EXPIRATION_DAYS;
-                break;
+            case 'alliance': optionsData = ALLIANCES.map(name => ({ value: name, text: name })); break;
+            case 'alliance-filter': optionsData = [{ value: '', text: 'All Alliances' }, ...ALLIANCES.map(name => ({ value: name, text: name }))]; break;
+            case 'rank': optionsData = ALLIANCE_RANKS; break;
+            case 'role': optionsData = ALLIANCE_ROLES; break;
+            case 'day-of-week': optionsData = DAYS_OF_WEEK; break;
+            case 'hour-of-day': optionsData = HOURS_OF_DAY; break;
+            case 'repeat-type': optionsData = REPEAT_TYPES; break;
+            case 'announcement-expiration': optionsData = ANNOUNCEMENT_EXPIRATION_DAYS; break;
+            case 'border-style': optionsData = BORDER_STYLES; break;
+            case 'animation-style': optionsData = ANIMATION_STYLES; break;
+            case 'animation-direction': optionsData = ANIMATION_DIRECTIONS; break;
         }
 
         optionsList.innerHTML = optionsData.map(opt => `<div class="custom-select-option" data-value="${opt.value}">${opt.text}</div>`).join('');

@@ -35,18 +35,21 @@ function updateBorderEditorPreview() {
         borderWidth: document.getElementById('border-width-slider').value,
         borderColor1: document.getElementById('border-color-1').value,
         borderColor2: document.getElementById('border-color-2').value,
+        gradientAngle: document.getElementById('gradient-angle-slider').value,
         boxShadowBlur: document.getElementById('box-shadow-blur-slider').value,
         boxShadowSpread: document.getElementById('box-shadow-spread-slider').value,
         boxShadowColor: document.getElementById('box-shadow-color-picker').value,
         animationName: document.getElementById('animation-select').value,
         animationDuration: document.getElementById('animation-duration-slider').value,
+        animationDirection: document.getElementById('animation-direction-select').value,
     };
 
     preview.style.cssText = applyCustomBorderStyle(css);
     document.getElementById('border-width-value').textContent = css.borderWidth;
+    document.getElementById('gradient-angle-value').textContent = css.gradientAngle;
     document.getElementById('box-shadow-blur-value').textContent = css.boxShadowBlur;
     document.getElementById('box-shadow-spread-value').textContent = css.boxShadowSpread;
-    document.getElementById('animation-duration-value').textContent = css.animationDuration;
+    document.getElementById('animation-duration-value').textContent = parseFloat(css.animationDuration).toFixed(1);
 }
 
 
