@@ -26,67 +26,101 @@ import {
 } from './ui/alliances-ui.js';
 import { applyCustomBorderStyle } from './utils.js';
 
+/**
+ * ===================================================================================
+ * REVAMPED BORDER PREVIEW UPDATER
+ * ===================================================================================
+ * This function now correctly handles the complex, multi-layered style object
+ * from the revamped `applyCustomBorderStyle` function.
+ */
 function updateBorderEditorPreview() {
-    const preview = document.getElementById('border-editor-live-preview');
-    if (!preview) return;
+    const getEl = (id) => document.getElementById(id);
 
+    // --- 1. GATHER ALL FORM VALUES ---
     const css = {
-        borderSize: document.getElementById('border-size-slider').value,
-        borderStyle: document.getElementById('border-style-select').value,
-        borderWidth: document.getElementById('border-width-slider').value,
-        gradientMode: document.getElementById('gradient-mode-select').value,
-        borderColor1: document.getElementById('border-color-1').value,
-        borderColor2: document.getElementById('border-color-2').value,
-        borderColor3: document.getElementById('border-color-3').value,
-        borderColor4: document.getElementById('border-color-4').value,
-        borderColor5: document.getElementById('border-color-5').value,
-        enableColor3: document.getElementById('enable-color-3').checked,
-        enableColor4: document.getElementById('enable-color-4').checked,
-        enableColor5: document.getElementById('enable-color-5').checked,
-        gradientAngle: document.getElementById('gradient-angle-slider').value,
-        boxShadowBlur: document.getElementById('box-shadow-blur-slider').value,
-        boxShadowSpread: document.getElementById('box-shadow-spread-slider').value,
-        boxShadowColor: document.getElementById('box-shadow-color-picker').value,
-        boxShadowColor2: document.getElementById('box-shadow-color-picker-2').value,
-        glowAngle: document.getElementById('glow-angle-slider').value,
-        animationName: document.getElementById('animation-select').value,
-        animationDuration: document.getElementById('animation-duration-slider').value,
-        animationDirection: document.getElementById('animation-direction-select').value,
-        innerGlowColor: document.getElementById('inner-glow-color-picker').value,
-        animateGradient: document.getElementById('animate-gradient-toggle').checked,
-        borderTexture: document.getElementById('border-texture-select').value,
-        textEffect: document.getElementById('text-effect-select').value
+        borderSize: getEl('border-size-slider').value,
+        borderStyle: getEl('border-style-select').value,
+        borderWidth: getEl('border-width-slider').value,
+        gradientMode: getEl('gradient-mode-select').value,
+        borderColor1: getEl('border-color-1').value,
+        borderColor2: getEl('border-color-2').value,
+        borderColor3: getEl('border-color-3').value,
+        borderColor4: getEl('border-color-4').value,
+        borderColor5: getEl('border-color-5').value,
+        enableColor3: getEl('enable-color-3').checked,
+        enableColor4: getEl('enable-color-4').checked,
+        enableColor5: getEl('enable-color-5').checked,
+        gradientAngle: getEl('gradient-angle-slider').value,
+        boxShadowBlur: getEl('box-shadow-blur-slider').value,
+        boxShadowSpread: getEl('box-shadow-spread-slider').value,
+        boxShadowColor: getEl('box-shadow-color-picker').value,
+        boxShadowColor2: getEl('box-shadow-color-picker-2').value,
+        glowAngle: getEl('glow-angle-slider').value,
+        animationName: getEl('animation-select').value,
+        animationDuration: getEl('animation-duration-slider').value,
+        animationDirection: getEl('animation-direction-select').value,
+        innerGlowColor: getEl('inner-glow-color-picker').value,
+        animateGradient: getEl('animate-gradient-toggle').checked,
+        borderTexture: getEl('border-texture-select').value,
+        textEffect: getEl('text-effect-select').value
     };
 
+    // --- 2. GENERATE THE COMPLEX STYLE OBJECT ---
     const styles = applyCustomBorderStyle(css);
-    
-    preview.style.cssText = styles.style;
-    preview.style.backgroundSize = styles.backgroundSize;
 
-    preview.classList.remove('texture-electric', 'texture-cracks', 'texture-lines');
-    if (styles.textureClass) {
-        preview.classList.add(styles.textureClass);
+    // --- 3. APPLY STYLES TO THE UI ---
+    const previewElement = getEl('border-editor-live-preview');
+    if (!previewElement) return;
+
+    // Apply main styles directly to the element
+    previewElement.style.cssText = styles.main.style;
+
+    // Inject pseudo-element styles into the dedicated <style> tag
+    const dynamicStyleTag = getEl('border-editor-dynamic-styles');
+    if (dynamicStyleTag) {
+        dynamicStyleTag.innerHTML = `
+            #border-editor-live-preview::before { ${styles.before.style} }
+            #border-editor-live-preview::after { ${styles.after.style} }
+        `;
     }
-    
-    const previewText = document.querySelector('#border-editor-preview-box .preview-text-element');
-    if (previewText) {
-        if (previewText._split) previewText._split.revert();
 
-        if (styles.textEffect === 'matrix' || styles.textEffect === 'scramble') {
-            previewText._split = new SplitType(previewText, { types: 'chars' });
-            gsap.from(previewText.querySelectorAll('.char'), {
-                // Your GSAP animation logic here
-            });
+    // Handle particles
+    const particleContainer = document.getElementById('border-editor-preview-box');
+    const existingParticles = particleContainer.querySelectorAll('.particle');
+    existingParticles.forEach(p => p.remove());
+
+    if (styles.particles && styles.particles.length > 0) {
+        styles.particles.forEach(p => {
+            const particleEl = document.createElement('div');
+            particleEl.className = 'particle';
+            particleEl.style.cssText = p.style;
+            previewElement.appendChild(particleEl);
+        });
+    }
+
+
+    // --- 4. UPDATE VALUE DISPLAYS ---
+    getEl('border-size-value').textContent = parseFloat(css.borderSize).toFixed(2);
+    getEl('border-width-value').textContent = css.borderWidth;
+    getEl('gradient-angle-value').textContent = css.gradientAngle;
+    getEl('box-shadow-blur-value').textContent = css.boxShadowBlur;
+    getEl('box-shadow-spread-value').textContent = css.boxShadowSpread;
+    getEl('animation-duration-value').textContent = parseFloat(css.animationDuration).toFixed(1);
+    getEl('glow-angle-value').textContent = css.glowAngle;
+
+    // --- 5. ENABLE/DISABLE CONTROLS based on selections ---
+    const animControls = [
+        'animation-duration-slider',
+        'animation-direction-select',
+    ];
+    const isAnimActive = css.animationName !== 'none';
+    animControls.forEach(id => {
+        const el = getEl(id);
+        if (el) {
+            el.disabled = !isAnimActive;
+            el.closest('.control-group')?.classList.toggle('disabled', !isAnimActive);
         }
-    }
-    
-    document.getElementById('border-size-value').textContent = parseFloat(css.borderSize).toFixed(2);
-    document.getElementById('border-width-value').textContent = css.borderWidth;
-    document.getElementById('gradient-angle-value').textContent = css.gradientAngle;
-    document.getElementById('box-shadow-blur-value').textContent = css.boxShadowBlur;
-    document.getElementById('box-shadow-spread-value').textContent = css.boxShadowSpread;
-    document.getElementById('animation-duration-value').textContent = parseFloat(css.animationDuration).toFixed(1);
-    document.getElementById('glow-angle-value').textContent = css.glowAngle;
+    });
 }
 
 
@@ -100,10 +134,13 @@ export function initializeAllEventListeners() {
         }
     };
     
+    // --- BORDER EDITOR EVENT LISTENERS ---
     const borderEditorControls = getElement('border-editor-controls');
     if (borderEditorControls) {
+        // Use 'input' for sliders and color pickers for real-time updates
         borderEditorControls.addEventListener('input', updateBorderEditorPreview);
-        borderEditorControls.addEventListener('change', updateBorderEditorPreview); // For select changes
+        // Use 'change' for select dropdowns and checkboxes
+        borderEditorControls.addEventListener('change', updateBorderEditorPreview);
     }
     
     addListener('close-border-editor-modal-btn', 'click', hideAllModals);
