@@ -9,7 +9,7 @@ import { resizeImage , getAvatarBorderClass} from '../utils.js';
 import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 import { sendVerificationRequest } from '../firestore.js';
-import { buildAvatarBorderSkins, updateSkinSelection, updateAvatarBorderPreview } from './skin-ui.js';
+import { buildAvatarBorderSkins, updateSkinSelection } from './skin-ui.js';
 
 // --- STATE & RENDER FUNCTIONS ---
 
@@ -357,7 +357,7 @@ export function populateEditForm() {
     const currentSkin = currentUserData.avatarBorderSkin || 'rank';
     document.getElementById('avatar-border-skin-input').value = currentSkin;
     updateSkinSelection('avatar-border-selector', currentSkin);
-    updateAvatarBorderPreview(); // Initial preview update
+    // updateAvatarBorderPreview(); // This is now handled within initializeSkinUI
 }
 
 export async function handleEditProfileSubmit(e) {
