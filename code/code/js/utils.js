@@ -200,7 +200,7 @@ export function getAvatarBorderClass(player, allianceData) {
     }
     
     // Default to rank-based border
-    if (player.isAdmin) {
+    if (player.isAdmin && skinType === 'rank') {
         return { className: 'rank-border-admin', style: '' };
     }
     

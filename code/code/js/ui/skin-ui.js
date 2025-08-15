@@ -30,20 +30,19 @@ export function buildAvatarBorderSkins() {
         { id: 'alliance', label: 'Alliance' }
     ];
 
+    if (currentUserData.isAdmin) {
+        skins.push({ id: 'admin', label: 'Admin' });
+    }
+
     container.innerHTML = skins.map(skin => {
         const previewData = { ...currentUserData, avatarBorderSkin: skin.id };
-        const borderClass = getAvatarBorderClass(previewData, allianceData);
-        
-        let style = '';
-        if (skin.id === 'alliance' && allianceData) {
-            style = `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`;
-        }
+        const border = getAvatarBorderClass(previewData, allianceData);
 
         return `
             <button type="button" class="skin-select-btn" data-value="${skin.id}">
                 <div class="preview">
                     <div class="preview-icon"></div>
-                    <div class="preview-border ${borderClass}" style="${style}"></div>
+                    <div class="preview-border ${border.className}" style="${border.style}"></div>
                 </div>
                 <span class="label">${skin.label}</span>
             </button>
@@ -66,13 +65,8 @@ export function updateAvatarBorderPreview() {
     const allianceData = allAlliances.find(a => a.tag === previewData.alliance);
     
     const previewElement = document.getElementById('edit-avatar-border-preview');
-    previewElement.className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${getAvatarBorderClass(previewData, allianceData)}`;
-
-    if (selectedSkin === 'alliance' && allianceData) {
-        previewElement.style.borderColor = allianceData.primaryColor;
-        previewElement.style.boxShadow = `0 0 10px -2px ${allianceData.primaryColor}`;
-    } else {
-        previewElement.style.borderColor = '';
-        previewElement.style.boxShadow = '';
-    }
+    const border = getAvatarBorderClass(previewData, allianceData);
+    
+    previewElement.className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${border.className}`;
+    previewElement.style.cssText = border.style;
 }
