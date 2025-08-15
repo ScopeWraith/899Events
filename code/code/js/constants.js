@@ -126,3 +126,21 @@ export const CHAT_CHANNELS = {
         requiresLeader: true
     }
 };
+
+export const BORDER_STYLES = [
+    { value: 'solid', text: 'Solid' },
+    { value: 'dotted', text: 'Dotted' },
+    { value: 'dashed', text: 'Dashed' },
+    { value: 'double', text: 'Double' },
+    { value: 'groove', text: 'Groove' },
+    { value: 'ridge', text: 'Ridge' },
+    { value: 'inset', text: 'Inset' },
+    { value: 'outset', text: 'Outset' },
+];
+
+export const ANIMATION_STYLES = [
+    { value: 'none', text: 'None' },
+    { value: 'spin', text: 'Spin' },
+    { value: 'pulse', text: 'Pulse' },
+    { value: 'glow', text: 'Glow' },
+];

@@ -207,3 +207,20 @@ export function getAvatarBorderClass(player, allianceData) {
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
 }
+
+export function applyCustomBorderStyle(css) {
+    if (!css) return '';
+
+    let style = `
+        border-style: ${css.borderStyle};
+        border-width: ${css.borderWidth}px;
+        border-image: linear-gradient(to right, ${css.borderColor1}, ${css.borderColor2}) 1;
+        box-shadow: 0 0 ${css.boxShadowBlur}px ${css.boxShadowSpread}px ${css.boxShadowColor};
+    `;
+
+    if (css.animationName !== 'none') {
+        style += `animation: ${css.animationName} ${css.animationDuration}s infinite linear;`;
+    }
+
+    return style;
+}

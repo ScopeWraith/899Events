@@ -2,7 +2,7 @@
 
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getState, setState } from './state.js'; // CHANGED HERE
+import { getState, setState } from './state.js';
 import {
     setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal,
     showCreatePostModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal,
@@ -24,6 +24,31 @@ import {
     showEditAllianceModal, handleAllianceAvatarSelection, handleAllianceEditSubmit,
     showRegisterAllianceModal, handleAllianceRegisterSubmit
 } from './ui/alliances-ui.js';
+import { applyCustomBorderStyle } from './utils.js';
+
+function updateBorderEditorPreview() {
+    const preview = document.getElementById('border-editor-live-preview');
+    if (!preview) return;
+
+    const css = {
+        borderStyle: document.getElementById('border-style-select').value,
+        borderWidth: document.getElementById('border-width-slider').value,
+        borderColor1: document.getElementById('border-color-1').value,
+        borderColor2: document.getElementById('border-color-2').value,
+        boxShadowBlur: document.getElementById('box-shadow-blur-slider').value,
+        boxShadowSpread: document.getElementById('box-shadow-spread-slider').value,
+        boxShadowColor: document.getElementById('box-shadow-color-picker').value,
+        animationName: document.getElementById('animation-select').value,
+        animationDuration: document.getElementById('animation-duration-slider').value,
+    };
+
+    preview.style.cssText = applyCustomBorderStyle(css);
+    document.getElementById('border-width-value').textContent = css.borderWidth;
+    document.getElementById('box-shadow-blur-value').textContent = css.boxShadowBlur;
+    document.getElementById('box-shadow-spread-value').textContent = css.boxShadowSpread;
+    document.getElementById('animation-duration-value').textContent = css.animationDuration;
+}
+
 
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
@@ -34,6 +59,12 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
+    
+    const borderEditorControls = getElement('border-editor-controls');
+    if (borderEditorControls) {
+        borderEditorControls.addEventListener('input', updateBorderEditorPreview);
+        borderEditorControls.addEventListener('change', updateBorderEditorPreview); // For select changes
+    }
     
     addListener('close-border-editor-modal-btn', 'click', hideAllModals);
 

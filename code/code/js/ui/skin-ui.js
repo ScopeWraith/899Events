@@ -1,8 +1,10 @@
 // code/js/ui/skin-ui.js
 
 import { getState } from '../state.js';
-import { getAvatarBorderClass } from '../utils.js';
-import { showBorderEditorModal } from './ui-manager.js';
+import { getAvatarBorderClass, applyCustomBorderStyle } from '../utils.js';
+import { showBorderEditorModal, hideAllModals } from './ui-manager.js';
+import { db } from '../firebase-config.js';
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 export function initializeSkinUI() {
     const editProfileModal = document.getElementById('edit-profile-modal-container');
@@ -21,13 +23,18 @@ export function initializeSkinUI() {
             }
         });
     }
+
+    const saveBorderBtn = document.getElementById('save-border-btn');
+    if (saveBorderBtn) {
+        saveBorderBtn.addEventListener('click', handleSaveBorder);
+    }
 }
 
 export function buildAvatarBorderSkins() {
     const container = document.getElementById('avatar-border-selector');
     if (!container) return;
 
-    const { currentUserData, allAlliances } = getState();
+    const { currentUserData, allAlliances, customBorders } = getState();
     const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
     
     const skins = [
@@ -37,11 +44,22 @@ export function buildAvatarBorderSkins() {
 
     if (currentUserData.isAdmin) {
         skins.push({ id: 'admin', label: 'Admin' });
+        // Add custom borders for admins
+        if (customBorders) {
+            customBorders.forEach(border => {
+                skins.push({ id: border.id, label: border.name, isCustom: true, css: border.css });
+            });
+        }
     }
 
     let skinsHTML = skins.map(skin => {
-        const previewData = { ...currentUserData, avatarBorderSkin: skin.id };
-        const border = getAvatarBorderClass(previewData, allianceData);
+        let border;
+        if (skin.isCustom) {
+            border = { className: '', style: applyCustomBorderStyle(skin.css) };
+        } else {
+            const previewData = { ...currentUserData, avatarBorderSkin: skin.id };
+            border = getAvatarBorderClass(previewData, allianceData);
+        }
 
         return `
             <button type="button" class="skin-select-btn" data-value="${skin.id}">
@@ -68,6 +86,7 @@ export function buildAvatarBorderSkins() {
     container.innerHTML = skinsHTML;
 }
 
+
 export function updateSkinSelection(containerId, selectedValue) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -77,14 +96,57 @@ export function updateSkinSelection(containerId, selectedValue) {
 }
 
 export function updateAvatarBorderPreview() {
-    const { currentUserData, allAlliances } = getState();
-    const selectedSkin = document.getElementById('avatar-border-skin-input').value;
-    const previewData = { ...currentUserData, avatarBorderSkin: selectedSkin };
-    const allianceData = allAlliances.find(a => a.tag === previewData.alliance);
-    
+    const { currentUserData, allAlliances, customBorders } = getState();
+    if (!currentUserData) return;
+
+    const selectedSkinId = document.getElementById('avatar-border-skin-input').value;
     const previewElement = document.getElementById('edit-avatar-border-preview');
-    const border = getAvatarBorderClass(previewData, allianceData);
-    
-    previewElement.className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${border.className}`;
-    previewElement.style.cssText = border.style;
+
+    const customBorder = customBorders && customBorders.find(b => b.id === selectedSkinId);
+
+    if (customBorder) {
+        previewElement.className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none`;
+        previewElement.style.cssText = applyCustomBorderStyle(customBorder.css);
+    } else {
+        const previewData = { ...currentUserData, avatarBorderSkin: selectedSkinId };
+        const allianceData = allAlliances.find(a => a.tag === previewData.alliance);
+        const border = getAvatarBorderClass(previewData, allianceData);
+        
+        previewElement.className = `w-32 h-32 absolute top-0 left-0 rounded-full pointer-events-none ${border.className}`;
+        previewElement.style.cssText = border.style;
+    }
+}
+
+async function handleSaveBorder() {
+    const name = document.getElementById('border-name-input').value.trim();
+    if (!name) {
+        alert('Please enter a name for the border.');
+        return;
+    }
+
+    const css = {
+        borderStyle: document.getElementById('border-style-select').value,
+        borderWidth: document.getElementById('border-width-slider').value,
+        borderColor1: document.getElementById('border-color-1').value,
+        borderColor2: document.getElementById('border-color-2').value,
+        boxShadowBlur: document.getElementById('box-shadow-blur-slider').value,
+        boxShadowSpread: document.getElementById('box-shadow-spread-slider').value,
+        boxShadowColor: document.getElementById('box-shadow-color-picker').value,
+        animationName: document.getElementById('animation-select').value,
+        animationDuration: document.getElementById('animation-duration-slider').value,
+    };
+
+    try {
+        await addDoc(collection(db, "customBorders"), {
+            name: name,
+            css: css,
+            createdBy: getState().currentUserData.uid,
+            createdAt: serverTimestamp()
+        });
+        alert('Border saved successfully!');
+        hideAllModals();
+    } catch (error) {
+        console.error("Error saving border:", error);
+        alert('Failed to save border. Please check the console for errors.');
+    }
 }

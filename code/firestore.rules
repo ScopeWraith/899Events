@@ -41,6 +41,11 @@ service cloud.firestore {
       return requestKeys.removeAll(resourceKeys).hasOnly(allowedFields);
     }
     
+    // --- NEW: CUSTOM BORDERS ---
+    match /customBorders/{borderId} {
+      allow read, write: if isAdmin();
+    }
+    
     // --- USER DATA, FRIENDS & PRESENCE ---
     match /users/{userId} {
       allow read: if true;
@@ -77,13 +82,16 @@ service cloud.firestore {
                    managerData.isAdmin == true ||
                    (
                     
+ 
                     managerData.alliance == targetData.alliance &&
                        (
                            (managerData.allianceRank == 'R5' && 
-                               (targetData.allianceRank == 'R4' || targetData.allianceRank == 'R3' || targetData.allianceRank == 'R2' || targetData.allianceRank == 'R1')) ||
+                       
+        (targetData.allianceRank == 'R4' || targetData.allianceRank == 'R3' || targetData.allianceRank == 'R2' || targetData.allianceRank == 'R1')) ||
                            (managerData.allianceRank == 'R4' && 
                                (targetData.allianceRank == 'R3' || targetData.allianceRank == 'R2' || targetData.allianceRank == 'R1'))
-                      
+     
+                   
                    )
                    )
                );
@@ -108,9 +116,11 @@ service cloud.firestore {
                    user.isAdmin == true ||
                    // Verified R5s and R4s can create alliance-specific announcements.
     
+ 
                    (isVerified() && postData.alliance == user.alliance && (userRank == 'R5' || userRank == 'R4') && postData.mainType == 'announcement' && postData.subType == 'alliance') ||
                    // Verified R5s and R4s can create alliance-specific events.
-                   (isVerified() && postData.alliance == user.alliance && (userRank == 'R5' || userRank == 'R4') && postData.mainType == 'event' && postData.subType == 'alliance') ||
+                   (isVerified() && postData.alliance == user.alliance && (userRank == 'R5' || userRank == 'R4') && 
+ postData.mainType == 'event' && postData.subType == 'alliance') ||
                    // Verified R5s can create leadership announcements.
                    (isVerified() && userRank == 'R5' && postData.mainType == 'announcement' && postData.subType == 'leadership')
                );

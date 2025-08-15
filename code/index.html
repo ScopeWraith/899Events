@@ -30,9 +30,12 @@
         <div id="modal-container-all">
            <div id="border-editor-modal-container" class="modal-container full-screen-modal">
                 <div class="glass-pane flex flex-col h-full overflow-hidden">
-                    <div class="flex items-center p-3 border-b border-white/10 flex-shrink-0">
-                        <button id="close-border-editor-modal-btn" class="text-gray-500 hover:text-white transition-colors mr-3"><i class="fas fa-arrow-left"></i></button>
-                        <h2 class="text-xl font-bold text-white">Border Editor</h2>
+                    <div class="flex items-center justify-between p-3 border-b border-white/10 flex-shrink-0">
+                        <div class="flex items-center">
+                            <button id="close-border-editor-modal-btn" class="text-gray-500 hover:text-white transition-colors mr-3"><i class="fas fa-arrow-left"></i></button>
+                            <h2 class="text-xl font-bold text-white">Border Editor</h2>
+                        </div>
+                        <button id="save-border-btn" class="primary-btn rounded-lg px-4 py-2 flex items-center gap-2"><i class="fas fa-save"></i><span>Save Border</span></button>
                     </div>
                     <div class="flex flex-col md:flex-row flex-grow overflow-hidden">
                         <div class="w-full md:w-1/2 flex items-center justify-center p-8 bg-black/20 relative">
@@ -42,6 +45,13 @@
                             </div>
                         </div>
                         <div id="border-editor-controls" class="w-full md:w-1/2 p-6 overflow-y-auto themed-scrollbar space-y-4">
+                            <div>
+                                <label for="border-name-input" class="font-bold text-white">Border Name</label>
+                                <div class="input-group">
+                                    <i class="fas fa-paint-brush input-icon"></i>
+                                    <input type="text" id="border-name-input" placeholder="e.g., Legendary Flame" class="form-input" required>
+                                </div>
+                            </div>
                             <div>
                                 <label for="border-style-select" class="font-bold text-white">Border Style</label>
                                 <div class="custom-select-container" data-type="border-style">
@@ -87,9 +97,6 @@
                             <div>
                                 <label for="animation-duration-slider" class="font-bold text-white">Animation Duration: <span id="animation-duration-value">2</span>s</label>
                                 <input type="range" id="animation-duration-slider" min="0.5" max="10" step="0.1" value="2" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                            </div>
-                            <div class="pt-4">
-                                <button class="w-full p-3 rounded-lg primary-btn">Save Border</button>
                             </div>
                         </div>
                     </div>
