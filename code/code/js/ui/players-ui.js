@@ -104,14 +104,14 @@ export function renderPlayers(players) {
         const session = userSessions ? userSessions[player.uid] : null;
         const statusClass = session ? session.status : 'offline';
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
-        const borderClass = getAvatarBorderClass(player, allianceData);
+        const border = getAvatarBorderClass(player, allianceData);
         const unverifiedClass = player.isVerified ? '' : 'unverified-player-text';
 
         card.innerHTML = `
             ${gearIconHTML}
             <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
                 <div class="avatar-container mr-4">
-                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${borderClass}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${border.className}" style="${border.style}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
                     <div class="player-badge ${unverifiedClass}">[${player.alliance}] ${player.allianceRank}</div>
                 </div>
                 <div>

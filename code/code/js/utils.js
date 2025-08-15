@@ -184,19 +184,26 @@ export function autoLinkText(text) {
 }
 
 export function getAvatarBorderClass(player, allianceData) {
-    if (!player) return 'rank-border-r1';
+    if (!player) return { className: 'rank-border-r1', style: '' };
 
     const skinType = player.avatarBorderSkin || 'rank';
 
-    if (skinType === 'alliance' && allianceData) {
-        return `alliance-border" style="border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`;
+    if (skinType === 'alliance' && allianceData?.primaryColor) {
+        return {
+            className: 'alliance-border',
+            style: `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`
+        };
     }
+    
     if (skinType === 'admin' && player.isAdmin) {
-        return 'rank-border-admin';
+        return { className: 'rank-border-admin', style: '' };
     }
     
     // Default to rank-based border
-    if (player.isAdmin && skinType === 'rank') return 'rank-border-admin';
+    if (player.isAdmin) {
+        return { className: 'rank-border-admin', style: '' };
+    }
+    
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
-    return `rank-border-${rank}`;
+    return { className: `rank-border-${rank}`, style: '' };
 }
