@@ -35,7 +35,7 @@ import { applyCustomBorderStyle } from './utils.js';
  */
 // This function now reads all controls and updates the UI in real-time
 const getElement = (id) => document.getElementById(id);
-function updateBorderEditorPreview() {
+export function updateBorderEditorPreview() {
     const controls = getElement('border-editor-controls');
     if (!controls) return;
 
