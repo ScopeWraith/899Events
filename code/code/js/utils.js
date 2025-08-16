@@ -188,11 +188,26 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
 export function applyCustomBorderStyle(css) {
     if (!css) return { main: { style: '' }, before: { style: '' }, after: { style: '' } };
 
+    // Parse widths, providing a default of 0 if not present
+    const width1 = parseInt(css.borderWidth1 || 0, 10);
+    const width2 = parseInt(css.borderWidth2 || 0, 10);
+    const width3 = parseInt(css.borderWidth3 || 0, 10);
+
+    // Calculate the total spread for each shadow
+    const spread1 = width1;
+    const spread2 = width1 + width2;
+    const spread3 = width1 + width2 + width3;
+
+    const shadows = [];
+    if (spread1 > 0) shadows.push(`0 0 0 ${spread1}px ${css.borderColor1 || '#00BFFF'}`);
+    if (spread2 > spread1) shadows.push(`0 0 0 ${spread2}px ${css.borderColor2 || '#FFFFFF'}`);
+    if (spread3 > spread2) shadows.push(`0 0 0 ${spread3}px ${css.borderColor3 || '#F87171'}`);
+
     const mainStyles = {
         '--scale': '1.15',
-        '--border-width': '4px',
-        'border-style': 'solid',
-        'background': css.borderColor1 || '#00BFFF'
+        'background': 'transparent', // The background is no longer needed
+        'border': 'none', // We use box-shadows instead of a real border
+        'box-shadow': shadows.join(', ')
     };
     
     const toCssText = (styleObj) => Object.entries(styleObj).map(([key, value]) => `${key}: ${value};`).join(' ');

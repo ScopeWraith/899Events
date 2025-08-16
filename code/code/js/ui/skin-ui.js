@@ -168,7 +168,12 @@ async function handleSaveBorder() {
     }
 
     const css = {
-        borderColor1: document.getElementById('border-color-1').value
+        borderColor1: document.getElementById('border-color-1').value,
+        borderWidth1: document.getElementById('border-width-1').value,
+        borderColor2: document.getElementById('border-color-2').value,
+        borderWidth2: document.getElementById('border-width-2').value,
+        borderColor3: document.getElementById('border-color-3').value,
+        borderWidth3: document.getElementById('border-width-3').value,
     };
 
     try {
@@ -184,4 +189,4 @@ async function handleSaveBorder() {
         console.error("Error saving border:", error);
         alert('Failed to save border. Please check the console for errors.');
     }
-}
+} 

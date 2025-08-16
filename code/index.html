@@ -68,11 +68,41 @@
                             <div id="border-editor-controls" class="p-6 overflow-y-auto themed-scrollbar space-y-6 flex-grow">
                                 <div id="editor-tab-shape" class="modal-tab-pane active space-y-6">
                                     <div class="editor-group">
-                                        <h3 class="editor-group-title">Border Color</h3>
-                                        <div class="editor-group-content">
+                                        <h3 class="editor-group-title">Layer 1 (Inner)</h3>
+                                        <div class="editor-group-content grid-cols-2">
                                             <div class="control-group">
                                                 <label for="border-color-1">Color</label>
                                                 <input type="color" id="border-color-1" value="#00BFFF" class="color-input">
+                                            </div>
+                                            <div class="control-group">
+                                                <label for="border-width-1">Width: <span id="border-width-value-1">4</span>px</label>
+                                                <input type="range" id="border-width-1" min="0" max="15" value="4" class="w-full custom-slider">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="editor-group">
+                                        <h3 class="editor-group-title">Layer 2 (Middle)</h3>
+                                        <div class="editor-group-content grid-cols-2">
+                                            <div class="control-group">
+                                                <label for="border-color-2">Color</label>
+                                                <input type="color" id="border-color-2" value="#FFFFFF" class="color-input">
+                                            </div>
+                                            <div class="control-group">
+                                                <label for="border-width-2">Width: <span id="border-width-value-2">4</span>px</label>
+                                                <input type="range" id="border-width-2" min="0" max="15" value="4" class="w-full custom-slider">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="editor-group">
+                                        <h3 class="editor-group-title">Layer 3 (Outer)</h3>
+                                        <div class="editor-group-content grid-cols-2">
+                                            <div class="control-group">
+                                                <label for="border-color-3">Color</label>
+                                                <input type="color" id="border-color-3" value="#F87171" class="color-input">
+                                            </div>
+                                            <div class="control-group">
+                                                <label for="border-width-3">Width: <span id="border-width-value-3">4</span>px</label>
+                                                <input type="range" id="border-width-3" min="0" max="15" value="4" class="w-full custom-slider">
                                             </div>
                                         </div>
                                     </div>

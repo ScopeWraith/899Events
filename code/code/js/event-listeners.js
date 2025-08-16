@@ -36,6 +36,11 @@ import { applyCustomBorderStyle } from './utils.js';
 function updateBorderEditorPreview() {
     const css = {
         borderColor1: document.getElementById('border-color-1').value,
+        borderWidth1: document.getElementById('border-width-1').value,
+        borderColor2: document.getElementById('border-color-2').value,
+        borderWidth2: document.getElementById('border-width-2').value,
+        borderColor3: document.getElementById('border-color-3').value,
+        borderWidth3: document.getElementById('border-width-3').value,
     };
 
     const styles = applyCustomBorderStyle(css);
@@ -44,13 +49,16 @@ function updateBorderEditorPreview() {
         previewElement.style.cssText = styles.main.style;
     }
     
-    // Clear out pseudo-element styles
+    // Update the px value displays
+    document.getElementById('border-width-value-1').textContent = css.borderWidth1;
+    document.getElementById('border-width-value-2').textContent = css.borderWidth2;
+    document.getElementById('border-width-value-3').textContent = css.borderWidth3;
+    
     const dynamicStyleTag = document.getElementById('border-editor-dynamic-styles');
     if (dynamicStyleTag) {
         dynamicStyleTag.innerHTML = '';
     }
 }
-
 
 export function initializeAllEventListeners() {
     const getElement = (id) => document.getElementById(id);
