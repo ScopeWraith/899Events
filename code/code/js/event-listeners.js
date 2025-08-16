@@ -40,8 +40,9 @@ function updateBorderEditorPreview() {
     if (!controls) return;
 
     const css = { layers: {} };
+    const allLayersData = [];
 
-    // Read the values from the sliders and color pickers
+    // First pass: Collect data from all layers
     controls.querySelectorAll('.editor-accordion-item').forEach(item => {
         const layerIndex = item.dataset.layer;
         const isEnabled = (layerIndex === '1') || item.querySelector('.layer-enable-toggle')?.checked;
@@ -53,35 +54,29 @@ function updateBorderEditorPreview() {
             color: item.querySelector('.control-color').value,
         };
         css.layers[layerIndex] = layerData;
+        allLayersData.push(layerData);
 
+        // Update the value display for the slider
         const valueDisplay = item.querySelector('.value-display');
         if (valueDisplay) {
             valueDisplay.textContent = layerData.thickness;
         }
     });
 
-    // Generate the styles
+    // Generate and apply styles
     const styles = applyCustomBorderStyle(css);
-
-    // Apply the styles to the correct layer divs
-    const previewContainer = getElement('border-editor-live-preview');
-    if (previewContainer) {
-        for (let i = 1; i <= 3; i++) {
-            const layerElement = previewContainer.querySelector(`.border-layer[data-layer-id="${i}"]`);
-            const layerStyle = styles[`layer${i}`];
-            if (layerElement && layerStyle) {
-                // Reset styles first
-                layerElement.style.cssText = '';
-                // Apply new styles
-                Object.assign(layerElement.style, layerStyle);
-            }
-        }
+    const previewElement = getElement('border-editor-live-preview');
+    if (previewElement) {
+        previewElement.style.cssText = styles.main.style;
     }
-    
-    // Clear out the old dynamic style tag for pseudo-elements as it's no longer used
+
+    // Apply pseudo-element styles to the dynamic style tag
     const dynamicStyleTag = getElement('border-editor-dynamic-styles');
     if (dynamicStyleTag) {
-        dynamicStyleTag.innerHTML = '';
+        dynamicStyleTag.innerHTML = `
+            #border-editor-live-preview::before { ${styles.before.style} }
+            #border-editor-live-preview::after { ${styles.after.style} }
+        `;
     }
 }
 
@@ -122,27 +117,33 @@ export function initializeAllEventListeners() {
     // --- BORDER EDITOR EVENT LISTENERS (NEW & FIXED) ---
     const borderEditorControls = getElement('border-editor-controls');
     if (borderEditorControls) {
-        // A single listener for all real-time updates which fixes the sliders
+        // This listener handles real-time updates from sliders and color pickers.
         borderEditorControls.addEventListener('input', updateBorderEditorPreview);
-        borderEditorControls.addEventListener('change', updateBorderEditorPreview);
 
-        // Listener for accordion clicks and enabling/disabling controls
-        borderEditorControls.addEventListener('click', (e) => {
-            const header = e.target.closest('.editor-accordion-header');
-            if (header && !e.target.closest('.toggle-switch')) { // Don't toggle accordion if clicking the switch
-                header.parentElement.classList.toggle('open');
-            }
-            
-            const colorCheckbox = e.target.closest('.control-color-enable');
-            if (colorCheckbox) {
-                const colorIndex = colorCheckbox.dataset.colorIndex;
-                const colorInput = colorCheckbox.closest('.control-group').querySelector(`.control-color[data-color-index="${colorIndex}"]`);
-                if (colorInput) {
-                    colorInput.disabled = !colorCheckbox.checked;
+        // This listener handles discrete changes, like toggling a checkbox.
+        borderEditorControls.addEventListener('change', (e) => {
+            const toggle = e.target.closest('.layer-enable-toggle');
+            if (toggle) {
+                const item = toggle.closest('.editor-accordion-item');
+                // If the toggle was just checked ON, open its accordion.
+                if (item && toggle.checked) {
+                    item.classList.add('open');
                 }
             }
+            // Always update the preview after any change.
+            updateBorderEditorPreview();
         });
-        // Initial preview render when modal is opened
+
+        // This listener handles clicks, specifically for opening/closing the accordion header.
+        borderEditorControls.addEventListener('click', (e) => {
+            const header = e.target.closest('.editor-accordion-header');
+            // Only toggle the accordion if the header itself was clicked, not the toggle switch inside it.
+            if (header && !e.target.closest('.toggle-switch')) {
+                header.parentElement.classList.toggle('open');
+            }
+        });
+
+        // Initial preview render when the modal is first opened.
         updateBorderEditorPreview();
     }
     
@@ -586,7 +587,7 @@ export function initializeAllEventListeners() {
                 toggleReaction(chatType, messageId, emoji);
                 reactionPicker.style.display = 'none';
                 delete reactionPicker.dataset.messageId;
-                delete reactionPicker.dataset.chatType;
+                delete reactionPicker.dataset.messageId;
             }
         });
     }
