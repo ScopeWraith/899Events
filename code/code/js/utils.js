@@ -212,13 +212,14 @@ export function applyCustomBorderStyle(css) {
             
             styles[`layer${i}`] = {
                 'background': layerData.color,
-                'transform': `scale(${scale})`,
+                // This forces the browser to respect the z-index during transforms
+                'transform': `scale(${scale}) translateZ(0)`, 
                 'z-index': 10 - i // Layer 3 (z:7), Layer 2 (z:8), Layer 1 (z:9)
             };
         } else {
-             // If disabled or thickness is 0, hide it by scaling to 0
+             // If disabled or thickness is 0, hide it
              styles[`layer${i}`] = { 
-                'transform': 'scale(0)',
+                'transform': 'scale(0) translateZ(0)',
                 'background': 'transparent'
              };
         }
