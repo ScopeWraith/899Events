@@ -34,6 +34,7 @@ import { applyCustomBorderStyle } from './utils.js';
  * from the revamped `applyCustomBorderStyle` function.
  */
 // This function now reads all controls and updates the UI in real-time
+const getElement = (id) => document.getElementById(id);
 function updateBorderEditorPreview() {
     const controls = document.getElementById('border-editor-controls');
     if (!controls) return;
@@ -124,8 +125,6 @@ if (borderEditorControls) {
 }
 
 export function initializeAllEventListeners() {
-    const getElement = (id) => document.getElementById(id);
-
     const addListener = (id, event, handler) => {
         const element = getElement(id);
         if (element) {
@@ -133,17 +132,36 @@ export function initializeAllEventListeners() {
         }
     };
     
-    // --- BORDER EDITOR EVENT LISTENERS ---
+    // --- BORDER EDITOR EVENT LISTENERS (NEW & FIXED) ---
     const borderEditorControls = getElement('border-editor-controls');
     if (borderEditorControls) {
-        // Use 'input' for sliders and color pickers for real-time updates
+        // A single listener for all real-time updates which fixes the sliders
         borderEditorControls.addEventListener('input', updateBorderEditorPreview);
-        // Use 'change' for select dropdowns and checkboxes
         borderEditorControls.addEventListener('change', updateBorderEditorPreview);
+
+        // Listener for accordion clicks and enabling/disabling controls
+        borderEditorControls.addEventListener('click', (e) => {
+            const header = e.target.closest('.editor-accordion-header');
+            if (header && !e.target.closest('.toggle-switch')) { // Don't toggle accordion if clicking the switch
+                header.parentElement.classList.toggle('open');
+            }
+            
+            const colorCheckbox = e.target.closest('.control-color-enable');
+            if (colorCheckbox) {
+                const colorIndex = colorCheckbox.dataset.colorIndex;
+                const colorInput = colorCheckbox.closest('.control-group').querySelector(`.control-color[data-color-index="${colorIndex}"]`);
+                if (colorInput) {
+                    colorInput.disabled = !colorCheckbox.checked;
+                }
+            }
+        });
+        // Initial preview render when modal is opened
+        updateBorderEditorPreview();
     }
     
     addListener('close-border-editor-modal-btn', 'click', hideAllModals);
 
+    // --- (The rest of your original event listeners) ---
     const serverPage = getElement('page-server');
     if (serverPage) {
         serverPage.addEventListener('click', async (e) => {
