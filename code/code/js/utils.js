@@ -188,58 +188,59 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
 export function applyCustomBorderStyle(css) {
     if (!css || !css.layers) return { main: { style: '' }, before: { style: '' }, after: { style: '' } };
 
-    const mainStyles = { '--scale': '1.15' }; // Base element for layer 1
-    const beforeStyles = { content: "''", position: 'absolute', inset: '0', borderRadius: '50%', zIndex: '-1' }; // For layer 2
-    const afterStyles = { content: "''", position: 'absolute', inset: '0', borderRadius: '50%', zIndex: '-2' }; // For layer 3
+    // Layer 1 (the main element itself)
+    const layer1 = css.layers['1'];
+    const mainStyles = {
+        '--scale': '1.15',
+        'background': 'transparent', // The main element is just a container now
+        'border-radius': '50%',
+        'position': 'relative', // Needed for pseudo-elements
+        'z-index': '0'
+    };
+     // We need a wrapper for the border layers now, separate from the avatar border itself
+    const wrapperStyles = {};
+    if (layer1 && layer1.enabled && parseInt(layer1.thickness, 10) > 0) {
+        const thickness = parseInt(layer1.thickness, 10);
+        wrapperStyles['background'] = layer1.color || 'transparent';
+        wrapperStyles['padding'] = `${thickness}px`;
+        wrapperStyles['border-radius'] = '50%';
+    }
 
-    const layerTargets = [mainStyles, beforeStyles, afterStyles];
 
-    // Build each layer
-    for (let i = 1; i <= 3; i++) {
-        const layerData = css.layers[i];
-        if (!layerData || !layerData.width || layerData.width === '0') continue;
+    // Layer 2 (the ::before pseudo-element)
+    const layer2 = css.layers['2'];
+    const beforeStyles = {
+        'content': "''",
+        'position': 'absolute',
+        'border-radius': '50%',
+        'z-index': '-1', // Behind the main element
+        'background': 'transparent' // Default to transparent
+    };
+    if (layer2 && layer2.enabled && parseInt(layer2.thickness, 10) > 0) {
+        const thickness = parseInt(layer1.thickness, 10) + parseInt(layer2.thickness, 10);
+        beforeStyles['background'] = layer2.color || 'transparent';
+        beforeStyles['inset'] = `-${thickness}px`;
+    }
 
-        const target = layerTargets[i - 1];
-        const colors = layerData.colors.filter(c => c.enabled).map(c => c.value);
-        
-        // Use padding to define the size of each border layer relative to the avatar
-        // Layer 1 is the main element, Layer 2 (before) sits on top, Layer 3 (after) sits behind.
-        const padding = `${layerData.width}px`;
-        target['padding'] = padding;
-        
-        // Position pseudo-elements correctly
-        if (i > 1) {
-            target['top'] = `-${padding}`;
-            target['left'] = `-${padding}`;
-            target['right'] = `-${padding}`;
-            target['bottom'] = `-${padding}`;
-        }
-        
-        target['opacity'] = layerData.opacity;
-
-        if (colors.length > 1) {
-            // Gradient
-            const angle = layerData.gradient.angle || 90;
-            const type = layerData.gradient.type || 'linear-gradient';
-            let gradientString;
-            if (type === 'conic-gradient') {
-                gradientString = `conic-gradient(from ${angle}deg, ${colors.join(', ')})`;
-            } else if (type === 'radial-gradient') {
-                gradientString = `radial-gradient(circle, ${colors.join(', ')})`;
-            } else {
-                gradientString = `linear-gradient(${angle}deg, ${colors.join(', ')})`;
-            }
-            target['background'] = gradientString;
-        } else {
-            // Solid Color
-            target['background'] = colors[0] || 'transparent';
-        }
+    // Layer 3 (the ::after pseudo-element)
+    const layer3 = css.layers['3'];
+    const afterStyles = {
+        'content': "''",
+        'position': 'absolute',
+        'border-radius': '50%',
+        'z-index': '-2', // Behind the ::before element
+        'background': 'transparent' // Default to transparent
+    };
+    if (layer3 && layer3.enabled && parseInt(layer3.thickness, 10) > 0) {
+        const thickness = parseInt(layer1.thickness, 10) + parseInt(layer2.thickness, 10) + parseInt(layer3.thickness, 10);
+        afterStyles['background'] = layer3.color || 'transparent';
+        afterStyles['inset'] = `-${thickness}px`;
     }
 
     const toCssText = (styleObj) => Object.entries(styleObj).map(([key, value]) => `${key}: ${value};`).join(' ');
 
     return {
-        main: { style: toCssText(mainStyles) },
+        main: { style: toCssText(wrapperStyles) },
         before: { style: toCssText(beforeStyles) },
         after: { style: toCssText(afterStyles) }
     };

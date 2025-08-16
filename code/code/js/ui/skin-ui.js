@@ -185,22 +185,11 @@ async function handleSaveBorder() {
         const layerIndex = item.dataset.layer;
         const isEnabled = (layerIndex === '1') || item.querySelector('.layer-enable-toggle')?.checked;
 
-        const layerData = {
+        css.layers[layerIndex] = {
             enabled: isEnabled,
-            width: item.querySelector('.control-width').value,
-            opacity: item.querySelector('.control-opacity').value,
-            colors: [],
-            gradient: {
-                type: item.querySelector('.control-gradient-type').value,
-                angle: item.querySelector('.control-gradient-angle').value
-            }
+            thickness: item.querySelector('.control-thickness').value,
+            color: item.querySelector('.control-color').value,
         };
-        item.querySelectorAll('.control-color').forEach(colorInput => {
-            const colorIndex = colorInput.dataset.colorIndex;
-            const isColorEnabled = (colorIndex === '1') || item.querySelector(`.control-color-enable[data-color-index="${colorIndex}"]`).checked;
-            layerData.colors.push({ value: colorInput.value, enabled: isColorEnabled });
-        });
-        css.layers[layerIndex] = layerData;
     });
 
     try {
