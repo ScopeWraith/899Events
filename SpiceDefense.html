@@ -463,29 +463,29 @@
             function handleRemoveClick(x, y) {
                 if (removeFirstClickCoords === null) {
                     // First click: Check for single structure removal
-                    let structureRemoved = false;
-                    const originalLength = mapData.structures.length;
-                    mapData.structures = mapData.structures.filter(s => {
+                    let structureToRemove = null;
+                    for (const s of mapData.structures) {
                         const sType = STRUCTURES[s.type];
                         const sMaxX = s.x + sType.width - 1;
                         const sMaxY = s.y + sType.height - 1;
-                        const isClicked = (x >= s.x && x <= sMaxX && y >= s.y && y <= sMaxY);
-                        return !isClicked;
-                    });
-
-                    if (mapData.structures.length < originalLength) {
-                        structureRemoved = true;
-                        renderMapFromState();
+                        if (x >= s.x && x <= sMaxX && y >= s.y && y <= sMaxY) {
+                            structureToRemove = s;
+                            break;
+                        }
                     }
 
-                    // If no structure was clicked, start rectangle selection
-                    if (!structureRemoved) {
+                    if (structureToRemove) {
+                        // Remove the structure object
+                        mapData.structures = mapData.structures.filter(s => s !== structureToRemove);
+                        renderMapFromState();
+                    } else {
+                        // If no structure was clicked, start rectangle selection for manual removal
                         removeFirstClickCoords = { x, y };
                         getCell(x, y).classList.add('remove-start-marker');
                         updateHelpText('remove_second');
                     }
                 } else {
-                    // Second click: Define rectangle
+                    // Second click: Define rectangle for manual removal
                     const { x: x1, y: y1 } = removeFirstClickCoords;
                     const minX = Math.min(x1, x);
                     const maxX = Math.max(x1, x);
@@ -531,7 +531,7 @@
             }
 
             function addRemovedAreaToData(minX, minY, maxX, maxY) {
-                // Remove any full structures that this new area intersects with
+                // First, remove any full structures that this new area intersects with
                 mapData.structures = mapData.structures.filter(s => {
                     const sType = STRUCTURES[s.type];
                     const sMaxX = s.x + sType.width - 1;
