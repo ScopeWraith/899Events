@@ -33,50 +33,55 @@ import { applyCustomBorderStyle } from './utils.js';
  * This function now correctly handles the complex, multi-layered style object
  * from the revamped `applyCustomBorderStyle` function.
  */
+// This function now reads all controls and updates the UI in real-time
 function updateBorderEditorPreview() {
     const controls = document.getElementById('border-editor-controls');
     if (!controls) return;
 
     const css = { layers: {} };
 
-    // Loop through each layer group in the HTML
-    controls.querySelectorAll('.editor-group').forEach(layerGroup => {
-        const layerIndex = layerGroup.dataset.layer;
+    // Loop through each layer's accordion item
+    controls.querySelectorAll('.editor-accordion-item').forEach(item => {
+        const layerIndex = item.dataset.layer;
+        const isEnabled = (layerIndex === '1') || item.querySelector('.layer-enable-toggle')?.checked;
+
+        // UI Logic: Visually disable the entire item if toggle is off
+        item.classList.toggle('disabled', !isEnabled);
         
         const layerData = {
-            width: layerGroup.querySelector('.control-width').value,
-            opacity: layerGroup.querySelector('.control-opacity').value,
+            enabled: isEnabled,
+            width: item.querySelector('.control-width').value,
+            opacity: item.querySelector('.control-opacity').value,
             colors: [],
             gradient: {
-                type: layerGroup.querySelector('.control-gradient-type').value,
-                angle: layerGroup.querySelector('.control-gradient-angle').value
+                type: item.querySelector('.control-gradient-type').value,
+                angle: item.querySelector('.control-gradient-angle').value
             }
         };
 
-        // Gather colors
-        layerGroup.querySelectorAll('.control-color').forEach(colorInput => {
+        // Gather colors for this layer
+        item.querySelectorAll('.control-color').forEach(colorInput => {
             const colorIndex = colorInput.dataset.colorIndex;
-            const isEnabled = (colorIndex === '1') || layerGroup.querySelector(`.control-color-enable[data-color-index="${colorIndex}"]`).checked;
+            const isColorEnabled = (colorIndex === '1') || item.querySelector(`.control-color-enable[data-color-index="${colorIndex}"]`).checked;
             layerData.colors.push({
                 value: colorInput.value,
-                enabled: isEnabled
+                enabled: isColorEnabled
             });
         });
         
         css.layers[layerIndex] = layerData;
 
-        // --- UI LOGIC ---
-        // Update value displays
-        layerGroup.querySelector('.control-width + .value-display').textContent = layerData.width;
-        layerGroup.querySelector('.control-opacity + .value-display').textContent = parseFloat(layerData.opacity).toFixed(1);
-        layerGroup.querySelector('.control-gradient-angle + .value-display').textContent = layerData.gradient.angle;
+        // UI Logic: Update slider value displays
+        item.querySelector('.control-width').previousElementSibling.querySelector('.value-display').textContent = layerData.width;
+        item.querySelector('.control-opacity').previousElementSibling.querySelector('.value-display').textContent = parseFloat(layerData.opacity).toFixed(2);
+        item.querySelector('.control-gradient-angle').previousElementSibling.querySelector('.value-display').textContent = layerData.gradient.angle;
         
-        // Show/hide gradient controls
-        const enabledColors = layerData.colors.filter(c => c.enabled).length;
-        const gradientControls = layerGroup.querySelector('.gradient-controls');
-        gradientControls.classList.toggle('hidden', enabledColors < 2);
+        // UI Logic: Show/hide gradient controls based on how many colors are enabled
+        const enabledColorCount = layerData.colors.filter(c => c.enabled).length;
+        item.querySelector('.gradient-controls').classList.toggle('hidden', enabledColorCount < 2);
     });
 
+    // Generate and apply styles
     const styles = applyCustomBorderStyle(css);
     const previewElement = document.getElementById('border-editor-live-preview');
     if (previewElement) {
@@ -90,6 +95,32 @@ function updateBorderEditorPreview() {
             #border-editor-live-preview::after { ${styles.after.style} }
         `;
     }
+}
+
+// Add this setup inside your `initializeAllEventListeners` function
+const borderEditorControls = getElement('border-editor-controls');
+if (borderEditorControls) {
+    // A single listener for all real-time updates
+    borderEditorControls.addEventListener('input', updateBorderEditorPreview);
+    borderEditorControls.addEventListener('change', updateBorderEditorPreview); // For checkboxes and selects
+
+    // Listener for accordion and color enable toggles
+    borderEditorControls.addEventListener('click', (e) => {
+        // Accordion functionality
+        const header = e.target.closest('.editor-accordion-header');
+        if (header) {
+            header.parentElement.classList.toggle('open');
+        }
+        // Link color checkbox to its input
+        const colorCheckbox = e.target.closest('.control-color-enable');
+        if (colorCheckbox) {
+            const colorIndex = colorCheckbox.dataset.colorIndex;
+            const colorInput = colorCheckbox.closest('.control-group').querySelector(`.control-color[data-color-index="${colorIndex}"]`);
+            if (colorInput) {
+                colorInput.disabled = !colorCheckbox.checked;
+            }
+        }
+    });
 }
 
 export function initializeAllEventListeners() {
