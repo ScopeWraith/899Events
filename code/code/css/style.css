@@ -1381,3 +1381,44 @@ body {
     transition: transform 0.2s ease-out, background-color 0.2s ease-out;
     transform-origin: center center;
 }
+/* --- NEW: Border Editor Tab Styles --- */
+.editor-tab-nav {
+    display: flex;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(13, 17, 23, 0.5);
+}
+
+.editor-tab-btn {
+    flex-grow: 1;
+    padding: 0.75rem 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #8b949e;
+    background-color: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.editor-tab-btn:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.editor-tab-btn.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+.editor-tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.editor-tab-pane.active {
+    display: block;
+}

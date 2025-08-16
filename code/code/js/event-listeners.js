@@ -35,16 +35,22 @@ import { applyCustomBorderStyle } from './utils.js';
  */
 // This function now reads all controls and updates the UI in real-time
 const getElement = (id) => document.getElementById(id);
-function updateBorderEditorPreview() {
+export function updateBorderEditorPreview() {
     const controls = getElement('border-editor-controls');
     if (!controls) return;
 
     const css = { layers: {} };
 
-    controls.querySelectorAll('.editor-accordion-item').forEach(item => {
+    controls.querySelectorAll('.layer-controls').forEach(item => {
         const layerIndex = item.dataset.layer;
         const isEnabled = (layerIndex === '1') || item.querySelector('.layer-enable-toggle')?.checked;
-        item.classList.toggle('disabled', !isEnabled);
+
+        // Visually disable/enable the controls based on the toggle
+        const content = item.querySelector('.layer-control-content');
+        if (content) {
+            content.style.opacity = isEnabled ? '1' : '0.4';
+            content.style.pointerEvents = isEnabled ? 'auto' : 'none';
+        }
 
         const layerData = {
             enabled: isEnabled,
@@ -54,7 +60,7 @@ function updateBorderEditorPreview() {
         };
         css.layers[layerIndex] = layerData;
 
-        // Update value displays for both sliders
+        // Update value displays
         item.querySelector('.control-thickness').closest('.control-group').querySelector('.value-display').textContent = layerData.thickness;
         item.querySelector('.control-opacity').closest('.control-group').querySelector('.value-display').textContent = parseFloat(layerData.opacity).toFixed(2);
     });
@@ -106,34 +112,27 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
-    
-    // --- BORDER EDITOR EVENT LISTENERS (NEW & FIXED) ---
+
+    // --- BORDER EDITOR EVENT LISTENERS (TAB LAYOUT) ---
     const borderEditorControls = getElement('border-editor-controls');
     if (borderEditorControls) {
-        // This listener handles real-time updates from sliders and color pickers.
+        // Listen for any input change in the entire controls area
         borderEditorControls.addEventListener('input', updateBorderEditorPreview);
+        borderEditorControls.addEventListener('change', updateBorderEditorPreview);
 
-        // This listener handles discrete changes, like toggling a checkbox.
-        borderEditorControls.addEventListener('change', (e) => {
-            const toggle = e.target.closest('.layer-enable-toggle');
-            if (toggle) {
-                const item = toggle.closest('.editor-accordion-item');
-                // If the toggle was just checked ON, open its accordion.
-                if (item && toggle.checked) {
-                    item.classList.add('open');
-                }
-            }
-            // Always update the preview after any change.
-            updateBorderEditorPreview();
-        });
-
-        // This listener handles clicks, specifically for opening/closing the accordion header.
-        borderEditorControls.addEventListener('click', (e) => {
-            const header = e.target.closest('.editor-accordion-header');
-            // Only toggle the accordion if the header itself was clicked, not the toggle switch inside it.
-            if (header && !e.target.closest('.toggle-switch')) {
-                header.parentElement.classList.toggle('open');
-            }
+        // Tab Switching Logic
+        const tabs = borderEditorControls.querySelectorAll('.editor-tab-btn');
+        const panes = borderEditorControls.querySelectorAll('.editor-tab-pane');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                panes.forEach(pane => {
+                    pane.classList.toggle('active', pane.id === `editor-tab-pane-${tab.dataset.tab}`);
+                });
+            });
         });
 
         // Initial preview render when the modal is first opened.
@@ -396,7 +395,7 @@ export function initializeAllEventListeners() {
     });
     addListener('filter-container', 'click', (e) => {
         if (e.target.classList.contains('filter-btn')) {
-            setState({ activeFilter: e.target.dataset.filter }); // CHANGED HERE
+            setState({ activeFilter: e.target.dataset.filter });
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
         }
@@ -463,7 +462,7 @@ export function initializeAllEventListeners() {
     addListener('collapse-friends-btn', 'click', () => {
         const container = getElement('friends-list-container-social');
         const isCollapsed = container.classList.toggle('collapsed');
-        setState({ isFriendsListCollapsed: isCollapsed }); // CHANGED HERE
+        setState({ isFriendsListCollapsed: isCollapsed });
     });
     const feedDropdown = getElement('feed-dropdown');
     if (feedDropdown) {
@@ -580,7 +579,7 @@ export function initializeAllEventListeners() {
                 toggleReaction(chatType, messageId, emoji);
                 reactionPicker.style.display = 'none';
                 delete reactionPicker.dataset.messageId;
-                delete reactionPicker.dataset.messageId;
+                delete reactionPicker.dataset.chatType;
             }
         });
     }
