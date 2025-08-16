@@ -159,35 +159,38 @@ export function autoLinkText(text) {
     return text.replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${url}</a>`);
 }
 
-export function getAvatarBorderClass(player, allianceData, customBorders) {
-    if (!player) return { className: 'rank-border-r1', style: '' };
+export function getAvatarBorderHTML(player, allianceData, customBorders) {
+    if (!player) return `<div class="avatar-border rank-border-r1"></div>`;
     
     const skinId = player.avatarBorderSkin || 'rank';
     const customBorder = customBorders && customBorders.find(b => b.id === skinId);
 
-    // If it's a custom border, generate a simplified style for it
+    // --- RENDER NEW CUSTOM BORDERS ---
     if (customBorder && customBorder.css?.layers) {
-        const layer1 = customBorder.css.layers['1'];
-        if (layer1 && layer1.enabled && parseInt(layer1.thickness, 10) > 0) {
-            const thickness = parseInt(layer1.thickness, 10);
-            const scale = 1 + (thickness * 2 * 0.01); // Same scale logic as editor
-            return { 
-                className: 'custom-border', 
-                style: `background: ${layer1.color}; transform: scale(${scale});` 
-            };
+        const styles = applyCustomBorderStyle(customBorder.css);
+        let layersHTML = '';
+        for (let i = 3; i >= 1; i--) { // Render in reverse order for correct stacking in the DOM
+            const layerStyle = styles[`layer${i}`];
+            if (layerStyle && layerStyle.transform !== 'scale(0) translateZ(0)') {
+                const styleString = Object.entries(layerStyle).map(([k, v]) => `${k}:${v};`).join('');
+                layersHTML += `<div class="border-layer" style="${styleString}"></div>`;
+            }
         }
+        return layersHTML;
     }
 
-    // Fallback to original rank/alliance borders
+    // --- RENDER LEGACY BORDERS (Fallback) ---
+    let borderClass = '', borderStyle = '';
     if (skinId === 'alliance' && allianceData?.primaryColor) {
-        return { className: 'alliance-border', style: `background: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};` };
+        borderClass = 'alliance-border';
+        borderStyle = `background: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`;
+    } else if (player.isAdmin && (skinId === 'admin' || skinId === 'rank')) {
+        borderClass = 'rank-border-admin';
+    } else {
+        const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
+        borderClass = `rank-border-${rank}`;
     }
-    if (player.isAdmin && (skinId === 'admin' || skinId === 'rank')) {
-        return { className: 'rank-border-admin', style: '' };
-    }
-    
-    const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
-    return { className: `rank-border-${rank}`, style: '' };
+    return `<div class="avatar-border ${borderClass}" style="${borderStyle}"></div>`;
 }
 
 /**

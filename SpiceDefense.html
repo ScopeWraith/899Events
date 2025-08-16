@@ -145,8 +145,11 @@
             <button id="ac-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400">
                 Place Alliance Center (9x9)
             </button>
+            <button id="remove-structure-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400">
+                Remove Structure
+            </button>
             <button id="remove-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400">
-                Remove Blocks
+                Remove Terrain
             </button>
             <button id="clear-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200">
                 Clear Selection
@@ -250,7 +253,8 @@
                     return acc;
                 }, {}),
                 ALLIANCE_CENTER: { name: 'ALLIANCE_CENTER', width: 9, height: 9 },
-                REMOVE: { name: 'Remove' }
+                REMOVE: { name: 'Remove Terrain' },
+                REMOVE_STRUCTURE: { name: 'Remove Structure' }
             };
             // --- DEFAULT STATE ---
             const defaultMapStateJSON = `{"structures":[],"removed":[{"x":29,"y":37},{"x":29,"y":38},{"x":29,"y":39},{"x":29,"y":40},{"x":29,"y":41},{"x":29,"y":42},{"x":29,"y":43},{"x":29,"y":44},{"x":29,"y":45},{"x":30,"y":37},{"x":30,"y":38},{"x":30,"y":39},{"x":30,"y":40},{"x":30,"y":41},{"x":30,"y":42},{"x":30,"y":43},{"x":30,"y":44},{"x":30,"y":45},{"x":31,"y":37},{"x":31,"y":38},{"x":31,"y":39},{"x":31,"y":40},{"x":31,"y":41},{"x":31,"y":42},{"x":31,"y":43},{"x":31,"y":44},{"x":31,"y":45},{"x":32,"y":37},{"x":32,"y":38},{"x":32,"y":39},{"x":32,"y":40},{"x":32,"y":41},{"x":32,"y":42},{"x":32,"y":43},{"x":32,"y":44},{"x":32,"y":45},{"x":33,"y":37},{"x":33,"y":38},{"x":33,"y":39},{"x":33,"y":40},{"x":33,"y":41},{"x":33,"y":42},{"x":33,"y":43},{"x":33,"y":44},{"x":33,"y":45},{"x":34,"y":37},{"x":34,"y":38},{"x":34,"y":39},{"x":34,"y":40},{"x":34,"y":41},{"x":34,"y":42},{"x":34,"y":43},{"x":34,"y":44},{"x":34,"y":45},{"x":35,"y":37},{"x":35,"y":38},{"x":35,"y":39},{"x":35,"y":40},{"x":35,"y":41},{"x":35,"y":42},{"x":35,"y":43},{"x":35,"y":44},{"x":35,"y":45},{"x":36,"y":37},{"x":36,"y":38},{"x":36,"y":39},{"x":36,"y":40},{"x":36,"y":41},{"x":36,"y":42},{"x":36,"y":43},{"x":36,"y":44},{"x":36,"y":45},{"x":37,"y":37},{"x":37,"y":38},{"x":37,"y":39},{"x":37,"y":40},{"x":37,"y":41},{"x":37,"y":42},{"x":37,"y":43},{"x":37,"y":44},{"x":37,"y":45},{"x":50,"y":31},{"x":50,"y":32},{"x":50,"y":33},{"x":50,"y":34},{"x":50,"y":35},{"x":50,"y":36},{"x":50,"y":37},{"x":50,"y":38},{"x":50,"y":39},{"x":50,"y":40},{"x":50,"y":41},{"x":50,"y":42},{"x":50,"y":43},{"x":51,"y":31},{"x":51,"y":32},{"x":51,"y":33},{"x":51,"y":34},{"x":51,"y":35},{"x":51,"y":36},{"x":51,"y":37},{"x":51,"y":38},{"x":51,"y":39},{"x":51,"y":40},{"x":51,"y":41},{"x":51,"y":42},{"x":51,"y":43},{"x":52,"y":31},{"x":52,"y":32},{"x":52,"y":33},{"x":52,"y":34},{"x":52,"y":35},{"x":52,"y":36},{"x":52,"y":37},{"x":52,"y":38},{"x":52,"y":39},{"x":52,"y":40},{"x":52,"y":41},{"x":52,"y":42},{"x":52,"y":43},{"x":53,"y":31},{"x":53,"y":32},{"x":53,"y":33},{"x":53,"y":34},{"x":53,"y":35},{"x":53,"y":36},{"x":53,"y":37},{"x":53,"y":38},{"x":53,"y":39},{"x":53,"y":40},{"x":53,"y":41},{"x":53,"y":42},{"x":53,"y":43},{"x":54,"y":31},{"x":54,"y":32},{"x":54,"y":33},{"x":54,"y":34},{"x":54,"y":35},{"x":54,"y":36},{"x":54,"y":37},{"x":54,"y":38},{"x":54,"y":39},{"x":54,"y":40},{"x":54,"y":41},{"x":54,"y":42},{"x":54,"y":43},{"x":55,"y":31},{"x":55,"y":32},{"x":55,"y":33},{"x":55,"y":34},{"x":55,"y":35},{"x":55,"y":36},{"x":55,"y":37},{"x":55,"y":38},{"x":55,"y":39},{"x":55,"y":40},{"x":55,"y":41},{"x":55,"y":42},{"x":55,"y":43},{"x":56,"y":31},{"x":56,"y":32},{"x":56,"y":33},{"x":56,"y":34},{"x":56,"y":35},{"x":56,"y":36},{"x":56,"y":37},{"x":56,"y":38},{"x":56,"y":39},{"x":56,"y":40},{"x":56,"y":41},{"x":56,"y":42},{"x":56,"y":43},{"x":57,"y":31},{"x":57,"y":32},{"x":57,"y":33},{"x":57,"y":34},{"x":57,"y":35},{"x":57,"y":36},{"x":57,"y":37},{"x":57,"y":38},{"x":57,"y":39},{"x":57,"y":40},{"x":57,"y":41},{"x":57,"y":42},{"x":57,"y":43},{"x":58,"y":31},{"x":58,"y":32},{"x":58,"y":33},{"x":58,"y":34},{"x":58,"y":35},{"x":58,"y":36},{"x":58,"y":37},{"x":58,"y":38},{"x":58,"y":39},{"x":58,"y":40},{"x":58,"y":41},{"x":58,"y":42},{"x":58,"y":43},{"x":59,"y":31},{"x":59,"y":32},{"x":59,"y":33},{"x":59,"y":34},{"x":59,"y":35},{"x":59,"y":36},{"x":59,"y":37},{"x":59,"y":38},{"x":59,"y":39},{"x":59,"y":40},{"x":59,"y":41},{"x":59,"y":42},{"x":59,"y":43},{"x":60,"y":31},{"x":60,"y":32},{"x":60,"y":33},{"x":60,"y":34},{"x":60,"y":35},{"x":60,"y":36},{"x":60,"y":37},{"x":60,"y":38},{"x":60,"y":39},{"x":60,"y":40},{"x":60,"y":41},{"x":60,"y":42},{"x":60,"y":43},{"x":61,"y":31},{"x":61,"y":32},{"x":61,"y":33},{"x":61,"y":34},{"x":61,"y":35},{"x":61,"y":36},{"x":61,"y":37},{"x":61,"y":38},{"x":61,"y":39},{"x":61,"y":40},{"x":61,"y":41},{"x":61,"y":42},{"x":61,"y":43},{"x":62,"y":31},{"x":62,"y":32},{"x":62,"y":33},{"x":62,"y":34},{"x":62,"y":35},{"x":62,"y":36},{"x":62,"y":37},{"x":62,"y":38},{"x":62,"y":39},{"x":62,"y":40},{"x":62,"y":41},{"x":62,"y":42},{"x":62,"y":43},{"x":63,"y":31},{"x":63,"y":32},{"x":63,"y":33},{"x":63,"y":34},{"x":63,"y":35},{"x":63,"y":36},{"x":63,"y":37},{"x":63,"y":38},{"x":63,"y":39},{"x":63,"y":40},{"x":63,"y":41},{"x":63,"y":42},{"x":63,"y":43},{"x":73,"y":25},{"x":73,"y":26},{"x":73,"y":27},{"x":73,"y":28},{"x":73,"y":29},{"x":73,"y":30},{"x":73,"y":31},{"x":73,"y":32},{"x":73,"y":33},{"x":73,"y":34},{"x":73,"y":35},{"x":73,"y":36},{"x":73,"y":37},{"x":73,"y":38},{"x":74,"y":25},{"x":74,"y":26},{"x":74,"y":27},{"x":74,"y":28},{"x":74,"y":29},{"x":74,"y":30},{"x":74,"y":31},{"x":74,"y":32},{"x":74,"y":33},{"x":74,"y":34},{"x":74,"y":35},{"x":74,"y":36},{"x":74,"y":37},{"x":74,"y":38},{"x":75,"y":25},{"x":75,"y":26},{"x":75,"y":27},{"x":75,"y":28},{"x":75,"y":29},{"x":75,"y":30},{"x":75,"y":31},{"x":75,"y":32},{"x":75,"y":33},{"x":75,"y":34},{"x":75,"y":35},{"x":75,"y":36},{"x":75,"y":37},{"x":75,"y":38},{"x":76,"y":25},{"x":76,"y":26},{"x":76,"y":27},{"x":76,"y":28},{"x":76,"y":29},{"x":76,"y":30},{"x":76,"y":31},{"x":76,"y":32},{"x":76,"y":33},{"x":76,"y":34},{"x":76,"y":35},{"x":76,"y":36},{"x":76,"y":37},{"x":76,"y":38},{"x":77,"y":25},{"x":77,"y":26},{"x":77,"y":27},{"x":77,"y":28},{"x":77,"y":29},{"x":77,"y":30},{"x":77,"y":31},{"x":77,"y":32},{"x":77,"y":33},{"x":77,"y":34},{"x":77,"y":35},{"x":77,"y":36},{"x":77,"y":37},{"x":77,"y":38},{"x":78,"y":25},{"x":78,"y":26},{"x":78,"y":27},{"x":78,"y":28},{"x":78,"y":29},{"x":78,"y":30},{"x":78,"y":31},{"x":78,"y":32},{"x":78,"y":33},{"x":78,"y":34},{"x":78,"y":35},{"x":78,"y":36},{"x":78,"y":37},{"x":78,"y":38},{"x":79,"y":25},{"x":79,"y":26},{"x":79,"y":27},{"x":79,"y":28},{"x":79,"y":29},{"x":79,"y":30},{"x":79,"y":31},{"x":79,"y":32},{"x":79,"y":33},{"x":79,"y":34},{"x":79,"y":35},{"x":79,"y":36},{"x":79,"y":37},{"x":79,"y":38},{"x":80,"y":25},{"x":80,"y":26},{"x":80,"y":27},{"x":80,"y":28},{"x":80,"y":29},{"x":80,"y":30},{"x":80,"y":31},{"x":80,"y":32},{"x":80,"y":33},{"x":80,"y":34},{"x":80,"y":35},{"x":80,"y":36},{"x":80,"y":37},{"x":80,"y":38},{"x":81,"y":25},{"x":81,"y":26},{"x":81,"y":27},{"x":81,"y":28},{"x":81,"y":29},{"x":81,"y":30},{"x":81,"y":31},{"x":81,"y":32},{"x":81,"y":33},{"x":81,"y":34},{"x":81,"y":35},{"x":81,"y":36},{"x":81,"y":37},{"x":81,"y":38},{"x":82,"y":25},{"x":82,"y":26},{"x":82,"y":27},{"x":82,"y":28},{"x":82,"y":29},{"x":82,"y":30},{"x":82,"y":31},{"x":82,"y":32},{"x":82,"y":33},{"x":82,"y":34},{"x":82,"y":35},{"x":82,"y":36},{"x":82,"y":37},{"x":82,"y":38},{"x":83,"y":25},{"x":83,"y":26},{"x":83,"y":27},{"x":83,"y":28},{"x":83,"y":29},{"x":83,"y":30},{"x":83,"y":31},{"x":83,"y":32},{"x":83,"y":33},{"x":83,"y":34},{"x":83,"y":35},{"x":83,"y":36},{"x":83,"y":37},{"x":83,"y":38},{"x":84,"y":25},{"x":84,"y":26},{"x":84,"y":27},{"x":84,"y":28},{"x":84,"y":29},{"x":84,"y":30},{"x":84,"y":31},{"x":84,"y":32},{"x":84,"y":33},{"x":84,"y":34},{"x":84,"y":35},{"x":84,"y":36},{"x":84,"y":37},{"x":84,"y":38},{"x":85,"y":25},{"x":85,"y":26},{"x":85,"y":27},{"x":85,"y":28},{"x":85,"y":29},{"x":85,"y":30},{"x":85,"y":31},{"x":85,"y":32},{"x":85,"y":33},{"x":85,"y":34},{"x":85,"y":35},{"x":85,"y":36},{"x":85,"y":37},{"x":85,"y":38},{"x":86,"y":25},{"x":86,"y":26},{"x":86,"y":27},{"x":86,"y":28},{"x":86,"y":29},{"x":86,"y":30},{"x":86,"y":31},{"x":86,"y":32},{"x":86,"y":33},{"x":86,"y":34},{"x":86,"y":35},{"x":86,"y":36},{"x":86,"y":37},{"x":86,"y":38},{"x":65,"y":53},{"x":65,"y":54},{"x":65,"y":55},{"x":65,"y":56},{"x":65,"y":57},{"x":65,"y":58},{"x":65,"y":59},{"x":65,"y":60},{"x":65,"y":61},{"x":65,"y":62},{"x":65,"y":63},{"x":65,"y":64},{"x":65,"y":65},{"x":65,"y":66},{"x":66,"y":53},{"x":66,"y":54},{"x":66,"y":55},{"x":66,"y":56},{"x":66,"y":57},{"x":66,"y":58},{"x":66,"y":59},{"x":66,"y":60},{"x":66,"y":61},{"x":66,"y":62},{"x":66,"y":63},{"x":66,"y":64},{"x":66,"y":65},{"x":66,"y":66},{"x":67,"y":53},{"x":67,"y":54},{"x":67,"y":55},{"x":67,"y":56},{"x":67,"y":57},{"x":67,"y":58},{"x":67,"y":59},{"x":67,"y":60},{"x":67,"y":61},{"x":67,"y":62},{"x":67,"y":63},{"x":67,"y":64},{"x":67,"y":65},{"x":67,"y":66},{"x":68,"y":53},{"x":68,"y":54},{"x":68,"y":55},{"x":68,"y":56},{"x":68,"y":57},{"x":68,"y":58},{"x":68,"y":59},{"x":68,"y":60},{"x":68,"y":61},{"x":68,"y":62},{"x":68,"y":63},{"x":68,"y":64},{"x":68,"y":65},{"x":68,"y":66},{"x":69,"y":53},{"x":69,"y":54},{"x":69,"y":55},{"x":69,"y":56},{"x":69,"y":57},{"x":69,"y":58},{"x":69,"y":59},{"x":69,"y":60},{"x":69,"y":61},{"x":69,"y":62},{"x":69,"y":63},{"x":69,"y":64},{"x":69,"y":65},{"x":69,"y":66},{"x":70,"y":53},{"x":70,"y":54},{"x":70,"y":55},{"x":70,"y":56},{"x":70,"y":57},{"x":70,"y":58},{"x":70,"y":59},{"x":70,"y":60},{"x":70,"y":61},{"x":70,"y":62},{"x":70,"y":63},{"x":70,"y":64},{"x":70,"y":65},{"x":70,"y":66},{"x":71,"y":53},{"x":71,"y":54},{"x":71,"y":55},{"x":71,"y":56},{"x":71,"y":57},{"x":71,"y":58},{"x":71,"y":59},{"x":71,"y":60},{"x":71,"y":61},{"x":71,"y":62},{"x":71,"y":63},{"x":71,"y":64},{"x":71,"y":65},{"x":71,"y":66},{"x":72,"y":53},{"x":72,"y":54},{"x":72,"y":55},{"x":72,"y":56},{"x":72,"y":57},{"x":72,"y":58},{"x":72,"y":59},{"x":72,"y":60},{"x":72,"y":61},{"x":72,"y":62},{"x":72,"y":63},{"x":72,"y":64},{"x":72,"y":65},{"x":72,"y":66},{"x":73,"y":53},{"x":73,"y":54},{"x":73,"y":55},{"x":73,"y":56},{"x":73,"y":57},{"x":73,"y":58},{"x":73,"y":59},{"x":73,"y":60},{"x":73,"y":61},{"x":73,"y":62},{"x":73,"y":63},{"x":73,"y":64},{"x":73,"y":65},{"x":73,"y":66},{"x":74,"y":53},{"x":74,"y":54},{"x":74,"y":55},{"x":74,"y":56},{"x":74,"y":57},{"x":74,"y":58},{"x":74,"y":59},{"x":74,"y":60},{"x":74,"y":61},{"x":74,"y":62},{"x":74,"y":63},{"x":74,"y":64},{"x":74,"y":65},{"x":74,"y":66},{"x":75,"y":53},{"x":75,"y":54},{"x":75,"y":55},{"x":75,"y":56},{"x":75,"y":57},{"x":75,"y":58},{"x":75,"y":59},{"x":75,"y":60},{"x":75,"y":61},{"x":75,"y":62},{"x":75,"y":63},{"x":75,"y":64},{"x":75,"y":65},{"x":75,"y":66},{"x":76,"y":53},{"x":76,"y":54},{"x":76,"y":55},{"x":76,"y":56},{"x":76,"y":57},{"x":76,"y":58},{"x":76,"y":59},{"x":76,"y":60},{"x":76,"y":61},{"x":76,"y":62},{"x":76,"y":63},{"x":76,"y":64},{"x":76,"y":65},{"x":76,"y":66},{"x":77,"y":53},{"x":77,"y":54},{"x":77,"y":55},{"x":77,"y":56},{"x":77,"y":57},{"x":77,"y":58},{"x":77,"y":59},{"x":77,"y":60},{"x":77,"y":61},{"x":77,"y":62},{"x":77,"y":63},{"x":77,"y":64},{"x":77,"y":65},{"x":77,"y":66},{"x":78,"y":53},{"x":78,"y":54},{"x":78,"y":55},{"x":78,"y":56},{"x":78,"y":57},{"x":78,"y":58},{"x":78,"y":59},{"x":78,"y":60},{"x":78,"y":61},{"x":78,"y":62},{"x":78,"y":63},{"x":78,"y":64},{"x":78,"y":65},{"x":78,"y":66},{"x":99,"y":16},{"x":99,"y":17},{"x":99,"y":18},{"x":99,"y":19},{"x":99,"y":20},{"x":99,"y":21},{"x":99,"y":22},{"x":99,"y":23},{"x":99,"y":24},{"x":99,"y":25},{"x":99,"y":26},{"x":99,"y":27},{"x":99,"y":28},{"x":99,"y":29},{"x":100,"y":16},{"x":100,"y":17},{"x":100,"y":18},{"x":100,"y":19},{"x":100,"y":20},{"x":100,"y":21},{"x":100,"y":22},{"x":100,"y":23},{"x":100,"y":24},{"x":100,"y":25},{"x":100,"y":26},{"x":100,"y":27},{"x":100,"y":28},{"x":100,"y":29},{"x":101,"y":16},{"x":101,"y":17},{"x":101,"y":18},{"x":101,"y":19},{"x":101,"y":20},{"x":101,"y":21},{"x":101,"y":22},{"x":101,"y":23},{"x":101,"y":24},{"x":101,"y":25},{"x":101,"y":26},{"x":101,"y":27},{"x":101,"y":28},{"x":101,"y":29},{"x":102,"y":16},{"x":102,"y":17},{"x":102,"y":18},{"x":102,"y":19},{"x":102,"y":20},{"x":102,"y":21},{"x":102,"y":22},{"x":102,"y":23},{"x":102,"y":24},{"x":102,"y":25},{"x":102,"y":26},{"x":102,"y":27},{"x":102,"y":28},{"x":102,"y":29},{"x":103,"y":16},{"x":103,"y":17},{"x":103,"y":18},{"x":103,"y":19},{"x":103,"y":20},{"x":103,"y":21},{"x":103,"y":22},{"x":103,"y":23},{"x":103,"y":24},{"x":103,"y":25},{"x":103,"y":26},{"x":103,"y":27},{"x":103,"y":28},{"x":103,"y":29},{"x":104,"y":16},{"x":104,"y":17},{"x":104,"y":18},{"x":104,"y":19},{"x":104,"y":20},{"x":104,"y":21},{"x":104,"y":22},{"x":104,"y":23},{"x":104,"y":24},{"x":104,"y":25},{"x":104,"y":26},{"x":104,"y":27},{"x":104,"y":28},{"x":104,"y":29},{"x":105,"y":16},{"x":105,"y":17},{"x":105,"y":18},{"x":105,"y":19},{"x":105,"y":20},{"x":105,"y":21},{"x":105,"y":22},{"x":105,"y":23},{"x":105,"y":24},{"x":105,"y":25},{"x":105,"y":26},{"x":105,"y":27},{"x":105,"y":28},{"x":105,"y":29},{"x":106,"y":16},{"x":106,"y":17},{"x":106,"y":18},{"x":106,"y":19},{"x":106,"y":20},{"x":106,"y":21},{"x":106,"y":22},{"x":106,"y":23},{"x":106,"y":24},{"x":106,"y":25},{"x":106,"y":26},{"x":106,"y":27},{"x":106,"y":28},{"x":106,"y":29},{"x":107,"y":16},{"x":107,"y":17},{"x":107,"y":18},{"x":107,"y":19},{"x":107,"y":20},{"x":107,"y":21},{"x":107,"y":22},{"x":107,"y":23},{"x":107,"y":24},{"x":107,"y":25},{"x":107,"y":26},{"x":107,"y":27},{"x":107,"y":28},{"x":107,"y":29},{"x":108,"y":16},{"x":108,"y":17},{"x":108,"y":18},{"x":108,"y":19},{"x":108,"y":20},{"x":108,"y":21},{"x":108,"y":22},{"x":108,"y":23},{"x":108,"y":24},{"x":108,"y":25},{"x":108,"y":26},{"x":108,"y":27},{"x":108,"y":28},{"x":108,"y":29},{"x":109,"y":16},{"x":109,"y":17},{"x":109,"y":18},{"x":109,"y":19},{"x":109,"y":20},{"x":109,"y":21},{"x":109,"y":22},{"x":109,"y":23},{"x":109,"y":24},{"x":109,"y":25},{"x":109,"y":26},{"x":109,"y":27},{"x":109,"y":28},{"x":109,"y":29},{"x":110,"y":16},{"x":110,"y":17},{"x":110,"y":18},{"x":110,"y":19},{"x":110,"y":20},{"x":110,"y":21},{"x":110,"y":22},{"x":110,"y":23},{"x":110,"y":24},{"x":110,"y":25},{"x":110,"y":26},{"x":110,"y":27},{"x":110,"y":28},{"x":110,"y":29},{"x":111,"y":16},{"x":111,"y":17},{"x":111,"y":18},{"x":111,"y":19},{"x":111,"y":20},{"x":111,"y":21},{"x":111,"y":22},{"x":111,"y":23},{"x":111,"y":24},{"x":111,"y":25},{"x":111,"y":26},{"x":111,"y":27},{"x":111,"y":28},{"x":111,"y":29},{"x":112,"y":16},{"x":112,"y":17},{"x":112,"y":18},{"x":112,"y":19},{"x":112,"y":20},{"x":112,"y":21},{"x":112,"y":22},{"x":112,"y":23},{"x":112,"y":24},{"x":112,"y":25},{"x":112,"y":26},{"x":112,"y":27},{"x":112,"y":28},{"x":112,"y":29},{"x":108,"y":41},{"x":108,"y":42},{"x":108,"y":43},{"x":108,"y":44},{"x":108,"y":45},{"x":108,"y":46},{"x":108,"y":47},{"x":108,"y":48},{"x":108,"y":49},{"x":109,"y":41},{"x":109,"y":42},{"x":109,"y":43},{"x":109,"y":44},{"x":109,"y":45},{"x":109,"y":46},{"x":109,"y":47},{"x":109,"y":48},{"x":109,"y":49},{"x":110,"y":41},{"x":110,"y":42},{"x":110,"y":43},{"x":110,"y":44},{"x":110,"y":45},{"x":110,"y":46},{"x":110,"y":47},{"x":110,"y":48},{"x":110,"y":49},{"x":111,"y":41},{"x":111,"y":42},{"x":111,"y":43},{"x":111,"y":44},{"x":111,"y":45},{"x":111,"y":46},{"x":111,"y":47},{"x":111,"y":48},{"x":111,"y":49},{"x":112,"y":41},{"x":112,"y":42},{"x":112,"y":43},{"x":112,"y":44},{"x":112,"y":45},{"x":112,"y":46},{"x":112,"y":47},{"x":112,"y":48},{"x":112,"y":49},{"x":113,"y":41},{"x":113,"y":42},{"x":113,"y":43},{"x":113,"y":44},{"x":113,"y":45},{"x":113,"y":46},{"x":113,"y":47},{"x":113,"y":48},{"x":113,"y":49},{"x":114,"y":41},{"x":114,"y":42},{"x":114,"y":43},{"x":114,"y":44},{"x":114,"y":45},{"x":114,"y":46},{"x":114,"y":47},{"x":114,"y":48},{"x":114,"y":49},{"x":115,"y":41},{"x":115,"y":42},{"x":115,"y":43},{"x":115,"y":44},{"x":115,"y":45},{"x":115,"y":46},{"x":115,"y":47},{"x":115,"y":48},{"x":115,"y":49},{"x":116,"y":41},{"x":116,"y":42},{"x":116,"y":43},{"x":116,"y":44},{"x":116,"y":45},{"x":116,"y":46},{"x":116,"y":47},{"x":116,"y":48},{"x":116,"y":49},{"x":67,"y":0},{"x":67,"y":1},{"x":67,"y":2},{"x":67,"y":3},{"x":67,"y":4},{"x":67,"y":5},{"x":67,"y":6},{"x":67,"y":7},{"x":68,"y":0},{"x":68,"y":1},{"x":68,"y":2},{"x":68,"y":3},{"x":68,"y":4},{"x":68,"y":5},{"x":68,"y":6},{"x":68,"y":7},{"x":69,"y":0},{"x":69,"y":1},{"x":69,"y":2},{"x":69,"y":3},{"x":69,"y":4},{"x":69,"y":5},{"x":69,"y":6},{"x":69,"y":7},{"x":70,"y":0},{"x":70,"y":1},{"x":70,"y":2},{"x":70,"y":3},{"x":70,"y":4},{"x":70,"y":5},{"x":70,"y":6},{"x":70,"y":7},{"x":71,"y":0},{"x":71,"y":1},{"x":71,"y":2},{"x":71,"y":3},{"x":71,"y":4},{"x":71,"y":5},{"x":71,"y":6},{"x":71,"y":7},{"x":72,"y":0},{"x":72,"y":1},{"x":72,"y":2},{"x":72,"y":3},{"x":72,"y":4},{"x":72,"y":5},{"x":72,"y":6},{"x":72,"y":7},{"x":73,"y":0},{"x":73,"y":1},{"x":73,"y":2},{"x":73,"y":3},{"x":73,"y":4},{"x":73,"y":5},{"x":73,"y":6},{"x":73,"y":7},{"x":74,"y":0},{"x":74,"y":1},{"x":74,"y":2},{"x":74,"y":3},{"x":74,"y":4},{"x":74,"y":5},{"x":74,"y":6},{"x":74,"y":7},{"x":75,"y":0},{"x":75,"y":1},{"x":75,"y":2},{"x":75,"y":3},{"x":75,"y":4},{"x":75,"y":5},{"x":75,"y":6},{"x":75,"y":7},{"x":76,"y":0},{"x":76,"y":1},{"x":76,"y":2},{"x":76,"y":3},{"x":76,"y":4},{"x":76,"y":5},{"x":76,"y":6},{"x":76,"y":7},{"x":77,"y":0},{"x":77,"y":1},{"x":77,"y":2},{"x":77,"y":3},{"x":77,"y":4},{"x":77,"y":5},{"x":77,"y":6},{"x":77,"y":7},{"x":78,"y":0},{"x":78,"y":1},{"x":78,"y":2},{"x":78,"y":3},{"x":78,"y":4},{"x":78,"y":5},{"x":78,"y":6},{"x":78,"y":7},{"x":79,"y":0},{"x":79,"y":1},{"x":79,"y":2},{"x":79,"y":3},{"x":79,"y":4},{"x":79,"y":5},{"x":79,"y":6},{"x":79,"y":7},{"x":80,"y":0},{"x":80,"y":1},{"x":80,"y":2},{"x":80,"y":3},{"x":80,"y":4},{"x":80,"y":5},{"x":80,"y":6},{"x":80,"y":7},{"x":81,"y":0},{"x":81,"y":1},{"x":81,"y":2},{"x":81,"y":3},{"x":81,"y":4},{"x":81,"y":5},{"x":81,"y":6},{"x":81,"y":7}]}`;
@@ -265,6 +269,7 @@
             const hqPalette = document.getElementById('hq-color-palette');
             const acBtn = document.getElementById('ac-btn');
             const removeBtn = document.getElementById('remove-btn');
+            const removeStructureBtn = document.getElementById('remove-structure-btn');
             const clearBtn = document.getElementById('clear-btn');
             const exportBtn = document.getElementById('export-btn');
             const loadBtn = document.getElementById('load-btn');
@@ -359,10 +364,10 @@
                     if (!cell) return;
                     
                     const borderColor = '#f59e0b'; // amber-500
-                    if (!allOccupiedSet.has(`${coords.x},${coords.y - 1}`)) cell.style.borderTop = `1px solid ${borderColor}`;
-                    if (!allOccupiedSet.has(`${coords.x},${coords.y + 1}`)) cell.style.borderBottom = `1px solid ${borderColor}`;
-                    if (!allOccupiedSet.has(`${coords.x - 1},${coords.y}`)) cell.style.borderLeft = `1px solid ${borderColor}`;
-                    if (!allOccupiedSet.has(`${coords.x + 1},${coords.y}`)) cell.style.borderRight = `1px solid ${borderColor}`;
+                    if (!removedSet.has(`${coords.x},${coords.y - 1}`)) cell.style.borderTop = `1px solid ${borderColor}`;
+                    if (!removedSet.has(`${coords.x},${coords.y + 1}`)) cell.style.borderBottom = `1px solid ${borderColor}`;
+                    if (!removedSet.has(`${coords.x - 1},${coords.y}`)) cell.style.borderLeft = `1px solid ${borderColor}`;
+                    if (!removedSet.has(`${coords.x + 1},${coords.y}`)) cell.style.borderRight = `1px solid ${borderColor}`;
                 });
 
                 drawMinimap();
@@ -393,12 +398,12 @@
                     }
                 }
 
-                if (structure.name !== 'Remove' && removeFirstClickCoords) {
+                if (structure.name !== 'Remove Terrain' && removeFirstClickCoords) {
                     const firstCell = getCell(removeFirstClickCoords.x, removeFirstClickCoords.y);
                     if (firstCell) firstCell.classList.remove('remove-start-marker');
                     removeFirstClickCoords = null;
                 }
-                updateHelpText(structure.name === 'Remove' ? 'remove_first' : 'default');
+                updateHelpText(structure.name === 'Remove Terrain' ? 'remove_first' : 'default');
             }
             
             function handleClearSelection() {
@@ -441,8 +446,12 @@
                 const y = parseInt(cell.dataset.y);
                 
                 if (selectedStructure) {
-                    if (selectedStructure.name === 'Remove') {
-                        handleRemoveClick(x, y);
+                    if (selectedStructure.name === 'Remove Terrain') {
+                        handleRemoveTerrainClick(x, y);
+                        return;
+                    }
+                    if (selectedStructure.name === 'Remove Structure') {
+                        handleRemoveStructureClick(x, y);
                         return;
                     }
 
@@ -460,32 +469,38 @@
                 }
             }
             
-            function handleRemoveClick(x, y) {
-                if (removeFirstClickCoords === null) {
-                    // First click: Check for single structure removal
-                    let structureToRemove = null;
-                    for (const s of mapData.structures) {
-                        const sType = STRUCTURES[s.type];
-                        const sMaxX = s.x + sType.width - 1;
-                        const sMaxY = s.y + sType.height - 1;
-                        if (x >= s.x && x <= sMaxX && y >= s.y && y <= sMaxY) {
-                            structureToRemove = s;
-                            break;
-                        }
-                    }
+            function handleRemoveStructureClick(x, y) {
+                let structureRemoved = false;
+                const originalLength = mapData.structures.length;
+                mapData.structures = mapData.structures.filter(s => {
+                    const sType = STRUCTURES[s.type];
+                    const sMaxX = s.x + sType.width - 1;
+                    const sMaxY = s.y + sType.height - 1;
+                    const isClicked = (x >= s.x && x <= sMaxX && y >= s.y && y <= sMaxY);
+                    return !isClicked;
+                });
 
-                    if (structureToRemove) {
-                        // Remove the structure object
-                        mapData.structures = mapData.structures.filter(s => s !== structureToRemove);
-                        renderMapFromState();
-                    } else {
-                        // If no structure was clicked, start rectangle selection for manual removal
-                        removeFirstClickCoords = { x, y };
-                        getCell(x, y).classList.add('remove-start-marker');
-                        updateHelpText('remove_second');
+                if (mapData.structures.length < originalLength) {
+                    renderMapFromState();
+                }
+            }
+
+            function handleRemoveTerrainClick(x, y) {
+                 // Prevent removing terrain under a structure
+                for (const s of mapData.structures) {
+                    const sType = STRUCTURES[s.type];
+                    const sMaxX = s.x + sType.width - 1;
+                    const sMaxY = s.y + sType.height - 1;
+                    if (x >= s.x && x <= sMaxX && y >= s.y && y <= sMaxY) {
+                        return; // Do nothing if clicking on a structure
                     }
+                }
+
+                if (removeFirstClickCoords === null) {
+                    removeFirstClickCoords = { x, y };
+                    getCell(x, y).classList.add('remove-start-marker');
+                    updateHelpText('remove_second');
                 } else {
-                    // Second click: Define rectangle for manual removal
                     const { x: x1, y: y1 } = removeFirstClickCoords;
                     const minX = Math.min(x1, x);
                     const maxX = Math.max(x1, x);
@@ -531,15 +546,6 @@
             }
 
             function addRemovedAreaToData(minX, minY, maxX, maxY) {
-                // First, remove any full structures that this new area intersects with
-                mapData.structures = mapData.structures.filter(s => {
-                    const sType = STRUCTURES[s.type];
-                    const sMaxX = s.x + sType.width - 1;
-                    const sMaxY = s.y + sType.height - 1;
-                    const intersects = (s.x <= maxX && sMaxX >= minX && s.y <= maxY && sMaxY >= minY);
-                    return !intersects; // Keep if it doesn't intersect
-                });
-
                 // Now add the new removed cells
                 for (let i = minX; i <= maxX; i++) {
                     for (let j = minY; j <= maxY; j++) {
@@ -605,7 +611,7 @@
                 hoverLayer.innerHTML = ''; // Clear previous hover
                 if (!selectedStructure) return;
 
-                if (selectedStructure.name === 'Remove') {
+                if (selectedStructure.name === 'Remove Terrain') {
                     if (removeFirstClickCoords) {
                          const { x: x1, y: y1 } = removeFirstClickCoords;
                         const minX = Math.min(x1, centerX);
@@ -619,6 +625,25 @@
                                     cellToHover.classList.add('remove-hover');
                                 }
                             }
+                        }
+                    }
+                } else if (selectedStructure.name === 'Remove Structure') {
+                    // Hover logic for removing a structure
+                    for (const s of mapData.structures) {
+                        const sType = STRUCTURES[s.type];
+                        const sMaxX = s.x + sType.width - 1;
+                        const sMaxY = s.y + sType.height - 1;
+                        if (centerX >= s.x && centerX <= sMaxX && centerY >= s.y && centerY <= sMaxY) {
+                            const hoverBlock = document.createElement('div');
+                            hoverBlock.className = 'hover-block';
+                            hoverBlock.style.left = `${s.x * CELL_SIZE}px`;
+                            hoverBlock.style.top = `${s.y * CELL_SIZE}px`;
+                            hoverBlock.style.width = `${sType.width * CELL_SIZE}px`;
+                            hoverBlock.style.height = `${sType.height * CELL_SIZE}px`;
+                            hoverBlock.style.backgroundColor = 'rgba(239, 68, 68, 0.6)';
+                            hoverBlock.style.border = '1px solid rgba(239, 68, 68, 0.9)';
+                            hoverLayer.appendChild(hoverBlock);
+                            break; 
                         }
                     }
                 } else {
@@ -745,6 +770,7 @@
             // --- ATTACH EVENT LISTENERS ---
             acBtn.addEventListener('click', () => handleStructureSelect(STRUCTURES.ALLIANCE_CENTER, acBtn));
             removeBtn.addEventListener('click', () => handleStructureSelect(STRUCTURES.REMOVE, removeBtn));
+            removeStructureBtn.addEventListener('click', () => handleStructureSelect(STRUCTURES.REMOVE_STRUCTURE, removeStructureBtn));
             clearBtn.addEventListener('click', handleClearSelection);
             exportBtn.addEventListener('click', exportMapState);
             loadBtn.addEventListener('click', loadMapState);

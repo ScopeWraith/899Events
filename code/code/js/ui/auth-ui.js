@@ -43,33 +43,27 @@ export function initializeAuthUI() {
 
 export function updateAvatarDisplay(data) {
     const { allAlliances, customBorders } = getState();
-    const loginBtn = document.getElementById('login-btn');
-    const userProfileNavItem = document.getElementById('user-profile-nav-item');
-    const mobileAuthContainer = document.getElementById('mobile-auth-container');
-    const loginBtnMobile = document.getElementById('login-btn-mobile');
+    // ... (rest of the function is the same up to the border logic) ...
 
     if (data) {
-        loginBtn.classList.add('hidden');
-        userProfileNavItem.classList.remove('hidden');
-        mobileAuthContainer.classList.add('logged-in');
-        loginBtnMobile.classList.add('hidden');
-
-        document.getElementById('username-display').textContent = data.username;
-        
+        // ...
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === data.alliance) : null;
         const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-        const border = getAvatarBorderClass(data, allianceData, customBorders);
+        const borderHTML = getAvatarBorderHTML(data, allianceData, customBorders);
 
-        const userAvatarButton = document.getElementById('user-avatar-button');
-        userAvatarButton.src = avatarUrl;
-        
-        const userAvatarMobile = document.getElementById('user-avatar-mobile');
-        userAvatarMobile.src = avatarUrl;
+        document.getElementById('user-avatar-button').src = avatarUrl;
+        document.getElementById('user-avatar-mobile').src = avatarUrl;
 
-        const borderElements = document.querySelectorAll('#user-profile-nav-item .avatar-border, #mobile-auth-container .avatar-border');
-        borderElements.forEach(el => {
-            el.className = `avatar-border ${border.className}`;
-            el.style.cssText = border.style;
+        // Find the border containers and inject the new HTML
+        const borderContainers = document.querySelectorAll('#user-profile-nav-item .avatar-wrapper, #mobile-auth-container .avatar-wrapper');
+        borderContainers.forEach(wrapper => {
+            // Remove old border element(s) if they exist
+            wrapper.querySelectorAll('.avatar-border, .border-layer').forEach(el => el.remove());
+            // Prepend the new border HTML before the image
+            const img = wrapper.querySelector('img');
+            if (img) {
+                img.insertAdjacentHTML('beforebegin', borderHTML);
+            }
         });
         
         const mobileAlliance = document.getElementById('mobile-avatar-alliance');
