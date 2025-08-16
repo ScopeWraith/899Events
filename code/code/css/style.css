@@ -1365,3 +1365,9 @@ body {
     pointer-events: none;
     opacity: 0.4;
 }
+
+#border-editor-controls {
+    flex-grow: 1;
+    /* This is the key: it allows the element to shrink and enables overflow */
+    min-height: 0; 
+}
