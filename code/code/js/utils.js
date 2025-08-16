@@ -201,28 +201,48 @@ export function applyCustomBorderStyle(css) {
     const styles = {};
     const BASE_SCALE_INCREMENT = 0.01; // Each '1' on the slider adds 1% to the scale
 
-    // We process layers in reverse order to calculate the cumulative scale correctly
-    let cumulativeThickness = 0;
-    for (let i = 3; i >= 1; i--) {
-        const layerData = css.layers[String(i)];
-        
-        if (layerData && layerData.enabled && parseInt(layerData.thickness, 10) > 0) {
-            cumulativeThickness += parseInt(layerData.thickness, 10);
-            const scale = 1 + (cumulativeThickness * 2 * BASE_SCALE_INCREMENT);
-            
-            styles[`layer${i}`] = {
-                'background': layerData.color,
-                // This forces the browser to respect the z-index during transforms
-                'transform': `scale(${scale}) translateZ(0)`, 
-                'z-index': 10 - i // Layer 3 (z:7), Layer 2 (z:8), Layer 1 (z:9)
-            };
-        } else {
-             // If disabled or thickness is 0, hide it
-             styles[`layer${i}`] = { 
-                'transform': 'scale(0) translateZ(0)',
-                'background': 'transparent'
-             };
-        }
+    // Get the thickness of each layer, defaulting to 0 if disabled
+    const t1 = css.layers['1']?.enabled ? parseInt(css.layers['1'].thickness, 10) : 0;
+    const t2 = css.layers['2']?.enabled ? parseInt(css.layers['2'].thickness, 10) : 0;
+    const t3 = css.layers['3']?.enabled ? parseInt(css.layers['3'].thickness, 10) : 0;
+
+    // Layer 1 (Innermost)
+    if (t1 > 0) {
+        const scale1 = 1 + (t1 * 2 * BASE_SCALE_INCREMENT);
+        styles.layer1 = {
+            'background': css.layers['1'].color,
+            'transform': `scale(${scale1}) translateZ(0)`,
+            'z-index': 9
+        };
+    } else {
+        styles.layer1 = { 'transform': 'scale(0) translateZ(0)' };
     }
+
+    // Layer 2 (Middle)
+    if (t2 > 0) {
+        const totalThickness2 = t1 + t2; // Scale is based on its own thickness plus inner layers
+        const scale2 = 1 + (totalThickness2 * 2 * BASE_SCALE_INCREMENT);
+        styles.layer2 = {
+            'background': css.layers['2'].color,
+            'transform': `scale(${scale2}) translateZ(0)`,
+            'z-index': 8
+        };
+    } else {
+        styles.layer2 = { 'transform': 'scale(0) translateZ(0)' };
+    }
+
+    // Layer 3 (Outermost)
+    if (t3 > 0) {
+        const totalThickness3 = t1 + t2 + t3; // Scale is based on all three thicknesses
+        const scale3 = 1 + (totalThickness3 * 2 * BASE_SCALE_INCREMENT);
+        styles.layer3 = {
+            'background': css.layers['3'].color,
+            'transform': `scale(${scale3}) translateZ(0)`,
+            'z-index': 7
+        };
+    } else {
+        styles.layer3 = { 'transform': 'scale(0) translateZ(0)' };
+    }
+
     return styles;
 }
