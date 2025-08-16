@@ -73,7 +73,7 @@ export function buildAvatarBorderSkins() {
     if (!container) return;
 
     const { currentUserData, allAlliances, customBorders } = getState();
-    if (!currentUserData || !allAlliances) return; // Guard clause
+    if (!currentUserData || !allAlliances) return;
     const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
     
     const skins = [
@@ -83,37 +83,26 @@ export function buildAvatarBorderSkins() {
 
     if (currentUserData.isAdmin) {
         skins.push({ id: 'admin', label: 'Admin' });
-        // Add custom borders for admins
-        if (customBorders) {
-            customBorders.forEach(border => {
-                skins.push({ id: border.id, label: border.name, isCustom: true, css: border.css });
-            });
-        }
+    }
+    if (customBorders) {
+        customBorders.forEach(border => {
+            skins.push({ id: border.id, label: border.name, isCustom: true, css: border.css });
+        });
     }
 
     let skinsHTML = skins.map(skin => {
-        let borderResult;
-        if (skin.isCustom && skin.css) {
-            borderResult = applyCustomBorderStyle(skin.css);
-        } else {
-            const previewData = { ...currentUserData, avatarBorderSkin: skin.id };
-            const legacyStyles = getAvatarBorderClass(previewData, allianceData, []); // Pass empty customBorders to get legacy style
-            borderResult = { main: { style: legacyStyles.style }, before: {}, after: {} };
-        }
-
-        const borderClass = skin.isCustom ? 'custom-border' : getAvatarBorderClass({ ...currentUserData, avatarBorderSkin: skin.id }, allianceData, []).className;
-
+        const legacyStyles = getAvatarBorderClass({ ...currentUserData, avatarBorderSkin: skin.id }, allianceData, customBorders);
+        
         return `
             <button type="button" class="skin-select-btn" data-value="${skin.id}">
                 <div class="preview">
                     <div class="preview-icon"></div>
-                    <div class="preview-border ${borderClass}" style="${borderResult.main.style}"></div>
+                    <div class="preview-border ${legacyStyles.className}" style="${legacyStyles.style}"></div>
                 </div>
                 <span class="label">${skin.label}</span>
             </button>
         `;
     }).join('');
-
 
     if (currentUserData.isAdmin) {
         skinsHTML += `

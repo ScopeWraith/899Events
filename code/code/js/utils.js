@@ -161,21 +161,31 @@ export function autoLinkText(text) {
 
 export function getAvatarBorderClass(player, allianceData, customBorders) {
     if (!player) return { className: 'rank-border-r1', style: '' };
+    
     const skinId = player.avatarBorderSkin || 'rank';
     const customBorder = customBorders && customBorders.find(b => b.id === skinId);
-    if (customBorder) {
-        const styles = applyCustomBorderStyle(customBorder.css);
-        return { className: 'custom-border', style: styles.main.style };
+
+    // If it's a custom border, generate a simplified style for it
+    if (customBorder && customBorder.css?.layers) {
+        const layer1 = customBorder.css.layers['1'];
+        if (layer1 && layer1.enabled && parseInt(layer1.thickness, 10) > 0) {
+            const thickness = parseInt(layer1.thickness, 10);
+            const scale = 1 + (thickness * 2 * 0.01); // Same scale logic as editor
+            return { 
+                className: 'custom-border', 
+                style: `background: ${layer1.color}; transform: scale(${scale});` 
+            };
+        }
     }
+
+    // Fallback to original rank/alliance borders
     if (skinId === 'alliance' && allianceData?.primaryColor) {
         return { className: 'alliance-border', style: `background: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};` };
     }
-    if (skinId === 'admin' && player.isAdmin) {
+    if (player.isAdmin && (skinId === 'admin' || skinId === 'rank')) {
         return { className: 'rank-border-admin', style: '' };
     }
-    if (player.isAdmin && skinId === 'rank') {
-        return { className: 'rank-border-admin', style: '' };
-    }
+    
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
 }
