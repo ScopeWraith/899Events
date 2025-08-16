@@ -1,19 +1,17 @@
 import { initializeApp } from './app.js';
 import { initializeSkinUI } from './ui/skin-ui.js';
-// NEW: Import the preview function
 import { updateBorderEditorPreview } from './event-listeners.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     initializeSkinUI();
 
-    // UPDATED: Configure Coloris with the onChange callback
     Coloris({
         el: '.coloris',
         themeMode: 'dark',
         format: 'rgba',
         alpha: true,
-        // This callback ensures the preview updates when the color changes
+        formatToggle: false, // This line disables the format switcher, fixing the bug.
         onChange: () => updateBorderEditorPreview(),
         swatches: [
           '#0D1117',
