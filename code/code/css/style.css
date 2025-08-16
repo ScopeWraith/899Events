@@ -1371,3 +1371,13 @@ body {
     /* This is the key: it allows the element to shrink and enables overflow */
     min-height: 0; 
 }
+.border-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    transition: transform 0.2s ease-out, background-color 0.2s ease-out;
+    transform-origin: center center;
+}

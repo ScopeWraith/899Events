@@ -46,7 +46,11 @@
                     <div class="w-full md:w-1/3 flex-shrink-0 flex flex-col items-center justify-center p-8 bg-black/20 relative">
                         <div id="border-editor-preview-box" class="w-48 h-48 relative">
                             <div class="avatar-wrapper w-full h-full">
-                                <div id="border-editor-live-preview" class="avatar-border"></div>
+                                <div id="border-editor-live-preview" class="absolute inset-0">
+                                    <div class="border-layer" data-layer-id="3"></div>
+                                    <div class="border-layer" data-layer-id="2"></div>
+                                    <div class="border-layer" data-layer-id="1"></div>
+                                </div>
                                 <img src="https://placehold.co/128x128/161B22/FFFFFF?text=PREVIEW" class="w-full h-full rounded-full object-cover relative z-10">
                             </div>
                         </div>

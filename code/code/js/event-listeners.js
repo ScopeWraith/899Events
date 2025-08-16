@@ -40,9 +40,8 @@ function updateBorderEditorPreview() {
     if (!controls) return;
 
     const css = { layers: {} };
-    const allLayersData = [];
 
-    // First pass: Collect data from all layers
+    // Read the values from the sliders and color pickers
     controls.querySelectorAll('.editor-accordion-item').forEach(item => {
         const layerIndex = item.dataset.layer;
         const isEnabled = (layerIndex === '1') || item.querySelector('.layer-enable-toggle')?.checked;
@@ -54,29 +53,35 @@ function updateBorderEditorPreview() {
             color: item.querySelector('.control-color').value,
         };
         css.layers[layerIndex] = layerData;
-        allLayersData.push(layerData);
 
-        // Update the value display for the slider
         const valueDisplay = item.querySelector('.value-display');
         if (valueDisplay) {
             valueDisplay.textContent = layerData.thickness;
         }
     });
 
-    // Generate and apply styles
+    // Generate the styles
     const styles = applyCustomBorderStyle(css);
-    const previewElement = getElement('border-editor-live-preview');
-    if (previewElement) {
-        previewElement.style.cssText = styles.main.style;
-    }
 
-    // Apply pseudo-element styles to the dynamic style tag
+    // Apply the styles to the correct layer divs
+    const previewContainer = getElement('border-editor-live-preview');
+    if (previewContainer) {
+        for (let i = 1; i <= 3; i++) {
+            const layerElement = previewContainer.querySelector(`.border-layer[data-layer-id="${i}"]`);
+            const layerStyle = styles[`layer${i}`];
+            if (layerElement && layerStyle) {
+                // Reset styles first
+                layerElement.style.cssText = '';
+                // Apply new styles
+                Object.assign(layerElement.style, layerStyle);
+            }
+        }
+    }
+    
+    // Clear out the old dynamic style tag for pseudo-elements as it's no longer used
     const dynamicStyleTag = getElement('border-editor-dynamic-styles');
     if (dynamicStyleTag) {
-        dynamicStyleTag.innerHTML = `
-            #border-editor-live-preview::before { ${styles.before.style} }
-            #border-editor-live-preview::after { ${styles.after.style} }
-        `;
+        dynamicStyleTag.innerHTML = '';
     }
 }
 
