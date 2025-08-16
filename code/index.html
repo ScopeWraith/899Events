@@ -65,79 +65,44 @@
 
                     <div id="border-editor-controls" class="w-full md:w-1/2 lg:w-2/3 flex flex-col overflow-hidden">
     <nav class="editor-tab-nav">
-        <button class="editor-tab-btn active" data-tab="1">Layer 1 (Inner)</button>
-        <button class="editor-tab-btn" data-tab="2">Layer 2 (Middle)</button>
-        <button class="editor-tab-btn" data-tab="3">Layer 3 (Outer)</button>
+        <button class="editor-tab-btn active" data-tab="1">Layer 1</button>
+        <button class="editor-tab-btn" data-tab="2">Layer 2</button>
+        <button class="editor-tab-btn" data-tab="3">Layer 3</button>
     </nav>
 
     <div class="flex-grow relative">
         <div id="editor-tab-pane-1" class="editor-tab-pane active absolute inset-0 themed-scrollbar">
             <div class="layer-controls" data-layer="1">
                 <div class="space-y-6">
-                    <div class="control-group">
-                        <label>Thickness: <span class="value-display">4</span>px</label>
-                        <input type="range" class="control-thickness" min="0" max="20" value="4">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="control-group">
-                            <label>Color</label>
-                            <input type="color" class="control-color" value="#00BFFF">
-                        </div>
-                        <div class="control-group">
-                            <label>Opacity: <span class="value-display">1.00</span></label>
-                            <input type="range" class="control-opacity" min="0" max="1" step="0.01" value="1">
-                        </div>
-                    </div>
+                    <div class="control-group"><label>Thickness: <span class="value-display">4</span>px</label><input type="range" class="control-thickness" min="0" max="20" value="4"></div>
+                    <div class="grid grid-cols-2 gap-4"><div class="control-group"><label>Color</label><input type="color" class="control-color" value="#00BFFF"></div><div class="control-group"><label>Opacity: <span class="value-display">1.00</span></label><input type="range" class="control-opacity" min="0" max="1" step="0.01" value="1"></div></div>
+                </div>
+                <hr class="border-white/10 my-6">
+                <div class="space-y-6">
+                    <div class="glow-controls-group"><div class="control-group toggle-group"><label>Inner Glow</label><label class="toggle-switch"><input type="checkbox" class="glow-enable-toggle" data-glow-type="inner"><span class="slider"></span></label></div><div class="glow-content space-y-4 pt-4"><div class="grid grid-cols-2 gap-4"><div class="control-group"><label>Color</label><input type="color" class="glow-color" value="#FFFFFF"></div><div class="control-group"><label>Opacity: <span class="value-display">0.75</span></label><input type="range" class="glow-opacity" min="0" max="1" step="0.01" value="0.75"></div></div><div class="control-group"><label>Blur: <span class="value-display">10</span>px</label><input type="range" class="glow-blur" min="0" max="50" value="10"></div><div class="control-group"><label>Spread: <span class="value-display">5</span>px</label><input type="range" class="glow-spread" min="0" max="25" value="5"></div></div></div>
+                    <div class="glow-controls-group"><div class="control-group toggle-group"><label>Outer Glow</label><label class="toggle-switch"><input type="checkbox" class="glow-enable-toggle" data-glow-type="outer"><span class="slider"></span></label></div><div class="glow-content space-y-4 pt-4"><div class="grid grid-cols-2 gap-4"><div class="control-group"><label>Color</label><input type="color" class="glow-color" value="#00BFFF"></div><div class="control-group"><label>Opacity: <span class="value-display">0.75</span></label><input type="range" class="glow-opacity" min="0" max="1" step="0.01" value="0.75"></div></div><div class="control-group"><label>Blur: <span class="value-display">10</span>px</label><input type="range" class="glow-blur" min="0" max="50" value="10"></div><div class="control-group"><label>Spread: <span class="value-display">5</span>px</label><input type="range" class="glow-spread" min="0" max="25" value="5"></div></div></div>
                 </div>
             </div>
         </div>
-
         <div id="editor-tab-pane-2" class="editor-tab-pane absolute inset-0 themed-scrollbar">
             <div class="layer-controls" data-layer="2">
-                <div class="control-group toggle-group mb-6">
-                    <label>Enable Layer 2</label>
-                    <label class="toggle-switch"><input type="checkbox" class="layer-enable-toggle"><span class="slider"></span></label>
-                </div>
-                <div class="space-y-6 layer-control-content">
-                    <div class="control-group">
-                        <label>Thickness: <span class="value-display">4</span>px</label>
-                        <input type="range" class="control-thickness" min="0" max="20" value="4">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="control-group">
-                            <label>Color</label>
-                            <input type="color" class="control-color" value="#FFFFFF">
-                        </div>
-                        <div class="control-group">
-                            <label>Opacity: <span class="value-display">1.00</span></label>
-                            <input type="range" class="control-opacity" min="0" max="1" step="0.01" value="1">
-                        </div>
-                    </div>
+                <div class="control-group toggle-group mb-6"><label>Enable Layer 2</label><label class="toggle-switch"><input type="checkbox" class="layer-enable-toggle"><span class="slider"></span></label></div>
+                <div class="layer-control-content space-y-6">
+                    <div class="control-group"><label>Thickness: <span class="value-display">4</span>px</label><input type="range" class="control-thickness" min="0" max="20" value="4"></div>
+                    <div class="grid grid-cols-2 gap-4"><div class="control-group"><label>Color</label><input type="color" class="control-color" value="#FFFFFF"></div><div class="control-group"><label>Opacity: <span class="value-display">1.00</span></label><input type="range" class="control-opacity" min="0" max="1" step="0.01" value="1"></div></div>
+                    <hr class="border-white/10 my-6">
+                    <div class="space-y-6"><div class="glow-controls-group"><div class="control-group toggle-group"><label>Inner Glow</label><label class="toggle-switch"><input type="checkbox" class="glow-enable-toggle" data-glow-type="inner"><span class="slider"></span></label></div><div class="glow-content space-y-4 pt-4"><div class="grid grid-cols-2 gap-4"><div class="control-group"><label>Color</label><input type="color" class="glow-color" value="#FFFFFF"></div><div class="control-group"><label>Opacity: <span class="value-display">0.75</span></label><input type="range" class="glow-opacity" min="0" max="1" step="0.01" value="0.75"></div></div><div class="control-group"><label>Blur: <span class="value-display">10</span>px</label><input type="range" class="glow-blur" min="0" max="50" value="10"></div><div class="control-group"><label>Spread: <span class="value-display">5</span>px</label><input type="range" class="glow-spread" min="0" max="25" value="5"></div></div></div><div class="glow-controls-group"><div class="control-group toggle-group"><label>Outer Glow</label><label class="toggle-switch"><input type="checkbox" class="glow-enable-toggle" data-glow-type="outer"><span class="slider"></span></label></div><div class="glow-content space-y-4 pt-4"><div class="grid grid-cols-2 gap-4"><div class="control-group"><label>Color</label><input type="color" class="glow-color" value="#FFFFFF"></div><div class="control-group"><label>Opacity: <span class="value-display">0.75</span></label><input type="range" class="glow-opacity" min="0" max="1" step="0.01" value="0.75"></div></div><div class="control-group"><label>Blur: <span class="value-display">10</span>px</label><input type="range" class="glow-blur" min="0" max="50" value="10"></div><div class="control-group"><label>Spread: <span class="value-display">5</span>px</label><input type="range" class="glow-spread" min="0" max="25" value="5"></div></div></div></div>
                 </div>
             </div>
         </div>
-
         <div id="editor-tab-pane-3" class="editor-tab-pane absolute inset-0 themed-scrollbar">
             <div class="layer-controls" data-layer="3">
-                 <div class="control-group toggle-group mb-6">
-                    <label>Enable Layer 3</label>
-                    <label class="toggle-switch"><input type="checkbox" class="layer-enable-toggle"><span class="slider"></span></label>
-                </div>
-                <div class="space-y-6 layer-control-content">
-                    <div class="control-group">
-                        <label>Thickness: <span class="value-display">4</span>px</label>
-                        <input type="range" class="control-thickness" min="0" max="20" value="4">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="control-group">
-                            <label>Color</label>
-                            <input type="color" class="control-color" value="#F87171">
-                        </div>
-                        <div class="control-group">
-                            <label>Opacity: <span class="value-display">1.00</span></label>
-                            <input type="range" class="control-opacity" min="0" max="1" step="0.01" value="1">
-                        </div>
-                    </div>
+                <div class="control-group toggle-group mb-6"><label>Enable Layer 3</label><label class="toggle-switch"><input type="checkbox" class="layer-enable-toggle"><span class="slider"></span></label></div>
+                <div class="layer-control-content space-y-6">
+                    <div class="control-group"><label>Thickness: <span class="value-display">4</span>px</label><input type="range" class="control-thickness" min="0" max="20" value="4"></div>
+                    <div class="grid grid-cols-2 gap-4"><div class="control-group"><label>Color</label><input type="color" class="control-color" value="#F87171"></div><div class="control-group"><label>Opacity: <span class="value-display">1.00</span></label><input type="range" class="control-opacity" min="0" max="1" step="0.01" value="1"></div></div>
+                    <hr class="border-white/10 my-6">
+                    <div class="space-y-6"><div class="glow-controls-group"><div class="control-group toggle-group"><label>Inner Glow</label><label class="toggle-switch"><input type="checkbox" class="glow-enable-toggle" data-glow-type="inner"><span class="slider"></span></label></div><div class="glow-content space-y-4 pt-4"><div class="grid grid-cols-2 gap-4"><div class="control-group"><label>Color</label><input type="color" class="glow-color" value="#FFFFFF"></div><div class="control-group"><label>Opacity: <span class="value-display">0.75</span></label><input type="range" class="glow-opacity" min="0" max="1" step="0.01" value="0.75"></div></div><div class="control-group"><label>Blur: <span class="value-display">10</span>px</label><input type="range" class="glow-blur" min="0" max="50" value="10"></div><div class="control-group"><label>Spread: <span class="value-display">5</span>px</label><input type="range" class="glow-spread" min="0" max="25" value="5"></div></div></div><div class="glow-controls-group"><div class="control-group toggle-group"><label>Outer Glow</label><label class="toggle-switch"><input type="checkbox" class="glow-enable-toggle" data-glow-type="outer"><span class="slider"></span></label></div><div class="glow-content space-y-4 pt-4"><div class="grid grid-cols-2 gap-4"><div class="control-group"><label>Color</label><input type="color" class="glow-color" value="#F87171"></div><div class="control-group"><label>Opacity: <span class="value-display">0.75</span></label><input type="range" class="glow-opacity" min="0" max="1" step="0.01" value="0.75"></div></div><div class="control-group"><label>Blur: <span class="value-display">10</span>px</label><input type="range" class="glow-blur" min="0" max="50" value="10"></div><div class="control-group"><label>Spread: <span class="value-display">5</span>px</label><input type="range" class="glow-spread" min="0" max="25" value="5"></div></div></div></div>
                 </div>
             </div>
         </div>

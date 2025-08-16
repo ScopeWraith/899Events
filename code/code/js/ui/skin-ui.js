@@ -170,16 +170,33 @@ async function handleSaveBorder() {
     const controls = document.getElementById('border-editor-controls');
     const css = { layers: {} };
 
-    controls.querySelectorAll('.editor-accordion-item').forEach(item => {
+    controls.querySelectorAll('.layer-controls').forEach(item => {
         const layerIndex = item.dataset.layer;
         const isEnabled = (layerIndex === '1') || item.querySelector('.layer-enable-toggle')?.checked;
 
-        css.layers[layerIndex] = {
+        const layerData = {
             enabled: isEnabled,
             thickness: item.querySelector('.control-thickness').value,
             color: item.querySelector('.control-color').value,
             opacity: item.querySelector('.control-opacity').value,
+            innerGlow: { enabled: false },
+            outerGlow: { enabled: false }
         };
+
+        item.querySelectorAll('.glow-controls-group').forEach(glowGroup => {
+            const glowType = glowGroup.querySelector('.glow-enable-toggle').dataset.glowType;
+            if (glowGroup.querySelector('.glow-enable-toggle').checked) {
+                const glowContent = glowGroup.querySelector('.glow-content');
+                layerData[`${glowType}Glow`] = {
+                    enabled: true,
+                    color: glowContent.querySelector('.glow-color').value,
+                    opacity: glowContent.querySelector('.glow-opacity').value,
+                    blur: glowContent.querySelector('.glow-blur').value,
+                    spread: glowContent.querySelector('.glow-spread').value
+                };
+            }
+        });
+        css.layers[layerIndex] = layerData;
     });
 
     try {

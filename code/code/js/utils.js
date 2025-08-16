@@ -195,7 +195,9 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
  * BORDER STYLE GENERATOR - FINAL VERSION
  * ===================================================================================
  */
+// Helper function to convert HEX color and alpha to RGBA string
 function hexToRgba(hex, alpha = 1) {
+    if (!hex) return `rgba(0,0,0,${alpha})`;
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -212,43 +214,42 @@ export function applyCustomBorderStyle(css) {
     const t2 = css.layers['2']?.enabled ? parseInt(css.layers['2'].thickness, 10) : 0;
     const t3 = css.layers['3']?.enabled ? parseInt(css.layers['3'].thickness, 10) : 0;
 
-    // Layer 1
-    if (t1 > 0) {
-        const scale1 = 1 + (t1 * 2 * BASE_SCALE_INCREMENT);
-        styles.layer1 = {
-            'background': hexToRgba(css.layers['1'].color, css.layers['1'].opacity),
-            'transform': `scale(${scale1}) translateZ(0)`,
-            'z-index': 3
-        };
-    } else {
-        styles.layer1 = { 'transform': 'scale(0) translateZ(0)' };
-    }
+    // Process all three layers
+    for (let i = 1; i <= 3; i++) {
+        const layerData = css.layers[String(i)];
+        const key = `layer${i}`;
+        
+        let thickness = 0;
+        if (i === 1) thickness = t1;
+        if (i === 2) thickness = t1 + t2;
+        if (i === 3) thickness = t1 + t2 + t3;
 
-    // Layer 2
-    if (t2 > 0) {
-        const totalThickness2 = t1 + t2;
-        const scale2 = 1 + (totalThickness2 * 2 * BASE_SCALE_INCREMENT);
-        styles.layer2 = {
-            'background': hexToRgba(css.layers['2'].color, css.layers['2'].opacity),
-            'transform': `scale(${scale2}) translateZ(0)`,
-            'z-index': 2
-        };
-    } else {
-        styles.layer2 = { 'transform': 'scale(0) translateZ(0)' };
-    }
+        if (layerData?.enabled && parseInt(layerData.thickness, 10) > 0) {
+            const scale = 1 + (thickness * 2 * BASE_SCALE_INCREMENT);
+            const shadows = [];
 
-    // Layer 3
-    if (t3 > 0) {
-        const totalThickness3 = t1 + t2 + t3;
-        const scale3 = 1 + (totalThickness3 * 2 * BASE_SCALE_INCREMENT);
-        styles.layer3 = {
-            'background': hexToRgba(css.layers['3'].color, css.layers['3'].opacity),
-            'transform': `scale(${scale3}) translateZ(0)`,
-            'z-index': 1
-        };
-    } else {
-        styles.layer3 = { 'transform': 'scale(0) translateZ(0)' };
-    }
+            // Inner Glow
+            if (layerData.innerGlow?.enabled) {
+                const ig = layerData.innerGlow;
+                const color = hexToRgba(ig.color, ig.opacity);
+                shadows.push(`inset 0 0 ${ig.blur}px ${ig.spread}px ${color}`);
+            }
+            // Outer Glow
+            if (layerData.outerGlow?.enabled) {
+                const og = layerData.outerGlow;
+                const color = hexToRgba(og.color, og.opacity);
+                shadows.push(`0 0 ${og.blur}px ${og.spread}px ${color}`);
+            }
 
+            styles[key] = {
+                'background': hexToRgba(layerData.color, layerData.opacity),
+                'transform': `scale(${scale}) translateZ(0)`,
+                'z-index': 3 - (i - 1),
+                'box-shadow': shadows.join(', ')
+            };
+        } else {
+            styles[key] = { 'transform': 'scale(0) translateZ(0)' };
+        }
+    }
     return styles;
 }
