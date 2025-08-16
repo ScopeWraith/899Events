@@ -5,7 +5,7 @@ import { db, storage } from '../firebase-config.js';
 import { doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { showModal, hideAllModals, setCustomSelectValue } from './ui-manager.js';
-import { resizeImage, getAvatarBorderClass } from '../utils.js';
+import { resizeImage, getAvatarBorderHTML } from '../utils.js';
 
 let resizedAllianceAvatarBlob = null;
 
@@ -84,7 +84,7 @@ function createAllianceCard(alliance, state) {
 
     const r5Data = getRoleMember(alliance.r5Name);
     const leaderAvatarUrl = r5Data?.avatarUrl || 'https://placehold.co/48x48/161B22/FFFFFF?text=?';
-    const leaderBorder = getAvatarBorderClass(r5Data, alliance, customBorders);
+    const leaderBorderHTML = getAvatarBorderHTML(r5Data, alliance, customBorders);
     
     const isSelf = currentUserData && r5Data && currentUserData.uid === r5Data.uid;
     const isFriend = r5Data && userFriends && userFriends.includes(r5Data.uid);
@@ -101,11 +101,11 @@ function createAllianceCard(alliance, state) {
         const memberData = getRoleMember(member.username);
         const avatarUrl = memberData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
         const memberAllianceData = memberData ? allPlayers.find(p => p.alliance === memberData.alliance) : null;
-        const rankBorder = getAvatarBorderClass(memberData, memberAllianceData, customBorders);
+        const rankBorderHTML = getAvatarBorderHTML(memberData, memberAllianceData, customBorders);
         return `
             <div class="core-member">
                  <div class="avatar-wrapper w-12 h-12 mx-auto mb-1">
-                    <div class="avatar-border ${rankBorder.className}" style="${rankBorder.style}"></div>
+                    ${rankBorderHTML}
                     <img src="${avatarUrl}" class="w-full h-full rounded-full object-cover" alt="${member.role}">
                 </div>
                 <p class="core-member-role">${member.role}</p>
@@ -113,8 +113,6 @@ function createAllianceCard(alliance, state) {
             </div>
         `;
     }).join('');
-    
-    const leaderBorderElement = `<div class="avatar-border ${leaderBorder.className}" style="${leaderBorder.style}"></div>`;
 
     return `
         <div class="alliance-card" style="--primary-color: ${primaryColor}; --secondary-color: ${secondaryColor};">
@@ -133,7 +131,7 @@ function createAllianceCard(alliance, state) {
                 <div class="alliance-card-leader-section">
                     <div class="leader-identity">
                         <div class="avatar-wrapper w-8 h-8">
-                           ${leaderBorderElement}
+                           ${leaderBorderHTML}
                            <img src="${leaderAvatarUrl}" class="w-full h-full rounded-full object-cover" alt="Leader">
                         </div>
                         <div class="leader-info">

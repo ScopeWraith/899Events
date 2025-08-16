@@ -1,7 +1,7 @@
 // code/js/ui/players-ui.js
 
 import { subscribe, getState } from '../state.js';
-import { canManageUser, getAvatarBorderClass} from '../utils.js';
+import { canManageUser, getAvatarBorderHTML} from '../utils.js';
 
 // --- STATE & RENDER FUNCTIONS ---
 
@@ -69,13 +69,45 @@ function createPlayerSkeletonCard() {
 }
 
 export function renderPlayers(players) {
-    // ... (function is the same up to the forEach loop) ...
+    const playerListContainer = document.getElementById('player-list-container');
+    if (!playerListContainer) return;
+
+    const { currentUserData, userSessions, allAlliances, customBorders } = getState();
+    playerListContainer.innerHTML = '';
+
+    if (players === null) {
+        let skeletonHTML = '';
+        for (let i = 0; i < 8; i++) {
+            skeletonHTML += createPlayerSkeletonCard();
+        }
+        playerListContainer.innerHTML = skeletonHTML;
+        return;
+    }
+    if (players.length === 0) {
+        playerListContainer.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No players match the current filters.</p>`;
+        return;
+    }
 
     players.forEach(player => {
-        // ... (card creation is the same) ...
-        
+        const card = document.createElement('div');
+        card.className = 'player-card glass-pane p-4 flex flex-col relative';
+        card.dataset.rank = player.allianceRank;
+        card.dataset.uid = player.uid;
+
+        let gearIconHTML = '';
+        if (currentUserData && currentUserData.uid !== player.uid) {
+            if (canManageUser(currentUserData, player)) {
+                gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
+            }
+        }
+
+        const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
+        const session = userSessions ? userSessions[player.uid] : null;
+        const statusClass = session ? session.status : 'offline';
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
+        
         const borderHTML = getAvatarBorderHTML(player, allianceData, customBorders);
+
         const unverifiedClass = player.isVerified ? '' : 'unverified-player-text';
 
         card.innerHTML = `
@@ -90,7 +122,29 @@ export function renderPlayers(players) {
                     <p class="text-sm font-semibold ${unverifiedClass}" style="color: var(--color-primary);">[${player.alliance}] - ${player.allianceRank}</p>
                 </div>
             </div>
-            // ... (rest of the card HTML is the same) ...
+            <div class="flex-grow my-4 space-y-3">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-400 flex items-center"><i class="fas fa-fist-raised w-6 text-center mr-2" style="color: var(--color-primary);"></i>Total Power</span>
+                    <span class="font-bold text-white">${(player.power || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-400 flex items-center"><i class="fas fa-truck-monster w-6 text-center mr-2" style="color: var(--color-primary);"></i>Tank Power</span>
+                    <span class="font-bold text-white">${(player.tankPower || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-400 flex items-center"><i class="fas fa-fighter-jet w-6 text-center mr-2" style="color: var(--color-primary);"></i>Air Power</span>
+                    <span class="font-bold text-white">${(player.airPower || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-400 flex items-center"><i class="fas fa-rocket w-6 text-center mr-2" style="color: var(--color-primary);"></i>Missile Power</span>
+                    <span class="font-bold text-white">${(player.missilePower || 0).toLocaleString()}</span>
+                </div>
+            </div>
+            <div class="flex justify-around items-center pt-3 border-t border-white/10">
+                <button class="message-player-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
+                <button class="add-friend-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
+            </div>
         `;
         playerListContainer.appendChild(card);
     });
