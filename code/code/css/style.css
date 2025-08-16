@@ -1422,3 +1422,81 @@ body {
 .editor-tab-pane.active {
     display: block;
 }
+
+/* --- NEW: Border Editor Theming --- */
+.editor-tab-pane {
+    background-color: rgba(13, 17, 23, 0.5); /* Match modal bg */
+}
+
+/* Style for the main header within each tab pane */
+.layer-header {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.layer-header i {
+    color: var(--color-primary);
+}
+
+/* Styling for dividers between sections */
+.editor-divider {
+    border-color: rgba(255, 255, 255, 0.1);
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Styling for control section headers (like "Inner Glow") */
+.control-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(255,255,255,0.05);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.control-section-header label {
+    margin-bottom: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* General control group styling */
+.editor-tab-pane .control-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #8b949e;
+    margin-bottom: 0.75rem;
+}
+
+.editor-tab-pane .control-group .value-display {
+    font-weight: 700;
+    color: #c9d1d9;
+    background-color: rgba(13, 17, 23, 0.8);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+/* More compact grid for glow controls */
+.glow-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.5rem;
+    padding-top: 1rem;
+}
+.glow-content .control-group {
+    grid-column: span 2; /* Default to full width */
+}
+.glow-content .grid-col-half {
+    grid-column: span 1; /* For side-by-side controls */
+}
