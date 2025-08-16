@@ -44,7 +44,6 @@ export function updateBorderEditorPreview() {
     controls.querySelectorAll('.layer-controls').forEach(item => {
         const layerIndex = item.dataset.layer;
         const isEnabled = (layerIndex === '1') || item.querySelector('.layer-enable-toggle')?.checked;
-
         const content = item.querySelector('.layer-control-content');
         if (content) {
             content.style.opacity = isEnabled ? '1' : '0.4';
@@ -56,10 +55,38 @@ export function updateBorderEditorPreview() {
             thickness: item.querySelector('.control-thickness').value,
             color: item.querySelector('.control-color').value,
             opacity: item.querySelector('.control-opacity').value,
+            innerGlow: { enabled: false },
+            outerGlow: { enabled: false }
         };
+
+        // Process Glow Controls
+        item.querySelectorAll('.glow-controls-group').forEach(glowGroup => {
+            const glowType = glowGroup.querySelector('.glow-enable-toggle').dataset.glowType;
+            const glowEnabled = glowGroup.querySelector('.glow-enable-toggle').checked;
+            const glowContent = glowGroup.querySelector('.glow-content');
+            
+            glowContent.classList.toggle('hidden', !glowEnabled);
+            
+            if (glowEnabled) {
+                const glowData = {
+                    enabled: true,
+                    color: glowContent.querySelector('.glow-color').value,
+                    opacity: glowContent.querySelector('.glow-opacity').value,
+                    blur: glowContent.querySelector('.glow-blur').value,
+                    spread: glowContent.querySelector('.glow-spread').value
+                };
+                layerData[`${glowType}Glow`] = glowData;
+
+                // Update value displays for glow sliders
+                glowContent.querySelector('.glow-opacity').closest('.control-group').querySelector('.value-display').textContent = parseFloat(glowData.opacity).toFixed(2);
+                glowContent.querySelector('.glow-blur').closest('.control-group').querySelector('.value-display').textContent = glowData.blur;
+                glowContent.querySelector('.glow-spread').closest('.control-group').querySelector('.value-display').textContent = glowData.spread;
+            }
+        });
+
         css.layers[layerIndex] = layerData;
 
-        // Correctly find and update the value displays
+        // Update value displays for main sliders
         item.querySelector('.control-thickness').closest('.control-group').querySelector('.value-display').textContent = layerData.thickness;
         item.querySelector('.control-opacity').closest('.control-group').querySelector('.value-display').textContent = parseFloat(layerData.opacity).toFixed(2);
     });
