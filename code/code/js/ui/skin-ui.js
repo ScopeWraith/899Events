@@ -33,7 +33,18 @@ export function initializeSkinUI() {
             });
         }
     });
-
+    const editor = document.getElementById('border-editor-modal-container');
+    if (editor) {
+        editor.querySelectorAll('.control-color-enable').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const colorIndex = checkbox.dataset.colorIndex;
+                const colorInput = checkbox.closest('.editor-group-content').querySelector(`.control-color[data-color-index="${colorIndex}"]`);
+                if (colorInput) {
+                    colorInput.disabled = !checkbox.checked;
+                }
+            });
+        });
+    }
     // Save button listener
     const saveBorderBtn = document.getElementById('save-border-btn');
     if (saveBorderBtn) {
@@ -167,14 +178,27 @@ async function handleSaveBorder() {
         return;
     }
 
-    const css = {
-        borderColor1: document.getElementById('border-color-1').value,
-        borderWidth1: document.getElementById('border-width-1').value,
-        borderColor2: document.getElementById('border-color-2').value,
-        borderWidth2: document.getElementById('border-width-2').value,
-        borderColor3: document.getElementById('border-color-3').value,
-        borderWidth3: document.getElementById('border-width-3').value,
-    };
+    const controls = document.getElementById('border-editor-controls');
+    const css = { layers: {} };
+
+    controls.querySelectorAll('.editor-group').forEach(layerGroup => {
+        const layerIndex = layerGroup.dataset.layer;
+        const layerData = {
+            width: layerGroup.querySelector('.control-width').value,
+            opacity: layerGroup.querySelector('.control-opacity').value,
+            colors: [],
+            gradient: {
+                type: layerGroup.querySelector('.control-gradient-type').value,
+                angle: layerGroup.querySelector('.control-gradient-angle').value
+            }
+        };
+        layerGroup.querySelectorAll('.control-color').forEach(colorInput => {
+            const colorIndex = colorInput.dataset.colorIndex;
+            const isEnabled = (colorIndex === '1') || layerGroup.querySelector(`.control-color-enable[data-color-index="${colorIndex}"]`).checked;
+            layerData.colors.push({ value: colorInput.value, enabled: isEnabled });
+        });
+        css.layers[layerIndex] = layerData;
+    });
 
     try {
         await addDoc(collection(db, "customBorders"), {
@@ -189,4 +213,4 @@ async function handleSaveBorder() {
         console.error("Error saving border:", error);
         alert('Failed to save border. Please check the console for errors.');
     }
-} 
+}

@@ -34,14 +34,48 @@ import { applyCustomBorderStyle } from './utils.js';
  * from the revamped `applyCustomBorderStyle` function.
  */
 function updateBorderEditorPreview() {
-    const css = {
-        borderColor1: document.getElementById('border-color-1').value,
-        borderWidth1: document.getElementById('border-width-1').value,
-        borderColor2: document.getElementById('border-color-2').value,
-        borderWidth2: document.getElementById('border-width-2').value,
-        borderColor3: document.getElementById('border-color-3').value,
-        borderWidth3: document.getElementById('border-width-3').value,
-    };
+    const controls = document.getElementById('border-editor-controls');
+    if (!controls) return;
+
+    const css = { layers: {} };
+
+    // Loop through each layer group in the HTML
+    controls.querySelectorAll('.editor-group').forEach(layerGroup => {
+        const layerIndex = layerGroup.dataset.layer;
+        
+        const layerData = {
+            width: layerGroup.querySelector('.control-width').value,
+            opacity: layerGroup.querySelector('.control-opacity').value,
+            colors: [],
+            gradient: {
+                type: layerGroup.querySelector('.control-gradient-type').value,
+                angle: layerGroup.querySelector('.control-gradient-angle').value
+            }
+        };
+
+        // Gather colors
+        layerGroup.querySelectorAll('.control-color').forEach(colorInput => {
+            const colorIndex = colorInput.dataset.colorIndex;
+            const isEnabled = (colorIndex === '1') || layerGroup.querySelector(`.control-color-enable[data-color-index="${colorIndex}"]`).checked;
+            layerData.colors.push({
+                value: colorInput.value,
+                enabled: isEnabled
+            });
+        });
+        
+        css.layers[layerIndex] = layerData;
+
+        // --- UI LOGIC ---
+        // Update value displays
+        layerGroup.querySelector('.control-width + .value-display').textContent = layerData.width;
+        layerGroup.querySelector('.control-opacity + .value-display').textContent = parseFloat(layerData.opacity).toFixed(1);
+        layerGroup.querySelector('.control-gradient-angle + .value-display').textContent = layerData.gradient.angle;
+        
+        // Show/hide gradient controls
+        const enabledColors = layerData.colors.filter(c => c.enabled).length;
+        const gradientControls = layerGroup.querySelector('.gradient-controls');
+        gradientControls.classList.toggle('hidden', enabledColors < 2);
+    });
 
     const styles = applyCustomBorderStyle(css);
     const previewElement = document.getElementById('border-editor-live-preview');
@@ -49,14 +83,12 @@ function updateBorderEditorPreview() {
         previewElement.style.cssText = styles.main.style;
     }
     
-    // Update the px value displays
-    document.getElementById('border-width-value-1').textContent = css.borderWidth1;
-    document.getElementById('border-width-value-2').textContent = css.borderWidth2;
-    document.getElementById('border-width-value-3').textContent = css.borderWidth3;
-    
     const dynamicStyleTag = document.getElementById('border-editor-dynamic-styles');
     if (dynamicStyleTag) {
-        dynamicStyleTag.innerHTML = '';
+        dynamicStyleTag.innerHTML = `
+            #border-editor-live-preview::before { ${styles.before.style} }
+            #border-editor-live-preview::after { ${styles.after.style} }
+        `;
     }
 }
 

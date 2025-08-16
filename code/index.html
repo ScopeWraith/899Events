@@ -59,55 +59,110 @@
                             </div>
                         </div>
 
-                        <div class="w-full md:w-2/3 flex flex-col overflow-hidden">
-                            <nav class="modal-tab-nav px-2 flex-shrink-0">
-                                <button class="modal-tab-btn active" data-tab="shape"><i class="fas fa-shapes"></i><span>Shape & Color</span></button>
-                                <button class="modal-tab-btn" data-tab="glow"><i class="fas fa-sun"></i><span>Glow & Shadow</span></button>
-                                <button class="modal-tab-btn" data-tab="fx"><i class="fas fa-magic"></i><span>Animation & FX</span></button>
-                            </nav>
-                            <div id="border-editor-controls" class="p-6 overflow-y-auto themed-scrollbar space-y-6 flex-grow">
-                                <div id="editor-tab-shape" class="modal-tab-pane active space-y-6">
-                                    <div class="editor-group">
-                                        <h3 class="editor-group-title">Layer 1 (Inner)</h3>
-                                        <div class="editor-group-content grid-cols-2">
-                                            <div class="control-group">
-                                                <label for="border-color-1">Color</label>
-                                                <input type="color" id="border-color-1" value="#00BFFF" class="color-input">
-                                            </div>
-                                            <div class="control-group">
-                                                <label for="border-width-1">Width: <span id="border-width-value-1">4</span>px</label>
-                                                <input type="range" id="border-width-1" min="0" max="15" value="4" class="w-full custom-slider">
-                                            </div>
+                        <div id="border-editor-controls" class="w-full md:w-2/3 p-6 overflow-y-auto themed-scrollbar space-y-6">
+                            
+                            <div class="editor-group" data-layer="1">
+                                <h3 class="editor-group-title">Layer 1 (Inner)</h3>
+                                <div class="editor-group-content space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="control-group">
+                                            <label>Width: <span class="value-display">4</span>px</label>
+                                            <input type="range" class="control-width" min="0" max="15" value="4" class="w-full custom-slider">
+                                        </div>
+                                        <div class="control-group">
+                                            <label>Opacity: <span class="value-display">1.0</span></label>
+                                            <input type="range" class="control-opacity" min="0" max="1" step="0.1" value="1" class="w-full custom-slider">
                                         </div>
                                     </div>
-                                    <div class="editor-group">
-                                        <h3 class="editor-group-title">Layer 2 (Middle)</h3>
-                                        <div class="editor-group-content grid-cols-2">
-                                            <div class="control-group">
-                                                <label for="border-color-2">Color</label>
-                                                <input type="color" id="border-color-2" value="#FFFFFF" class="color-input">
-                                            </div>
-                                            <div class="control-group">
-                                                <label for="border-width-2">Width: <span id="border-width-value-2">4</span>px</label>
-                                                <input type="range" id="border-width-2" min="0" max="15" value="4" class="w-full custom-slider">
-                                            </div>
-                                        </div>
+                                    <div class="control-group grid grid-cols-2 md:grid-cols-4 gap-2">
+                                        <div><label>Color 1</label><input type="color" class="control-color" data-color-index="1" value="#00BFFF"></div>
+                                        <div><label class="flex items-center gap-1">C2<input type="checkbox" class="control-color-enable" data-color-index="2"></label><input type="color" class="control-color" data-color-index="2" value="#FFFFFF" disabled></div>
+                                        <div><label class="flex items-center gap-1">C3<input type="checkbox" class="control-color-enable" data-color-index="3"></label><input type="color" class="control-color" data-color-index="3" value="#FFFF00" disabled></div>
+                                        <div><label class="flex items-center gap-1">C4<input type="checkbox" class="control-color-enable" data-color-index="4"></label><input type="color" class="control-color" data-color-index="4" value="#FF0000" disabled></div>
                                     </div>
-                                    <div class="editor-group">
-                                        <h3 class="editor-group-title">Layer 3 (Outer)</h3>
-                                        <div class="editor-group-content grid-cols-2">
+                                    <div class="gradient-controls hidden">
+                                        <div class="grid grid-cols-2 gap-4">
                                             <div class="control-group">
-                                                <label for="border-color-3">Color</label>
-                                                <input type="color" id="border-color-3" value="#F87171" class="color-input">
+                                                <label>Gradient Type</label>
+                                                <div class="custom-select-container" data-type="gradient-mode"><input type="hidden" class="control-gradient-type" value="linear-gradient"><button type="button" class="custom-select-value form-input"><span>Linear</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div>
                                             </div>
                                             <div class="control-group">
-                                                <label for="border-width-3">Width: <span id="border-width-value-3">4</span>px</label>
-                                                <input type="range" id="border-width-3" min="0" max="15" value="4" class="w-full custom-slider">
+                                                <label>Angle: <span class="value-display">90</span>&deg;</label>
+                                                <input type="range" class="control-gradient-angle" min="0" max="360" value="90" class="w-full custom-slider">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="editor-group" data-layer="2">
+                                <h3 class="editor-group-title">Layer 2 (Middle)</h3>
+                                <div class="editor-group-content space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="control-group">
+                                            <label>Width: <span class="value-display">4</span>px</label>
+                                            <input type="range" class="control-width" min="0" max="15" value="4" class="w-full custom-slider">
+                                        </div>
+                                        <div class="control-group">
+                                            <label>Opacity: <span class="value-display">1.0</span></label>
+                                            <input type="range" class="control-opacity" min="0" max="1" step="0.1" value="1" class="w-full custom-slider">
+                                        </div>
+                                    </div>
+                                    <div class="control-group grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    <div><label>Color 1</label><input type="color" class="control-color" data-color-index="1" value="#FFFFFF"></div>
+                                    <div><label class="flex items-center gap-1">C2<input type="checkbox" class="control-color-enable" data-color-index="2"></label><input type="color" class="control-color" data-color-index="2" value="#E0E0E0" disabled></div>
+                                    <div><label class="flex items-center gap-1">C3<input type="checkbox" class="control-color-enable" data-color-index="3"></label><input type="color" class="control-color" data-color-index="3" value="#C0C0C0" disabled></div>
+                                    <div><label class="flex items-center gap-1">C4<input type="checkbox" class="control-color-enable" data-color-index="4"></label><input type="color" class="control-color" data-color-index="4" value="#A0A0A0" disabled></div>
+                                    </div>
+                                    <div class="gradient-controls hidden">
+                                    <div class="grid grid-cols-2 gap-4">
+                                            <div class="control-group">
+                                                <label>Gradient Type</label>
+                                                <div class="custom-select-container" data-type="gradient-mode"><input type="hidden" class="control-gradient-type" value="linear-gradient"><button type="button" class="custom-select-value form-input"><span>Linear</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div>
+                                            </div>
+                                            <div class="control-group">
+                                                <label>Angle: <span class="value-display">90</span>&deg;</label>
+                                                <input type="range" class="control-gradient-angle" min="0" max="360" value="90" class="w-full custom-slider">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="editor-group" data-layer="3">
+                                <h3 class="editor-group-title">Layer 3 (Outer)</h3>
+                                <div class="editor-group-content space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="control-group">
+                                            <label>Width: <span class="value-display">4</span>px</label>
+                                            <input type="range" class="control-width" min="0" max="15" value="4" class="w-full custom-slider">
+                                        </div>
+                                        <div class="control-group">
+                                            <label>Opacity: <span class="value-display">1.0</span></label>
+                                            <input type="range" class="control-opacity" min="0" max="1" step="0.1" value="1" class="w-full custom-slider">
+                                        </div>
+                                    </div>
+                                    <div class="control-group grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    <div><label>Color 1</label><input type="color" class="control-color" data-color-index="1" value="#F87171"></div>
+                                    <div><label class="flex items-center gap-1">C2<input type="checkbox" class="control-color-enable" data-color-index="2"></label><input type="color" class="control-color" data-color-index="2" value="#D946EF" disabled></div>
+                                    <div><label class="flex items-center gap-1">C3<input type="checkbox" class="control-color-enable" data-color-index="3"></label><input type="color" class="control-color" data-color-index="3" value="#A855F7" disabled></div>
+                                    <div><label class="flex items-center gap-1">C4<input type="checkbox" class="control-color-enable" data-color-index="4"></label><input type="color" class="control-color" data-color-index="4" value="#6366F1" disabled></div>
+                                    </div>
+                                    <div class="gradient-controls hidden">
+                                    <div class="grid grid-cols-2 gap-4">
+                                            <div class="control-group">
+                                                <label>Gradient Type</label>
+                                                <div class="custom-select-container" data-type="gradient-mode"><input type="hidden" class="control-gradient-type" value="linear-gradient"><button type="button" class="custom-select-value form-input"><span>Linear</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div>
+                                            </div>
+                                            <div class="control-group">
+                                                <label>Angle: <span class="value-display">90</span>&deg;</label>
+                                                <input type="range" class="control-gradient-angle" min="0" max="360" value="90" class="w-full custom-slider">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>

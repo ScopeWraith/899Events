@@ -186,35 +186,61 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
  * ===================================================================================
  */
 export function applyCustomBorderStyle(css) {
-    if (!css) return { main: { style: '' }, before: { style: '' }, after: { style: '' } };
+    if (!css || !css.layers) return { main: { style: '' }, before: { style: '' }, after: { style: '' } };
 
-    // Parse widths, providing a default of 0 if not present
-    const width1 = parseInt(css.borderWidth1 || 0, 10);
-    const width2 = parseInt(css.borderWidth2 || 0, 10);
-    const width3 = parseInt(css.borderWidth3 || 0, 10);
+    const mainStyles = { '--scale': '1.15' }; // Base element for layer 1
+    const beforeStyles = { content: "''", position: 'absolute', inset: '0', borderRadius: '50%', zIndex: '-1' }; // For layer 2
+    const afterStyles = { content: "''", position: 'absolute', inset: '0', borderRadius: '50%', zIndex: '-2' }; // For layer 3
 
-    // Calculate the total spread for each shadow
-    const spread1 = width1;
-    const spread2 = width1 + width2;
-    const spread3 = width1 + width2 + width3;
+    const layerTargets = [mainStyles, beforeStyles, afterStyles];
 
-    const shadows = [];
-    if (spread1 > 0) shadows.push(`0 0 0 ${spread1}px ${css.borderColor1 || '#00BFFF'}`);
-    if (spread2 > spread1) shadows.push(`0 0 0 ${spread2}px ${css.borderColor2 || '#FFFFFF'}`);
-    if (spread3 > spread2) shadows.push(`0 0 0 ${spread3}px ${css.borderColor3 || '#F87171'}`);
+    // Build each layer
+    for (let i = 1; i <= 3; i++) {
+        const layerData = css.layers[i];
+        if (!layerData || !layerData.width || layerData.width === '0') continue;
 
-    const mainStyles = {
-        '--scale': '1.15',
-        'background': 'transparent', // The background is no longer needed
-        'border': 'none', // We use box-shadows instead of a real border
-        'box-shadow': shadows.join(', ')
-    };
-    
+        const target = layerTargets[i - 1];
+        const colors = layerData.colors.filter(c => c.enabled).map(c => c.value);
+        
+        // Use padding to define the size of each border layer relative to the avatar
+        // Layer 1 is the main element, Layer 2 (before) sits on top, Layer 3 (after) sits behind.
+        const padding = `${layerData.width}px`;
+        target['padding'] = padding;
+        
+        // Position pseudo-elements correctly
+        if (i > 1) {
+            target['top'] = `-${padding}`;
+            target['left'] = `-${padding}`;
+            target['right'] = `-${padding}`;
+            target['bottom'] = `-${padding}`;
+        }
+        
+        target['opacity'] = layerData.opacity;
+
+        if (colors.length > 1) {
+            // Gradient
+            const angle = layerData.gradient.angle || 90;
+            const type = layerData.gradient.type || 'linear-gradient';
+            let gradientString;
+            if (type === 'conic-gradient') {
+                gradientString = `conic-gradient(from ${angle}deg, ${colors.join(', ')})`;
+            } else if (type === 'radial-gradient') {
+                gradientString = `radial-gradient(circle, ${colors.join(', ')})`;
+            } else {
+                gradientString = `linear-gradient(${angle}deg, ${colors.join(', ')})`;
+            }
+            target['background'] = gradientString;
+        } else {
+            // Solid Color
+            target['background'] = colors[0] || 'transparent';
+        }
+    }
+
     const toCssText = (styleObj) => Object.entries(styleObj).map(([key, value]) => `${key}: ${value};`).join(' ');
 
     return {
         main: { style: toCssText(mainStyles) },
-        before: { style: '' },
-        after: { style: '' }
+        before: { style: toCssText(beforeStyles) },
+        after: { style: toCssText(afterStyles) }
     };
 }
