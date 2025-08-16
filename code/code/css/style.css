@@ -1173,12 +1173,128 @@ body {
 .avatar-border.texture-cracks::after { background-image: url('https://www.transparenttextures.com/patterns/worn-dots.png'); opacity: 0.2; }
 .avatar-border.texture-lines::after { background-image: url('https://www.transparenttextures.com/patterns/vertical-lines.png'); opacity: 0.05; }
 
+/* ---
+---
+--- BORDER EDITOR ---
+---
+--- */
+
+.control-group label {
+    display: block;
+    font-weight: 600;
+    color: #8b949e;
+    margin-bottom: 0.5rem;
+}
+
+.control-group.toggle-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(255,255,255,0.05);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+}
+.control-group.toggle-group label {
+    margin-bottom: 0;
+    color: #fff;
+}
+
+
+.custom-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #30363d;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+    border-radius: 8px;
+}
+.custom-slider:hover { opacity: 1; }
+.custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--color-primary);
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--color-primary-glow);
+}
+.custom-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--color-primary);
+    cursor: pointer;
+    border-radius: 50%;
+}
+.color-input {
+    width: 100%;
+    height: 40px;
+    padding: 0.25rem;
+    background-color: rgba(13, 17, 23, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+.color-input:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* --- OVERHAULED ANIMATIONS --- */
+@keyframes marching-ants {
+    to { background-position: 100% 0, 0 100%, 0 -100%, -100% 0; }
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes shimmer-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes cosmic-glow {
+    0% { opacity: 0.7; transform: scale(1.0); }
+    50% { opacity: 1.0; transform: scale(1.05); }
+    100% { opacity: 0.7; transform: scale(1.0); }
+}
+
+.editor-group {
+    background-color: rgba(13, 17, 23, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.editor-group-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1.25rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #c9d1d9;
+}
+
+.editor-group-content {
+    padding: 1.25rem;
+    display: grid;
+    gap: 1.25rem;
+}
+
 /* --- NEW: Particle System --- */
-.avatar-border .particle {
+#border-editor-live-preview .particle {
     position: absolute;
+    top: 50%;
+    left: 50%;
     border-radius: 50%;
     background: white;
-    animation: var(--particle-animation);
+    pointer-events: none;
 }
 @keyframes particle-flow {
   0% { transform: rotate(0deg) translateX(var(--radius)) scale(1); opacity: 1; }
