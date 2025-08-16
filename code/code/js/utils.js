@@ -3,8 +3,6 @@
 /**
  * This module contains utility functions used across the application.
  */
-
-// ... (other functions like formatTimeAgo, canManageUser, etc. remain unchanged)
 export function canDeleteMessage(currentUser, messageAuthor) {
     if (!currentUser || !messageAuthor) return false;
     if (currentUser.isAdmin) return true;
@@ -165,11 +163,10 @@ export function getAvatarBorderHTML(player, allianceData, customBorders) {
     const skinId = player.avatarBorderSkin || 'rank';
     const customBorder = customBorders && customBorders.find(b => b.id === skinId);
 
-    // --- RENDER NEW CUSTOM BORDERS ---
     if (customBorder && customBorder.css?.layers) {
         const styles = applyCustomBorderStyle(customBorder.css);
         let layersHTML = '';
-        for (let i = 3; i >= 1; i--) { // Render in reverse order for correct stacking in the DOM
+        for (let i = 3; i >= 1; i--) {
             const layerStyle = styles[`layer${i}`];
             if (layerStyle && layerStyle.transform !== 'scale(0) translateZ(0)') {
                 const styleString = Object.entries(layerStyle).map(([k, v]) => `${k}:${v};`).join('');
@@ -179,7 +176,6 @@ export function getAvatarBorderHTML(player, allianceData, customBorders) {
         return layersHTML;
     }
 
-    // --- RENDER LEGACY BORDERS (Fallback) ---
     let borderClass = '', borderStyle = '';
     if (skinId === 'alliance' && allianceData?.primaryColor) {
         borderClass = 'alliance-border';
@@ -193,12 +189,6 @@ export function getAvatarBorderHTML(player, allianceData, customBorders) {
     return `<div class="avatar-border ${borderClass}" style="${borderStyle}"></div>`;
 }
 
-/**
- * ===================================================================================
- * BORDER STYLE GENERATOR - FINAL VERSION
- * ===================================================================================
- */
-// Helper function to convert HEX color and alpha to RGBA string
 function hexToRgba(hex, alpha = 1) {
     if (!hex) return `rgba(0,0,0,${alpha})`;
     const r = parseInt(hex.slice(1, 3), 16);
@@ -227,14 +217,12 @@ export function applyCustomBorderStyle(css) {
             const scale = 1 + (thickness * 2 * BASE_SCALE_INCREMENT);
             const shadows = [];
 
-            // Inner Glow
             if (layerData.innerGlow?.enabled) {
                 const ig = layerData.innerGlow;
                 const color = hexToRgba(ig.color, ig.opacity);
                 const inset = ig.reverse ? '' : 'inset';
                 shadows.push(`${inset} 0 0 ${ig.blur}px ${ig.spread}px ${color}`);
             }
-            // Outer Glow
             if (layerData.outerGlow?.enabled) {
                 const og = layerData.outerGlow;
                 const color = hexToRgba(og.color, og.opacity);

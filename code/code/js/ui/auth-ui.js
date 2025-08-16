@@ -5,20 +5,17 @@ import { signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, se
 import { doc, setDoc, updateDoc, writeBatch, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { subscribe, setState, getState } from '../state.js';
-import { resizeImage , getAvatarBorderClass} from '../utils.js';
+import { resizeImage , getAvatarBorderHTML} from '../utils.js';
 import { hideAllModals, setCustomSelectValue, buildMobileNav } from './ui-manager.js';
 import { RANK_STYLES, ALLIANCE_RANKS, AVATAR_BORDERS, CHAT_BUBBLE_BORDERS } from '../constants.js';
 import { sendVerificationRequest } from '../firestore.js';
 import { buildAvatarBorderSkins, updateSkinSelection, updateAvatarBorderPreview } from './skin-ui.js';
 
-// --- STATE & RENDER FUNCTIONS ---
-
 function renderAuthUI(newState, prevState) {
     if (newState.currentUserData !== prevState.currentUserData || newState.customBorders !== prevState.customBorders) {
         updateAvatarDisplay(newState.currentUserData);
-        buildMobileNav(); // Rebuild mobile nav when user data changes
+        buildMobileNav();
     }
-
     if (newState.userNotifications !== prevState.userNotifications) {
         updatePlayerProfileDropdown(newState.currentUserData, newState.userNotifications);
     }
@@ -26,7 +23,6 @@ function renderAuthUI(newState, prevState) {
 
 export function initializeAuthUI() {
     subscribe(renderAuthUI);
-    // Add event listeners for power input formatting
     document.querySelectorAll('.power-input').forEach(input => {
         input.addEventListener('input', (e) => {
             let value = e.target.value.replace(/,/g, '');
@@ -39,14 +35,21 @@ export function initializeAuthUI() {
     });
 }
 
-// --- UI HELPER FUNCTIONS ---
-
 export function updateAvatarDisplay(data) {
     const { allAlliances, customBorders } = getState();
-    // ... (rest of the function is the same up to the border logic) ...
+    const loginBtn = document.getElementById('login-btn');
+    const userProfileNavItem = document.getElementById('user-profile-nav-item');
+    const mobileAuthContainer = document.getElementById('mobile-auth-container');
+    const loginBtnMobile = document.getElementById('login-btn-mobile');
 
     if (data) {
-        // ...
+        loginBtn.classList.add('hidden');
+        userProfileNavItem.classList.remove('hidden');
+        mobileAuthContainer.classList.add('logged-in');
+        loginBtnMobile.classList.add('hidden');
+
+        document.getElementById('username-display').textContent = data.username;
+        
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === data.alliance) : null;
         const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
         const borderHTML = getAvatarBorderHTML(data, allianceData, customBorders);
@@ -54,12 +57,9 @@ export function updateAvatarDisplay(data) {
         document.getElementById('user-avatar-button').src = avatarUrl;
         document.getElementById('user-avatar-mobile').src = avatarUrl;
 
-        // Find the border containers and inject the new HTML
         const borderContainers = document.querySelectorAll('#user-profile-nav-item .avatar-wrapper, #mobile-auth-container .avatar-wrapper');
         borderContainers.forEach(wrapper => {
-            // Remove old border element(s) if they exist
             wrapper.querySelectorAll('.avatar-border, .border-layer').forEach(el => el.remove());
-            // Prepend the new border HTML before the image
             const img = wrapper.querySelector('img');
             if (img) {
                 img.insertAdjacentHTML('beforebegin', borderHTML);
@@ -83,8 +83,7 @@ export function updateAvatarDisplay(data) {
     }
 }
 
-
-export function updatePlayerProfileDropdown(currentUserData, userNotifications) { // FIX: Removed default empty array
+export function updatePlayerProfileDropdown(currentUserData, userNotifications) {
     if (!currentUserData) return;
     const dropdownContainer = document.getElementById('player-profile-dropdown');
     if (!dropdownContainer) return;
@@ -109,7 +108,7 @@ export function updatePlayerProfileDropdown(currentUserData, userNotifications) 
         <button id="profile-dropdown-logout" class="dropdown-link profile-menu-link w-full text-left"><span><i class="fas fa-sign-out-alt fa-fw w-6 text-center mr-2"></i>Log Out</span></button>
     `;
     const friendReqBtn = document.getElementById('profile-dropdown-friends');
-    if (friendReqBtn && userNotifications) { // FIX: Added guard for userNotifications
+    if (friendReqBtn && userNotifications) {
         const friendRequests = userNotifications.filter(n => n.type === 'friend_request' && !n.isRead);
         const friendReqBadge = friendReqBtn.querySelector('.badge');
         if (friendRequests.length > 0) {
@@ -125,10 +124,6 @@ export function updatePlayerProfileDropdown(currentUserData, userNotifications) 
     if (messagesBtn) messagesBtn.disabled = true;
 }
 
-
-// --- EVENT HANDLERS (All other functions from original file remain here) ---
-// handleLogout, initializeRegistrationStepper, handleRegistrationSubmit, etc.
-// ... (The rest of the functions from the original auth-ui.js file) ...
 let currentRegStep = 1;
 let resizedAvatarBlob = null;
 
@@ -151,7 +146,6 @@ export function initializeRegistrationStepper() {
     document.getElementById('registration-success').style.display = 'none';
 }
 
-// ... (and so on for all the other functions)
 function showRegStep(stepIndex) {
     const registrationFlow = document.getElementById('registration-flow');
     const regFormSlides = registrationFlow.querySelectorAll('.form-slide');
@@ -174,7 +168,6 @@ function showRegStep(stepIndex) {
     regNextBtn.classList.toggle('hidden', stepIndex === regFormSlides.length);
     regSubmitBtn.classList.toggle('hidden', stepIndex !== regFormSlides.length);
 }
-
 
 function validateRegStep(stepIndex) {
     const registerError = document.getElementById('register-error');
@@ -254,8 +247,6 @@ export async function handleRegistrationSubmit(e) {
             registrationTimestampUTC: new Date().toISOString(),
         };
         
-        // Removed the logic that sets alliance to 'Pending Alliance'
-
         await setDoc(doc(db, "users", user.uid), userProfile);
         
         await sendVerificationRequest(user.uid, username, alliance);
@@ -323,16 +314,13 @@ export function populateEditForm() {
     const { currentUserData, allAlliances } = getState();
     if (!currentUserData) return;
 
-    // Set dynamic background
     const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
     const primaryColor = allianceData?.primaryColor || 'var(--color-primary)';
     document.getElementById('edit-profile-bg').style.backgroundImage = `radial-gradient(circle, ${primaryColor} 0%, transparent 70%)`;
 
-    // Account Tab
     document.getElementById('edit-username').value = currentUserData.username;
     document.getElementById('edit-avatar-preview').src = currentUserData.avatarUrl || `https://placehold.co/128x128/161B22/FFFFFF?text=${currentUserData.username.charAt(0).toUpperCase()}`;
     
-    // Alliance Tab
     document.getElementById('edit-alliance-avatar').src = allianceData?.avatarUrl || 'https://placehold.co/64x64/161B22/FFFFFF?text=?';
     const editAllianceSelect = document.getElementById('edit-alliance').closest('.custom-select-container');
     const editRankSelect = document.getElementById('edit-alliance-rank').closest('.custom-select-container');
@@ -340,11 +328,10 @@ export function populateEditForm() {
     const rankData = ALLIANCE_RANKS.find(r => r.value === currentUserData.allianceRank);
     setCustomSelectValue(editRankSelect, currentUserData.allianceRank, rankData ? rankData.text : currentUserData.allianceRank);
     
-    // Verification Status
     const verificationIndicator = document.getElementById('verification-status-indicator');
     const icon = verificationIndicator.querySelector('i');
     const text = verificationIndicator.querySelector('span');
-    verificationIndicator.className = 'p-3 rounded-lg flex items-center gap-3'; // Reset classes
+    verificationIndicator.className = 'p-3 rounded-lg flex items-center gap-3';
     if (currentUserData.isVerified) {
         verificationIndicator.classList.add('verified');
         icon.className = 'fas fa-check-circle';
@@ -355,18 +342,16 @@ export function populateEditForm() {
         text.textContent = 'Unverified Member';
     }
 
-    // Power Tab
     document.getElementById('edit-power').value = (currentUserData.power || 0).toLocaleString();
     document.getElementById('edit-tank-power').value = (currentUserData.tankPower || 0).toLocaleString();
     document.getElementById('edit-air-power').value = (currentUserData.airPower || 0).toLocaleString();
     document.getElementById('edit-missile-power').value = (currentUserData.missilePower || 0).toLocaleString();
 
-    // Skin Tab
     buildAvatarBorderSkins();
     const currentSkin = currentUserData.avatarBorderSkin || 'rank';
     document.getElementById('avatar-border-skin-input').value = currentSkin;
     updateSkinSelection('avatar-border-selector', currentSkin);
-    updateAvatarBorderPreview(); // Initial preview update
+    updateAvatarBorderPreview();
 }
 
 export async function handleEditProfileSubmit(e) {
