@@ -167,38 +167,8 @@ async function handleSaveBorder() {
         return;
     }
 
-    // Gather all values from the new, revamped editor
     const css = {
-        // Shape & Color
-        borderSize: document.getElementById('border-size-slider').value,
-        borderStyle: document.getElementById('border-style-select').value,
-        borderWidth: document.getElementById('border-width-slider').value,
-        gradientMode: document.getElementById('gradient-mode-select').value,
-        borderColor1: document.getElementById('border-color-1').value,
-        borderColor2: document.getElementById('border-color-2').value,
-        borderColor3: document.getElementById('border-color-3').value,
-        borderColor4: document.getElementById('border-color-4').value,
-        borderColor5: document.getElementById('border-color-5').value,
-        enableColor3: document.getElementById('enable-color-3').checked,
-        enableColor4: document.getElementById('enable-color-4').checked,
-        enableColor5: document.getElementById('enable-color-5').checked,
-        gradientAngle: document.getElementById('gradient-angle-slider').value,
-        
-        // Glow & Shadow
-        boxShadowBlur: document.getElementById('box-shadow-blur-slider').value,
-        boxShadowSpread: document.getElementById('box-shadow-spread-slider').value,
-        boxShadowColor: document.getElementById('box-shadow-color-picker').value,
-        boxShadowColor2: document.getElementById('box-shadow-color-picker-2').value,
-        glowAngle: document.getElementById('glow-angle-slider').value,
-        innerGlowColor: document.getElementById('inner-glow-color-picker').value,
-
-        // Animation & FX
-        animationName: document.getElementById('animation-select').value,
-        animationDuration: document.getElementById('animation-duration-slider').value,
-        animationDirection: document.getElementById('animation-direction-select').value,
-        animateGradient: document.getElementById('animate-gradient-toggle').checked,
-        borderTexture: document.getElementById('border-texture-select').value,
-        textEffect: document.getElementById('text-effect-select').value
+        borderColor1: document.getElementById('border-color-1').value
     };
 
     try {

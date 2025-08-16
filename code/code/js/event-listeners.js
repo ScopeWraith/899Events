@@ -34,93 +34,21 @@ import { applyCustomBorderStyle } from './utils.js';
  * from the revamped `applyCustomBorderStyle` function.
  */
 function updateBorderEditorPreview() {
-    const getEl = (id) => document.getElementById(id);
-
-    // --- 1. GATHER ALL FORM VALUES ---
     const css = {
-        borderSize: getEl('border-size-slider').value,
-        borderStyle: getEl('border-style-select').value,
-        borderWidth: getEl('border-width-slider').value,
-        gradientMode: getEl('gradient-mode-select').value,
-        borderColor1: getEl('border-color-1').value,
-        borderColor2: getEl('border-color-2').value,
-        borderColor3: getEl('border-color-3').value,
-        borderColor4: getEl('border-color-4').value,
-        borderColor5: getEl('border-color-5').value,
-        enableColor3: getEl('enable-color-3').checked,
-        enableColor4: getEl('enable-color-4').checked,
-        enableColor5: getEl('enable-color-5').checked,
-        gradientAngle: getEl('gradient-angle-slider').value,
-        boxShadowBlur: getEl('box-shadow-blur-slider').value,
-        boxShadowSpread: getEl('box-shadow-spread-slider').value,
-        boxShadowColor: getEl('box-shadow-color-picker').value,
-        boxShadowColor2: getEl('box-shadow-color-picker-2').value,
-        glowAngle: getEl('glow-angle-slider').value,
-        animationName: getEl('animation-select').value,
-        animationDuration: getEl('animation-duration-slider').value,
-        animationDirection: getEl('animation-direction-select').value,
-        innerGlowColor: getEl('inner-glow-color-picker').value,
-        animateGradient: getEl('animate-gradient-toggle').checked,
-        borderTexture: getEl('border-texture-select').value,
-        textEffect: getEl('text-effect-select').value
+        borderColor1: document.getElementById('border-color-1').value,
     };
 
-    // --- 2. GENERATE THE COMPLEX STYLE OBJECT ---
     const styles = applyCustomBorderStyle(css);
-
-    // --- 3. APPLY STYLES TO THE UI ---
-    const previewElement = getEl('border-editor-live-preview');
-    if (!previewElement) return;
-
-    // Apply main styles directly to the element
-    previewElement.style.cssText = styles.main.style;
-
-    // Inject pseudo-element styles into the dedicated <style> tag
-    const dynamicStyleTag = getEl('border-editor-dynamic-styles');
+    const previewElement = document.getElementById('border-editor-live-preview');
+    if (previewElement) {
+        previewElement.style.cssText = styles.main.style;
+    }
+    
+    // Clear out pseudo-element styles
+    const dynamicStyleTag = document.getElementById('border-editor-dynamic-styles');
     if (dynamicStyleTag) {
-        dynamicStyleTag.innerHTML = `
-            #border-editor-live-preview::before { ${styles.before.style} }
-            #border-editor-live-preview::after { ${styles.after.style} }
-        `;
+        dynamicStyleTag.innerHTML = '';
     }
-
-    // Handle particles
-    const particleContainer = document.getElementById('border-editor-preview-box');
-    const existingParticles = particleContainer.querySelectorAll('.particle');
-    existingParticles.forEach(p => p.remove());
-
-    if (styles.particles && styles.particles.length > 0) {
-        styles.particles.forEach(p => {
-            const particleEl = document.createElement('div');
-            particleEl.className = 'particle';
-            particleEl.style.cssText = p.style;
-            previewElement.appendChild(particleEl);
-        });
-    }
-
-
-    // --- 4. UPDATE VALUE DISPLAYS ---
-    getEl('border-size-value').textContent = parseFloat(css.borderSize).toFixed(2);
-    getEl('border-width-value').textContent = css.borderWidth;
-    getEl('gradient-angle-value').textContent = css.gradientAngle;
-    getEl('box-shadow-blur-value').textContent = css.boxShadowBlur;
-    getEl('box-shadow-spread-value').textContent = css.boxShadowSpread;
-    getEl('animation-duration-value').textContent = parseFloat(css.animationDuration).toFixed(1);
-    getEl('glow-angle-value').textContent = css.glowAngle;
-
-    // --- 5. ENABLE/DISABLE CONTROLS based on selections ---
-    const animControls = [
-        'animation-duration-slider',
-        'animation-direction-select',
-    ];
-    const isAnimActive = css.animationName !== 'none';
-    animControls.forEach(id => {
-        const el = getEl(id);
-        if (el) {
-            el.disabled = !isAnimActive;
-            el.closest('.control-group')?.classList.toggle('disabled', !isAnimActive);
-        }
-    });
 }
 
 

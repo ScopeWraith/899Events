@@ -66,118 +66,13 @@
                                 <button class="modal-tab-btn" data-tab="fx"><i class="fas fa-magic"></i><span>Animation & FX</span></button>
                             </nav>
                             <div id="border-editor-controls" class="p-6 overflow-y-auto themed-scrollbar space-y-6 flex-grow">
-                                
                                 <div id="editor-tab-shape" class="modal-tab-pane active space-y-6">
                                     <div class="editor-group">
-                                        <h3 class="editor-group-title">Border Shape</h3>
-                                        <div class="editor-group-content grid-cols-2">
+                                        <h3 class="editor-group-title">Border Color</h3>
+                                        <div class="editor-group-content">
                                             <div class="control-group">
-                                                <label for="border-size-slider">Scale: <span id="border-size-value">1.15</span></label>
-                                                <input type="range" id="border-size-slider" min="1.05" max="1.5" step="0.01" value="1.15" class="w-full custom-slider">
-                                            </div>
-                                            <div class="control-group">
-                                                <label for="border-width-slider">Width: <span id="border-width-value">4</span>px</label>
-                                                <input type="range" id="border-width-slider" min="1" max="15" value="4" class="w-full custom-slider">
-                                            </div>
-                                            <div class="control-group">
-                                                <label for="border-style-select">Style</label>
-                                                <div class="custom-select-container" data-type="border-style"><input type="hidden" id="border-style-select" value="solid"><button type="button" class="custom-select-value form-input"><span>Solid</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="editor-group">
-                                        <h3 class="editor-group-title">Border Gradient</h3>
-                                        <div class="editor-group-content grid-cols-1">
-                                             <div class="grid grid-cols-2 gap-4">
-                                                <div class="control-group">
-                                                    <label for="gradient-mode-select">Mode</label>
-                                                    <div class="custom-select-container" data-type="gradient-mode"><input type="hidden" id="gradient-mode-select" value="linear-gradient"><button type="button" class="custom-select-value form-input"><span>Linear</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div>
-                                                </div>
-                                                <div class="control-group">
-                                                    <label for="gradient-angle-slider">Angle: <span id="gradient-angle-value">90</span>&deg;</label>
-                                                    <input type="range" id="gradient-angle-slider" min="0" max="360" value="90" class="w-full custom-slider">
-                                                </div>
-                                            </div>
-                                            <div class="control-group grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-                                                <div><label>Color 1</label><input type="color" id="border-color-1" value="#FF00FF" class="color-input"></div>
-                                                <div><label>Color 2</label><input type="color" id="border-color-2" value="#00FFFF" class="color-input"></div>
-                                                <div><label class="flex items-center gap-1">C3<input type="checkbox" id="enable-color-3"></label><input type="color" id="border-color-3" value="#FFFF00" class="color-input" disabled></div>
-                                                <div><label class="flex items-center gap-1">C4<input type="checkbox" id="enable-color-4"></label><input type="color" id="border-color-4" value="#00FF00" class="color-input" disabled></div>
-                                                <div><label class="flex items-center gap-1">C5<input type="checkbox" id="enable-color-5"></label><input type="color" id="border-color-5" value="#FF0000" class="color-input" disabled></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div id="editor-tab-glow" class="modal-tab-pane space-y-6">
-                                    <div class="editor-group">
-                                        <h3 class="editor-group-title">Outer Glow (::before)</h3>
-                                        <div class="editor-group-content grid-cols-2">
-                                            <div class="control-group">
-                                                <label>Glow Color 1</label><input type="color" id="box-shadow-color-picker" value="#FFFFFF" class="color-input">
-                                            </div>
-                                            <div class="control-group">
-                                                <label>Glow Color 2</label><input type="color" id="box-shadow-color-picker-2" value="#00FFFF" class="color-input">
-                                            </div>
-                                            <div class="control-group">
-                                                <label>Glow Blur: <span id="box-shadow-blur-value">10</span>px</label>
-                                                <input type="range" id="box-shadow-blur-slider" min="0" max="50" value="10" class="w-full custom-slider">
-                                            </div>
-                                            <div class="control-group">
-                                                <label>Glow Spread: <span id="box-shadow-spread-value">-5</span>px</label>
-                                                <input type="range" id="box-shadow-spread-slider" min="-10" max="15" value="-5" class="w-full custom-slider">
-                                            </div>
-                                            <div class="control-group col-span-2">
-                                                <label>Glow Angle: <span id="glow-angle-value">90</span>&deg;</label>
-                                                <input type="range" id="glow-angle-slider" min="0" max="360" value="90" class="w-full custom-slider">
-                                            </div>
-                                        </div>
-                                    </div>
-                                     <div class="editor-group">
-                                        <h3 class="editor-group-title">Inner Shadow</h3>
-                                        <div class="editor-group-content grid-cols-1">
-                                            <div class="control-group">
-                                                <label>Inner Glow Color</label>
-                                                <input type="color" id="inner-glow-color-picker" value="#000000" class="color-input">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div id="editor-tab-fx" class="modal-tab-pane space-y-6">
-                                     <div class="editor-group">
-                                        <h3 class="editor-group-title">Animation</h3>
-                                        <div class="editor-group-content grid-cols-1">
-                                            <div class="control-group">
-                                                <label for="animation-select">Animation Type</label>
-                                                <div class="custom-select-container" data-type="animation-style"><input type="hidden" id="animation-select" value="none"><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div>
-                                            </div>
-                                            <div class="grid grid-cols-2 gap-4">
-                                                <div class="control-group">
-                                                    <label>Duration: <span id="animation-duration-value">2.0</span>s</label>
-                                                    <input type="range" id="animation-duration-slider" min="0.5" max="10" step="0.1" value="2" class="w-full custom-slider">
-                                                </div>
-                                                <div class="control-group">
-                                                    <label for="animation-direction-select">Direction</label>
-                                                    <div class="custom-select-container" data-type="animation-direction"><input type="hidden" id="animation-direction-select" value="normal"><button type="button" class="custom-select-value form-input"><span>Normal</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div>
-                                                </div>
-                                            </div>
-                                            <div class="control-group toggle-group">
-                                                <label for="animate-gradient-toggle" class="font-semibold text-white m-0">Animate Gradient</label>
-                                                <label class="toggle-switch"><input type="checkbox" id="animate-gradient-toggle"><span class="slider"></span></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="editor-group">
-                                        <h3 class="editor-group-title">Effects (::after)</h3>
-                                         <div class="editor-group-content grid-cols-2">
-                                            <div class="control-group">
-                                                <label for="border-texture-select">Texture Overlay</label>
-                                                <div class="custom-select-container" data-type="border-texture"><input type="hidden" id="border-texture-select" value="none"><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div>
-                                            </div>
-                                            <div class="control-group">
-                                                <label for="text-effect-select">Text Effect</label>
-                                                <div class="custom-select-container" data-type="text-effect"><input type="hidden" id="text-effect-select" value="none"><button type="button" class="custom-select-value form-input"><span>None</span><i class="fas fa-chevron-down text-xs"></i></button><div class="custom-select-options"><div class="options-list"></div></div></div>
+                                                <label for="border-color-1">Color</label>
+                                                <input type="color" id="border-color-1" value="#00BFFF" class="color-input">
                                             </div>
                                         </div>
                                     </div>
