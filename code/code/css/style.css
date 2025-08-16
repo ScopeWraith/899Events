@@ -1500,3 +1500,50 @@ body {
 .glow-content .grid-col-half {
     grid-column: span 1; /* For side-by-side controls */
 }
+/* --- NEW: Border Editor Theming --- */
+.editor-tab-pane {
+    background-color: rgba(13, 17, 23, 0.5);
+}
+
+.control-section {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.control-section-header {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.editor-tab-pane .control-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #8b949e;
+    margin-bottom: 0.75rem;
+}
+
+.editor-tab-pane .control-group .value-display {
+    font-weight: 700;
+    color: #c9d1d9;
+    background-color: rgba(13, 17, 23, 0.8);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.glow-controls .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem 1.5rem;
+}

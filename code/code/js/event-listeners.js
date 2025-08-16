@@ -59,7 +59,6 @@ export function updateBorderEditorPreview() {
             outerGlow: { enabled: false }
         };
 
-        // Process Glow Controls
         item.querySelectorAll('.glow-controls-group').forEach(glowGroup => {
             const glowType = glowGroup.querySelector('.glow-enable-toggle').dataset.glowType;
             const glowEnabled = glowGroup.querySelector('.glow-enable-toggle').checked;
@@ -68,27 +67,23 @@ export function updateBorderEditorPreview() {
             glowContent.classList.toggle('hidden', !glowEnabled);
             
             if (glowEnabled) {
-                const glowData = {
+                layerData[`${glowType}Glow`] = {
                     enabled: true,
+                    reverse: glowContent.querySelector('.glow-reverse-toggle').checked,
                     color: glowContent.querySelector('.glow-color').value,
                     opacity: glowContent.querySelector('.glow-opacity').value,
                     blur: glowContent.querySelector('.glow-blur').value,
                     spread: glowContent.querySelector('.glow-spread').value
                 };
-                layerData[`${glowType}Glow`] = glowData;
-
-                // Update value displays for glow sliders
-                glowContent.querySelector('.glow-opacity').closest('.control-group').querySelector('.value-display').textContent = parseFloat(glowData.opacity).toFixed(2);
-                glowContent.querySelector('.glow-blur').closest('.control-group').querySelector('.value-display').textContent = glowData.blur;
-                glowContent.querySelector('.glow-spread').closest('.control-group').querySelector('.value-display').textContent = glowData.spread;
+                glowContent.querySelector('.glow-opacity + .value-display').textContent = parseFloat(layerData[`${glowType}Glow`].opacity).toFixed(2);
+                glowContent.querySelector('.glow-blur + .value-display').textContent = layerData[`${glowType}Glow`].blur + 'px';
+                glowContent.querySelector('.glow-spread + .value-display').textContent = layerData[`${glowType}Glow`].spread + 'px';
             }
         });
 
         css.layers[layerIndex] = layerData;
-
-        // Update value displays for main sliders
-        item.querySelector('.control-thickness').closest('.control-group').querySelector('.value-display').textContent = layerData.thickness;
-        item.querySelector('.control-opacity').closest('.control-group').querySelector('.value-display').textContent = parseFloat(layerData.opacity).toFixed(2);
+        item.querySelector('.control-thickness + .value-display').textContent = layerData.thickness + 'px';
+        item.querySelector('.control-opacity + .value-display').textContent = parseFloat(layerData.opacity).toFixed(2);
     });
 
     const styles = applyCustomBorderStyle(css);

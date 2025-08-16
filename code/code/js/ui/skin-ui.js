@@ -189,6 +189,7 @@ async function handleSaveBorder() {
                 const glowContent = glowGroup.querySelector('.glow-content');
                 layerData[`${glowType}Glow`] = {
                     enabled: true,
+                    reverse: glowContent.querySelector('.glow-reverse-toggle').checked,
                     color: glowContent.querySelector('.glow-color').value,
                     opacity: glowContent.querySelector('.glow-opacity').value,
                     blur: glowContent.querySelector('.glow-blur').value,

@@ -214,15 +214,11 @@ export function applyCustomBorderStyle(css) {
     const t2 = css.layers['2']?.enabled ? parseInt(css.layers['2'].thickness, 10) : 0;
     const t3 = css.layers['3']?.enabled ? parseInt(css.layers['3'].thickness, 10) : 0;
 
-    // Process all three layers
     for (let i = 1; i <= 3; i++) {
         const layerData = css.layers[String(i)];
         const key = `layer${i}`;
         
-        let thickness = 0;
-        if (i === 1) thickness = t1;
-        if (i === 2) thickness = t1 + t2;
-        if (i === 3) thickness = t1 + t2 + t3;
+        let thickness = (i === 1) ? t1 : ((i === 2) ? t1 + t2 : t1 + t2 + t3);
 
         if (layerData?.enabled && parseInt(layerData.thickness, 10) > 0) {
             const scale = 1 + (thickness * 2 * BASE_SCALE_INCREMENT);
@@ -232,13 +228,15 @@ export function applyCustomBorderStyle(css) {
             if (layerData.innerGlow?.enabled) {
                 const ig = layerData.innerGlow;
                 const color = hexToRgba(ig.color, ig.opacity);
-                shadows.push(`inset 0 0 ${ig.blur}px ${ig.spread}px ${color}`);
+                const inset = ig.reverse ? '' : 'inset';
+                shadows.push(`${inset} 0 0 ${ig.blur}px ${ig.spread}px ${color}`);
             }
             // Outer Glow
             if (layerData.outerGlow?.enabled) {
                 const og = layerData.outerGlow;
                 const color = hexToRgba(og.color, og.opacity);
-                shadows.push(`0 0 ${og.blur}px ${og.spread}px ${color}`);
+                const inset = og.reverse ? 'inset' : '';
+                shadows.push(`${inset} 0 0 ${og.blur}px ${og.spread}px ${color}`);
             }
 
             styles[key] = {
