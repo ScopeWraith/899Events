@@ -195,22 +195,28 @@ export function getAvatarBorderClass(player, allianceData, customBorders) {
  * BORDER STYLE GENERATOR - FINAL VERSION
  * ===================================================================================
  */
+function hexToRgba(hex, alpha = 1) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export function applyCustomBorderStyle(css) {
     if (!css || !css.layers) return {};
 
     const styles = {};
-    const BASE_SCALE_INCREMENT = 0.01; // Each '1' on the slider adds to the scale
+    const BASE_SCALE_INCREMENT = 0.01;
 
-    // Get the thickness of each layer, defaulting to 0 if disabled
     const t1 = css.layers['1']?.enabled ? parseInt(css.layers['1'].thickness, 10) : 0;
     const t2 = css.layers['2']?.enabled ? parseInt(css.layers['2'].thickness, 10) : 0;
     const t3 = css.layers['3']?.enabled ? parseInt(css.layers['3'].thickness, 10) : 0;
 
-    // Layer 1 (Innermost) - Highest z-index
+    // Layer 1
     if (t1 > 0) {
         const scale1 = 1 + (t1 * 2 * BASE_SCALE_INCREMENT);
         styles.layer1 = {
-            'background': css.layers['1'].color,
+            'background': hexToRgba(css.layers['1'].color, css.layers['1'].opacity),
             'transform': `scale(${scale1}) translateZ(0)`,
             'z-index': 3
         };
@@ -218,12 +224,12 @@ export function applyCustomBorderStyle(css) {
         styles.layer1 = { 'transform': 'scale(0) translateZ(0)' };
     }
 
-    // Layer 2 (Middle) - Middle z-index
+    // Layer 2
     if (t2 > 0) {
-        const totalThickness2 = t1 + t2; // Scale is based on its own thickness plus inner layers
+        const totalThickness2 = t1 + t2;
         const scale2 = 1 + (totalThickness2 * 2 * BASE_SCALE_INCREMENT);
         styles.layer2 = {
-            'background': css.layers['2'].color,
+            'background': hexToRgba(css.layers['2'].color, css.layers['2'].opacity),
             'transform': `scale(${scale2}) translateZ(0)`,
             'z-index': 2
         };
@@ -231,12 +237,12 @@ export function applyCustomBorderStyle(css) {
         styles.layer2 = { 'transform': 'scale(0) translateZ(0)' };
     }
 
-    // Layer 3 (Outermost) - Lowest z-index
+    // Layer 3
     if (t3 > 0) {
-        const totalThickness3 = t1 + t2 + t3; // Scale is based on all three thicknesses
+        const totalThickness3 = t1 + t2 + t3;
         const scale3 = 1 + (totalThickness3 * 2 * BASE_SCALE_INCREMENT);
         styles.layer3 = {
-            'background': css.layers['3'].color,
+            'background': hexToRgba(css.layers['3'].color, css.layers['3'].opacity),
             'transform': `scale(${scale3}) translateZ(0)`,
             'z-index': 1
         };

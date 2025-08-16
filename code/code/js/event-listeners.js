@@ -35,13 +35,12 @@ import { applyCustomBorderStyle } from './utils.js';
  */
 // This function now reads all controls and updates the UI in real-time
 const getElement = (id) => document.getElementById(id);
-export function updateBorderEditorPreview() {
+function updateBorderEditorPreview() {
     const controls = getElement('border-editor-controls');
     if (!controls) return;
 
     const css = { layers: {} };
 
-    // Read the values from the sliders and color pickers
     controls.querySelectorAll('.editor-accordion-item').forEach(item => {
         const layerIndex = item.dataset.layer;
         const isEnabled = (layerIndex === '1') || item.querySelector('.layer-enable-toggle')?.checked;
@@ -51,36 +50,26 @@ export function updateBorderEditorPreview() {
             enabled: isEnabled,
             thickness: item.querySelector('.control-thickness').value,
             color: item.querySelector('.control-color').value,
+            opacity: item.querySelector('.control-opacity').value,
         };
         css.layers[layerIndex] = layerData;
 
-        const valueDisplay = item.querySelector('.value-display');
-        if (valueDisplay) {
-            valueDisplay.textContent = layerData.thickness;
-        }
+        // Update value displays for both sliders
+        item.querySelector('.control-thickness').closest('.control-group').querySelector('.value-display').textContent = layerData.thickness;
+        item.querySelector('.control-opacity').closest('.control-group').querySelector('.value-display').textContent = parseFloat(layerData.opacity).toFixed(2);
     });
 
-    // Generate the styles
     const styles = applyCustomBorderStyle(css);
-
-    // Apply the styles to the correct layer divs
     const previewContainer = getElement('border-editor-live-preview');
     if (previewContainer) {
         for (let i = 1; i <= 3; i++) {
             const layerElement = previewContainer.querySelector(`.border-layer[data-layer-id="${i}"]`);
             const layerStyle = styles[`layer${i}`];
             if (layerElement && layerStyle) {
-                // Reset styles first then apply new ones
                 layerElement.style.cssText = '';
                 Object.assign(layerElement.style, layerStyle);
             }
         }
-    }
-    
-    // Clear out the old dynamic style tag as it's no longer used
-    const dynamicStyleTag = getElement('border-editor-dynamic-styles');
-    if (dynamicStyleTag) {
-        dynamicStyleTag.innerHTML = '';
     }
 }
 

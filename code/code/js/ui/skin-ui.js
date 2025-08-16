@@ -178,6 +178,7 @@ async function handleSaveBorder() {
             enabled: isEnabled,
             thickness: item.querySelector('.control-thickness').value,
             color: item.querySelector('.control-color').value,
+            opacity: item.querySelector('.control-opacity').value,
         };
     });
 
