@@ -26,15 +26,8 @@ import {
 } from './ui/alliances-ui.js';
 import { applyCustomBorderStyle } from './utils.js';
 
-/**
- * ===================================================================================
- * REVAMPED BORDER PREVIEW UPDATER
- * ===================================================================================
- * This function now correctly handles the complex, multi-layered style object
- * from the revamped `applyCustomBorderStyle` function.
- */
-// This function now reads all controls and updates the UI in real-time
 const getElement = (id) => document.getElementById(id);
+
 export function updateBorderEditorPreview() {
     const controls = getElement('border-editor-controls');
     if (!controls) return;
@@ -67,7 +60,7 @@ export function updateBorderEditorPreview() {
             glowContent.classList.toggle('hidden', !glowEnabled);
             
             if (glowEnabled) {
-                layerData[`${glowType}Glow`] = {
+                const glowData = {
                     enabled: true,
                     reverse: glowContent.querySelector('.glow-reverse-toggle').checked,
                     color: glowContent.querySelector('.glow-color').value,
@@ -75,15 +68,17 @@ export function updateBorderEditorPreview() {
                     blur: glowContent.querySelector('.glow-blur').value,
                     spread: glowContent.querySelector('.glow-spread').value
                 };
-                glowContent.querySelector('.glow-opacity + .value-display').textContent = parseFloat(layerData[`${glowType}Glow`].opacity).toFixed(2);
-                glowContent.querySelector('.glow-blur + .value-display').textContent = layerData[`${glowType}Glow`].blur + 'px';
-                glowContent.querySelector('.glow-spread + .value-display').textContent = layerData[`${glowType}Glow`].spread + 'px';
+                layerData[`${glowType}Glow`] = glowData;
+
+                glowContent.querySelector('.value-display').textContent = parseFloat(glowData.opacity).toFixed(2);
+                glowContent.querySelector('.glow-blur').closest('.control-group').querySelector('.value-display').textContent = glowData.blur + 'px';
+                glowContent.querySelector('.glow-spread').closest('.control-group').querySelector('.value-display').textContent = glowData.spread + 'px';
             }
         });
 
         css.layers[layerIndex] = layerData;
-        item.querySelector('.control-thickness + .value-display').textContent = layerData.thickness + 'px';
-        item.querySelector('.control-opacity + .value-display').textContent = parseFloat(layerData.opacity).toFixed(2);
+        item.querySelector('.control-thickness').closest('.control-group').querySelector('.value-display').textContent = layerData.thickness + 'px';
+        item.querySelector('.control-opacity').closest('.control-group').querySelector('.value-display').textContent = parseFloat(layerData.opacity).toFixed(2);
     });
 
     const styles = applyCustomBorderStyle(css);
@@ -100,32 +95,6 @@ export function updateBorderEditorPreview() {
     }
 }
 
-// Add this setup inside your `initializeAllEventListeners` function
-const borderEditorControls = getElement('border-editor-controls');
-if (borderEditorControls) {
-    // A single listener for all real-time updates
-    borderEditorControls.addEventListener('input', updateBorderEditorPreview);
-    borderEditorControls.addEventListener('change', updateBorderEditorPreview); // For checkboxes and selects
-
-    // Listener for accordion and color enable toggles
-    borderEditorControls.addEventListener('click', (e) => {
-        // Accordion functionality
-        const header = e.target.closest('.editor-accordion-header');
-        if (header) {
-            header.parentElement.classList.toggle('open');
-        }
-        // Link color checkbox to its input
-        const colorCheckbox = e.target.closest('.control-color-enable');
-        if (colorCheckbox) {
-            const colorIndex = colorCheckbox.dataset.colorIndex;
-            const colorInput = colorCheckbox.closest('.control-group').querySelector(`.control-color[data-color-index="${colorIndex}"]`);
-            if (colorInput) {
-                colorInput.disabled = !colorCheckbox.checked;
-            }
-        }
-    });
-}
-
 export function initializeAllEventListeners() {
     const addListener = (id, event, handler) => {
         const element = getElement(id);
@@ -134,14 +103,11 @@ export function initializeAllEventListeners() {
         }
     };
 
-    // --- BORDER EDITOR EVENT LISTENERS (TAB LAYOUT) ---
     const borderEditorControls = getElement('border-editor-controls');
     if (borderEditorControls) {
-        // Listen for any input change in the entire controls area
         borderEditorControls.addEventListener('input', updateBorderEditorPreview);
         borderEditorControls.addEventListener('change', updateBorderEditorPreview);
 
-        // Tab Switching Logic
         const tabs = borderEditorControls.querySelectorAll('.editor-tab-btn');
         const panes = borderEditorControls.querySelectorAll('.editor-tab-pane');
         
@@ -156,13 +122,11 @@ export function initializeAllEventListeners() {
             });
         });
 
-        // Initial preview render when the modal is first opened.
         updateBorderEditorPreview();
     }
     
     addListener('close-border-editor-modal-btn', 'click', hideAllModals);
 
-    // --- (The rest of your original event listeners) ---
     const serverPage = getElement('page-server');
     if (serverPage) {
         serverPage.addEventListener('click', async (e) => {
@@ -365,7 +329,6 @@ export function initializeAllEventListeners() {
         }
     });
 
-    // Consolidated event listener for the player profile dropdown
     addListener('player-profile-dropdown', 'click', (e) => {
         const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
         const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
@@ -374,7 +337,6 @@ export function initializeAllEventListeners() {
         const avatarBtn = e.target.closest('#profile-dropdown-avatar');
         const logoutBtn = e.target.closest('#profile-dropdown-logout');
 
-        // Close the dropdown after any action
         const userProfileNavItem = getElement('user-profile-nav-item');
         if (userProfileNavItem) {
             userProfileNavItem.classList.remove('open');
