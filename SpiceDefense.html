@@ -353,18 +353,18 @@
                     if (cell) cell.classList.add('removed-cell');
                 });
                 
-                // Emphasize borders of ALL occupied areas
-                allOccupiedSet.forEach(coordString => {
-                    const [x, y] = coordString.split(',').map(Number);
-                    const cell = getCell(x, y);
+                // Emphasize borders of manually removed terrain ONLY
+                mapData.removed.forEach(coords => {
+                    const cell = getCell(coords.x, coords.y);
                     if (!cell) return;
                     
                     const borderColor = '#f59e0b'; // amber-500
-                    if (!allOccupiedSet.has(`${x},${y - 1}`)) cell.style.borderTop = `1px solid ${borderColor}`;
-                    if (!allOccupiedSet.has(`${x},${y + 1}`)) cell.style.borderBottom = `1px solid ${borderColor}`;
-                    if (!allOccupiedSet.has(`${x - 1},${y}`)) cell.style.borderLeft = `1px solid ${borderColor}`;
-                    if (!allOccupiedSet.has(`${x + 1},${y}`)) cell.style.borderRight = `1px solid ${borderColor}`;
+                    if (!allOccupiedSet.has(`${coords.x},${coords.y - 1}`)) cell.style.borderTop = `1px solid ${borderColor}`;
+                    if (!allOccupiedSet.has(`${coords.x},${coords.y + 1}`)) cell.style.borderBottom = `1px solid ${borderColor}`;
+                    if (!allOccupiedSet.has(`${coords.x - 1},${coords.y}`)) cell.style.borderLeft = `1px solid ${borderColor}`;
+                    if (!allOccupiedSet.has(`${coords.x + 1},${coords.y}`)) cell.style.borderRight = `1px solid ${borderColor}`;
                 });
+
                 drawMinimap();
                 updateMinimapViewport();
             }
