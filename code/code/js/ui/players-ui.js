@@ -6,7 +6,6 @@ import { canManageUser, getAvatarBorderClass} from '../utils.js';
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderPlayersUI(newState, prevState) {
-    // Re-render the player list if the list of players or the current user changes.
     if (newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData) {
         applyPlayerFilters();
     }
@@ -20,24 +19,16 @@ export function initializePlayersUI() {
 
 export function applyPlayerFilters() {
     const playerListContainer = document.getElementById('player-list-container');
-    if (!playerListContainer) {
-        return;
-    }
-
+    if (!playerListContainer) return;
     const { allPlayers } = getState();
-    // --- FIX: ADD THIS GUARD CLAUSE ---
     if (!allPlayers) {
-        // If players aren't loaded yet, we can render skeletons or just exit.
-        renderPlayers(null); // Passing null will trigger the skeleton loader
+        renderPlayers(null);
         return;
     }
-
     const searchTermInput = document.getElementById('player-search-input');
     const allianceFilterInput = document.getElementById('alliance-filter');
-
     const searchTerm = searchTermInput ? searchTermInput.value.toLowerCase() : '';
     const allianceFilter = allianceFilterInput ? allianceFilterInput.value : '';
-
     const filteredPlayers = allPlayers.filter(player => {
         if (!player.username) return false;
         const nameMatch = player.username.toLowerCase().includes(searchTerm);
@@ -71,7 +62,7 @@ export function renderPlayers(players) {
     const { currentUserData, userSessions, allAlliances } = getState();
     playerListContainer.innerHTML = '';
 
-    if (players === null) { // Data is loading, show skeletons
+    if (players === null) {
         let skeletonHTML = '';
         for (let i = 0; i < 12; i++) {
             skeletonHTML += createPlayerSkeletonCard();
@@ -83,6 +74,8 @@ export function renderPlayers(players) {
         playerListContainer.innerHTML = `<p class="text-center col-span-full py-8 text-gray-400">No players match the current filters.</p>`;
         return;
     }
+
+    const colorThief = new ColorThief();
 
     players.forEach(player => {
         const card = document.createElement('div');
@@ -110,7 +103,7 @@ export function renderPlayers(players) {
             ${gearIconHTML}
             <div class="player-card-main-content">
                 <div class="player-card-avatar-wrapper">
-                    <img src="${avatarUrl}" class="player-card-avatar ${border.className}" style="${border.style}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                    <img src="${avatarUrl}" class="player-card-avatar ${border.className}" style="${border.style}" alt="${player.username}" crossorigin="anonymous">
                     <span class="status-dot ${statusClass}"></span>
                 </div>
                 <div class="player-card-info">
@@ -131,5 +124,25 @@ export function renderPlayers(players) {
             </div>
         `;
         playerListContainer.appendChild(card);
+
+        // --- NEW: Color Extraction Logic ---
+        const img = card.querySelector('.player-card-avatar');
+        if (img.complete) {
+            try {
+                const color = colorThief.getColor(img);
+                card.style.setProperty('--player-theme-color', `rgb(${color[0]}, ${color[1]}, ${color[2]})`);
+            } catch(e) {
+                // Ignore errors, fallback CSS will be used
+            }
+        } else {
+            img.addEventListener('load', () => {
+                try {
+                    const color = colorThief.getColor(img);
+                    card.style.setProperty('--player-theme-color', `rgb(${color[0]}, ${color[1]}, ${color[2]})`);
+                } catch(e) {
+                    // Ignore errors
+                }
+            });
+        }
     });
 }
