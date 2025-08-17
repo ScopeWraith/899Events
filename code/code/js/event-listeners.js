@@ -34,15 +34,7 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
-    addListener('chat-selectors', 'click', (e) => {
-        // Find the closest parent element with the new class name
-        const card = e.target.closest('.chat-channel-card'); 
-        if (!card) return;
-
-        // The 'active' state isn't part of the new card design, 
-        // so we just directly call the function to open the chat modal.
-        showFullscreenChatModal({ chatType: card.dataset.chatType });
-    });
+    
     const serverPage = getElement('page-server');
     if (serverPage) {
         serverPage.addEventListener('click', async (e) => {
@@ -307,13 +299,13 @@ export function initializeAllEventListeners() {
         allianceFilter.closest('.custom-select-container').addEventListener('change', () => applyPlayerFilters());
     }
     addListener('chat-selectors', 'click', (e) => {
-        const btn = e.target.closest('.chat-selector-btn');
-        if (!btn) return;
+        // Find the closest parent element with the new class name
+        const card = e.target.closest('.chat-channel-card'); 
+        if (!card) return;
 
-        document.querySelectorAll('.chat-selector-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        showFullscreenChatModal({ chatType: btn.dataset.chatType });
+        // The 'active' state isn't part of the new card design, 
+        // so we just directly call the function to open the chat modal.
+        showFullscreenChatModal({ chatType: card.dataset.chatType });
     });
 
     const socialPage = getElement('page-social');
