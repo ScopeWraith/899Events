@@ -41,13 +41,31 @@ export function initializeSocialUI() {
 export function renderChatChannels(currentUserData) {
     const container = document.getElementById('chat-selectors');
     if (!container) return;
+
+    // Replace the existing map with this new one
     container.innerHTML = Object.values(CHAT_CHANNELS).map(channel => {
         let isVisible = true;
         if (channel.requiresAuth && !currentUserData) isVisible = false;
         if (channel.requiresAlliance && (!currentUserData || !currentUserData.alliance)) isVisible = false;
         if (channel.requiresLeader && !isUserLeader(currentUserData)) isVisible = false;
+        
         if (!isVisible) return '';
-        return `<button class="chat-selector-btn" style="--glow-color: ${channel.color};" data-chat-type="${channel.id}"><i class="${channel.icon} fa-fw w-6 text-center"></i><span>${channel.name} Chat</span></button>`;
+
+        // New HTML structure for the card
+        return `
+            <button class="chat-channel-card" style="--channel-color: ${channel.color};" data-chat-type="${channel.id}">
+                <div class="chat-channel-icon">
+                    <i class="${channel.icon}"></i>
+                </div>
+                <div class="chat-channel-info">
+                    <h3 class="chat-channel-name">${channel.name} Chat</h3>
+                    <p class="chat-channel-desc">${channel.description}</p>
+                </div>
+                <div class="chat-channel-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </button>
+        `;
     }).join('');
 }
 

@@ -109,6 +109,7 @@ export const CHAT_CHANNELS = {
         name: 'World',
         icon: 'fas fa-globe',
         color: 'var(--color-primary)',
+        description: 'Public chat for all players on the server.', // ADD THIS
         requiresAuth: true
     },
     alliance_chat: {
@@ -116,6 +117,7 @@ export const CHAT_CHANNELS = {
         name: 'Alliance',
         icon: 'fas fa-shield-alt',
         color: 'var(--post-color-alliance)',
+        description: 'Private channel for your alliance members.', // ADD THIS
         requiresAlliance: true
     },
     leadership_chat: {
@@ -123,6 +125,7 @@ export const CHAT_CHANNELS = {
         name: 'Leadership',
         icon: 'fas fa-crown',
         color: 'var(--post-color-leadership)',
+        description: 'For R4/R5 members of your alliance.', // ADD THIS
         requiresLeader: true
     }
 };
