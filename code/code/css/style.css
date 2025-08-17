@@ -2391,7 +2391,6 @@ emoji-picker {
 }
 
 /* --- Final Player Card Styles --- */
-/* --- Final Player Card Styles --- */
 .player-card {
     --player-theme-color: var(--color-primary); /* Fallback color */
     position: relative;
@@ -2432,21 +2431,14 @@ emoji-picker {
     position: relative;
     z-index: 2;
     display: grid;
-    grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto;
-    grid-template-areas:
-        "avatar info"
-        "power  actions";
-    align-items: center;
-    gap: 0.5rem 1rem;
+    grid-template-columns: auto 1fr auto auto; /* AVATAR | INFO | POWER | ACTIONS */
+    align-items: center; /* This is the key fix */
+    gap: 0 1rem; /* No row gap, 1rem column gap */
     width: 100%;
 }
 
 .player-card-avatar-wrapper {
-    grid-area: avatar;
     position: relative;
-    grid-row: 1 / 3; /* Span both rows */
-    align-self: center;
 }
 
 .player-card-avatar {
@@ -2465,9 +2457,7 @@ emoji-picker {
 }
 
 .player-card-info {
-    grid-area: info;
     overflow: hidden;
-    align-self: flex-end;
 }
 
 .player-card-username {
@@ -2501,11 +2491,9 @@ emoji-picker {
 }
 
 .player-card-power {
-    grid-area: power;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    align-self: flex-start;
 }
 
 .player-card-power i {
@@ -2523,12 +2511,9 @@ emoji-picker {
 }
 
 .player-card-actions {
-    grid-area: actions;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
     gap: 0.5rem;
-    align-self: flex-start;
 }
 
 .player-card-action-btn {
