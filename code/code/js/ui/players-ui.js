@@ -49,19 +49,18 @@ export function applyPlayerFilters() {
 
 function createPlayerSkeletonCard() {
     return `
-        <div class="player-card glass-pane p-4 flex flex-col opacity-50">
-            <div class="flex items-center pb-3 border-b" style="border-color: rgba(255,255,255,0.1);">
-                <div class="w-12 h-12 rounded-full skeleton-loader mr-4"></div>
-                <div class="w-full">
-                    <div class="h-5 w-3/5 skeleton-loader mb-2"></div>
-                    <div class="h-4 w-2/5 skeleton-loader"></div>
+        <div class="player-card is-loading">
+            <div class="player-card-background-loader"></div>
+            <div class="player-card-header">
+                <div class="player-card-avatar-loader"></div>
+                <div class="player-card-identity-loader">
+                    <div class="skeleton-loader w-3/4 h-6 mb-2"></div>
+                    <div class="skeleton-loader w-1/2 h-4"></div>
                 </div>
             </div>
-            <div class="flex-grow my-4 space-y-3">
-                <div class="h-5 w-full skeleton-loader"></div>
-                <div class="h-5 w-full skeleton-loader"></div>
-                <div class="h-5 w-full skeleton-loader"></div>
-                <div class="h-5 w-full skeleton-loader"></div>
+            <div class="player-card-body">
+                <div class="skeleton-loader w-1/2 h-10 mb-2"></div>
+                <div class="skeleton-loader w-1/3 h-4"></div>
             </div>
         </div>
     `;
@@ -89,7 +88,7 @@ export function renderPlayers(players) {
 
     players.forEach(player => {
         const card = document.createElement('div');
-        card.className = 'player-card'; // Main class for new styling
+        card.className = 'player-card';
         card.dataset.rank = player.allianceRank;
         card.dataset.uid = player.uid;
 
@@ -108,13 +107,15 @@ export function renderPlayers(players) {
         const unverifiedClass = player.isVerified ? '' : 'unverified';
 
         card.innerHTML = `
+            <div class="player-card-background" style="background-image: url('${avatarUrl}')"></div>
+            <div class="player-card-overlay"></div>
             ${gearIconHTML}
             <div class="player-card-header">
                 <div class="player-card-avatar-wrapper">
                     <img src="${avatarUrl}" class="player-card-avatar ${border.className}" style="${border.style}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
                     <span class="status-dot ${statusClass}"></span>
                 </div>
-                <div class="player-card-identity">
+                 <div class="player-card-identity">
                     <h3 class="player-card-username">${player.username}</h3>
                     <p class="player-card-meta ${unverifiedClass}">[${player.alliance}] - ${player.allianceRank}</p>
                 </div>
@@ -126,8 +127,12 @@ export function renderPlayers(players) {
                 </div>
             </div>
             <div class="player-card-footer">
-                <button class="player-card-action-btn message-player-btn" title="Message Player"><i class="fas fa-comment-dots"></i></button>
-                <button class="player-card-action-btn add-friend-btn" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                <button class="player-card-action-btn message-player-btn" title="Message Player">
+                    <i class="fas fa-comment-dots"></i> <span>Message</span>
+                </button>
+                <button class="player-card-action-btn add-friend-btn" title="Add Friend">
+                    <i class="fas fa-user-plus"></i> <span>Add Friend</span>
+                </button>
             </div>
         `;
         playerListContainer.appendChild(card);
