@@ -2406,10 +2406,28 @@ emoji-picker {
     border: 1px solid #30363D;
 }
 
+.player-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 150px;
+    height: 100%;
+    background: radial-gradient(circle at center left, color-mix(in srgb, var(--player-theme-color) 40%, transparent 80%), transparent);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 1;
+}
+
+.player-card:hover::before {
+    opacity: 0.25;
+}
+
+
 .player-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 15px color-mix(in srgb, var(--player-theme-color), transparent 50%);
-    border-color: var(--player-theme-color);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    border-color: color-mix(in srgb, var(--player-theme-color), #444C56 50%);
 }
 
 .player-card-background {
@@ -2420,23 +2438,15 @@ emoji-picker {
     bottom: 0;
     background-size: cover;
     background-position: center;
-    filter: blur(10px) brightness(0.6);
+    filter: blur(8px) brightness(0.5);
     transform: scale(1.2);
     z-index: 0;
-    opacity: 0.7;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
 }
 
-.player-card-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg,
-        rgba(28, 33, 40, 0.9) 40%,
-        rgba(28, 33, 40, 0.7) 60%,
-        color-mix(in srgb, var(--player-theme-color), black 80%) 100%);
-    z-index: 1;
+.player-card:hover .player-card-background {
+    opacity: 0.5;
 }
 
 
