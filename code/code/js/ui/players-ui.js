@@ -89,14 +89,14 @@ export function renderPlayers(players) {
 
     players.forEach(player => {
         const card = document.createElement('div');
-        card.className = 'player-card glass-pane p-4 flex flex-col relative';
+        card.className = 'player-card'; // Main class for new styling
         card.dataset.rank = player.allianceRank;
         card.dataset.uid = player.uid;
 
         let gearIconHTML = '';
         if (currentUserData && currentUserData.uid !== player.uid) {
             if (canManageUser(currentUserData, player)) {
-                gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
+                gearIconHTML = `<button class="player-card-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
             }
         }
 
@@ -105,42 +105,29 @@ export function renderPlayers(players) {
         const statusClass = session ? session.status : 'offline';
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
         const border = getAvatarBorderClass(player, allianceData);
-        const unverifiedClass = player.isVerified ? '' : 'unverified-player-text';
+        const unverifiedClass = player.isVerified ? '' : 'unverified';
 
         card.innerHTML = `
             ${gearIconHTML}
-            <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
-                <div class="avatar-container mr-4">
-                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${border.className}" style="${border.style}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
-                    <div class="player-badge ${unverifiedClass}">[${player.alliance}] ${player.allianceRank}</div>
+            <div class="player-card-header">
+                <div class="player-card-avatar-wrapper">
+                    <img src="${avatarUrl}" class="player-card-avatar ${border.className}" style="${border.style}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                    <span class="status-dot ${statusClass}"></span>
                 </div>
-                <div>
-                    <h3 class="font-bold text-lg text-white flex items-center">${player.username} <span class="status-dot ${statusClass} ml-2"></span></h3>
-                    <p class="text-sm font-semibold ${unverifiedClass}" style="color: var(--color-primary);">[${player.alliance}] - ${player.allianceRank}</p>
-                </div>
-            </div>
-            <div class="flex-grow my-4 space-y-3">
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-400 flex items-center"><i class="fas fa-fist-raised w-6 text-center mr-2" style="color: var(--color-primary);"></i>Total Power</span>
-                    <span class="font-bold text-white">${(player.power || 0).toLocaleString()}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-400 flex items-center"><i class="fas fa-truck-monster w-6 text-center mr-2" style="color: var(--color-primary);"></i>Tank Power</span>
-                    <span class="font-bold text-white">${(player.tankPower || 0).toLocaleString()}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-400 flex items-center"><i class="fas fa-fighter-jet w-6 text-center mr-2" style="color: var(--color-primary);"></i>Air Power</span>
-                    <span class="font-bold text-white">${(player.airPower || 0).toLocaleString()}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-400 flex items-center"><i class="fas fa-rocket w-6 text-center mr-2" style="color: var(--color-primary);"></i>Missile Power</span>
-                    <span class="font-bold text-white">${(player.missilePower || 0).toLocaleString()}</span>
+                <div class="player-card-identity">
+                    <h3 class="player-card-username">${player.username}</h3>
+                    <p class="player-card-meta ${unverifiedClass}">[${player.alliance}] - ${player.allianceRank}</p>
                 </div>
             </div>
-            <div class="flex justify-around items-center pt-3 border-t border-white/10">
-                <button class="message-player-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
-                <button class="add-friend-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
-                <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
+            <div class="player-card-body">
+                <div class="player-card-power">
+                    <span class="power-value">${(player.power || 0).toLocaleString()}</span>
+                    <span class="power-label">Total Power</span>
+                </div>
+            </div>
+            <div class="player-card-footer">
+                <button class="player-card-action-btn message-player-btn" title="Message Player"><i class="fas fa-comment-dots"></i></button>
+                <button class="player-card-action-btn add-friend-btn" title="Add Friend"><i class="fas fa-user-plus"></i></button>
             </div>
         `;
         playerListContainer.appendChild(card);
