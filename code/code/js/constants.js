@@ -108,7 +108,7 @@ export const CHAT_CHANNELS = {
         id: 'world_chat',
         name: 'World',
         icon: 'fas fa-globe',
-        color: 'var(--color-primary)',
+        color: '#A9B1BD',
         description: 'Public chat for all players on the server.', // ADD THIS
         requiresAuth: true
     },
