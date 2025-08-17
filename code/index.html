@@ -541,22 +541,19 @@
             
             <div id="fullscreen-chat-modal-container" class="modal-container full-screen-modal">
     <div class="glass-pane flex flex-col h-full overflow-hidden">
-        <div id="fullscreen-chat-header" class="flex items-center p-3 border-b border-white/10 flex-shrink-0">
-            <button id="close-fullscreen-chat-modal-btn" class="text-gray-500 hover:text-white transition-colors mr-3">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <div id="chat-header-user-info" class="flex items-center" style="display: none;">
-                <img id="chat-header-avatar" src="https://placehold.co/48x48/161B22/FFFFFF?text=?" class="w-10 h-10 rounded-full object-cover mr-3">
-                <div>
-                    <h3 id="chat-header-username" class="font-bold text-white leading-tight">Username</h3>
-                    <p id="chat-header-status" class="text-xs font-semibold leading-tight">Offline</p>
-                </div>
+        <div id="fullscreen-chat-header" class="flex-shrink-0">
+    <div class="chat-header-content">
+        <button id="close-fullscreen-chat-modal-btn" class="chat-header-back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div id="chat-header-icon-container">
             </div>
-            <div id="chat-header-channel-info" class="flex items-center" style="display: none;">
-                <i id="chat-header-channel-icon" class="fas fa-globe mr-3 text-2xl" style="color: var(--color-primary);"></i>
-                <h3 id="chat-header-channel-name" class="font-bold text-white leading-tight text-2xl">Channel Name</h3>
-            </div>
+        <div class="chat-header-text-container">
+            <h3 id="chat-header-title"></h3>
+            <p id="chat-header-subtitle"></p>
         </div>
+    </div>
+</div>
 
         <div id="fullscreen-chat-window" class="chat-window flex-grow p-4">
             </div>

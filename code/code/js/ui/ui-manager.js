@@ -280,9 +280,15 @@ export function showPostActionsModal(postId) {
 export async function showFullscreenChatModal({ targetPlayer = null, chatType = null }) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
-    getElement('chat-header-user-info').style.display = 'none';
-    getElement('chat-header-channel-info').style.display = 'none';
-    getElement('fullscreen-chat-window').innerHTML = '';
+
+    const header = document.getElementById('fullscreen-chat-header');
+    const iconContainer = document.getElementById('chat-header-icon-container');
+    const titleEl = document.getElementById('chat-header-title');
+    const subtitleEl = document.getElementById('chat-header-subtitle');
+    
+    // Clear previous content and listeners
+    iconContainer.innerHTML = '';
+    document.getElementById('fullscreen-chat-window').innerHTML = '';
     const { listeners } = getState();
     if (listeners) {
         if (listeners.privateChat) listeners.privateChat();
@@ -290,9 +296,13 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
         if (listeners.allianceChat) listeners.allianceChat();
         if (listeners.leadershipChat) listeners.leadershipChat();
     }
+
     if (targetPlayer) {
+        // --- Handle private chat header ---
         const chatId = [currentUserData.uid, targetPlayer.uid].sort().join('_');
         await setDoc(doc(db, 'private_chats', chatId), { participants: [currentUserData.uid, targetPlayer.uid] }, { merge: true });
+        
+        // Mark messages as read
         const messagesQuery = query(collection(db, `private_chats/${chatId}/messages`), where('authorUid', '!=', currentUserData.uid), where('isRead', '==', false));
         const unreadMessages = await getDocs(messagesQuery);
         if (!unreadMessages.empty) {
@@ -300,26 +310,37 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
             unreadMessages.docs.forEach(messageDoc => batch.update(messageDoc.ref, { isRead: true }));
             await batch.commit();
         }
+
         setState({ activePrivateChatPartner: targetPlayer, activePrivateChatId: chatId });
+        
         const session = userSessions ? userSessions[targetPlayer.uid] : null;
         const status = session ? session.status : 'offline';
-        getElement('chat-header-user-info').style.display = 'flex';
-        getElement('chat-header-username').textContent = targetPlayer.username;
-        getElement('chat-header-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        getElement('chat-header-status').style.color = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
-        getElement('chat-header-avatar').src = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
+        const statusColor = status === 'online' ? '#238636' : (status === 'away' ? '#d29922' : '#6e7681');
+        const avatarUrl = targetPlayer.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${targetPlayer.username.charAt(0).toUpperCase()}`;
+
+        header.style.setProperty('--channel-color', '#A9B1BD'); // Neutral color for PMs
+        iconContainer.innerHTML = `<img src="${avatarUrl}" alt="${targetPlayer.username}" class="chat-header-avatar">`;
+        titleEl.textContent = targetPlayer.username;
+        subtitleEl.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        subtitleEl.style.color = statusColor;
+
         hideAllModals();
-        showModal(getElement('fullscreen-chat-modal-container'));
+        showModal(document.getElementById('fullscreen-chat-modal-container'));
         setupPrivateChatListener(chatId);
+
     } else if (chatType) {
+        // --- Handle channel chat header ---
         const channel = CHAT_CHANNELS[chatType];
         if (!channel) return;
-        getElement('chat-header-channel-info').style.display = 'flex';
-        getElement('chat-header-channel-name').textContent = channel.name;
-        getElement('chat-header-channel-icon').className = `${channel.icon} mr-3 text-2xl`;
-        getElement('chat-header-channel-icon').style.color = channel.color;
+
+        header.style.setProperty('--channel-color', channel.color);
+        iconContainer.innerHTML = `<i id="chat-header-icon" class="${channel.icon}"></i>`;
+        titleEl.textContent = `${channel.name} Chat`;
+        subtitleEl.textContent = channel.description;
+        subtitleEl.style.color = ''; // Reset color
+
         hideAllModals();
-        showModal(getElement('fullscreen-chat-modal-container'));
+        showModal(document.getElementById('fullscreen-chat-modal-container'));
         setupChatListeners(chatType);
     }
 }
