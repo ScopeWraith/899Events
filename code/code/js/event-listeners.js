@@ -34,7 +34,15 @@ export function initializeAllEventListeners() {
             element.addEventListener(event, handler);
         }
     };
+    addListener('chat-selectors', 'click', (e) => {
+        // Find the closest parent element with the new class name
+        const card = e.target.closest('.chat-channel-card'); 
+        if (!card) return;
 
+        // The 'active' state isn't part of the new card design, 
+        // so we just directly call the function to open the chat modal.
+        showFullscreenChatModal({ chatType: card.dataset.chatType });
+    });
     const serverPage = getElement('page-server');
     if (serverPage) {
         serverPage.addEventListener('click', async (e) => {
