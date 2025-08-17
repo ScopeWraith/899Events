@@ -48,16 +48,17 @@ export function applyPlayerFilters() {
 }
 
 function createPlayerSkeletonCard() {
-    // Updated skeleton to match the new compact layout
     return `
         <div class="player-card is-loading">
             <div class="player-card-main-content">
                 <div class="player-card-avatar-loader"></div>
                 <div class="player-card-info-loader">
                     <div class="skeleton-loader w-3/4 h-5 mb-2"></div>
-                    <div class="skeleton-loader w-1/2 h-4 mb-3"></div>
-                    <div class="skeleton-loader w-1/3 h-6"></div>
+                    <div class="skeleton-loader w-1/2 h-4"></div>
                 </div>
+            </div>
+             <div class="player-card-power-loader">
+                <div class="skeleton-loader w-3/5 h-8"></div>
             </div>
         </div>
     `;
@@ -72,7 +73,7 @@ export function renderPlayers(players) {
 
     if (players === null) { // Data is loading, show skeletons
         let skeletonHTML = '';
-        for (let i = 0; i < 12; i++) { // Increased skeleton count for smaller cards
+        for (let i = 0; i < 12; i++) {
             skeletonHTML += createPlayerSkeletonCard();
         }
         playerListContainer.innerHTML = skeletonHTML;
@@ -104,6 +105,8 @@ export function renderPlayers(players) {
         const unverifiedClass = player.isVerified ? '' : 'unverified';
 
         card.innerHTML = `
+            <div class="player-card-background" style="background-image: url('${avatarUrl}')"></div>
+            <div class="player-card-overlay"></div>
             ${gearIconHTML}
             <div class="player-card-main-content">
                 <div class="player-card-avatar-wrapper">
@@ -111,14 +114,12 @@ export function renderPlayers(players) {
                     <span class="status-dot ${statusClass}"></span>
                 </div>
                 <div class="player-card-info">
-                    <div class="player-card-identity">
-                        <h3 class="player-card-username">${player.username}</h3>
-                        <p class="player-card-meta ${unverifiedClass}">[${player.alliance}] - ${player.allianceRank}</p>
-                    </div>
-                    <div class="player-card-power">
-                        <span class="power-value">${(player.power || 0).toLocaleString()}</span>
-                    </div>
+                    <h3 class="player-card-username">${player.username}</h3>
+                    <p class="player-card-meta ${unverifiedClass}">[${player.alliance}] - ${player.allianceRank}</p>
                 </div>
+            </div>
+            <div class="player-card-power">
+                <span class="power-value">${(player.power || 0).toLocaleString()}</span>
             </div>
             <div class="player-card-footer">
                 <button class="player-card-action-btn message-player-btn" title="Message Player">
