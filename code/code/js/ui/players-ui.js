@@ -97,9 +97,8 @@ export function renderPlayers(players) {
         const border = getAvatarBorderClass(player, allianceData);
         const unverifiedClass = player.isVerified ? '' : 'unverified';
 
+        // --- NEW HTML STRUCTURE ---
         card.innerHTML = `
-            <div class="player-card-background" style="background-image: url('${avatarUrl}')"></div>
-            <div class="player-card-overlay"></div>
             ${gearIconHTML}
             <div class="player-card-main-content">
                 <div class="player-card-avatar-wrapper">
@@ -125,7 +124,6 @@ export function renderPlayers(players) {
         `;
         playerListContainer.appendChild(card);
 
-        // --- NEW: Color Extraction Logic ---
         const img = card.querySelector('.player-card-avatar');
         if (img.complete) {
             try {
