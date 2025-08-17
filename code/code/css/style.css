@@ -1656,3 +1656,155 @@ body {
 .player-card-identity-loader {
     flex-grow: 1;
 }
+/* ... existing styles ... */
+
+/* --- NEW COMPACT PLAYER CARD STYLES --- */
+@keyframes card-fade-in {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.player-card {
+    background: linear-gradient(145deg, #212832, #161B22);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: card-fade-in 0.4s ease-out forwards;
+    display: flex;
+    flex-direction: column;
+}
+
+.player-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    border-color: var(--color-primary);
+}
+
+.player-card-settings-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    color: rgba(255,255,255,0.4);
+    transition: color 0.2s ease;
+    width: 24px;
+    height: 24px;
+}
+.player-card-settings-btn:hover {
+    color: #fff;
+}
+
+.player-card-main-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    flex-grow: 1;
+}
+
+.player-card-avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.player-card-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+}
+
+.player-card-avatar-wrapper .status-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #161B22;
+}
+
+.player-card-info {
+    flex-grow: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.player-card-identity {
+    margin-bottom: 0.25rem;
+}
+
+.player-card-username {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #e6edf3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-card-meta {
+    font-size: 0.75rem;
+    color: #7d8590;
+    font-weight: 600;
+}
+.player-card-meta.unverified {
+    color: #d29922;
+}
+
+.player-card-power {
+    line-height: 1;
+}
+
+.power-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.player-card-footer {
+    display: flex;
+    background-color: rgba(0,0,0,0.2);
+}
+
+.player-card-action-btn {
+    flex: 1;
+    padding: 0.6rem;
+    font-size: 1rem;
+    color: #7d8590;
+    transition: all 0.2s ease;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.player-card-action-btn:hover {
+    background-color: var(--color-primary-glow);
+    color: #fff;
+}
+
+.player-card-action-btn:first-child {
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Skeleton loader for the compact design */
+.player-card.is-loading {
+    background: #161B22;
+}
+.player-card-info-loader {
+    flex-grow: 1;
+}
+.player-card-avatar-loader {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #30363d;
+    flex-shrink: 0;
+}
+.skeleton-loader {
+    background: linear-gradient(to right, #2c3440 0%, #38414e 20%, #2c3440 40%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear;
+    border-radius: 4px;
+}
