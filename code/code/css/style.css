@@ -2410,45 +2410,28 @@ emoji-picker {
     content: '';
     position: absolute;
     top: 0;
-    left: 0;
+    left: -20px;
     width: 150px;
     height: 100%;
-    background: radial-gradient(circle at center left, color-mix(in srgb, var(--player-theme-color) 40%, transparent 80%), transparent);
-    opacity: 0;
+    background: radial-gradient(circle at center left, color-mix(in srgb, var(--player-theme-color) 35%, transparent 70%), transparent);
+    opacity: 0.2;
     transition: opacity 0.4s ease;
     z-index: 1;
 }
 
 .player-card:hover::before {
-    opacity: 0.25;
+    opacity: 0.35;
 }
-
 
 .player-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 15px color-mix(in srgb, var(--player-theme-color), transparent 50%);
     border-color: color-mix(in srgb, var(--player-theme-color), #444C56 50%);
 }
 
-.player-card-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-size: cover;
-    background-position: center;
-    filter: blur(8px) brightness(0.5);
-    transform: scale(1.2);
-    z-index: 0;
-    opacity: 0;
-    transition: opacity 0.4s ease-in-out;
+.player-card-background, .player-card-overlay {
+    display: none;
 }
-
-.player-card:hover .player-card-background {
-    opacity: 0.5;
-}
-
 
 .player-card-settings-btn {
     position: absolute;
