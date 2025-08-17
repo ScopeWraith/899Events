@@ -136,31 +136,83 @@ export function renderConversations() {
     setupConversationListListener();
 }
 
+function createConvoPreloader() {
+    let loaderHTML = '';
+    for (let i = 0; i < 3; i++) {
+        loaderHTML += `
+            <div class="convo-card-loader">
+                <div class="convo-card-loader-avatar"></div>
+                <div class="convo-card-loader-text">
+                    <div class="convo-card-loader-line title"></div>
+                    <div class="convo-card-loader-line subtitle"></div>
+                </div>
+            </div>
+        `;
+    }
+    return loaderHTML;
+}
+
 export function renderConversationsList(conversations) {
     const container = document.getElementById('sub-page-social-convo');
     if (!container) return;
     const { allPlayers, userSessions } = getState();
-    if (!allPlayers || !conversations) return;
     const listContainer = document.getElementById('convo-list');
+    
+    // Show preloader if data is not ready
+    if (!allPlayers || !conversations) {
+        listContainer.innerHTML = createConvoPreloader();
+        return;
+    }
+
     conversations.sort((a, b) => (b.lastMessage?.timestamp?.toDate() || 0) - (a.lastMessage?.timestamp?.toDate() || 0));
+    
     if (conversations.length === 0) {
         listContainer.innerHTML = `<p class="text-center text-gray-400 py-8">No recent conversations. Start one from the Players page!</p>`;
         return;
     }
+    
     const filteredConversations = conversations.filter(convo => allPlayers.find(p => p.uid === convo.partnerId));
+    
+    if (filteredConversations.length === 0) {
+        listContainer.innerHTML = `<p class="text-center text-gray-400 py-8">No recent conversations. Start one from the Players page!</p>`;
+        return;
+    }
+
     listContainer.innerHTML = filteredConversations.map(convo => {
         const partnerData = allPlayers.find(p => p.uid === convo.partnerId);
         if (!partnerData) return '';
+        
         const session = userSessions ? userSessions[convo.partnerId] : null;
         const statusClass = session ? session.status : 'offline';
         const avatarUrl = partnerData.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${partnerData.username.charAt(0).toUpperCase()}`;
+        
         let lastMessageText = convo.lastMessage?.text || '';
         if (convo.lastMessage?.imageUrl && !lastMessageText) lastMessageText = '<i>[Image]</i>';
-        const unreadClass = convo.unreadCount > 0 ? 'unread-convo' : '';
-        const unreadBadge = convo.unreadCount > 0 ? `<span class="badge">${convo.unreadCount}</span>` : '';
-        return `<div class="convo-item glass-pane p-4 flex items-center justify-between hover:bg-white/5 transition-colors duration-200 cursor-pointer rounded-lg ${unreadClass}" data-partner-uid="${partnerData.uid}" data-chat-id="${convo.chatId}"><div class="flex items-center gap-4 overflow-hidden"><div class="relative flex-shrink-0"><img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover"><span class="status-dot ${statusClass} absolute bottom-0 right-0 border-2 border-gray-800"></span></div><div class="overflow-hidden"><h4 class="font-bold text-lg text-white">${partnerData.username}</h4><p class="text-sm text-gray-400 truncate">${lastMessageText}</p></div></div><div class="flex items-center gap-4 flex-shrink-0"><span class="text-xs text-gray-500">${formatTimeAgo(convo.lastMessage?.timestamp?.toDate())}</span>${unreadBadge}<button class="text-gray-500 hover:text-yellow-400 transition-colors" title="Pin Conversation (coming soon)"><i class="fas fa-thumbtack"></i></button></div></div>`;
+        
+        const unreadClass = convo.unreadCount > 0 ? 'unread' : '';
+        const unreadDot = convo.unreadCount > 0 ? `<div class="unread-dot" title="${convo.unreadCount} unread message(s)"></div>` : '';
+
+        return `
+            <div class="convo-card ${unreadClass}" data-partner-uid="${partnerData.uid}" data-chat-id="${convo.chatId}">
+                <div class="convo-card-avatar-wrapper">
+                    <img src="${avatarUrl}" class="convo-card-avatar">
+                    <span class="status-dot ${statusClass}"></span>
+                </div>
+                <div class="convo-card-main">
+                    <div class="convo-card-header">
+                        <h4 class="convo-card-username">${partnerData.username}</h4>
+                        <span class="convo-card-timestamp">${formatTimeAgo(convo.lastMessage?.timestamp?.toDate())}</span>
+                    </div>
+                    <div class="convo-card-body">
+                        <p class="convo-card-message">${lastMessageText}</p>
+                        ${unreadDot}
+                    </div>
+                </div>
+            </div>
+        `;
     }).join('');
 }
+
 
 export function renderFriendsPage(userFriends, allPlayers) {
     const container = document.getElementById('sub-page-social-friends');

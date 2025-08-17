@@ -1160,3 +1160,157 @@ body {
     color: #a0a8b1;
     font-weight: normal;
 }
+
+@keyframes shimmer-loader {
+    0% { background-position: -468px 0; }
+    100% { background-position: 468px 0; }
+}
+
+.convo-card-loader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background-color: rgba(33, 38, 45, 0.5);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+}
+
+.convo-card-loader-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #2c3440;
+    background-image: linear-gradient(to right, #2c3440 0%, #38414e 20%, #2c3440 40%, #2c3440 100%);
+    background-repeat: no-repeat;
+    animation: shimmer-loader 1.5s linear infinite;
+}
+
+.convo-card-loader-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.convo-card-loader-line {
+    height: 16px;
+    border-radius: 4px;
+    background: #2c3440;
+    background-image: linear-gradient(to right, #2c3440 0%, #38414e 20%, #2c3440 40%, #2c3440 100%);
+    background-repeat: no-repeat;
+    animation: shimmer-loader 1.5s linear infinite;
+}
+
+.convo-card-loader-line.title {
+    width: 40%;
+}
+
+.convo-card-loader-line.subtitle {
+    width: 70%;
+    height: 12px;
+}
+
+
+/* --- NEW CONVERSATION CARD STYLES --- */
+@keyframes unread-shimmer {
+    0% { box-shadow: 0 0 8px var(--color-primary-glow); }
+    50% { box-shadow: 0 0 20px var(--color-primary); }
+    100% { box-shadow: 0 0 8px var(--color-primary-glow); }
+}
+
+.convo-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background-color: rgba(33, 38, 45, 0.5);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.convo-card:hover {
+    background-color: rgba(48, 54, 61, 0.7);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.convo-card.unread {
+    border-color: var(--color-primary);
+    animation: unread-shimmer 2s infinite;
+}
+
+.convo-card-avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.convo-card-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.convo-card-avatar-wrapper .status-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #21262d;
+}
+
+.convo-card-main {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.convo-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.25rem;
+}
+
+.convo-card-username {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #e6edf3;
+    white-space: nowrap;
+}
+
+.convo-card-timestamp {
+    font-size: 0.75rem;
+    color: #7d8590;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+}
+
+.convo-card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.convo-card-message {
+    font-size: 0.9rem;
+    color: #a0a8b1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.unread-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--color-highlight);
+    box-shadow: 0 0 8px var(--color-highlight);
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
