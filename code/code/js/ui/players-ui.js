@@ -79,7 +79,11 @@ export function renderPlayers(players) {
 
     players.forEach(player => {
         const card = document.createElement('div');
-        card.className = 'player-card';
+        const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
+        const border = getAvatarBorderClass(player, allianceData);
+
+        card.className = `player-card ${border.className}`;
+        card.style.cssText = border.style;
         card.dataset.rank = player.allianceRank;
         card.dataset.uid = player.uid;
 
@@ -93,8 +97,7 @@ export function renderPlayers(players) {
         const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
         const session = userSessions ? userSessions[player.uid] : null;
         const statusClass = session ? session.status : 'offline';
-        const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
-        const border = getAvatarBorderClass(player, allianceData);
+        
         const unverifiedClass = player.isVerified ? '' : 'unverified';
 
         // --- NEW HTML STRUCTURE ---

@@ -2399,8 +2399,27 @@ emoji-picker {
     background-color: #161B22;
     padding: 1rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-    border: 1px solid color-mix(in srgb, var(--player-theme-color), #30363D 80%);
+    /* The border is now primarily set by the dynamic classes */
+    border: 1px solid #30363D;
     animation: card-fade-in 0.5s ease-out forwards;
+}
+
+/* Ensure the dynamic border styles take precedence and are styled for the card */
+.player-card.rank-border-admin, .player-card.rank-border-r5, .player-card.rank-border-r4, 
+.player-card.rank-border-r3, .player-card.rank-border-r2, .player-card.rank-border-r1,
+.player-card.avatar-border-solar, .player-card.avatar-border-crimson, .player-card.avatar-border-glacial,
+.player-card.alliance-border {
+    border-width: 2px;
+    padding: calc(1rem - 1px); /* Adjust padding to maintain size */
+}
+
+.player-card.avatar-border-legendary, .player-card.avatar-border-ares, .player-card.avatar-border-chroma {
+    border-width: 3px;
+    padding: calc(1rem - 2px);
+}
+
+.player-card.avatar-border-chroma {
+    animation-duration: 8s; /* Slow down the spin for the larger card border */
 }
 
 .player-card-background {
@@ -2432,8 +2451,8 @@ emoji-picker {
     z-index: 2;
     display: grid;
     grid-template-columns: auto 1fr auto auto; /* AVATAR | INFO | POWER | ACTIONS */
-    align-items: center; /* This is the key fix */
-    gap: 0 1rem; /* No row gap, 1rem column gap */
+    align-items: center; 
+    gap: 0 1rem;
     width: 100%;
 }
 
@@ -2592,33 +2611,6 @@ emoji-picker {
     animation: shimmer-loader 2s infinite linear;
     border-radius: 4px;
 }
-@media (max-width: 767px) {
-    .event-card .post-card-status {
-        grid-column: 1 / -1;
-        background: none;
-        justify-content: center;
-        min-width: 160px;
-    }
-    .header-main {
-        justify-content: space-between;
-    }
-    #mobile-auth-container.logged-in {
-        display: flex;
-    }
-    #text-logo div {
-        font-size: 1.0rem;
-    }
-    #logo-subtitle {
-        display: none;
-    }
-    .form-input,
-    .form-textarea,
-    .custom-select-value,
-    .custom-select-search {
-        font-size: 16px;
-    }
-}
-
 @media (max-width: 400px) {
     .header-main {
         justify-content: space-between;
