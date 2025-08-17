@@ -82,6 +82,7 @@ export function renderPlayers(players) {
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
         const border = getAvatarBorderClass(player, allianceData);
 
+        // --- MODIFICATION: Apply border class and style to the main card ---
         card.className = `player-card ${border.className}`;
         card.style.cssText = border.style;
         card.dataset.rank = player.allianceRank;
@@ -100,7 +101,6 @@ export function renderPlayers(players) {
         
         const unverifiedClass = player.isVerified ? '' : 'unverified';
 
-        // --- NEW HTML STRUCTURE ---
         card.innerHTML = `
             <div class="player-card-background" style="background-image: url('${avatarUrl}')"></div>
             <div class="player-card-overlay"></div>
