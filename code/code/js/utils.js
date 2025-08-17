@@ -1,12 +1,17 @@
 // code/js/utils.js
 
 /**
- * This module contains utility functions used across the application.
+ * This module contains utility functions used across the application,
+ * such as date formatting, image resizing, and calculating event statuses.
+ * This keeps the main logic files cleaner and more focused.
  */
 export function canDeleteMessage(currentUser, messageAuthor) {
     if (!currentUser || !messageAuthor) return false;
+    // An admin can delete any message.
     if (currentUser.isAdmin) return true;
+    // A user can delete their own message.
     if (currentUser.uid === messageAuthor.uid) return true;
+    // A leader can delete a message from someone in their own alliance.
     if (isUserLeader(currentUser) && currentUser.alliance === messageAuthor.alliance) return true;
     return false;
 }
@@ -30,6 +35,7 @@ export function formatTimeAgo(date) {
 
 export function formatEventDateTime(date) {
     if (!date || isNaN(date.getTime())) return 'N/A';
+    // Format: Thu, Jul 31 @ 1:30 PM
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' @ ' +
            date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
@@ -82,16 +88,27 @@ export function calculateNextDateTime(dayOfWeek, hour) {
     const now = new Date();
     
     let resultDate = new Date();
+    
+    // Set the time for the target day
     resultDate.setHours(targetHour, 0, 0, 0);
 
+    // --- START: NEW LOGIC ---
     const currentDay = now.getDay();
     let dayDifference = targetDay - currentDay;
 
-    if (dayDifference < 0 || (dayDifference === 0 && targetHour < now.getHours())) {
+    // If the target day is in the past (e.g., today is Thurs[4] and target is Tues[2]),
+    // this will be negative. Add 7 to move to next week.
+    if (dayDifference < 0) {
+        dayDifference += 7;
+    } 
+    // If it's the same day, but the target hour is in the past, also move to next week.
+    else if (dayDifference === 0 && targetHour < now.getHours()) {
         dayDifference += 7;
     }
     
     resultDate.setDate(now.getDate() + dayDifference);
+    // --- END: NEW LOGIC ---
+
     return resultDate;
 }
 
@@ -134,8 +151,11 @@ export function resizeImage(file, options) {
 
 export function canManageUser(manager, targetUser) {
     if (!manager || !targetUser) return false;
+    // Admins can manage any user, regardless of alliance or rank
     if (manager.isAdmin) return true;
+    // User cannot manage themselves
     if (manager.uid === targetUser.uid) return false;
+    // Ranks R5 and R4 can manage lower ranks in their own alliance
     if (manager.alliance !== targetUser.alliance) return false;
     if (manager.allianceRank === 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
     if (manager.allianceRank === 'R4' && ['R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
@@ -149,96 +169,41 @@ export function isUserLeader(user) {
 
 export function formatMessageTimestamp(date) {
     if (!date) return '';
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
 }
 
 export function autoLinkText(text) {
     const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-    return text.replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${url}</a>`);
+    return text.replace(urlRegex, function(url) {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${url}</a>`;
+    });
 }
 
-export function getAvatarBorderHTML(player, allianceData, customBorders) {
-    if (!player) return `<div class="avatar-border rank-border-r1"></div>`;
+export function getAvatarBorderClass(player, allianceData) {
+    if (!player) return { className: 'rank-border-r1', style: '' };
+
+    const skinType = player.avatarBorderSkin || 'rank';
+
+    if (skinType === 'alliance' && allianceData?.primaryColor) {
+        return {
+            className: 'alliance-border',
+            style: `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`
+        };
+    }
     
-    const skinId = player.avatarBorderSkin || 'rank';
-    const customBorder = customBorders && customBorders.find(b => b.id === skinId);
-
-    if (customBorder && customBorder.css?.layers) {
-        const styles = applyCustomBorderStyle(customBorder.css);
-        let layersHTML = '';
-        for (let i = 3; i >= 1; i--) {
-            const layerStyle = styles[`layer${i}`];
-            if (layerStyle && layerStyle.transform !== 'scale(0) translateZ(0)') {
-                const styleString = Object.entries(layerStyle).map(([k, v]) => `${k}:${v};`).join('');
-                layersHTML += `<div class="border-layer" style="${styleString}"></div>`;
-            }
-        }
-        return layersHTML;
+    if (skinType === 'admin' && player.isAdmin) {
+        return { className: 'rank-border-admin', style: '' };
     }
-
-    let borderClass = '', borderStyle = '';
-    if (skinId === 'alliance' && allianceData?.primaryColor) {
-        borderClass = 'alliance-border';
-        borderStyle = `background: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`;
-    } else if (player.isAdmin && (skinId === 'admin' || skinId === 'rank')) {
-        borderClass = 'rank-border-admin';
-    } else {
-        const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
-        borderClass = `rank-border-${rank}`;
+    
+    // Default to rank-based border
+    if (player.isAdmin && skinType === 'rank') {
+        return { className: 'rank-border-admin', style: '' };
     }
-    return `<div class="avatar-border ${borderClass}" style="${borderStyle}"></div>`;
-}
-
-function hexToRgba(hex, alpha = 1) {
-    if (!hex) return `rgba(0,0,0,${alpha})`;
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-export function applyCustomBorderStyle(css) {
-    if (!css || !css.layers) return {};
-
-    const styles = {};
-    const BASE_SCALE_INCREMENT = 0.01;
-
-    const t1 = css.layers['1']?.enabled ? parseInt(css.layers['1'].thickness, 10) : 0;
-    const t2 = css.layers['2']?.enabled ? parseInt(css.layers['2'].thickness, 10) : 0;
-    const t3 = css.layers['3']?.enabled ? parseInt(css.layers['3'].thickness, 10) : 0;
-
-    for (let i = 1; i <= 3; i++) {
-        const layerData = css.layers[String(i)];
-        const key = `layer${i}`;
-        
-        let thickness = (i === 1) ? t1 : ((i === 2) ? t1 + t2 : t1 + t2 + t3);
-
-        if (layerData?.enabled && parseInt(layerData.thickness, 10) > 0) {
-            const scale = 1 + (thickness * 2 * BASE_SCALE_INCREMENT);
-            const shadows = [];
-
-            if (layerData.innerGlow?.enabled) {
-                const ig = layerData.innerGlow;
-                const color = hexToRgba(ig.color, ig.opacity);
-                const inset = ig.reverse ? '' : 'inset';
-                shadows.push(`${inset} 0 0 ${ig.blur}px ${ig.spread}px ${color}`);
-            }
-            if (layerData.outerGlow?.enabled) {
-                const og = layerData.outerGlow;
-                const color = hexToRgba(og.color, og.opacity);
-                const inset = og.reverse ? 'inset' : '';
-                shadows.push(`${inset} 0 0 ${og.blur}px ${og.spread}px ${color}`);
-            }
-
-            styles[key] = {
-                'background': hexToRgba(layerData.color, layerData.opacity),
-                'transform': `scale(${scale}) translateZ(0)`,
-                'z-index': 3 - (i - 1),
-                'box-shadow': shadows.join(', ')
-            };
-        } else {
-            styles[key] = { 'transform': 'scale(0) translateZ(0)' };
-        }
-    }
-    return styles;
+    
+    const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
+    return { className: `rank-border-${rank}`, style: '' };
 }

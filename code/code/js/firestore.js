@@ -40,14 +40,18 @@ export async function togglePostReaction(postId, reactionType) {
 
 export function setupAllListeners(user, onInitialDataLoaded) {
     const listeners = {};
-    const requiredLoads = ['userDoc', 'notifications', 'friends', 'alliances', 'users', 'posts', 'sessions', 'customBorders'];
+    const requiredLoads = ['userDoc', 'notifications', 'friends', 'alliances', 'users', 'posts', 'sessions'];
     let loadedCount = 0;
 
-    const checkAllLoaded = () => {
-        loadedCount++;
-        if (loadedCount >= requiredLoads.length && onInitialDataLoaded) {
+    const checkAllLoaded = (source) => {
+        if (requiredLoads.includes(source)) {
+            const index = requiredLoads.indexOf(source);
+            if (index > -1) requiredLoads.splice(index, 1);
+            loadedCount++;
+        }
+        if (loadedCount >= 7 && onInitialDataLoaded) {
             onInitialDataLoaded();
-            onInitialDataLoaded = null; // Prevent multiple calls
+            onInitialDataLoaded = null;
         }
     };
 
@@ -55,46 +59,40 @@ export function setupAllListeners(user, onInitialDataLoaded) {
         if (userDoc.exists()) {
             setState({ currentUserData: { uid: user.uid, ...userDoc.data() } });
         }
-        checkAllLoaded();
-    }, () => checkAllLoaded());
+        checkAllLoaded('userDoc');
+    }, () => checkAllLoaded('userDoc'));
 
-    listeners.customBorders = onSnapshot(query(collection(db, 'customBorders'), orderBy("createdAt", "desc")), (snapshot) => {
-        const customBorders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setState({ customBorders });
-        checkAllLoaded();
-    }, () => checkAllLoaded());
-    
     const notificationsQuery = query(collection(db, "notifications"), where("recipientUid", "==", user.uid), orderBy("timestamp", "desc"));
     listeners.notifications = onSnapshot(notificationsQuery, (snapshot) => {
         const userNotifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setState({ userNotifications });
-        checkAllLoaded();
-    }, () => checkAllLoaded());
+        checkAllLoaded('notifications');
+    }, () => checkAllLoaded('notifications'));
 
     const friendsQuery = collection(db, `users/${user.uid}/friends`);
     listeners.friends = onSnapshot(friendsQuery, (snapshot) => {
         const userFriends = snapshot.docs.map(doc => doc.id);
         setState({ userFriends });
-        checkAllLoaded();
-    }, () => checkAllLoaded());
+        checkAllLoaded('friends');
+    }, () => checkAllLoaded('friends'));
 
     listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
         const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setState({ allAlliances });
-        checkAllLoaded();
-    }, () => checkAllLoaded());
+        checkAllLoaded('alliances');
+    }, () => checkAllLoaded('alliances'));
 
     listeners.users = onSnapshot(query(collection(db, 'users')), (querySnapshot) => {
         const allPlayers = querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
         setState({ allPlayers });
-        checkAllLoaded();
-    }, () => checkAllLoaded());
+        checkAllLoaded('users');
+    }, () => checkAllLoaded('users'));
 
     listeners.posts = onSnapshot(query(collection(db, 'posts')), (querySnapshot) => {
         const allPosts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setState({ allPosts });
-        checkAllLoaded();
-    }, () => checkAllLoaded());
+        checkAllLoaded('posts');
+    }, () => checkAllLoaded('posts'));
 
     listeners.sessions = onSnapshot(collection(db, 'sessions'), (snapshot) => {
         const userSessions = getState().userSessions || {};
@@ -102,8 +100,8 @@ export function setupAllListeners(user, onInitialDataLoaded) {
             userSessions[change.doc.id] = change.doc.data();
         });
         setState({ userSessions });
-        checkAllLoaded();
-    }, () => checkAllLoaded());
+        checkAllLoaded('sessions');
+    }, () => checkAllLoaded('sessions'));
 
     setState({ listeners });
 }

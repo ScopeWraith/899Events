@@ -17,7 +17,7 @@ let resizedThumbnailBlob = null;
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderPostsUI(newState, prevState) {
-    if (newState.allPosts && (newState.allPosts !== prevState.allPosts || newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData || newState.customBorders !== prevState.customBorders)) {
+    if (newState.allPosts && (newState.allPosts !== prevState.allPosts || newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData)) {
         const activeSubNav = document.querySelector('#news-submenu .sub-nav-link.active');
         const filter = activeSubNav ? activeSubNav.dataset.subTarget.split('-')[1] : 'all';
         renderNews(filter, newState);
@@ -34,7 +34,7 @@ export function initializePostUI() {
 // --- UI HELPER & RENDERING FUNCTIONS ---
 
 export function renderNews(filter = 'all', state) {
-    const { allPlayers, allPosts, currentUserData, customBorders } = state;
+    const { allPlayers, allPosts, currentUserData } = state;
     if (!allPosts || !allPlayers) {
         const container = document.getElementById(`sub-page-news-${filter}`);
         if (container && !container.querySelector('.skeleton-card')) {
@@ -88,18 +88,18 @@ export function renderNews(filter = 'all', state) {
     });
     let contentHTML = '';
     if (filter === 'all') {
-         contentHTML = `<div class="mb-2 ${announcements.length === 0 ? 'hidden' : ''}"><h2 class="section-header text-1xl font-bold"><i class="fas fa-bullhorn"></i><span>Announcements</span></h2><div class="grid grid-cols-1 gap-4">${announcements.map(post => createCard(post, allPlayers, currentUserData, customBorders)).join('')}</div></div><div class="${events.length === 0 ? 'hidden' : ''}"><h2 class="section-header text-1xl font-bold"><i class="fas fa-calendar-alt"></i><span>Events</span></h2><div class="grid grid-cols-1 gap-4">${events.map(post => createCard(post, allPlayers, currentUserData, customBorders)).join('')}</div></div>`;
+         contentHTML = `<div class="mb-2 ${announcements.length === 0 ? 'hidden' : ''}"><h2 class="section-header text-1xl font-bold"><i class="fas fa-bullhorn"></i><span>Announcements</span></h2><div class="grid grid-cols-1 gap-4">${announcements.map(post => createCard(post, allPlayers, currentUserData)).join('')}</div></div><div class="${events.length === 0 ? 'hidden' : ''}"><h2 class="section-header text-1xl font-bold"><i class="fas fa-calendar-alt"></i><span>Events</span></h2><div class="grid grid-cols-1 gap-4">${events.map(post => createCard(post, allPlayers, currentUserData)).join('')}</div></div>`;
         if (announcements.length === 0 && events.length === 0) contentHTML = `<p class="text-center text-gray-400 py-8">No news or events to display.</p>`;
     } else {
          const items = filter === 'events' ? events : announcements;
-         contentHTML = items.length > 0 ? `<div class="grid grid-cols-1 gap-4">${items.map(post => createCard(post, allPlayers, currentUserData, customBorders)).join('')}</div>` : `<p class="text-center text-gray-400 py-8">No ${filter} to display.</p>`;
+         contentHTML = items.length > 0 ? `<div class="grid grid-cols-1 gap-4">${items.map(post => createCard(post, allPlayers, currentUserData)).join('')}</div>` : `<p class="text-center text-gray-400 py-8">No ${filter} to display.</p>`;
     }
     container.innerHTML = contentHTML;
     countdownInterval = setInterval(updateCountdowns, 1000 * 30);
     updateCountdowns();
 }
 
-function createCard(post, allPlayers, currentUserData, customBorders) {
+function createCard(post, allPlayers, currentUserData) {
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
     const color = style.color || 'var(--color-primary)';
@@ -114,11 +114,11 @@ function createCard(post, allPlayers, currentUserData, customBorders) {
         return `<div class="post-card event-card cursor-pointer" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};"><div class="event-card-background" style="${backgroundStyle}"></div><div class="post-card-content"><span class="post-card-category" style="background-color: ${color};">${categoryText}</span><h3 class="post-card-title">${post.title}</h3><p class="post-card-details">${post.details}</p></div><div class="post-card-status"><div class="status-content-wrapper"></div><div class="status-date"></div></div>${actionsTriggerHTML}</div>`;
     } else {
         const authorData = allPlayers.find(p => p.uid === post.authorUid);
+        const rankBorder = getAvatarBorderClass(authorData);
         const avatarUrl = authorData?.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${(authorData?.username || '?').charAt(0).toUpperCase()}`;
-        const border = getAvatarBorderClass(authorData, null, customBorders);
         const postDate = post.createdAt?.toDate();
         const hasThumbnailClass = post.thumbnailUrl ? 'has-thumbnail' : '';
-        return `<div class="post-card announcement-card cursor-pointer ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">${post.thumbnailUrl ? `<div class="announcement-card-thumbnail" style="background-image: url('${post.thumbnailUrl}')"></div>` : ''}<div class="post-card-body"><span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span><div class="post-card-header mb-3"><div class="avatar-wrapper w-10 h-10"><div class="avatar-border ${border.className}" style="${border.style}"></div><img src="${avatarUrl}" class="w-full h-full rounded-full object-cover" alt="${authorData?.username || 'Unknown'}"></div><div class="author-info"><p class="author-name">${authorData?.username || 'Unknown'}</p><p class="author-meta">Posted ${postDate ? formatTimeAgo(postDate) : ''}</p></div></div><h3 class="post-card-title !mb-2">${post.title}</h3><p class="post-card-details">${post.details}</p></div>${actionsTriggerHTML}</div>`;
+        return `<div class="post-card announcement-card cursor-pointer ${hasThumbnailClass}" data-post-id="${post.id}" style="--glow-color: ${color}; border-top-color: ${color};">${post.thumbnailUrl ? `<div class="announcement-card-thumbnail" style="background-image: url('${post.thumbnailUrl}')"></div>` : ''}<div class="post-card-body"><span class="post-card-category mb-2" style="background-color: ${color};">${categoryText}</span><div class="post-card-header mb-3"><img src="${avatarUrl}" class="author-avatar ${rankBorder}" alt="${authorData?.username || 'Unknown'}"><div class="author-info"><p class="author-name">${authorData?.username || 'Unknown'}</p><p class="author-meta">Posted ${postDate ? formatTimeAgo(postDate) : ''}</p></div></div><h3 class="post-card-title !mb-2">${post.title}</h3><p class="post-card-details">${post.details}</p></div>${actionsTriggerHTML}</div>`;
     }
 }
 

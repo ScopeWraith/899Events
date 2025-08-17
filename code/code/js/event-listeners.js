@@ -2,11 +2,11 @@
 
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getState, setState } from './state.js';
+import { getState, setState } from './state.js'; // CHANGED HERE
 import {
     setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal,
     showCreatePostModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal,
-    handleSubNavClick, toggleSubNav, showViewPostModal, showBorderEditorModal
+    handleSubNavClick, toggleSubNav, showViewPostModal
 } from './ui/ui-manager.js';
 import {
     handleLogout, handleLoginSubmit, handleForgotPassword, handleRegistrationNext,
@@ -24,108 +24,16 @@ import {
     showEditAllianceModal, handleAllianceAvatarSelection, handleAllianceEditSubmit,
     showRegisterAllianceModal, handleAllianceRegisterSubmit
 } from './ui/alliances-ui.js';
-import { applyCustomBorderStyle } from './utils.js';
-
-const getElement = (id) => document.getElementById(id);
-
-export function updateBorderEditorPreview() {
-    const controls = getElement('border-editor-controls');
-    if (!controls) return;
-
-    const css = { layers: {} };
-
-    controls.querySelectorAll('.layer-controls').forEach(item => {
-        const layerIndex = item.dataset.layer;
-        const isEnabled = (layerIndex === '1') || item.querySelector('.layer-enable-toggle')?.checked;
-        const content = item.querySelector('.layer-control-content');
-        if (content) {
-            content.style.opacity = isEnabled ? '1' : '0.4';
-            content.style.pointerEvents = isEnabled ? 'auto' : 'none';
-        }
-
-        const layerData = {
-            enabled: isEnabled,
-            thickness: item.querySelector('.control-thickness').value,
-            color: item.querySelector('.control-color').value,
-            opacity: item.querySelector('.control-opacity').value,
-            innerGlow: { enabled: false },
-            outerGlow: { enabled: false }
-        };
-
-        item.querySelectorAll('.glow-controls-group').forEach(glowGroup => {
-            const glowType = glowGroup.querySelector('.glow-enable-toggle').dataset.glowType;
-            const glowEnabled = glowGroup.querySelector('.glow-enable-toggle').checked;
-            const glowContent = glowGroup.querySelector('.glow-content');
-            
-            glowContent.classList.toggle('hidden', !glowEnabled);
-            
-            if (glowEnabled) {
-                const glowData = {
-                    enabled: true,
-                    reverse: glowContent.querySelector('.glow-reverse-toggle').checked,
-                    color: glowContent.querySelector('.glow-color').value,
-                    opacity: glowContent.querySelector('.glow-opacity').value,
-                    blur: glowContent.querySelector('.glow-blur').value,
-                    spread: glowContent.querySelector('.glow-spread').value
-                };
-                layerData[`${glowType}Glow`] = glowData;
-
-                glowContent.querySelector('.value-display').textContent = parseFloat(glowData.opacity).toFixed(2);
-                glowContent.querySelector('.glow-blur').closest('.control-group').querySelector('.value-display').textContent = glowData.blur + 'px';
-                glowContent.querySelector('.glow-spread').closest('.control-group').querySelector('.value-display').textContent = glowData.spread + 'px';
-            }
-        });
-
-        css.layers[layerIndex] = layerData;
-        item.querySelector('.control-thickness').closest('.control-group').querySelector('.value-display').textContent = layerData.thickness + 'px';
-        item.querySelector('.control-opacity').closest('.control-group').querySelector('.value-display').textContent = parseFloat(layerData.opacity).toFixed(2);
-    });
-
-    const styles = applyCustomBorderStyle(css);
-    const previewContainer = getElement('border-editor-live-preview');
-    if (previewContainer) {
-        for (let i = 1; i <= 3; i++) {
-            const layerElement = previewContainer.querySelector(`.border-layer[data-layer-id="${i}"]`);
-            const layerStyle = styles[`layer${i}`];
-            if (layerElement && layerStyle) {
-                layerElement.style.cssText = '';
-                Object.assign(layerElement.style, layerStyle);
-            }
-        }
-    }
-}
 
 export function initializeAllEventListeners() {
+    const getElement = (id) => document.getElementById(id);
+
     const addListener = (id, event, handler) => {
         const element = getElement(id);
         if (element) {
             element.addEventListener(event, handler);
         }
     };
-
-    const borderEditorControls = getElement('border-editor-controls');
-    if (borderEditorControls) {
-        borderEditorControls.addEventListener('input', updateBorderEditorPreview);
-        borderEditorControls.addEventListener('change', updateBorderEditorPreview);
-
-        const tabs = borderEditorControls.querySelectorAll('.editor-tab-btn');
-        const panes = borderEditorControls.querySelectorAll('.editor-tab-pane');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                panes.forEach(pane => {
-                    pane.classList.toggle('active', pane.id === `editor-tab-pane-${tab.dataset.tab}`);
-                });
-            });
-        });
-
-        updateBorderEditorPreview();
-    }
-    
-    addListener('close-border-editor-modal-btn', 'click', hideAllModals);
 
     const serverPage = getElement('page-server');
     if (serverPage) {
@@ -329,6 +237,7 @@ export function initializeAllEventListeners() {
         }
     });
 
+    // Consolidated event listener for the player profile dropdown
     addListener('player-profile-dropdown', 'click', (e) => {
         const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
         const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
@@ -337,6 +246,7 @@ export function initializeAllEventListeners() {
         const avatarBtn = e.target.closest('#profile-dropdown-avatar');
         const logoutBtn = e.target.closest('#profile-dropdown-logout');
 
+        // Close the dropdown after any action
         const userProfileNavItem = getElement('user-profile-nav-item');
         if (userProfileNavItem) {
             userProfileNavItem.classList.remove('open');
@@ -378,7 +288,7 @@ export function initializeAllEventListeners() {
     });
     addListener('filter-container', 'click', (e) => {
         if (e.target.classList.contains('filter-btn')) {
-            setState({ activeFilter: e.target.dataset.filter });
+            setState({ activeFilter: e.target.dataset.filter }); // CHANGED HERE
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
         }
@@ -445,7 +355,7 @@ export function initializeAllEventListeners() {
     addListener('collapse-friends-btn', 'click', () => {
         const container = getElement('friends-list-container-social');
         const isCollapsed = container.classList.toggle('collapsed');
-        setState({ isFriendsListCollapsed: isCollapsed });
+        setState({ isFriendsListCollapsed: isCollapsed }); // CHANGED HERE
     });
     const feedDropdown = getElement('feed-dropdown');
     if (feedDropdown) {

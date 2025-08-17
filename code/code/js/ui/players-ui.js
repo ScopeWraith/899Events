@@ -1,16 +1,13 @@
 // code/js/ui/players-ui.js
 
 import { subscribe, getState } from '../state.js';
-import { canManageUser, getAvatarBorderHTML} from '../utils.js';
+import { canManageUser, getAvatarBorderClass} from '../utils.js';
 
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderPlayersUI(newState, prevState) {
-    if (
-        newState.allPlayers !== prevState.allPlayers ||
-        newState.currentUserData !== prevState.currentUserData ||
-        newState.customBorders !== prevState.customBorders
-    ) {
+    // Re-render the player list if the list of players or the current user changes.
+    if (newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData) {
         applyPlayerFilters();
     }
 }
@@ -28,8 +25,10 @@ export function applyPlayerFilters() {
     }
 
     const { allPlayers } = getState();
+    // --- FIX: ADD THIS GUARD CLAUSE ---
     if (!allPlayers) {
-        renderPlayers(null);
+        // If players aren't loaded yet, we can render skeletons or just exit.
+        renderPlayers(null); // Passing null will trigger the skeleton loader
         return;
     }
 
@@ -72,10 +71,10 @@ export function renderPlayers(players) {
     const playerListContainer = document.getElementById('player-list-container');
     if (!playerListContainer) return;
 
-    const { currentUserData, userSessions, allAlliances, customBorders } = getState();
+    const { currentUserData, userSessions, allAlliances } = getState();
     playerListContainer.innerHTML = '';
 
-    if (players === null) {
+    if (players === null) { // Data is loading, show skeletons
         let skeletonHTML = '';
         for (let i = 0; i < 8; i++) {
             skeletonHTML += createPlayerSkeletonCard();
@@ -105,17 +104,15 @@ export function renderPlayers(players) {
         const session = userSessions ? userSessions[player.uid] : null;
         const statusClass = session ? session.status : 'offline';
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
-        
-        const borderHTML = getAvatarBorderHTML(player, allianceData, customBorders);
-
+        const border = getAvatarBorderClass(player, allianceData);
         const unverifiedClass = player.isVerified ? '' : 'unverified-player-text';
 
         card.innerHTML = `
             ${gearIconHTML}
             <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
-                <div class="avatar-wrapper w-12 h-12 mr-4">
-                    ${borderHTML}
-                    <img src="${avatarUrl}" class="w-full h-full rounded-full object-cover" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                <div class="avatar-container mr-4">
+                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${border.className}" style="${border.style}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                    <div class="player-badge ${unverifiedClass}">[${player.alliance}] ${player.allianceRank}</div>
                 </div>
                 <div>
                     <h3 class="font-bold text-lg text-white flex items-center">${player.username} <span class="status-dot ${statusClass} ml-2"></span></h3>
