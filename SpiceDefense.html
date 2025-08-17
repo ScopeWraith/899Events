@@ -5,19 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Placement Map</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* Custom styles for the grid and interactions */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Roboto Mono', monospace;
             overscroll-behavior: none;
+            background-color: #0d1117;
         }
         main {
             cursor: grab;
-            overflow: hidden; /* Needed for smooth zoom and pan */
+            overflow: auto; /* Changed for custom scrollbar */
+            background-color: #0d1117;
         }
         main:active {
             cursor: grabbing;
         }
+        /* Custom Scrollbar Styling */
+        main::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        main::-webkit-scrollbar-track {
+            background: #010409;
+        }
+        main::-webkit-scrollbar-thumb {
+            background-color: #30363d;
+            border-radius: 20px;
+            border: 3px solid #010409;
+        }
+        main::-webkit-scrollbar-corner {
+            background: #010409;
+        }
+
         #map-grid-container {
             position: relative;
             transform-origin: top left;
@@ -28,16 +50,16 @@
             grid-template-columns: repeat(150, 12px);
             grid-template-rows: repeat(75, 12px);
             /* Emphasized border */
-            border: 3px solid #9ca3af; /* gray-400 */
+            border: 3px solid #30363d;
             width: 1806px; /* 150 * 12 + 6px border */
             height: 906px; /* 75 * 12 + 6px border */
-            background-color: #1a202c; /* gray-900 */
+            background-color: #010409;
         }
         .grid-cell {
             width: 12px;
             height: 12px;
-            border-right: 1px solid #2d3748; /* md:gray-800 */
-            border-bottom: 1px solid #2d3748; /* md:gray-800 */
+            border-right: 1px solid #21262d;
+            border-bottom: 1px solid #21262d;
             box-sizing: border-box;
         }
         .grid-cell:nth-child(150n) {
@@ -47,27 +69,24 @@
             border-bottom: none;
         }
         .remove-hover {
-            background-color: rgba(239, 68, 68, 0.6); /* red-500 with 60% opacity */
-            outline: 1px solid rgba(239, 68, 68, 0.9);
+            background-color: rgba(248, 81, 73, 0.6);
+            outline: 1px solid rgba(248, 81, 73, 0.9);
         }
         .remove-start-marker {
-             background-color: rgba(220, 38, 38, 0.8); /* red-600 */
+             background-color: rgba(248, 81, 73, 0.8);
              outline: 2px solid white;
         }
-        /* Style for the divider line between cells */
         .divider-border {
-            border-right: 2px solid #f59e0b; /* amber-500 */
+            border-right: 2px solid #f778ba; /* Neon pink */
         }
-        /* Style for removed terrain */
         .removed-cell {
-            background-color: #1a202c; /* Match main background */
-            border: none !important; /* Ensure no borders are drawn */
+            background-color: #010409;
+            border: none !important;
         }
-        /* Layer for structures and hover previews */
         #structure-layer, #hover-layer {
             position: absolute;
-            top: 3px; /* Account for main border */
-            left: 3px; /* Account for main border */
+            top: 3px;
+            left: 3px;
             width: 1800px;
             height: 900px;
             pointer-events: none;
@@ -81,36 +100,39 @@
             font-size: 10px;
             font-weight: bold;
             color: white;
-            text-shadow: 1px 1px 2px black;
+            text-shadow: 0 0 5px black;
             white-space: nowrap;
         }
         .hover-block {
-             background-color: rgba(253, 224, 71, 0.5); /* yellow-300 with 50% opacity */
+             background-color: rgba(253, 224, 71, 0.5);
              border: 1px solid rgba(253, 224, 71, 0.8);
         }
         .color-swatch {
-            width: 2rem;
-            height: 2rem;
-            border-radius: 9999px;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.25rem;
             cursor: pointer;
-            border: 2px solid transparent;
-            transition: transform 0.1s ease-in-out;
+            border: 2px solid #30363d;
+            transition: all 0.2s ease-in-out;
         }
         .color-swatch:hover {
             transform: scale(1.1);
+            box-shadow: 0 0 10px var(--glow-color);
         }
         .color-swatch.selected {
             border-color: white;
-            box-shadow: 0 0 0 2px black;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--glow-color);
         }
         /* Minimap styles */
         #minimap-container {
             position: relative;
             width: 100%;
             padding-top: 50%; /* 2:1 aspect ratio */
-            background-color: #2d3748;
-            border: 1px solid #4a5568;
+            background-color: #010409;
+            border: 1px solid #30363d;
             cursor: pointer;
+            border-radius: 4px;
         }
         #minimap-canvas {
             position: absolute;
@@ -125,79 +147,86 @@
             background-color: rgba(255, 255, 255, 0.2);
             pointer-events: none;
         }
+        .sidebar-btn {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-btn:hover {
+            background-color: #30363d;
+            box-shadow: 0 0 10px var(--glow-color);
+            color: white;
+        }
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-900 text-white flex h-screen overflow-hidden">
+<body class="bg-gray-900 text-gray-300 flex h-screen overflow-hidden">
 
     <!-- Sidebar for controls -->
-    <aside class="w-72 bg-gray-800 p-6 flex flex-col shadow-lg flex-shrink-0 overflow-y-auto">
-        <h1 class="text-2xl font-bold text-center mb-6">Placement Controls</h1>
+    <aside class="w-72 bg-[#0d1117] p-6 flex flex-col shadow-lg flex-shrink-0 overflow-y-auto border-r border-gray-800">
+        <h1 class="text-2xl font-bold text-center mb-6 text-white">Tactical Map</h1>
         
         <!-- HQ Controls -->
         <div class="mb-4">
-            <h3 class="text-lg font-semibold text-center mb-3">Place HQ (3x3)</h3>
-            <div id="hq-color-palette" class="grid grid-cols-4 gap-4 justify-items-center">
+            <h3 class="text-lg font-semibold text-center mb-3 text-gray-400">Place HQ (3x3)</h3>
+            <div id="hq-color-palette" class="grid grid-cols-4 gap-2 justify-items-center">
                 <!-- Color swatches will be inserted here by JS -->
             </div>
         </div>
 
         <div class="flex flex-col space-y-4">
-            <button id="ac-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400">
+            <button id="ac-btn" class="sidebar-btn w-full text-white font-bold py-3 px-4 rounded-lg" style="--glow-color: #22c55e;">
                 Place Alliance Center (9x9)
             </button>
-            <button id="remove-structure-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400">
+            <button id="remove-structure-btn" class="sidebar-btn w-full text-white font-bold py-3 px-4 rounded-lg" style="--glow-color: #9333ea;">
                 Remove Structure
             </button>
-            <button id="remove-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400">
+            <button id="remove-btn" class="sidebar-btn w-full text-white font-bold py-3 px-4 rounded-lg" style="--glow-color: #dc2626;">
                 Remove Terrain
             </button>
-            <button id="clear-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200">
+            <button id="clear-btn" class="sidebar-btn w-full text-white font-bold py-3 px-4 rounded-lg" style="--glow-color: #9ca3af;">
                 Clear Selection
             </button>
         </div>
         
-        <hr class="border-gray-600 my-6">
+        <hr class="border-gray-800 my-6">
 
         <!-- Navigation Section -->
         <div>
-            <h2 class="text-lg font-semibold mb-3">Navigation</h2>
+            <h2 class="text-lg font-semibold mb-3 text-gray-400">Navigation</h2>
             <div id="minimap-container">
                 <canvas id="minimap-canvas"></canvas>
                 <div id="minimap-viewport"></div>
             </div>
             <div class="flex items-center justify-center space-x-4 mt-3">
-                <button id="zoom-out-btn" class="w-10 h-10 bg-gray-600 hover:bg-gray-700 rounded-full font-bold text-xl">-</button>
-                <span id="zoom-display" class="text-sm font-semibold">100%</span>
-                <button id="zoom-in-btn" class="w-10 h-10 bg-gray-600 hover:bg-gray-700 rounded-full font-bold text-xl">+</button>
+                <button id="zoom-out-btn" class="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full font-bold text-xl">-</button>
+                <span id="zoom-display" class="text-sm font-semibold w-16 text-center">100%</span>
+                <button id="zoom-in-btn" class="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full font-bold text-xl">+</button>
             </div>
         </div>
 
-        <hr class="border-gray-600 my-6">
+        <hr class="border-gray-800 my-6">
 
         <!-- Import/Export Section -->
         <div>
-            <h2 class="text-lg font-semibold mb-3">Map Data</h2>
+            <h2 class="text-lg font-semibold mb-3 text-gray-400">Map Data</h2>
             <div class="flex flex-col space-y-4">
-                <button id="export-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200">Export Map State</button>
+                <button id="export-btn" class="sidebar-btn w-full text-white font-bold py-3 px-4 rounded-lg" style="--glow-color: #4f46e5;">Export Map State</button>
                 <div>
-                    <label for="map-state-input" class="block text-sm font-medium text-gray-300 mb-1">Map State Data</label>
-                    <textarea id="map-state-input" rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Paste map data here..."></textarea>
+                    <label for="map-state-input" class="block text-sm font-medium text-gray-400 mb-1">Map State Data</label>
+                    <textarea id="map-state-input" rows="4" class="w-full bg-[#010409] border border-gray-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Paste map data here..."></textarea>
                 </div>
-                <button id="load-btn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200">Load State</button>
+                <button id="load-btn" class="sidebar-btn w-full text-white font-bold py-3 px-4 rounded-lg" style="--glow-color: #2dd4bf;">Load State</button>
             </div>
         </div>
 
-        <div class="text-sm text-gray-400 mt-auto pt-6">
-            <p><span class="font-bold">X/Y Coordinates:</span> <span id="coords-display">N/A</span></p>
-            <p id="help-text" class="mt-2">Select a tool, then hover and click on the map.</p>
+        <div class="text-sm text-gray-500 mt-auto pt-6">
+            <p><span class="font-bold">Coords:</span> <span id="coords-display">N/A</span></p>
+            <p id="help-text" class="mt-2">Select a tool to begin.</p>
         </div>
     </aside>
 
     <!-- Map Area -->
-    <main class="flex-1 bg-gray-900 overflow-auto p-4 flex items-center justify-center">
+    <main class="flex-1 p-4 flex items-center justify-center">
         <div id="map-grid-container">
             <div id="map-grid" class="cursor-crosshair"></div>
             <div id="structure-layer"></div>
@@ -207,34 +236,34 @@
 
     <!-- Modals -->
     <div id="ac-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md">
-            <h2 class="text-2xl font-bold mb-4">Alliance Center Details</h2>
+        <div class="bg-[#0d1117] border border-gray-700 rounded-lg shadow-xl p-8 w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-4 text-white">Alliance Center Details</h2>
             <form id="ac-form">
                 <div>
-                    <label for="ac-name-input" class="block text-sm font-medium text-gray-300 mb-1">Alliance Name</label>
-                    <input type="text" id="ac-name-input" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., The Phoenix Legion" required>
+                    <label for="ac-name-input" class="block text-sm font-medium text-gray-400 mb-1">Alliance Name</label>
+                    <input type="text" id="ac-name-input" class="w-full bg-[#010409] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., The Phoenix Legion" required>
                 </div>
                 <div class="mt-4">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Alliance Color</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Alliance Color</label>
                     <div id="ac-color-palette" class="grid grid-cols-4 gap-4 justify-items-center">
                         <!-- AC Color swatches will be inserted here by JS -->
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end space-x-4">
-                    <button type="button" id="cancel-ac-btn" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
-                    <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition-colors">Confirm</button>
+                    <button type="button" id="cancel-ac-btn" class="sidebar-btn px-6 py-2 rounded-lg" style="--glow-color: #9ca3af;">Cancel</button>
+                    <button type="submit" class="sidebar-btn px-6 py-2 rounded-lg font-semibold" style="--glow-color: #22c55e;">Confirm</button>
                 </div>
             </form>
         </div>
     </div>
     <div id="export-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-2xl">
-            <h2 class="text-2xl font-bold mb-4">Exported Map Data</h2>
+        <div class="bg-[#0d1117] border border-gray-700 rounded-lg shadow-xl p-8 w-full max-w-2xl">
+            <h2 class="text-2xl font-bold mb-4 text-white">Exported Map Data</h2>
             <p class="text-gray-400 mb-6">Copy the text below to save your current map layout.</p>
-            <textarea id="export-output" rows="10" readonly class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-white text-xs font-mono"></textarea>
+            <textarea id="export-output" rows="10" readonly class="w-full bg-[#010409] border border-gray-700 rounded-lg px-3 py-2 text-white font-mono"></textarea>
             <div class="mt-6 flex justify-end space-x-4">
-                 <button id="copy-export-btn" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition-colors">Copy to Clipboard</button>
-                <button id="close-export-btn" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">Close</button>
+                 <button id="copy-export-btn" class="sidebar-btn px-6 py-2 rounded-lg font-semibold" style="--glow-color: #4f46e5;">Copy to Clipboard</button>
+                <button id="close-export-btn" class="sidebar-btn px-6 py-2 rounded-lg" style="--glow-color: #9ca3af;">Close</button>
             </div>
         </div>
     </div>
@@ -245,15 +274,16 @@
             const GRID_WIDTH = 150;
             const GRID_HEIGHT = 75;
             const CELL_SIZE = 12;
+            const ZOOM_LEVELS = [0.25, 0.5, 0.75, 1, 1.5, 2];
             const COLOR_PALETTE = {
-                RED: { color: '#dc2626', borderColor: '#f87171' },
-                ORANGE: { color: '#ea580c', borderColor: '#fdba74' },
-                YELLOW: { color: '#eab308', borderColor: '#fde047' },
-                GREEN: { color: '#22c55e', borderColor: '#86efac' },
-                BLUE: { color: '#2563eb', borderColor: '#60a5fa' },
-                INDIGO: { color: '#4f46e5', borderColor: '#818cf8' },
-                PURPLE: { color: '#9333ea', borderColor: '#c084fc' },
-                PINK: { color: '#db2777', borderColor: '#f9a8d4' },
+                NEON_CYAN: { color: '#22d3ee', borderColor: '#a5f3fc' },
+                HOT_PINK: { color: '#f472b6', borderColor: '#fbcfe8' },
+                LIME_GREEN: { color: '#a3e635', borderColor: '#d9f99d' },
+                ELECTRIC_BLUE: { color: '#38bdf8', borderColor: '#bae6fd' },
+                SOLAR_ORANGE: { color: '#fb923c', borderColor: '#fed7aa' },
+                GALACTIC_PURPLE: { color: '#a78bfa', borderColor: '#ddd6fe' },
+                GOLD: { color: '#facc15', borderColor: '#fef08a' },
+                CRIMSON: { color: '#f43f5e', borderColor: '#fda4af' },
             };
             const STRUCTURES = {
                 ...Object.keys(COLOR_PALETTE).reduce((acc, key) => {
@@ -264,7 +294,6 @@
                 REMOVE: { name: 'Remove Terrain' },
                 REMOVE_STRUCTURE: { name: 'Remove Structure' }
             };
-            const ZOOM_LEVELS = [0.25, 0.5, 0.75, 1, 1.5, 2];
             // --- DEFAULT STATE ---
             const defaultMapStateJSON = `{"structures":[],"removed":[{"x":29,"y":37},{"x":29,"y":38},{"x":29,"y":39},{"x":29,"y":40},{"x":29,"y":41},{"x":29,"y":42},{"x":29,"y":43},{"x":29,"y":44},{"x":29,"y":45},{"x":30,"y":37},{"x":30,"y":38},{"x":30,"y":39},{"x":30,"y":40},{"x":30,"y":41},{"x":30,"y":42},{"x":30,"y":43},{"x":30,"y":44},{"x":30,"y":45},{"x":31,"y":37},{"x":31,"y":38},{"x":31,"y":39},{"x":31,"y":40},{"x":31,"y":41},{"x":31,"y":42},{"x":31,"y":43},{"x":31,"y":44},{"x":31,"y":45},{"x":32,"y":37},{"x":32,"y":38},{"x":32,"y":39},{"x":32,"y":40},{"x":32,"y":41},{"x":32,"y":42},{"x":32,"y":43},{"x":32,"y":44},{"x":32,"y":45},{"x":33,"y":37},{"x":33,"y":38},{"x":33,"y":39},{"x":33,"y":40},{"x":33,"y":41},{"x":33,"y":42},{"x":33,"y":43},{"x":33,"y":44},{"x":33,"y":45},{"x":34,"y":37},{"x":34,"y":38},{"x":34,"y":39},{"x":34,"y":40},{"x":34,"y":41},{"x":34,"y":42},{"x":34,"y":43},{"x":34,"y":44},{"x":34,"y":45},{"x":35,"y":37},{"x":35,"y":38},{"x":35,"y":39},{"x":35,"y":40},{"x":35,"y":41},{"x":35,"y":42},{"x":35,"y":43},{"x":35,"y":44},{"x":35,"y":45},{"x":36,"y":37},{"x":36,"y":38},{"x":36,"y":39},{"x":36,"y":40},{"x":36,"y":41},{"x":36,"y":42},{"x":36,"y":43},{"x":36,"y":44},{"x":36,"y":45},{"x":37,"y":37},{"x":37,"y":38},{"x":37,"y":39},{"x":37,"y":40},{"x":37,"y":41},{"x":37,"y":42},{"x":37,"y":43},{"x":37,"y":44},{"x":37,"y":45},{"x":50,"y":31},{"x":50,"y":32},{"x":50,"y":33},{"x":50,"y":34},{"x":50,"y":35},{"x":50,"y":36},{"x":50,"y":37},{"x":50,"y":38},{"x":50,"y":39},{"x":50,"y":40},{"x":50,"y":41},{"x":50,"y":42},{"x":50,"y":43},{"x":51,"y":31},{"x":51,"y":32},{"x":51,"y":33},{"x":51,"y":34},{"x":51,"y":35},{"x":51,"y":36},{"x":51,"y":37},{"x":51,"y":38},{"x":51,"y":39},{"x":51,"y":40},{"x":51,"y":41},{"x":51,"y":42},{"x":51,"y":43},{"x":52,"y":31},{"x":52,"y":32},{"x":52,"y":33},{"x":52,"y":34},{"x":52,"y":35},{"x":52,"y":36},{"x":52,"y":37},{"x":52,"y":38},{"x":52,"y":39},{"x":52,"y":40},{"x":52,"y":41},{"x":52,"y":42},{"x":52,"y":43},{"x":53,"y":31},{"x":53,"y":32},{"x":53,"y":33},{"x":53,"y":34},{"x":53,"y":35},{"x":53,"y":36},{"x":53,"y":37},{"x":53,"y":38},{"x":53,"y":39},{"x":53,"y":40},{"x":53,"y":41},{"x":53,"y":42},{"x":53,"y":43},{"x":54,"y":31},{"x":54,"y":32},{"x":54,"y":33},{"x":54,"y":34},{"x":54,"y":35},{"x":54,"y":36},{"x":54,"y":37},{"x":54,"y":38},{"x":54,"y":39},{"x":54,"y":40},{"x":54,"y":41},{"x":54,"y":42},{"x":54,"y":43},{"x":55,"y":31},{"x":55,"y":32},{"x":55,"y":33},{"x":55,"y":34},{"x":55,"y":35},{"x":55,"y":36},{"x":55,"y":37},{"x":55,"y":38},{"x":55,"y":39},{"x":55,"y":40},{"x":55,"y":41},{"x":55,"y":42},{"x":55,"y":43},{"x":56,"y":31},{"x":56,"y":32},{"x":56,"y":33},{"x":56,"y":34},{"x":56,"y":35},{"x":56,"y":36},{"x":56,"y":37},{"x":56,"y":38},{"x":56,"y":39},{"x":56,"y":40},{"x":56,"y":41},{"x":56,"y":42},{"x":56,"y":43},{"x":57,"y":31},{"x":57,"y":32},{"x":57,"y":33},{"x":57,"y":34},{"x":57,"y":35},{"x":57,"y":36},{"x":57,"y":37},{"x":57,"y":38},{"x":57,"y":39},{"x":57,"y":40},{"x":57,"y":41},{"x":57,"y":42},{"x":57,"y":43},{"x":58,"y":31},{"x":58,"y":32},{"x":58,"y":33},{"x":58,"y":34},{"x":58,"y":35},{"x":58,"y":36},{"x":58,"y":37},{"x":58,"y":38},{"x":58,"y":39},{"x":58,"y":40},{"x":58,"y":41},{"x":58,"y":42},{"x":58,"y":43},{"x":59,"y":31},{"x":59,"y":32},{"x":59,"y":33},{"x":59,"y":34},{"x":59,"y":35},{"x":59,"y":36},{"x":59,"y":37},{"x":59,"y":38},{"x":59,"y":39},{"x":59,"y":40},{"x":59,"y":41},{"x":59,"y":42},{"x":59,"y":43},{"x":60,"y":31},{"x":60,"y":32},{"x":60,"y":33},{"x":60,"y":34},{"x":60,"y":35},{"x":60,"y":36},{"x":60,"y":37},{"x":60,"y":38},{"x":60,"y":39},{"x":60,"y":40},{"x":60,"y":41},{"x":60,"y":42},{"x":60,"y":43},{"x":61,"y":31},{"x":61,"y":32},{"x":61,"y":33},{"x":61,"y":34},{"x":61,"y":35},{"x":61,"y":36},{"x":61,"y":37},{"x":61,"y":38},{"x":61,"y":39},{"x":61,"y":40},{"x":61,"y":41},{"x":61,"y":42},{"x":61,"y":43},{"x":62,"y":31},{"x":62,"y":32},{"x":62,"y":33},{"x":62,"y":34},{"x":62,"y":35},{"x":62,"y":36},{"x":62,"y":37},{"x":62,"y":38},{"x":62,"y":39},{"x":62,"y":40},{"x":62,"y":41},{"x":62,"y":42},{"x":62,"y":43},{"x":63,"y":31},{"x":63,"y":32},{"x":63,"y":33},{"x":63,"y":34},{"x":63,"y":35},{"x":63,"y":36},{"x":63,"y":37},{"x":63,"y":38},{"x":63,"y":39},{"x":63,"y":40},{"x":63,"y":41},{"x":63,"y":42},{"x":63,"y":43},{"x":73,"y":25},{"x":73,"y":26},{"x":73,"y":27},{"x":73,"y":28},{"x":73,"y":29},{"x":73,"y":30},{"x":73,"y":31},{"x":73,"y":32},{"x":73,"y":33},{"x":73,"y":34},{"x":73,"y":35},{"x":73,"y":36},{"x":73,"y":37},{"x":73,"y":38},{"x":74,"y":25},{"x":74,"y":26},{"x":74,"y":27},{"x":74,"y":28},{"x":74,"y":29},{"x":74,"y":30},{"x":74,"y":31},{"x":74,"y":32},{"x":74,"y":33},{"x":74,"y":34},{"x":74,"y":35},{"x":74,"y":36},{"x":74,"y":37},{"x":74,"y":38},{"x":75,"y":25},{"x":75,"y":26},{"x":75,"y":27},{"x":75,"y":28},{"x":75,"y":29},{"x":75,"y":30},{"x":75,"y":31},{"x":75,"y":32},{"x":75,"y":33},{"x":75,"y":34},{"x":75,"y":35},{"x":75,"y":36},{"x":75,"y":37},{"x":75,"y":38},{"x":76,"y":25},{"x":76,"y":26},{"x":76,"y":27},{"x":76,"y":28},{"x":76,"y":29},{"x":76,"y":30},{"x":76,"y":31},{"x":76,"y":32},{"x":76,"y":33},{"x":76,"y":34},{"x":76,"y":35},{"x":76,"y":36},{"x":76,"y":37},{"x":76,"y":38},{"x":77,"y":25},{"x":77,"y":26},{"x":77,"y":27},{"x":77,"y":28},{"x":77,"y":29},{"x":77,"y":30},{"x":77,"y":31},{"x":77,"y":32},{"x":77,"y":33},{"x":77,"y":34},{"x":77,"y":35},{"x":77,"y":36},{"x":77,"y":37},{"x":77,"y":38},{"x":78,"y":25},{"x":78,"y":26},{"x":78,"y":27},{"x":78,"y":28},{"x":78,"y":29},{"x":78,"y":30},{"x":78,"y":31},{"x":78,"y":32},{"x":78,"y":33},{"x":78,"y":34},{"x":78,"y":35},{"x":78,"y":36},{"x":78,"y":37},{"x":78,"y":38},{"x":79,"y":25},{"x":79,"y":26},{"x":79,"y":27},{"x":79,"y":28},{"x":79,"y":29},{"x":79,"y":30},{"x":79,"y":31},{"x":79,"y":32},{"x":79,"y":33},{"x":79,"y":34},{"x":79,"y":35},{"x":79,"y":36},{"x":79,"y":37},{"x":79,"y":38},{"x":80,"y":25},{"x":80,"y":26},{"x":80,"y":27},{"x":80,"y":28},{"x":80,"y":29},{"x":80,"y":30},{"x":80,"y":31},{"x":80,"y":32},{"x":80,"y":33},{"x":80,"y":34},{"x":80,"y":35},{"x":80,"y":36},{"x":80,"y":37},{"x":80,"y":38},{"x":81,"y":25},{"x":81,"y":26},{"x":81,"y":27},{"x":81,"y":28},{"x":81,"y":29},{"x":81,"y":30},{"x":81,"y":31},{"x":81,"y":32},{"x":81,"y":33},{"x":81,"y":34},{"x":81,"y":35},{"x":81,"y":36},{"x":81,"y":37},{"x":81,"y":38},{"x":82,"y":25},{"x":82,"y":26},{"x":82,"y":27},{"x":82,"y":28},{"x":82,"y":29},{"x":82,"y":30},{"x":82,"y":31},{"x":82,"y":32},{"x":82,"y":33},{"x":82,"y":34},{"x":82,"y":35},{"x":82,"y":36},{"x":82,"y":37},{"x":82,"y":38},{"x":83,"y":25},{"x":83,"y":26},{"x":83,"y":27},{"x":83,"y":28},{"x":83,"y":29},{"x":83,"y":30},{"x":83,"y":31},{"x":83,"y":32},{"x":83,"y":33},{"x":83,"y":34},{"x":83,"y":35},{"x":83,"y":36},{"x":83,"y":37},{"x":83,"y":38},{"x":84,"y":25},{"x":84,"y":26},{"x":84,"y":27},{"x":84,"y":28},{"x":84,"y":29},{"x":84,"y":30},{"x":84,"y":31},{"x":84,"y":32},{"x":84,"y":33},{"x":84,"y":34},{"x":84,"y":35},{"x":84,"y":36},{"x":84,"y":37},{"x":84,"y":38},{"x":85,"y":25},{"x":85,"y":26},{"x":85,"y":27},{"x":85,"y":28},{"x":85,"y":29},{"x":85,"y":30},{"x":85,"y":31},{"x":85,"y":32},{"x":85,"y":33},{"x":85,"y":34},{"x":85,"y":35},{"x":85,"y":36},{"x":85,"y":37},{"x":85,"y":38},{"x":86,"y":25},{"x":86,"y":26},{"x":86,"y":27},{"x":86,"y":28},{"x":86,"y":29},{"x":86,"y":30},{"x":86,"y":31},{"x":86,"y":32},{"x":86,"y":33},{"x":86,"y":34},{"x":86,"y":35},{"x":86,"y":36},{"x":86,"y":37},{"x":86,"y":38},{"x":65,"y":53},{"x":65,"y":54},{"x":65,"y":55},{"x":65,"y":56},{"x":65,"y":57},{"x":65,"y":58},{"x":65,"y":59},{"x":65,"y":60},{"x":65,"y":61},{"x":65,"y":62},{"x":65,"y":63},{"x":65,"y":64},{"x":65,"y":65},{"x":65,"y":66},{"x":66,"y":53},{"x":66,"y":54},{"x":66,"y":55},{"x":66,"y":56},{"x":66,"y":57},{"x":66,"y":58},{"x":66,"y":59},{"x":66,"y":60},{"x":66,"y":61},{"x":66,"y":62},{"x":66,"y":63},{"x":66,"y":64},{"x":66,"y":65},{"x":66,"y":66},{"x":67,"y":53},{"x":67,"y":54},{"x":67,"y":55},{"x":67,"y":56},{"x":67,"y":57},{"x":67,"y":58},{"x":67,"y":59},{"x":67,"y":60},{"x":67,"y":61},{"x":67,"y":62},{"x":67,"y":63},{"x":67,"y":64},{"x":67,"y":65},{"x":67,"y":66},{"x":68,"y":53},{"x":68,"y":54},{"x":68,"y":55},{"x":68,"y":56},{"x":68,"y":57},{"x":68,"y":58},{"x":68,"y":59},{"x":68,"y":60},{"x":68,"y":61},{"x":68,"y":62},{"x":68,"y":63},{"x":68,"y":64},{"x":68,"y":65},{"x":68,"y":66},{"x":69,"y":53},{"x":69,"y":54},{"x":69,"y":55},{"x":69,"y":56},{"x":69,"y":57},{"x":69,"y":58},{"x":69,"y":59},{"x":69,"y":60},{"x":69,"y":61},{"x":69,"y":62},{"x":69,"y":63},{"x":69,"y":64},{"x":69,"y":65},{"x":69,"y":66},{"x":70,"y":53},{"x":70,"y":54},{"x":70,"y":55},{"x":70,"y":56},{"x":70,"y":57},{"x":70,"y":58},{"x":70,"y":59},{"x":70,"y":60},{"x":70,"y":61},{"x":70,"y":62},{"x":70,"y":63},{"x":70,"y":64},{"x":70,"y":65},{"x":70,"y":66},{"x":71,"y":53},{"x":71,"y":54},{"x":71,"y":55},{"x":71,"y":56},{"x":71,"y":57},{"x":71,"y":58},{"x":71,"y":59},{"x":71,"y":60},{"x":71,"y":61},{"x":71,"y":62},{"x":71,"y":63},{"x":71,"y":64},{"x":71,"y":65},{"x":71,"y":66},{"x":72,"y":53},{"x":72,"y":54},{"x":72,"y":55},{"x":72,"y":56},{"x":72,"y":57},{"x":72,"y":58},{"x":72,"y":59},{"x":72,"y":60},{"x":72,"y":61},{"x":72,"y":62},{"x":72,"y":63},{"x":72,"y":64},{"x":72,"y":65},{"x":72,"y":66},{"x":73,"y":53},{"x":73,"y":54},{"x":73,"y":55},{"x":73,"y":56},{"x":73,"y":57},{"x":73,"y":58},{"x":73,"y":59},{"x":73,"y":60},{"x":73,"y":61},{"x":73,"y":62},{"x":73,"y":63},{"x":73,"y":64},{"x":73,"y":65},{"x":73,"y":66},{"x":74,"y":53},{"x":74,"y":54},{"x":74,"y":55},{"x":74,"y":56},{"x":74,"y":57},{"x":74,"y":58},{"x":74,"y":59},{"x":74,"y":60},{"x":74,"y":61},{"x":74,"y":62},{"x":74,"y":63},{"x":74,"y":64},{"x":74,"y":65},{"x":74,"y":66},{"x":75,"y":53},{"x":75,"y":54},{"x":75,"y":55},{"x":75,"y":56},{"x":75,"y":57},{"x":75,"y":58},{"x":75,"y":59},{"x":75,"y":60},{"x":75,"y":61},{"x":75,"y":62},{"x":75,"y":63},{"x":75,"y":64},{"x":75,"y":65},{"x":75,"y":66},{"x":76,"y":53},{"x":76,"y":54},{"x":76,"y":55},{"x":76,"y":56},{"x":76,"y":57},{"x":76,"y":58},{"x":76,"y":59},{"x":76,"y":60},{"x":76,"y":61},{"x":76,"y":62},{"x":76,"y":63},{"x":76,"y":64},{"x":76,"y":65},{"x":76,"y":66},{"x":77,"y":53},{"x":77,"y":54},{"x":77,"y":55},{"x":77,"y":56},{"x":77,"y":57},{"x":77,"y":58},{"x":77,"y":59},{"x":77,"y":60},{"x":77,"y":61},{"x":77,"y":62},{"x":77,"y":63},{"x":77,"y":64},{"x":77,"y":65},{"x":77,"y":66},{"x":78,"y":53},{"x":78,"y":54},{"x":78,"y":55},{"x":78,"y":56},{"x":78,"y":57},{"x":78,"y":58},{"x":78,"y":59},{"x":78,"y":60},{"x":78,"y":61},{"x":78,"y":62},{"x":78,"y":63},{"x":78,"y":64},{"x":78,"y":65},{"x":78,"y":66},{"x":99,"y":16},{"x":99,"y":17},{"x":99,"y":18},{"x":99,"y":19},{"x":99,"y":20},{"x":99,"y":21},{"x":99,"y":22},{"x":99,"y":23},{"x":99,"y":24},{"x":99,"y":25},{"x":99,"y":26},{"x":99,"y":27},{"x":99,"y":28},{"x":99,"y":29},{"x":100,"y":16},{"x":100,"y":17},{"x":100,"y":18},{"x":100,"y":19},{"x":100,"y":20},{"x":100,"y":21},{"x":100,"y":22},{"x":100,"y":23},{"x":100,"y":24},{"x":100,"y":25},{"x":100,"y":26},{"x":100,"y":27},{"x":100,"y":28},{"x":100,"y":29},{"x":101,"y":16},{"x":101,"y":17},{"x":101,"y":18},{"x":101,"y":19},{"x":101,"y":20},{"x":101,"y":21},{"x":101,"y":22},{"x":101,"y":23},{"x":101,"y":24},{"x":101,"y":25},{"x":101,"y":26},{"x":101,"y":27},{"x":101,"y":28},{"x":101,"y":29},{"x":102,"y":16},{"x":102,"y":17},{"x":102,"y":18},{"x":102,"y":19},{"x":102,"y":20},{"x":102,"y":21},{"x":102,"y":22},{"x":102,"y":23},{"x":102,"y":24},{"x":102,"y":25},{"x":102,"y":26},{"x":102,"y":27},{"x":102,"y":28},{"x":102,"y":29},{"x":103,"y":16},{"x":103,"y":17},{"x":103,"y":18},{"x":103,"y":19},{"x":103,"y":20},{"x":103,"y":21},{"x":103,"y":22},{"x":103,"y":23},{"x":103,"y":24},{"x":103,"y":25},{"x":103,"y":26},{"x":103,"y":27},{"x":103,"y":28},{"x":103,"y":29},{"x":104,"y":16},{"x":104,"y":17},{"x":104,"y":18},{"x":104,"y":19},{"x":104,"y":20},{"x":104,"y":21},{"x":104,"y":22},{"x":104,"y":23},{"x":104,"y":24},{"x":104,"y":25},{"x":104,"y":26},{"x":104,"y":27},{"x":104,"y":28},{"x":104,"y":29},{"x":105,"y":16},{"x":105,"y":17},{"x":105,"y":18},{"x":105,"y":19},{"x":105,"y":20},{"x":105,"y":21},{"x":105,"y":22},{"x":105,"y":23},{"x":105,"y":24},{"x":105,"y":25},{"x":105,"y":26},{"x":105,"y":27},{"x":105,"y":28},{"x":105,"y":29},{"x":106,"y":16},{"x":106,"y":17},{"x":106,"y":18},{"x":106,"y":19},{"x":106,"y":20},{"x":106,"y":21},{"x":106,"y":22},{"x":106,"y":23},{"x":106,"y":24},{"x":106,"y":25},{"x":106,"y":26},{"x":106,"y":27},{"x":106,"y":28},{"x":106,"y":29},{"x":107,"y":16},{"x":107,"y":17},{"x":107,"y":18},{"x":107,"y":19},{"x":107,"y":20},{"x":107,"y":21},{"x":107,"y":22},{"x":107,"y":23},{"x":107,"y":24},{"x":107,"y":25},{"x":107,"y":26},{"x":107,"y":27},{"x":107,"y":28},{"x":107,"y":29},{"x":108,"y":16},{"x":108,"y":17},{"x":108,"y":18},{"x":108,"y":19},{"x":108,"y":20},{"x":108,"y":21},{"x":108,"y":22},{"x":108,"y":23},{"x":108,"y":24},{"x":108,"y":25},{"x":108,"y":26},{"x":108,"y":27},{"x":108,"y":28},{"x":108,"y":29},{"x":109,"y":16},{"x":109,"y":17},{"x":109,"y":18},{"x":109,"y":19},{"x":109,"y":20},{"x":109,"y":21},{"x":109,"y":22},{"x":109,"y":23},{"x":109,"y":24},{"x":109,"y":25},{"x":109,"y":26},{"x":109,"y":27},{"x":109,"y":28},{"x":109,"y":29},{"x":110,"y":16},{"x":110,"y":17},{"x":110,"y":18},{"x":110,"y":19},{"x":110,"y":20},{"x":110,"y":21},{"x":110,"y":22},{"x":110,"y":23},{"x":110,"y":24},{"x":110,"y":25},{"x":110,"y":26},{"x":110,"y":27},{"x":110,"y":28},{"x":110,"y":29},{"x":111,"y":16},{"x":111,"y":17},{"x":111,"y":18},{"x":111,"y":19},{"x":111,"y":20},{"x":111,"y":21},{"x":111,"y":22},{"x":111,"y":23},{"x":111,"y":24},{"x":111,"y":25},{"x":111,"y":26},{"x":111,"y":27},{"x":111,"y":28},{"x":111,"y":29},{"x":112,"y":16},{"x":112,"y":17},{"x":112,"y":18},{"x":112,"y":19},{"x":112,"y":20},{"x":112,"y":21},{"x":112,"y":22},{"x":112,"y":23},{"x":112,"y":24},{"x":112,"y":25},{"x":112,"y":26},{"x":112,"y":27},{"x":112,"y":28},{"x":112,"y":29},{"x":108,"y":41},{"x":108,"y":42},{"x":108,"y":43},{"x":108,"y":44},{"x":108,"y":45},{"x":108,"y":46},{"x":108,"y":47},{"x":108,"y":48},{"x":108,"y":49},{"x":109,"y":41},{"x":109,"y":42},{"x":109,"y":43},{"x":109,"y":44},{"x":109,"y":45},{"x":109,"y":46},{"x":109,"y":47},{"x":109,"y":48},{"x":109,"y":49},{"x":110,"y":41},{"x":110,"y":42},{"x":110,"y":43},{"x":110,"y":44},{"x":110,"y":45},{"x":110,"y":46},{"x":110,"y":47},{"x":110,"y":48},{"x":110,"y":49},{"x":111,"y":41},{"x":111,"y":42},{"x":111,"y":43},{"x":111,"y":44},{"x":111,"y":45},{"x":111,"y":46},{"x":111,"y":47},{"x":111,"y":48},{"x":111,"y":49},{"x":112,"y":41},{"x":112,"y":42},{"x":112,"y":43},{"x":112,"y":44},{"x":112,"y":45},{"x":112,"y":46},{"x":112,"y":47},{"x":112,"y":48},{"x":112,"y":49},{"x":113,"y":41},{"x":113,"y":42},{"x":113,"y":43},{"x":113,"y":44},{"x":113,"y":45},{"x":113,"y":46},{"x":113,"y":47},{"x":113,"y":48},{"x":113,"y":49},{"x":114,"y":41},{"x":114,"y":42},{"x":114,"y":43},{"x":114,"y":44},{"x":114,"y":45},{"x":114,"y":46},{"x":114,"y":47},{"x":114,"y":48},{"x":114,"y":49},{"x":115,"y":41},{"x":115,"y":42},{"x":115,"y":43},{"x":115,"y":44},{"x":115,"y":45},{"x":115,"y":46},{"x":115,"y":47},{"x":115,"y":48},{"x":115,"y":49},{"x":116,"y":41},{"x":116,"y":42},{"x":116,"y":43},{"x":116,"y":44},{"x":116,"y":45},{"x":116,"y":46},{"x":116,"y":47},{"x":116,"y":48},{"x":116,"y":49},{"x":67,"y":0},{"x":67,"y":1},{"x":67,"y":2},{"x":67,"y":3},{"x":67,"y":4},{"x":67,"y":5},{"x":67,"y":6},{"x":67,"y":7},{"x":68,"y":0},{"x":68,"y":1},{"x":68,"y":2},{"x":68,"y":3},{"x":68,"y":4},{"x":68,"y":5},{"x":68,"y":6},{"x":68,"y":7},{"x":69,"y":0},{"x":69,"y":1},{"x":69,"y":2},{"x":69,"y":3},{"x":69,"y":4},{"x":69,"y":5},{"x":69,"y":6},{"x":69,"y":7},{"x":70,"y":0},{"x":70,"y":1},{"x":70,"y":2},{"x":70,"y":3},{"x":70,"y":4},{"x":70,"y":5},{"x":70,"y":6},{"x":70,"y":7},{"x":71,"y":0},{"x":71,"y":1},{"x":71,"y":2},{"x":71,"y":3},{"x":71,"y":4},{"x":71,"y":5},{"x":71,"y":6},{"x":71,"y":7},{"x":72,"y":0},{"x":72,"y":1},{"x":72,"y":2},{"x":72,"y":3},{"x":72,"y":4},{"x":72,"y":5},{"x":72,"y":6},{"x":72,"y":7},{"x":73,"y":0},{"x":73,"y":1},{"x":73,"y":2},{"x":73,"y":3},{"x":73,"y":4},{"x":73,"y":5},{"x":73,"y":6},{"x":73,"y":7},{"x":74,"y":0},{"x":74,"y":1},{"x":74,"y":2},{"x":74,"y":3},{"x":74,"y":4},{"x":74,"y":5},{"x":74,"y":6},{"x":74,"y":7},{"x":75,"y":0},{"x":75,"y":1},{"x":75,"y":2},{"x":75,"y":3},{"x":75,"y":4},{"x":75,"y":5},{"x":75,"y":6},{"x":75,"y":7},{"x":76,"y":0},{"x":76,"y":1},{"x":76,"y":2},{"x":76,"y":3},{"x":76,"y":4},{"x":76,"y":5},{"x":76,"y":6},{"x":76,"y":7},{"x":77,"y":0},{"x":77,"y":1},{"x":77,"y":2},{"x":77,"y":3},{"x":77,"y":4},{"x":77,"y":5},{"x":77,"y":6},{"x":77,"y":7},{"x":78,"y":0},{"x":78,"y":1},{"x":78,"y":2},{"x":78,"y":3},{"x":78,"y":4},{"x":78,"y":5},{"x":78,"y":6},{"x":78,"y":7},{"x":79,"y":0},{"x":79,"y":1},{"x":79,"y":2},{"x":79,"y":3},{"x":79,"y":4},{"x":79,"y":5},{"x":79,"y":6},{"x":79,"y":7},{"x":80,"y":0},{"x":80,"y":1},{"x":80,"y":2},{"x":80,"y":3},{"x":80,"y":4},{"x":80,"y":5},{"x":80,"y":6},{"x":80,"y":7},{"x":81,"y":0},{"x":81,"y":1},{"x":81,"y":2},{"x":81,"y":3},{"x":81,"y":4},{"x":81,"y":5},{"x":81,"y":6},{"x":81,"y":7}]}`;
 
@@ -334,6 +363,7 @@
                     const swatch = document.createElement('div');
                     swatch.className = 'color-swatch';
                     swatch.style.backgroundColor = COLOR_PALETTE[key].color;
+                    swatch.style.setProperty('--glow-color', COLOR_PALETTE[key].borderColor);
                     swatch.dataset.colorKey = key;
                     swatch.addEventListener('click', () => onSelect(key, swatch));
                     container.appendChild(swatch);
@@ -350,37 +380,40 @@
                 });
 
                 const removedSet = new Set(mapData.removed.map(c => `${c.x},${c.y}`));
-                const allOccupiedSet = new Set(mapData.removed.map(c => `${c.x},${c.y}`));
-
-                // Render structures and populate allOccupiedSet
-                mapData.structures.forEach(struct => {
-                    renderStructureBlock(struct);
-                    const structureType = STRUCTURES[struct.type];
-                    if (structureType) {
-                        for (let y = 0; y < structureType.height; y++) {
-                            for (let x = 0; x < structureType.width; x++) {
-                                allOccupiedSet.add(`${struct.x + x},${struct.y + y}`);
-                            }
-                        }
-                    }
-                });
-
+                
                 // Render removed cells
                 mapData.removed.forEach(coords => {
                     const cell = getCell(coords.x, coords.y);
                     if (cell) cell.classList.add('removed-cell');
                 });
+
+                // Render structures on top
+                mapData.structures.forEach(struct => {
+                    renderStructureBlock(struct);
+                });
                 
-                // Emphasize borders of manually removed terrain ONLY
-                mapData.removed.forEach(coords => {
-                    const cell = getCell(coords.x, coords.y);
-                    if (!cell) return;
+                // Emphasize borders on buildable land next to removed terrain
+                gridCells.forEach(cell => {
+                    if (cell.classList.contains('removed-cell')) return;
+
+                    const x = parseInt(cell.dataset.x);
+                    const y = parseInt(cell.dataset.y);
                     
                     const borderColor = '#9ca3af'; // Brighter grey
-                    if (!removedSet.has(`${coords.x},${coords.y - 1}`)) cell.style.borderTop = `1px solid ${borderColor}`;
-                    if (!removedSet.has(`${coords.x},${coords.y + 1}`)) cell.style.borderBottom = `1px solid ${borderColor}`;
-                    if (!removedSet.has(`${coords.x - 1},${coords.y}`)) cell.style.borderLeft = `1px solid ${borderColor}`;
-                    if (!removedSet.has(`${coords.x + 1},${coords.y}`)) cell.style.borderRight = `1px solid ${borderColor}`;
+
+                    // Check neighbors
+                    if (removedSet.has(`${x},${y - 1}`)) { // Neighbor above is removed
+                        cell.style.borderTop = `1px solid ${borderColor}`;
+                    }
+                    if (removedSet.has(`${x},${y + 1}`)) { // Neighbor below is removed
+                        cell.style.borderBottom = `1px solid ${borderColor}`;
+                    }
+                    if (removedSet.has(`${x - 1},${y}`)) { // Neighbor left is removed
+                        cell.style.borderLeft = `1px solid ${borderColor}`;
+                    }
+                    if (removedSet.has(`${x + 1},${y}`)) { // Neighbor right is removed
+                        cell.style.borderRight = `1px solid ${borderColor}`;
+                    }
                 });
 
                 drawMinimap();
@@ -390,9 +423,9 @@
             // --- UI & TEXT HELPERS ---
             function updateHelpText(state) {
                 const messages = {
-                    default: 'Select a tool, then hover and click on the map.',
-                    remove_first: 'Click to set the first corner of the removal area.',
-                    remove_second: 'Click again to set the second corner and remove blocks.'
+                    default: 'Select a tool to begin.',
+                    remove_terrain: 'Click and drag to remove terrain.',
+                    remove_structure: 'Click a structure to remove it.'
                 };
                 helpText.textContent = messages[state] || messages.default;
             }
@@ -416,7 +449,10 @@
                     if (firstCell) firstCell.classList.remove('remove-start-marker');
                     removeFirstClickCoords = null;
                 }
-                updateHelpText(structure.name === 'Remove Terrain' ? 'remove_first' : 'default');
+
+                if (structure.name === 'Remove Terrain') updateHelpText('remove_terrain');
+                else if (structure.name === 'Remove Structure') updateHelpText('remove_structure');
+                else updateHelpText('default');
             }
             
             function handleClearSelection() {
