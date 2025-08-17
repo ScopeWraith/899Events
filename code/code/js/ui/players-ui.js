@@ -99,27 +99,34 @@ export function renderPlayers(players) {
 
         // --- NEW HTML STRUCTURE ---
         card.innerHTML = `
+            <div class="player-card-background" style="background-image: url('${avatarUrl}')"></div>
+            <div class="player-card-overlay"></div>
             ${gearIconHTML}
-            <div class="player-card-main-content">
+            <div class="player-card-content">
                 <div class="player-card-avatar-wrapper">
                     <img src="${avatarUrl}" class="player-card-avatar ${border.className}" style="${border.style}" alt="${player.username}" crossorigin="anonymous">
                     <span class="status-dot ${statusClass}"></span>
                 </div>
                 <div class="player-card-info">
                     <h3 class="player-card-username">${player.username}</h3>
-                    <p class="player-card-meta ${unverifiedClass}">[${player.alliance}] - ${player.allianceRank}</p>
+                    <p class="player-card-meta ${unverifiedClass}">
+                        <i class="fas fa-shield-alt"></i>
+                        <span class="meta-alliance">[${player.alliance}]</span>
+                        <span class="meta-rank">${player.allianceRank}</span>
+                    </p>
                 </div>
-            </div>
-            <div class="player-card-power">
-                <span class="power-value">${(player.power || 0).toLocaleString()}</span>
-            </div>
-            <div class="player-card-footer">
-                <button class="player-card-action-btn message-player-btn" title="Message Player">
-                    <i class="fas fa-comment-dots"></i>
-                </button>
-                <button class="player-card-action-btn add-friend-btn" title="Add Friend">
-                    <i class="fas fa-user-plus"></i>
-                </button>
+                <div class="player-card-power">
+                     <i class="fas fa-bolt"></i>
+                    <span class="power-value">${(player.power || 0).toLocaleString()}</span>
+                </div>
+                <div class="player-card-actions">
+                    <button class="player-card-action-btn message-player-btn" title="Message Player" data-uid="${player.uid}">
+                        <i class="fas fa-comment-dots"></i>
+                    </button>
+                    <button class="player-card-action-btn add-friend-btn" title="Add Friend" data-uid="${player.uid}">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                </div>
             </div>
         `;
         playerListContainer.appendChild(card);
