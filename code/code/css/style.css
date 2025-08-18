@@ -2481,7 +2481,7 @@ emoji-picker {
 
 .player-card-username {
     font-family: 'Oswald', sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #e6edf3;
     white-space: nowrap;
@@ -2522,7 +2522,7 @@ emoji-picker {
 }
 
 .power-value {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #fff;
     line-height: 1;
