@@ -2629,4 +2629,9 @@ emoji-picker {
     .player-card-power {
     display: none;
     }
+    .player-card-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
 }
