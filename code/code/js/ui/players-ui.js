@@ -6,6 +6,7 @@ import { canManageUser, getAvatarBorderClass} from '../utils.js';
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderPlayersUI(newState, prevState) {
+    // Re-render the player list if the list of players or the current user changes.
     if (newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData) {
         applyPlayerFilters();
     }
@@ -19,16 +20,24 @@ export function initializePlayersUI() {
 
 export function applyPlayerFilters() {
     const playerListContainer = document.getElementById('player-list-container');
-    if (!playerListContainer) return;
-    const { allPlayers } = getState();
-    if (!allPlayers) {
-        renderPlayers(null);
+    if (!playerListContainer) {
         return;
     }
+
+    const { allPlayers } = getState();
+    // --- FIX: ADD THIS GUARD CLAUSE ---
+    if (!allPlayers) {
+        // If players aren't loaded yet, we can render skeletons or just exit.
+        renderPlayers(null); // Passing null will trigger the skeleton loader
+        return;
+    }
+
     const searchTermInput = document.getElementById('player-search-input');
     const allianceFilterInput = document.getElementById('alliance-filter');
+
     const searchTerm = searchTermInput ? searchTermInput.value.toLowerCase() : '';
     const allianceFilter = allianceFilterInput ? allianceFilterInput.value : '';
+
     const filteredPlayers = allPlayers.filter(player => {
         if (!player.username) return false;
         const nameMatch = player.username.toLowerCase().includes(searchTerm);
@@ -40,16 +49,19 @@ export function applyPlayerFilters() {
 
 function createPlayerSkeletonCard() {
     return `
-        <div class="player-card is-loading">
-            <div class="player-card-main-content">
-                <div class="player-card-avatar-loader"></div>
-                <div class="player-card-info-loader">
-                    <div class="skeleton-loader w-3/4 h-5 mb-2"></div>
-                    <div class="skeleton-loader w-1/2 h-4"></div>
+        <div class="player-card glass-pane p-4 flex flex-col opacity-50">
+            <div class="flex items-center pb-3 border-b" style="border-color: rgba(255,255,255,0.1);">
+                <div class="w-12 h-12 rounded-full skeleton-loader mr-4"></div>
+                <div class="w-full">
+                    <div class="h-5 w-3/5 skeleton-loader mb-2"></div>
+                    <div class="h-4 w-2/5 skeleton-loader"></div>
                 </div>
             </div>
-             <div class="player-card-power-loader">
-                <div class="skeleton-loader w-3/5 h-8"></div>
+            <div class="flex-grow my-4 space-y-3">
+                <div class="h-5 w-full skeleton-loader"></div>
+                <div class="h-5 w-full skeleton-loader"></div>
+                <div class="h-5 w-full skeleton-loader"></div>
+                <div class="h-5 w-full skeleton-loader"></div>
             </div>
         </div>
     `;
@@ -62,9 +74,9 @@ export function renderPlayers(players) {
     const { currentUserData, userSessions, allAlliances } = getState();
     playerListContainer.innerHTML = '';
 
-    if (players === null) {
+    if (players === null) { // Data is loading, show skeletons
         let skeletonHTML = '';
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 8; i++) {
             skeletonHTML += createPlayerSkeletonCard();
         }
         playerListContainer.innerHTML = skeletonHTML;
@@ -75,82 +87,62 @@ export function renderPlayers(players) {
         return;
     }
 
-    const colorThief = new ColorThief();
-
     players.forEach(player => {
         const card = document.createElement('div');
-        const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
-        const border = getAvatarBorderClass(player, allianceData);
-
-        card.className = `player-card ${border.className}`;
-        card.style.cssText = border.style;
+        card.className = 'player-card glass-pane p-4 flex flex-col relative';
         card.dataset.rank = player.allianceRank;
         card.dataset.uid = player.uid;
 
         let gearIconHTML = '';
         if (currentUserData && currentUserData.uid !== player.uid) {
             if (canManageUser(currentUserData, player)) {
-                gearIconHTML = `<button class="player-card-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
+                gearIconHTML = `<button class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors player-settings-btn" data-uid="${player.uid}"><i class="fas fa-cog"></i></button>`;
             }
         }
 
         const avatarUrl = player.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${player.username.charAt(0).toUpperCase()}`;
         const session = userSessions ? userSessions[player.uid] : null;
         const statusClass = session ? session.status : 'offline';
-        
-        const unverifiedClass = player.isVerified ? '' : 'unverified';
+        const allianceData = allAlliances ? allAlliances.find(a => a.tag === player.alliance) : null;
+        const border = getAvatarBorderClass(player, allianceData);
+        const unverifiedClass = player.isVerified ? '' : 'unverified-player-text';
 
-        // --- NEW HTML STRUCTURE ---
         card.innerHTML = `
-            <div class="player-card-background" style="background-image: url('${avatarUrl}')"></div>
-            <div class="player-card-overlay"></div>
             ${gearIconHTML}
-            <div class="player-card-content">
-                <div class="player-card-avatar-wrapper">
-                    <img src="${avatarUrl}" class="player-card-avatar ${border.className}" style="${border.style}" alt="${player.username}" crossorigin="anonymous">
-                    <span class="status-dot ${statusClass}"></span>
+            <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
+                <div class="avatar-container mr-4">
+                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${border.className}" style="${border.style}" alt="${player.username}" onerror="this.src='https://placehold.co/48x48/0D1117/FFFFFF?text=?';">
+                    <div class="player-badge ${unverifiedClass}">[${player.alliance}] ${player.allianceRank}</div>
                 </div>
-                <div class="player-card-info">
-                    <h3 class="player-card-username">${player.username}</h3>
-                    <p class="player-card-meta ${unverifiedClass}">
-                        <i class="fas fa-shield-alt"></i>
-                        <span class="meta-alliance">[${player.alliance}]</span>
-                        <span class="meta-rank">${player.allianceRank}</span>
-                    </p>
+                <div>
+                    <h3 class="font-bold text-lg text-white flex items-center">${player.username} <span class="status-dot ${statusClass} ml-2"></span></h3>
+                    <p class="text-sm font-semibold ${unverifiedClass}" style="color: var(--color-primary);">[${player.alliance}] - ${player.allianceRank}</p>
                 </div>
-                <div class="player-card-power">
-                     <i class="fas fa-bolt"></i>
-                    <span class="power-value">${(player.power || 0).toLocaleString()}</span>
+            </div>
+            <div class="flex-grow my-4 space-y-3">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-400 flex items-center"><i class="fas fa-fist-raised w-6 text-center mr-2" style="color: var(--color-primary);"></i>Total Power</span>
+                    <span class="font-bold text-white">${(player.power || 0).toLocaleString()}</span>
                 </div>
-                <div class="player-card-actions">
-                    <button class="player-card-action-btn message-player-btn" title="Message Player" data-uid="${player.uid}">
-                        <i class="fas fa-comment-dots"></i>
-                    </button>
-                    <button class="player-card-action-btn add-friend-btn" title="Add Friend" data-uid="${player.uid}">
-                        <i class="fas fa-user-plus"></i>
-                    </button>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-400 flex items-center"><i class="fas fa-truck-monster w-6 text-center mr-2" style="color: var(--color-primary);"></i>Tank Power</span>
+                    <span class="font-bold text-white">${(player.tankPower || 0).toLocaleString()}</span>
                 </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-400 flex items-center"><i class="fas fa-fighter-jet w-6 text-center mr-2" style="color: var(--color-primary);"></i>Air Power</span>
+                    <span class="font-bold text-white">${(player.airPower || 0).toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-400 flex items-center"><i class="fas fa-rocket w-6 text-center mr-2" style="color: var(--color-primary);"></i>Missile Power</span>
+                    <span class="font-bold text-white">${(player.missilePower || 0).toLocaleString()}</span>
+                </div>
+            </div>
+            <div class="flex justify-around items-center pt-3 border-t border-white/10">
+                <button class="message-player-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
+                <button class="add-friend-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+                <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
             </div>
         `;
         playerListContainer.appendChild(card);
-
-        const img = card.querySelector('.player-card-avatar');
-        if (img.complete) {
-            try {
-                const color = colorThief.getColor(img);
-                card.style.setProperty('--player-theme-color', `rgb(${color[0]}, ${color[1]}, ${color[2]})`);
-            } catch(e) {
-                // Ignore errors, fallback CSS will be used
-            }
-        } else {
-            img.addEventListener('load', () => {
-                try {
-                    const color = colorThief.getColor(img);
-                    card.style.setProperty('--player-theme-color', `rgb(${color[0]}, ${color[1]}, ${color[2]})`);
-                } catch(e) {
-                    // Ignore errors
-                }
-            });
-        }
     });
 }

@@ -86,7 +86,7 @@ export function initializeAllEventListeners() {
     addListener('edit-alliance-avatar-input', 'change', handleAllianceAvatarSelection);
     addListener('edit-alliance-form', 'submit', handleAllianceEditSubmit);
     addListener('convo-list', 'click', (e) => {
-    const convoItem = e.target.closest('.convo-card');
+    const convoItem = e.target.closest('.convo-item');
     if (convoItem) {
         const partnerId = convoItem.dataset.partnerUid;
         const { allPlayers } = getState();
