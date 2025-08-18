@@ -2626,4 +2626,7 @@ emoji-picker {
     #logo-subtitle {
         display: none;
     }
+    .player-card-power {
+    display: none;
+    }
 }
