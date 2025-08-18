@@ -2585,38 +2585,6 @@ emoji-picker {
     transform: rotate(45deg);
 }
 
-.player-card.is-loading {
-    background: #1C2128;
-}
-
-.player-card.is-loading .player-card-main-content,
-.player-card.is-loading .player-card-power-loader {
-    z-index: 2;
-}
-
-.player-card-power-loader {
-    width: 120px;
-    flex-shrink: 0;
-}
-
-.player-card-info-loader {
-    flex-grow: 1;
-}
-
-.player-card-avatar-loader {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background-color: #30363d;
-    flex-shrink: 0;
-}
-
-.skeleton-loader {
-    background: linear-gradient(to right, #2c3440 0%, #38414e 20%, #2c3440 40%);
-    background-size: 1000px 100%;
-    animation: shimmer-loader 2s infinite linear;
-    border-radius: 4px;
-}
 @media (max-width: 400px) {
     .header-main {
         justify-content: space-between;
@@ -2675,5 +2643,10 @@ emoji-picker {
     .player-card-action-btn {
         width: 32px;
         height: 32px;
+    }
+}
+@media (min-width: 1280px) {
+    #player-list-container {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
