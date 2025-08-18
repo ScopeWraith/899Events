@@ -2639,30 +2639,41 @@ emoji-picker {
 
     .player-card-content {
         grid-template-areas:
-            "avatar info"
-            "power actions";
-        grid-template-columns: auto 1fr;
+            "avatar info actions"
+            "avatar power power";
+        grid-template-columns: auto 1fr auto;
         grid-template-rows: auto auto;
-        gap: 0.75rem;
+        gap: 0.25rem 0.75rem;
+        align-items: center;
     }
-
+    
+    .player-card-actions {
+        align-self: start;
+    }
+    
     .player-card-power {
         justify-self: start;
     }
 
-    .player-card-actions {
-        justify-self: end;
-    }
-
     .player-card-username {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
     }
-
+    
     .player-card-meta {
         font-size: 0.75rem;
     }
 
     .power-value {
         font-size: 1.1rem;
+    }
+
+    .player-card-avatar {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .player-card-action-btn {
+        width: 32px;
+        height: 32px;
     }
 }
