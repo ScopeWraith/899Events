@@ -2627,11 +2627,14 @@ emoji-picker {
         display: none;
     }
     .player-card-power {
-    display: none;
+        display: none;
     }
     .player-card-info {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        align-content: center;
+        flex-wrap: nowrap;
+        flex-direction: column;
     }
 }
