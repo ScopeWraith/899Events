@@ -1,4 +1,3 @@
-/* code/css/style.css */
 @import url('alliances.css');
 
 :root {
@@ -2452,7 +2451,6 @@ emoji-picker {
     z-index: 2;
     display: grid;
     grid-template-columns: auto 1fr auto auto; /* AVATAR | INFO | POWER | ACTIONS */
-    grid-template-areas: "avatar info power actions";
     align-items: center; 
     gap: 0 1rem;
     width: 100%;
@@ -2460,7 +2458,6 @@ emoji-picker {
 
 .player-card-avatar-wrapper {
     position: relative;
-    grid-area: avatar;
 }
 
 .player-card-avatar {
@@ -2480,7 +2477,6 @@ emoji-picker {
 
 .player-card-info {
     overflow: hidden;
-    grid-area: info;
 }
 
 .player-card-username {
@@ -2517,7 +2513,6 @@ emoji-picker {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    grid-area: power;
 }
 
 .player-card-power i {
@@ -2538,7 +2533,6 @@ emoji-picker {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    grid-area: actions;
 }
 
 .player-card-action-btn {
@@ -2585,6 +2579,38 @@ emoji-picker {
     transform: rotate(45deg);
 }
 
+.player-card.is-loading {
+    background: #1C2128;
+}
+
+.player-card.is-loading .player-card-main-content,
+.player-card.is-loading .player-card-power-loader {
+    z-index: 2;
+}
+
+.player-card-power-loader {
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.player-card-info-loader {
+    flex-grow: 1;
+}
+
+.player-card-avatar-loader {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: #30363d;
+    flex-shrink: 0;
+}
+
+.skeleton-loader {
+    background: linear-gradient(to right, #2c3440 0%, #38414e 20%, #2c3440 40%);
+    background-size: 1000px 100%;
+    animation: shimmer-loader 2s infinite linear;
+    border-radius: 4px;
+}
 @media (max-width: 400px) {
     .header-main {
         justify-content: space-between;
@@ -2597,56 +2623,5 @@ emoji-picker {
     }
     #logo-subtitle {
         display: none;
-    }
-}
-
-@media (max-width: 640px) {
-    .player-card {
-        padding: 0.75rem;
-    }
-
-    .player-card-content {
-        grid-template-areas:
-            "avatar info actions"
-            "avatar power power";
-        grid-template-columns: auto 1fr auto;
-        grid-template-rows: auto auto;
-        gap: 0.25rem 0.75rem;
-        align-items: center;
-    }
-    
-    .player-card-actions {
-        align-self: start;
-    }
-    
-    .player-card-power {
-        justify-self: start;
-    }
-
-    .player-card-username {
-        font-size: 1.2rem;
-    }
-    
-    .player-card-meta {
-        font-size: 0.75rem;
-    }
-
-    .power-value {
-        font-size: 1.1rem;
-    }
-
-    .player-card-avatar {
-        width: 48px;
-        height: 48px;
-    }
-    
-    .player-card-action-btn {
-        width: 32px;
-        height: 32px;
-    }
-}
-@media (min-width: 1280px) {
-    #player-list-container {
-        grid-template-columns: repeat(2, 1fr);
     }
 }
