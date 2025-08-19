@@ -14,7 +14,7 @@ import {
     handleSubNavClick
 } from './ui/ui-manager.js';
 import { initializeAllEventListeners } from './event-listeners.js';
-import { initializeAuthUI } from './ui/auth-ui.js';
+import { initializeAuthUI, initializeAuthEventListeners } from './ui/auth-ui.js';
 import { initializeSocialUI } from './ui/social-ui.js';
 import { initializePostUI } from './ui/post-ui.js';
 import { initializePlayersUI } from './ui/players-ui.js';
@@ -111,6 +111,7 @@ export function initializeApp() {
     setupInitialUI();
     initializeAllEventListeners();
     initializeAuthUI();
+    initializeAuthEventListeners();
     initializeSocialUI();
     initializePostUI();
     initializePlayersUI();

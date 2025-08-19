@@ -39,6 +39,103 @@ export function initializeAuthUI() {
     });
 }
 
+export function initializeAuthEventListeners() {
+    const getElement = (id) => document.getElementById(id);
+
+    const addListener = (id, event, handler) => {
+        const element = getElement(id);
+        if (element) {
+            element.addEventListener(event, handler);
+        }
+    };
+
+        addListener('login-btn', 'click', () => showAuthModal('login'));
+        addListener('login-btn-mobile', 'click', () => showAuthModal('login'));
+        addListener('close-auth-modal-btn', 'click', hideAllModals);
+        addListener('close-edit-modal-btn', 'click', hideAllModals);
+        addListener('close-view-post-modal-btn', 'click', hideAllModals);
+        addListener('close-player-settings-modal-btn', 'click', hideAllModals);
+        addListener('close-create-post-modal-btn', 'click', hideAllModals);
+        addListener('close-fullscreen-chat-modal-btn', 'click', hideAllModals);
+        addListener('confirmation-cancel-btn', 'click', hideAllModals);
+        addListener('close-post-actions-modal-btn', 'click', hideAllModals);
+        addListener('modal-backdrop', 'click', (e) => {
+            if (e.target === getElement('modal-backdrop')) {
+                hideAllModals();
+                const mobileNav = getElement('mobile-nav-menu');
+                if (mobileNav.classList.contains('open')) {
+                    mobileNav.classList.remove('open');
+                }
+            }
+        });
+        addListener('show-register-link', 'click', (e) => { e.preventDefault(); showAuthModal('register'); });
+        addListener('show-login-link', 'click', (e) => { e.preventDefault(); showAuthModal('login'); });
+        addListener('login-form', 'submit', handleLoginSubmit);
+        addListener('forgot-password-link', 'click', handleForgotPassword);
+        addListener('register-next-btn', 'click', handleRegistrationNext);
+        addListener('register-back-btn', 'click', handleRegistrationBack);
+        addListener('register-avatar-btn', 'click', () => getElement('register-avatar-input').click());
+        addListener('register-avatar-input', 'change', handleAvatarSelection);
+        addListener('register-form', 'submit', handleRegistrationSubmit);
+        addListener('user-profile-button', 'click', (e) => {
+            e.stopPropagation();
+            const navItem = getElement('user-profile-nav-item');
+            document.querySelectorAll('.nav-item.open').forEach(item => {
+                if (item !== navItem) item.classList.remove('open');
+            });
+            if(navItem) navItem.classList.toggle('open');
+        });
+        addListener('user-avatar-mobile', 'click', (e) => {
+            e.stopPropagation();
+            const navItem = getElement('user-profile-nav-item');
+            const dropdown = getElement('player-profile-dropdown');
+            const avatar = getElement('user-avatar-mobile');
+    
+            if (navItem && dropdown && avatar) {
+                const isOpen = navItem.classList.toggle('open');
+                if (isOpen) {
+                    const avatarRect = avatar.getBoundingClientRect();
+                    dropdown.style.top = `${avatarRect.bottom + 10}px`;
+                    dropdown.style.right = '1rem';
+                    dropdown.style.left = 'auto';
+                    dropdown.style.transform = 'none';
+                }
+            }
+        });
+    
+        // Consolidated event listener for the player profile dropdown
+        addListener('player-profile-dropdown', 'click', (e) => {
+            const createEventBtn = e.target.closest('#admin-create-event-dropdown-btn');
+            const createAnnouncementBtn = e.target.closest('#admin-create-announcement-dropdown-btn');
+            const editProfileBtn = e.target.closest('#profile-dropdown-edit');
+            const friendsBtn = e.target.closest('#profile-dropdown-friends');
+            const avatarBtn = e.target.closest('#profile-dropdown-avatar');
+            const logoutBtn = e.target.closest('#profile-dropdown-logout');
+    
+            // Close the dropdown after any action
+            const userProfileNavItem = getElement('user-profile-nav-item');
+            if (userProfileNavItem) {
+                userProfileNavItem.classList.remove('open');
+            }
+    
+            if (createEventBtn) {
+                showCreatePostModal('event');
+            } else if (createAnnouncementBtn) {
+                showCreatePostModal('announcement');
+            } else if (editProfileBtn) {
+                showEditProfileModal();
+            } else if (friendsBtn) {
+                showPage('page-feed');
+            } else if (avatarBtn) {
+                getElement('avatar-upload-input').click();
+            } else if (logoutBtn) {
+                handleLogout();
+            }
+        });
+    
+        addListener('avatar-upload-input', 'change', handleAvatarUpload);
+        addListener('edit-profile-form', 'submit', handleEditProfileSubmit);
+}
 // --- UI HELPER FUNCTIONS ---
 
 export function updateAvatarDisplay(data) {
