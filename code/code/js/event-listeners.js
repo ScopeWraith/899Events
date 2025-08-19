@@ -8,7 +8,7 @@ import {
     showCreatePostModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal,
     handleSubNavClick, toggleSubNav, showViewPostModal
 } from './ui/ui-manager.js';
-import { handleLogout } from './ui/auth-ui.js';
+import { handleLogout, initializeAuthEventListeners } from './ui/auth-ui.js';
 import { handlePlayerSettingsSubmit } from './ui/player-settings-ui.js';
 import { handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePostFormForEdit } from './ui/post-ui.js';
 import { applyPlayerFilters } from './ui/players-ui.js';
