@@ -35,7 +35,15 @@ export function buildAvatarBorderSkins() {
     }
 
     container.innerHTML = skins.map(skin => {
-        const previewData = { ...currentUserData, avatarBorderSkin: skin.id };
+        let previewData;
+        // If we are creating the preview for the 'rank' button,
+        // temporarily pretend the user is not an admin to get the correct rank-based border.
+        if (skin.id === 'rank') {
+            previewData = { ...currentUserData, avatarBorderSkin: skin.id, isAdmin: false };
+        } else {
+            previewData = { ...currentUserData, avatarBorderSkin: skin.id };
+        }
+        
         const border = getAvatarBorderClass(previewData, allianceData);
 
         return `
