@@ -184,36 +184,35 @@ export function autoLinkText(text) {
 }
 
 export function getAvatarBorderClass(player, allianceData) {
-    if (!player) return { className: 'rank-border-r1', style: '' };
+    if (!player) {
+        return { className: 'rank-border-r1', style: '' };
+    }
 
     const skinType = player.avatarBorderSkin || 'rank';
 
-    // Priority 1: Handle explicit skin selections that are not 'rank'
+    // --- Priority 1: Handle explicit skin selections ---
     if (skinType === 'alliance') {
-        // Use alliance color if available for the 'alliance' skin
         if (allianceData?.primaryColor) {
             return {
                 className: 'alliance-border',
                 style: `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`
             };
         }
-        // If no color, we'll fall through to the rank-based logic below
-    }
-
-    if (skinType === 'admin') {
-        // Only apply if the user is actually an admin, otherwise fall through
+        // If no alliance color, we fall through to the rank-based default below.
+    } else if (skinType === 'admin') {
         if (player.isAdmin) {
             return { className: 'rank-border-admin', style: '' };
         }
+        // If a non-admin selects 'admin' skin, fall through to rank-based default.
     }
 
-    // Priority 2: This is the fallback for the 'rank' skin or for skins that couldn't be resolved above
+    // --- Priority 2 (Fallback): Apply the default rank-based system ---
+    // This code is now only reached if the skin is 'rank' OR if the conditions 
+    // for a specific skin above were not met.
     if (player.isAdmin) {
-        // Any admin whose skin choice wasn't handled above (e.g., they chose 'rank') gets the admin border
         return { className: 'rank-border-admin', style: '' };
     }
-
-    // For non-admins, use their rank
+    
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
 }
