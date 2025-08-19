@@ -5,7 +5,6 @@
  * such as date formatting, image resizing, and calculating event statuses.
  * This keeps the main logic files cleaner and more focused.
  */
-import { AVATAR_BORDERS } from './constants.js';
 export function canDeleteMessage(currentUser, messageAuthor) {
     if (!currentUser || !messageAuthor) return false;
     // An admin can delete any message.
@@ -189,28 +188,32 @@ export function getAvatarBorderClass(player, allianceData) {
 
     const skinType = player.avatarBorderSkin || 'rank';
 
-    if (skinType === 'alliance' && allianceData?.primaryColor) {
-        return {
-            className: 'alliance-border',
-            style: `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`
-        };
+    // Priority 1: Handle explicit skin selections that are not 'rank'
+    if (skinType === 'alliance') {
+        // Use alliance color if available for the 'alliance' skin
+        if (allianceData?.primaryColor) {
+            return {
+                className: 'alliance-border',
+                style: `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`
+            };
+        }
+        // If no color, we'll fall through to the rank-based logic below
     }
-    
-    if (skinType === 'admin' && player.isAdmin) {
+
+    if (skinType === 'admin') {
+        // Only apply if the user is actually an admin, otherwise fall through
+        if (player.isAdmin) {
+            return { className: 'rank-border-admin', style: '' };
+        }
+    }
+
+    // Priority 2: This is the fallback for the 'rank' skin or for skins that couldn't be resolved above
+    if (player.isAdmin) {
+        // Any admin whose skin choice wasn't handled above (e.g., they chose 'rank') gets the admin border
         return { className: 'rank-border-admin', style: '' };
     }
 
-    // Check if the selected skin is a general border skin
-    const availableBorders = AVATAR_BORDERS.map(b => b.value);
-    if (availableBorders.includes(skinType)) {
-        return { className: skinType, style: '' };
-    }
-    
-    // Fallback to rank-based border if no other condition is met
-    if (player.isAdmin) {
-        return { className: 'rank-border-admin', style: '' };
-    }
-    
+    // For non-admins, use their rank
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
 }
