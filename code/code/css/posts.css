@@ -1,0 +1,337 @@
+/*
+* Styles for post cards, announcements, events, and feeds.
+*/
+
+.section-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.75rem; 
+    padding-bottom: 0.5rem;
+    justify-content: center;
+    color: #ffffff29;
+    text-transform: uppercase;
+    font-size: .75rem;
+    letter-spacing: .05rem;
+}
+
+.filter-btn-group { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 0.5rem; 
+    justify-content: center; 
+    margin-bottom: .25rem; 
+}
+
+.filter-btn { 
+    padding: 0.5rem 1rem; 
+    font-size: 0.75rem; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    border-radius: 6px; 
+    border: 1px solid #30363d; 
+    background-color: rgba(33, 38, 45, 0.5); 
+    color: #8b949e; 
+    transition: all 0.2s ease; 
+    cursor: pointer; 
+}
+
+.filter-btn:hover { 
+    background-color: #30363d; 
+    color: #c9d1d9; 
+}
+
+.filter-btn.active { 
+    color: #fff; 
+    border-color: var(--glow-color, var(--color-primary)); 
+    background-color: var(--glow-color-bg, rgba(0, 191, 255, 0.1)); 
+    box-shadow: 0 0 8px -2px var(--glow-color, var(--color-primary)); 
+}
+
+.post-card { 
+    display: flex; 
+    flex-direction: column; 
+    background: linear-gradient(145deg, #212832, #161B22); 
+    border-radius: 8px; 
+    position: relative; 
+    overflow: hidden; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+    border-top: 3px solid transparent;
+}
+
+.post-card:hover { 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4); 
+}
+
+.post-card-body { 
+    padding: .5rem 1rem; 
+}
+
+/* Announcement Cards */
+.post-card.announcement-card .post-card-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.75rem; 
+    margin-bottom: 0.75rem; 
+}
+
+.announcement-card .post-card-title {
+    color: var(--glow-color, var(--color-primary));
+}
+
+.post-card.announcement-card {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 70%), rgb(33 40 50 / 65%) 10%, rgb(19 24 32 / 84%) 100%);
+}
+
+.announcement-card .author-avatar { 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+}
+
+.announcement-card .author-info { 
+    flex-grow: 1; 
+}
+
+.announcement-card .author-name { 
+    font-weight: 700; 
+    color: #fff; 
+}
+
+.announcement-card .author-meta { 
+    font-size: 0.75rem; 
+    color: #8b949e; 
+}
+
+.announcement-card .post-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 0.25rem;
+}
+
+.announcement-card .post-card-details { 
+    font-size: 0.95rem; 
+    color: #a0a8b1; 
+    line-height: 1.5; 
+}
+
+.announcement-card-thumbnail {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 140px;
+    height: 74px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 0.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transition: transform 0.3s ease;
+}
+
+.announcement-card.has-thumbnail .post-card-header {
+    padding-right: 160px;
+}
+
+/* Event Cards */
+.post-card.event-card {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 65%), rgba(33, 40, 50, 1) 50%, rgba(33, 40, 50, 1) 100%);
+    flex-direction: row; 
+    align-items: center; 
+    grid-template-columns: 1fr;
+    text-align: center;
+}
+
+.event-card-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15;
+    z-index: 0;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+    -webkit-mask-image: linear-gradient(90deg, black 60%, transparent 100%);
+    mask-image: linear-gradient(90deg, black 60%, transparent 100%);
+}
+
+.event-card:hover .event-card-background {
+    transform: scale(1.03);
+    opacity: 0.25;
+}
+
+.event-card .post-card-content,
+.event-card .post-card-status {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+}
+
+.event-card .post-card-content { 
+    flex-grow: 1; 
+    padding: .4rem; 
+}
+
+.event-card .post-card-title { 
+    font-size: 1.3rem; 
+    font-weight: 700; 
+    color: #fff; 
+    line-height: 1.2; 
+}
+
+.event-card .post-card-details { 
+    display: block; 
+    font-size: 0.95rem; 
+    color: #a0a8b1; 
+    line-height: 1.4; 
+    max-height: 2.8em; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
+.post-card-status {
+    text-align: center;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.post-card-status .status-label { 
+    font-size: 0.75rem; 
+    font-weight: 100; 
+    text-transform: uppercase; 
+    color: #a0a8b1; 
+    letter-spacing: 0.5px; 
+}
+
+.post-card-status .status-time { 
+    font-size: 1.5rem; 
+    font-weight: 500; 
+    color: #fff; 
+    line-height: 1; 
+}
+
+.status-date { 
+    font-size: 0.7rem; 
+    color: #8b949e; 
+    margin-top: 0.1rem; 
+    font-weight: 600; 
+}
+
+.event-card.live .post-card-status .status-time { 
+    text-shadow: 0 0 8px var(--glow-color); 
+}
+.event-card.upcoming { 
+    filter: grayscale(100%); 
+    opacity: .45; 
+}
+.event-card.ended { 
+    background: linear-gradient(145deg, #2a2f37, #1e2229); 
+}
+
+/* Post Card Shared Styles */
+.post-card-category {
+    color: #ffffff;
+    padding: 0.2rem 0.5rem;
+    font-size: .6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 4px;
+    display: inline-flex;
+    text-shadow: 0px 0px 5px #000000;
+    min-width: 60px;
+    text-align: center;
+}
+
+.post-card-actions-trigger { 
+    position: absolute; 
+    top: 8px; 
+    right: 8px; 
+    width: 32px; 
+    height: 32px; 
+    background-color: rgba(0, 0, 0, 0.6); 
+    color: #fff; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+    opacity: 0; 
+    transform: scale(0.8); 
+    z-index: 10; 
+}
+
+.post-card:hover .post-card-actions-trigger { 
+    opacity: 1; 
+    transform: scale(1); 
+}
+
+.post-card-actions-trigger:hover { 
+    background-color: rgba(0, 0, 0, 0.8); 
+    transform: scale(1.1); 
+}
+
+.actions-modal-btn { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.75rem; 
+    width: 100%; 
+    padding: 0.75rem 1rem; 
+    font-weight: 600; 
+    border-radius: 0.5rem; 
+    transition: background-color 0.2s; 
+}
+
+.actions-modal-btn.edit:hover { 
+    background-color: rgba(0, 191, 255, 0.1); 
+    color: #fff; 
+}
+
+.actions-modal-btn.delete:hover { 
+    background-color: rgba(248, 113, 113, 0.1); 
+    color: var(--color-highlight); 
+}
+
+/* Feed Items */
+.feed-item-compact { 
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; 
+    padding: 1rem; 
+    background-color: rgba(33, 38, 45, 0.5); 
+    border-radius: 8px; 
+    border-left: 4px solid var(--glow-color, var(--color-primary)); 
+    transition: background-color 0.2s ease; 
+}
+
+.feed-item-compact:hover { 
+    background-color: rgba(48, 54, 61, 0.7); 
+}
+
+.feed-item-icon { 
+    font-size: 1.5rem; 
+    color: var(--glow-color, var(--color-primary)); 
+    flex-shrink: 0; 
+    width: 40px; 
+    text-align: center; 
+}
+
+.feed-item-content h4 { 
+    font-weight: 700; 
+    color: #fff; 
+    line-height: 1.2; 
+}
+
+.feed-item-content p { 
+    font-size: 0.875rem; 
+    color: #8b949e; 
+}

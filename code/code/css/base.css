@@ -1,0 +1,98 @@
+/*
+* Base styles for the application.
+* Contains root variables, body styles, and basic typography.
+*/
+
+:root {
+    --color-bg: #0D1117;
+    --color-primary: #00BFFF;
+    --color-primary-glow: rgba(0, 191, 255, 0.5);
+    --color-highlight: #F87171;
+    --color-glass-bg: rgba(22, 27, 34, 0.6);
+    --color-dropdown-bg: rgb(22, 27, 34);
+    
+    /* Post/Event Theme Colors */
+    --post-color-server: #e600ff;
+    --post-color-seasonal: #8522ff;
+    --post-color-leadership: #ffbf00;
+    --post-color-alliance: #00a1e1;
+    --post-color-hot_deals: #ff501f;
+    --post-color-wanted_boss: #b10023;
+    --post-color-campaign: #47ff81;
+    --post-color-vs: #0041cd;
+
+    /* Rank Glow Colors */     
+    --rank-admin-color: #f200ff;
+    --rank-r5-color: #ffbb00;
+    --rank-r4-color: #8400ff;
+    --rank-r3-color: #007bff;
+    --rank-r2-color: #c1c1c1;
+    --rank-r1-color: #696969;
+}
+
+html { 
+    font-size: 90%; 
+    scroll-behavior: smooth; 
+}
+
+body { 
+    font-family: 'Exo 2', sans-serif; 
+    background-color: var(--color-bg); 
+    color: #c9d1d9; 
+    overflow-x: hidden; 
+}
+
+#app-preloader { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    background-color: var(--color-bg); 
+    z-index: 9999; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: opacity 0.5s ease; 
+}
+
+#app-container { 
+    display: none; 
+}
+
+#particle-canvas { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: -1; 
+}
+
+.glass-pane { 
+    background: rgba(12, 16, 22, .6); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px); 
+    border-radius: 1rem; 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
+}
+
+.themed-scrollbar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.themed-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+}
+
+.themed-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 10px;
+    border: 2px solid rgba(0,0,0,0.2);
+}
+
+.themed-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #00a9e0;
+}
