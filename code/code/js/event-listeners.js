@@ -6,7 +6,7 @@ import { getState, setState } from './state.js'; // CHANGED HERE
 import {
     setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal,
     showCreatePostModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal,
-    handleSubNavClick, toggleSubNav, showViewPostModal
+    handleSubNavClick, toggleSubNav, showViewPostModal, showAccessDeniedModal
 } from './ui/ui-manager.js';
 import {
     handleLogout, handleLoginSubmit, handleForgotPassword, handleRegistrationNext,
