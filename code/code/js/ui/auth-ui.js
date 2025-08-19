@@ -14,7 +14,8 @@ import { buildAvatarBorderSkins, updateSkinSelection, updateAvatarBorderPreview 
 // --- STATE & RENDER FUNCTIONS ---
 
 function renderAuthUI(newState, prevState) {
-    if (newState.currentUserData !== prevState.currentUserData) {
+    // FIX: Added allAlliances to the dependency check
+    if (newState.currentUserData !== prevState.currentUserData || newState.allAlliances !== prevState.allAlliances) {
         updateAvatarDisplay(newState.currentUserData);
         buildMobileNav(); // Rebuild mobile nav when user data changes
     }
