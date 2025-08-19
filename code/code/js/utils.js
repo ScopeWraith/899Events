@@ -5,6 +5,7 @@
  * such as date formatting, image resizing, and calculating event statuses.
  * This keeps the main logic files cleaner and more focused.
  */
+import { AVATAR_BORDERS } from './constants.js';
 export function canDeleteMessage(currentUser, messageAuthor) {
     if (!currentUser || !messageAuthor) return false;
     // An admin can delete any message.
@@ -198,9 +199,15 @@ export function getAvatarBorderClass(player, allianceData) {
     if (skinType === 'admin' && player.isAdmin) {
         return { className: 'rank-border-admin', style: '' };
     }
+
+    // Check if the selected skin is a general border skin
+    const availableBorders = AVATAR_BORDERS.map(b => b.value);
+    if (availableBorders.includes(skinType)) {
+        return { className: skinType, style: '' };
+    }
     
-    // Default to rank-based border
-    if (player.isAdmin && skinType === 'rank') {
+    // Fallback to rank-based border if no other condition is met
+    if (player.isAdmin) {
         return { className: 'rank-border-admin', style: '' };
     }
     
