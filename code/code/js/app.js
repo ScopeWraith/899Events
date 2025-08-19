@@ -111,7 +111,6 @@ export function initializeApp() {
     setupInitialUI();
     initializeAllEventListeners();
     initializeAuthUI();
-    initializeAuthEventListeners();
     initializeSocialUI();
     initializePostUI();
     initializePlayersUI();
