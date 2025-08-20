@@ -220,6 +220,7 @@ export function getChatBubbleBorderClass(player, allianceData) {
 
     const skinType = player.chatBubbleBorderSkin || 'rank';
 
+    // --- Priority 1: Handle explicit skin selections ---
     if (skinType === 'alliance') {
         if (allianceData?.primaryColor) {
             return {
@@ -227,12 +228,15 @@ export function getChatBubbleBorderClass(player, allianceData) {
                 style: `border-color: ${allianceData.primaryColor};`
             };
         }
+        // Fall through to rank default if no color
     } else if (skinType === 'admin') {
         if (player.isAdmin) {
             return { className: 'chat-bubble-border-admin', style: '' };
         }
+        // Fall through to rank default if not admin
     }
-    
+
+    // --- Priority 2 (Fallback): Apply the default rank-based system ---
     if (player.isAdmin) {
         return { className: 'chat-bubble-border-admin', style: '' };
     }
