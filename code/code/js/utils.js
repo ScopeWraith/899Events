@@ -188,13 +188,6 @@ export function getAvatarBorderClass(player, allianceData) {
         return { className: 'rank-border-r1', style: '' };
     }
 
-    const { currentUserData, userFriends } = getState();
-
-    // --- MODIFIED: Use passed-in state for achievement check ---
-    if (player.uid === currentUserData?.uid && userFriends && userFriends.length >= 10) {
-        return { className: 'rank-border-crimson', style: '' };
-    }
-
     const skinType = player.avatarBorderSkin || 'rank';
 
     // --- Priority 1: Handle explicit skin selections ---
@@ -221,13 +214,6 @@ export function getAvatarBorderClass(player, allianceData) {
 export function getChatBubbleBorderClass(player, allianceData) {
     if (!player) {
         return { className: 'chat-bubble-border-r1', style: '' };
-    }
-    
-    const { currentUserData, userFriends } = getState();
-
-    // --- MODIFIED: Use passed-in state for achievement check ---
-    if (player.uid === currentUserData?.uid && userFriends && userFriends.length >= 10) {
-        return { className: 'chat-bubble-border-crimson', style: '' };
     }
 
     const skinType = player.chatBubbleBorderSkin || 'rank';

@@ -41,7 +41,7 @@ export function initializeAuthUI() {
 // --- UI HELPER FUNCTIONS ---
 
 export function updateAvatarDisplay(data) {
-    const { allAlliances, userFriends, currentUserData } = getState(); // Get userFriends and currentUserData
+    const { allAlliances } = getState();
     const loginBtn = document.getElementById('login-btn');
     const userProfileNavItem = document.getElementById('user-profile-nav-item');
     const mobileAuthContainer = document.getElementById('mobile-auth-container');
@@ -57,8 +57,6 @@ export function updateAvatarDisplay(data) {
         
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === data.alliance) : null;
         const avatarUrl = data.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${data.username.charAt(0).toUpperCase()}`;
-        
-        // --- MODIFIED: Pass current user info to the function ---
         const border = getAvatarBorderClass(data, allianceData);
 
         const userAvatarButton = document.getElementById('user-avatar-button');

@@ -29,7 +29,7 @@ export function buildAvatarBorderSkins() {
     const container = document.getElementById('avatar-border-selector');
     if (!container) return;
 
-    const { currentUserData, allAlliances, userFriends } = getState(); // Add userFriends
+    const { currentUserData, allAlliances } = getState();
     const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
     
     const skins = [
@@ -39,11 +39,6 @@ export function buildAvatarBorderSkins() {
 
     if (currentUserData.isAdmin) {
         skins.push({ id: 'admin', label: 'Admin' });
-    }
-
-    // --- NEW: Conditionally add Crimson skin ---
-    if (userFriends && userFriends.length >= 10) {
-        skins.push({ id: 'crimson', label: 'Crimson' });
     }
 
     container.innerHTML = skins.map(skin => {
@@ -72,7 +67,7 @@ export function buildChatBubbleBorderSkins() {
     const container = document.getElementById('chat-bubble-border-selector');
     if (!container) return;
 
-    const { currentUserData, allAlliances, userFriends } = getState(); // Add userFriends
+    const { currentUserData, allAlliances } = getState();
     const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
     
     const skins = [
@@ -82,11 +77,6 @@ export function buildChatBubbleBorderSkins() {
 
     if (currentUserData.isAdmin) {
         skins.push({ id: 'admin', label: 'Admin' });
-    }
-
-    // --- NEW: Conditionally add Crimson skin ---
-    if (userFriends && userFriends.length >= 10) {
-        skins.push({ id: 'crimson', label: 'Crimson' });
     }
 
     container.innerHTML = skins.map(skin => {
