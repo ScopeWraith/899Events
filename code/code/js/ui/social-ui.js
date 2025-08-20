@@ -1,7 +1,7 @@
 // code/js/ui/social-ui.js
 
 import { subscribe, setState, getState } from '../state.js';
-import { isUserLeader, formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarBorderClass, canDeleteMessage } from '../utils.js';
+import { isUserLeader, formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarBorderClass, canDeleteMessage, getChatBubbleBorderClass } from '../utils.js';
 import { setupConversationListListener } from '../firestore.js';
 import { showFullscreenChatModal, showPage } from './ui-manager.js';
 import { CHAT_CHANNELS } from '../constants.js';
@@ -42,7 +42,6 @@ export function renderChatChannels(currentUserData) {
     const container = document.getElementById('chat-selectors');
     if (!container) return;
 
-    // Replace the existing map with this new one
     container.innerHTML = Object.values(CHAT_CHANNELS).map(channel => {
         let isVisible = true;
         if (channel.requiresAuth && !currentUserData) isVisible = false;
@@ -51,7 +50,6 @@ export function renderChatChannels(currentUserData) {
         
         if (!isVisible) return '';
 
-        // New HTML structure for the card
         return `
             <button class="chat-channel-card" style="--channel-color: ${channel.color};" data-chat-type="${channel.id}">
                 <div class="chat-channel-icon">
@@ -110,6 +108,7 @@ export function renderMessages(messages, container, chatType) {
         const timestamp = msg.timestamp ? formatMessageTimestamp(msg.timestamp.toDate()) : '';
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === authorData.alliance) : null;
         const rankBorder = getAvatarBorderClass(authorData, allianceData);
+        const chatBubbleBorder = getChatBubbleBorderClass(authorData, allianceData);
         const canDelete = canDeleteMessage(currentUserData, authorData);
         const messageActionsHTML = canDelete ? `<div class="message-actions"><button class="message-action-btn delete-message-btn" title="Delete"><i class="fas fa-times"></i></button><button class="message-action-btn confirm-delete-btn hidden" title="Confirm Delete"><i class="fas fa-check"></i></button></div>` : '';
         const reactions = msg.reactions || {};
@@ -126,7 +125,7 @@ export function renderMessages(messages, container, chatType) {
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${isSelf ? 'self' : ''}`;
         messageEl.dataset.messageId = msg.id;
-        messageEl.innerHTML = `<div class="chat-message-identity"><div class="avatar-container"><img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder.className}" style="${rankBorder.style}" alt="${authorUsername}"><div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div></div><p class="chat-message-timestamp">${timestamp}</p>${messageActionsHTML}</div><div class="chat-message-main"><div class="chat-message-bubble" data-chat-type="${chatType}">${messageContent}</div><div class="chat-reactions-container">${reactionPillsHTML}</div></div>`;
+        messageEl.innerHTML = `<div class="chat-message-identity"><div class="avatar-container"><img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder.className}" style="${rankBorder.style}" alt="${authorUsername}"><div class="player-badge">[${authorData?.alliance || '?'}] ${authorData?.allianceRank || '?'}</div></div><p class="chat-message-timestamp">${timestamp}</p>${messageActionsHTML}</div><div class="chat-message-main"><div class="chat-message-bubble ${chatBubbleBorder.className}" style="${chatBubbleBorder.style}" data-chat-type="${chatType}">${messageContent}</div><div class="chat-reactions-container">${reactionPillsHTML}</div></div>`;
         container.appendChild(messageEl);
     });
     container.scrollTop = container.scrollHeight;
