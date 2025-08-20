@@ -198,21 +198,45 @@ export function getAvatarBorderClass(player, allianceData) {
                 style: `border-color: ${allianceData.primaryColor}; box-shadow: 0 0 10px -2px ${allianceData.primaryColor};`
             };
         }
-        // If no alliance color, we fall through to the rank-based default below.
     } else if (skinType === 'admin') {
         if (player.isAdmin) {
             return { className: 'rank-border-admin', style: '' };
         }
-        // If a non-admin selects 'admin' skin, fall through to rank-based default.
     }
 
     // --- Priority 2 (Fallback): Apply the default rank-based system ---
-    // This code is now only reached if the skin is 'rank' OR if the conditions 
-    // for a specific skin above were not met.
     if (player.isAdmin) {
         return { className: 'rank-border-admin', style: '' };
     }
     
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
+}
+
+export function getChatBubbleBorderClass(player, allianceData) {
+    if (!player) {
+        return { className: 'chat-bubble-border-r1', style: '' };
+    }
+
+    const skinType = player.chatBubbleBorderSkin || 'rank';
+
+    if (skinType === 'alliance') {
+        if (allianceData?.primaryColor) {
+            return {
+                className: 'chat-bubble-border-alliance',
+                style: `border-color: ${allianceData.primaryColor};`
+            };
+        }
+    } else if (skinType === 'admin') {
+        if (player.isAdmin) {
+            return { className: 'chat-bubble-border-admin', style: '' };
+        }
+    }
+    
+    if (player.isAdmin) {
+        return { className: 'chat-bubble-border-admin', style: '' };
+    }
+    
+    const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
+    return { className: `chat-bubble-border-${rank}`, style: '' };
 }

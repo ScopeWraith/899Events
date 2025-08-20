@@ -81,14 +81,12 @@ export function buildChatBubbleBorderSkins() {
 
     container.innerHTML = skins.map(skin => {
         let previewData;
-        // Use a different property for the preview to avoid conflicts
         if (skin.id === 'rank') {
             previewData = { ...currentUserData, chatBubbleBorderSkin: skin.id, isAdmin: false };
         } else {
             previewData = { ...currentUserData, chatBubbleBorderSkin: skin.id };
         }
         
-        // We will create getChatBubbleBorderClass in utils.js
         const border = getChatBubbleBorderClass(previewData, allianceData);
 
         return `
