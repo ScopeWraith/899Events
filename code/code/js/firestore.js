@@ -1,7 +1,7 @@
 // code/js/firestore.js
 
 import { db, storage } from './firebase-config.js';
-import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, writeBatch, getDocs, where, orderBy, limit, serverTimestamp, runTransaction, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import { setState, getState } from './state.js';
 import { isUserLeader } from './utils.js';
@@ -88,7 +88,7 @@ export function setupAllListeners(user, onInitialDataLoaded) {
 
     const friendsQuery = collection(db, `users/${user.uid}/friends`);
     listeners.friends = onSnapshot(friendsQuery, (snapshot) => {
-        const userFriends = snapshot.docs.map(doc => doc.id);
+        const userFriends = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})); // Fetch full friend object
         setState({ userFriends });
         checkAllLoaded('friends');
     }, () => checkAllLoaded('friends'));
@@ -178,7 +178,7 @@ export function fetchInitialData(onPublicDataLoaded) {
             const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setState({ allAlliances });
             checkPublicLoaded('alliances');
-        }, () => checkPublicLoaded('alliances'));
+        }, () => checkAllLoaded('alliances'));
     }
 
     setState({ listeners });
@@ -356,11 +356,13 @@ export async function handleNotificationAction(notificationId, action, senderUid
 
     if (action === 'accept-friend') {
         const batch = writeBatch(db);
-        batch.set(doc(db, `users/${currentUserData.uid}/friends/${senderUid}`), { since: serverTimestamp() });
-        batch.set(doc(db, `users/${senderUid}/friends/${currentUserData.uid}`), { since: serverTimestamp() });
+        const friendData = { status: 'friends', since: serverTimestamp() };
+        batch.set(doc(db, `users/${currentUserData.uid}/friends/${senderUid}`), friendData, { merge: true });
+        batch.set(doc(db, `users/${senderUid}/friends/${currentUserData.uid}`), friendData, { merge: true });
         batch.delete(doc(db, 'notifications', notificationId));
         await batch.commit();
     } else if (action === 'decline-friend') {
+        await declineFriendRequest(senderUid); // New function call
         await deleteDoc(doc(db, 'notifications', notificationId));
     } else if (action === 'verify-user') {
         const { allPlayers } = getState();
@@ -393,12 +395,75 @@ export async function handleNotificationAction(notificationId, action, senderUid
  * @param {string} recipientUid The UID of the user to send the request to.
  * @returns {Promise<boolean>} A promise that resolves to true upon successful sending.
  */
-export async function addFriend(recipientUid) {
+async function sendFriendRequestNotification(recipientUid) {
     const { currentUserData } = getState();
     if (!currentUserData) return false;
-    await addDoc(collection(db, 'notifications'), { recipientUid: recipientUid, senderUid: currentUserData.uid, senderUsername: currentUserData.username, type: 'friend_request', message: `${currentUserData.username} sent you a friend request.`, isRead: false, timestamp: serverTimestamp() });
+
+    await addDoc(collection(db, 'notifications'), {
+        recipientUid: recipientUid,
+        senderUid: currentUserData.uid,
+        senderUsername: currentUserData.username,
+        type: 'friend_request',
+        message: `${currentUserData.username} sent you a friend request.`,
+        isRead: false,
+        timestamp: serverTimestamp()
+    });
     return true;
 }
+
+/**
+ * Creates a pending friend request between two users.
+ * @param {string} recipientUid The UID of the user to send the request to.
+ * @returns {Promise<boolean>} A promise that resolves to true upon successful sending.
+ */
+export async function addFriend(recipientUid) {
+    const { currentUserData } = getState();
+    if (!currentUserData || currentUserData.uid === recipientUid) return false;
+
+    const batch = writeBatch(db);
+    const requestData = {
+        status: 'pending',
+        requester: currentUserData.uid,
+        createdAt: serverTimestamp()
+    };
+    
+    batch.set(doc(db, `users/${currentUserData.uid}/friends/${recipientUid}`), requestData);
+    batch.set(doc(db, `users/${recipientUid}/friends/${currentUserData.uid}`), requestData);
+
+    await batch.commit();
+    await sendFriendRequestNotification(recipientUid); // Send notification after creating the pending docs
+
+    return true;
+}
+
+/**
+ * Declines a friend request.
+ * @param {string} senderUid The UID of the user who sent the request.
+ * @returns {Promise<void>}
+ */
+export async function declineFriendRequest(senderUid) {
+    const { currentUserData } = getState();
+    if (!currentUserData) return;
+    const batch = writeBatch(db);
+    batch.delete(doc(db, `users/${currentUserData.uid}/friends/${senderUid}`));
+    batch.delete(doc(db, `users/${senderUid}/friends/${currentUserData.uid}`));
+    await batch.commit();
+}
+
+/**
+ * Cancels a friend request that was sent.
+ * @param {string} recipientUid The UID of the user the request was sent to.
+ * @returns {Promise<void>}
+ */
+export async function cancelFriendRequest(recipientUid) {
+    const { currentUserData } = getState();
+    if (!currentUserData) return;
+    const batch = writeBatch(db);
+    batch.delete(doc(db, `users/${currentUserData.uid}/friends/${recipientUid}`));
+    batch.delete(doc(db, `users/${recipientUid}/friends/${currentUserData.uid}`));
+    await batch.commit();
+}
+
 
 /**
  * Removes a friend from the current user's friend list and vice-versa.

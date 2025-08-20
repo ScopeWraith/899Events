@@ -24,7 +24,7 @@ function renderSocialUI(newState, prevState) {
 
     if (currentUserData !== prevState.currentUserData || userFriends !== prevState.userFriends || allPlayers !== prevState.allPlayers || userSessions !== prevState.userSessions || isFriendsListCollapsed !== prevState.isFriendsListCollapsed) {
         renderFriendsList(currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed, allAlliances);
-        renderFriendsPage(userFriends, allPlayers);
+        renderFriendsPage(currentUserData, userFriends, allPlayers, userSessions); // Pass currentUserData and userSessions
     }
     
     if (activeChatMessages !== prevState.activeChatMessages) {
@@ -84,7 +84,7 @@ export function renderChatChannels(currentUserData) {
 /**
  * Renders the collapsible friends list on the main social chat page.
  * @param {object} currentUserData The data for the currently logged-in user.
- * @param {Array<string>} userFriends An array of friend UIDs.
+ * @param {Array<object>} userFriends An array of friend objects from the subcollection.
  * @param {Array<object>} allPlayers An array of all player data objects.
  * @param {object} userSessions An object mapping UIDs to session status.
  * @param {boolean} isFriendsListCollapsed The current collapsed state of the list.
@@ -94,23 +94,31 @@ export function renderFriendsList(currentUserData, userFriends, allPlayers, user
     const container = document.getElementById('friends-list-social-page');
     const friendsContainer = document.getElementById('friends-list-container-social');
     if (friendsContainer) friendsContainer.classList.toggle('collapsed', isFriendsListCollapsed);
-    if (!container || !currentUserData || !userFriends || userFriends.length === 0) {
-        if (container) container.innerHTML = '<p class="text-xs text-center text-gray-500 p-4">Add friends from the Players page.</p>';
+    if (!container || !currentUserData || !userFriends) {
+        if(container) container.innerHTML = '<p class="text-xs text-center text-gray-500 p-4">Add friends to get started.</p>';
         return;
     }
+
+    const acceptedFriends = userFriends.filter(f => f.status === 'friends');
+
+    if (acceptedFriends.length === 0) {
+        container.innerHTML = '<p class="text-xs text-center text-gray-500 p-4">No friends to display.</p>';
+        return;
+    }
+    
     container.innerHTML = '';
-    userFriends.forEach(friendId => {
+    acceptedFriends.forEach(friend => {
         if (!allPlayers) return;
-        const friendData = allPlayers.find(p => p.uid === friendId);
+        const friendData = allPlayers.find(p => p.uid === friend.id);
         if (!friendData) return;
-        const session = userSessions ? userSessions[friendId] : null;
+        const session = userSessions ? userSessions[friend.id] : null;
         const statusClass = session ? session.status : 'offline';
         const avatarUrl = friendData.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${friendData.username.charAt(0).toUpperCase()}`;
         const allianceData = allAlliances ? allAlliances.find(a => a.tag === friendData.alliance) : null;
         const rankBorder = getAvatarBorderClass(friendData, allianceData);
         const friendEl = document.createElement('div');
         friendEl.className = 'friend-list-item';
-        friendEl.innerHTML = `<div class="flex items-center gap-3"><div class="relative"><img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder.className}" style="${rankBorder.style}"><span class="status-dot ${statusClass} absolute bottom-0 right-0 border-2 border-gray-800"></span></div><div><p class="font-bold text-white">${friendData.username}</p><p class="text-xs text-gray-400">[${friendData.alliance}] - ${friendData.allianceRank}</p></div></div><div class="flex items-center gap-4"><button class="message-player-btn text-gray-400 hover:text-white" data-uid="${friendId}" title="Message"><i class="fas fa-comment-dots"></i></button></div>`;
+        friendEl.innerHTML = `<div class="flex items-center gap-3"><div class="relative"><img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover ${rankBorder.className}" style="${rankBorder.style}"><span class="status-dot ${statusClass} absolute bottom-0 right-0 border-2 border-gray-800"></span></div><div><p class="font-bold text-white">${friendData.username}</p><p class="text-xs text-gray-400">[${friendData.alliance}] - ${friendData.allianceRank}</p></div></div><div class="flex items-center gap-4"><button class="message-player-btn text-gray-400 hover:text-white" data-uid="${friend.id}" title="Message"><i class="fas fa-comment-dots"></i></button></div>`;
         container.appendChild(friendEl);
     });
 }
@@ -198,33 +206,156 @@ export function renderConversationsList(conversations) {
 }
 
 /**
- * Renders the dedicated "Friends" page.
- * @param {Array<string>} userFriends An array of friend UIDs.
+ * Renders the dedicated "Friends" page with a tabbed interface.
+ * @param {object} currentUserData The data for the currently logged-in user.
+ * @param {Array<object>} userFriends An array of friend objects from the subcollection.
  * @param {Array<object>} allPlayers An array of all player data objects.
+ * @param {object} userSessions An object mapping UIDs to session status.
  */
-export function renderFriendsPage(userFriends, allPlayers) {
+export function renderFriendsPage(currentUserData, userFriends, allPlayers, userSessions) {
     const container = document.getElementById('sub-page-social-friends');
-    if (!container) return;
-    if (!userFriends || !allPlayers) {
+    if (!container || !currentUserData) return;
+
+    if (!userFriends || !allPlayers || !userSessions) {
         container.innerHTML = '<div class="spinner mx-auto mt-8"></div>';
         return;
     }
-    const friendsData = userFriends.map(friendId => allPlayers.find(p => p.uid === friendId)).filter(Boolean).sort((a, b) => a.username.localeCompare(b.username));
-    const friendsListHTML = friendsData.length > 0 ? friendsData.map(friend => {
-        const avatarUrl = friend.avatarUrl || `https://placehold.co/48x48/0D1117/FFFFFF?text=${friend.username.charAt(0).toUpperCase()}`;
-        return `<div class="glass-pane p-4 flex items-center justify-between rounded-lg"><div class="flex items-center gap-4"><img src="${avatarUrl}" class="w-10 h-10 rounded-full object-cover"><div><p class="font-bold text-white">${friend.username}</p><p class="text-xs text-gray-400">[${friend.alliance}] - ${friend.allianceRank}</p></div></div><div class="flex items-center gap-4"><button class="message-player-btn text-gray-400 hover:text-white" data-uid="${friend.uid}" title="Message"><i class="fas fa-comment-dots"></i></button></div></div>`;
-    }).join('') : `<p class="text-center text-gray-500 py-8 col-span-full">Your friends list is empty. Add friends from the Players page.</p>`;
-    container.innerHTML = `<div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-bold text-white tracking-wider" style="text-shadow: 0 0 10px var(--color-primary);">Friends</h2><button id="add-friend-main-btn" class="primary-btn rounded-lg px-4 py-2 flex items-center gap-2"><i class="fas fa-user-plus"></i><span>Add Friend</span></button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="friends-page-list">${friendsListHTML}</div>`;
-    document.getElementById('add-friend-main-btn').addEventListener('click', () => {
-        showPage('page-server');
-        document.querySelector('.sub-nav-link[data-sub-target="server-players"]').click();
-    });
-    document.getElementById('friends-page-list').addEventListener('click', (e) => {
-        const messageBtn = e.target.closest('.message-player-btn');
-        if(messageBtn) {
-            const { allPlayers } = getState();
-            const partnerData = allPlayers.find(p => p.uid === messageBtn.dataset.uid);
-            if(partnerData) showFullscreenChatModal({ targetPlayer: partnerData });
+    
+    // 1. Filter friends into categories
+    const friends = userFriends.filter(f => f.status === 'friends').map(f => allPlayers.find(p => p.uid === f.id)).filter(Boolean);
+    const pendingReceived = userFriends.filter(f => f.status === 'pending' && f.requester !== currentUserData.uid).map(f => allPlayers.find(p => p.uid === f.id)).filter(Boolean);
+    const pendingSent = userFriends.filter(f => f.status === 'pending' && f.requester === currentUserData.uid).map(f => allPlayers.find(p => p.uid === f.id)).filter(Boolean);
+    const onlineFriends = friends.filter(friend => userSessions[friend.uid]?.status === 'online');
+
+    const pendingCount = pendingReceived.length;
+    
+    // 2. Build the main HTML structure with tabs and counts
+    container.innerHTML = `
+        <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+            <h2 class="text-3xl font-bold text-white tracking-wider" style="text-shadow: 0 0 10px var(--color-primary);">Friends</h2>
+            <div class="filter-btn-group" id="friends-filter-tabs">
+                <button class="filter-btn active" data-filter="all">All (${friends.length})</button>
+                <button class="filter-btn" data-filter="online">Online (${onlineFriends.length})</button>
+                <button class="filter-btn" data-filter="pending">Pending <span class="badge ml-1 ${pendingCount > 0 ? '' : 'hidden'}">${pendingCount}</span></button>
+                <button class="primary-btn !rounded-lg !px-4 !py-2 flex items-center gap-2" id="add-friend-main-btn"><i class="fas fa-user-plus"></i><span>Add Friend</span></button>
+            </div>
+        </div>
+        <div id="friends-page-content">
+             </div>
+    `;
+
+    // 3. Render the initial content (All tab)
+    const lists = { all: friends, online: onlineFriends, pending: { received: pendingReceived, sent: pendingSent } };
+    renderFriendListContent('all', lists);
+
+    // 4. Add event listeners for the tabs
+    document.getElementById('friends-filter-tabs').addEventListener('click', (e) => {
+        const filterBtn = e.target.closest('.filter-btn');
+        if (filterBtn) {
+            document.querySelectorAll('#friends-filter-tabs .filter-btn').forEach(btn => btn.classList.remove('active'));
+            filterBtn.classList.add('active');
+            renderFriendListContent(filterBtn.dataset.filter, lists);
         }
     });
+    
+    document.getElementById('add-friend-main-btn').addEventListener('click', () => {
+        showPage('page-server');
+        const playersSubNavLink = document.querySelector('.sub-nav-link[data-sub-target="server-players"]');
+        if(playersSubNavLink) playersSubNavLink.click();
+    });
+}
+
+/**
+ * Renders the content of the friends list based on the active tab.
+ * @param {string} filter The active filter ('all', 'online', 'pending').
+ * @param {object} lists An object containing pre-filtered lists of friends.
+ */
+function renderFriendListContent(filter, lists) {
+    const contentContainer = document.getElementById('friends-page-content');
+    if (!contentContainer) return;
+
+    let listToRender;
+    let listHTML;
+
+    if (filter === 'pending') {
+        const receivedHTML = lists.pending.received.length > 0 ? `
+            <h3 class="col-span-full section-header text-lg font-bold my-4"><i class="fas fa-inbox"></i><span>Received Requests</span></h3>
+            ${lists.pending.received.map(user => createFriendCard(user, 'received')).join('')}
+        ` : '';
+        const sentHTML = lists.pending.sent.length > 0 ? `
+            <h3 class="col-span-full section-header text-lg font-bold my-4"><i class="fas fa-paper-plane"></i><span>Sent Requests</span></h3>
+            ${lists.pending.sent.map(user => createFriendCard(user, 'sent')).join('')}
+        ` : '';
+
+        listHTML = receivedHTML + sentHTML;
+        if (!listHTML) {
+            listHTML = `<p class="text-center text-gray-500 py-8 col-span-full">No pending requests.</p>`;
+        }
+    } else {
+        listToRender = filter === 'online' ? lists.online : lists.all;
+        if (listToRender.length > 0) {
+            listHTML = listToRender.map(friend => createFriendCard(friend, 'friends')).join('');
+        } else {
+            listHTML = `<p class="text-center text-gray-500 py-8 col-span-full">No friends to display in this category.</p>`;
+        }
+    }
+    
+    contentContainer.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${listHTML}</div>`;
+
+    // Event listeners are re-attached in the event-listeners module using delegation.
+}
+
+/**
+ * Creates the HTML string for a single friend card with appropriate actions.
+ * @param {object} user The user's data object.
+ * @param {('friends'|'received'|'sent')} type The type of relationship to render.
+ * @returns {string} The HTML for the friend card.
+ */
+function createFriendCard(user, type) {
+    const avatarUrl = user.avatarUrl || `https://placehold.co/64x64/0D1117/FFFFFF?text=${user.username.charAt(0).toUpperCase()}`;
+    const { allAlliances } = getState();
+    const allianceData = allAlliances.find(a => a.tag === user.alliance);
+    const border = getAvatarBorderClass(user, allianceData);
+
+    let actionsHTML = '';
+    switch(type) {
+        case 'friends':
+            actionsHTML = `
+                <button class="message-player-btn friend-action-btn" data-uid="${user.uid}" title="Message"><i class="fas fa-comment-dots"></i></button>
+                <button class="remove-friend-btn friend-action-btn remove" data-uid="${user.uid}" title="Remove Friend"><i class="fas fa-user-minus"></i></button>
+            `;
+            break;
+        case 'received':
+            actionsHTML = `
+                <button class="accept-friend-btn friend-action-btn accept" data-uid="${user.uid}" title="Accept"><i class="fas fa-check"></i></button>
+                <button class="decline-friend-btn friend-action-btn remove" data-uid="${user.uid}" title="Decline"><i class="fas fa-times"></i></button>
+            `;
+            break;
+        case 'sent':
+            actionsHTML = `
+                <button class="cancel-request-btn friend-action-btn" data-uid="${user.uid}" title="Cancel Request"><i class="fas fa-user-clock mr-2"></i>Cancel</button>
+            `;
+            break;
+    }
+
+    return `
+        <div class="player-card glass-pane p-4 flex flex-col relative" data-uid="${user.uid}">
+            <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
+                <div class="avatar-container mr-4">
+                    <img src="${avatarUrl}" class="w-12 h-12 rounded-full object-cover ${border.className}" style="${border.style}" alt="${user.username}">
+                     <div class="player-badge">[${user.alliance}] ${user.allianceRank}</div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-white">${user.username}</h3>
+                    <p class="text-sm font-semibold" style="color: var(--color-primary);">${(user.power || 0).toLocaleString()} Power</p>
+                </div>
+            </div>
+            <div class="flex-grow my-4">
+                 <p class="text-xs text-gray-400">${type === 'sent' ? 'Request Sent' : (type === 'received' ? 'Request Received' : `Friends since...`)}</p>
+            </div>
+            <div class="flex justify-around items-center pt-3 border-t border-white/10">
+                ${actionsHTML}
+            </div>
+        </div>
+    `;
 }

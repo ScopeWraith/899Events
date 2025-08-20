@@ -29,6 +29,19 @@ Stores the public profile and application-specific data for a single user. The `
 
 ---
 
+## `users/{userId}/friends/{friendId}`
+
+A subcollection storing a user's relationships with other players, including accepted friends and pending requests. The `friendId` is the UID of the other user.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `status` | `String` | The current state of the relationship. Can be **"pending"** or **"friends"**. |
+| `requester` | `String` | The `userId` of the user who initiated the friend request. |
+| `createdAt` | `Timestamp`| The timestamp of when the request was initiated. |
+| `since` | `Timestamp`| *Optional.* The timestamp of when the friend request was accepted. |
+
+---
+
 ## `posts/{postId}`
 
 A central collection for all community-facing content, including both events and announcements. The `mainType` field distinguishes between the two.

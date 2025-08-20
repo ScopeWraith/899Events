@@ -2,11 +2,11 @@
 
 import { auth } from './firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getState, setState } from './state.js'; // CHANGED HERE
+import { getState, setState } from './state.js';
 import {
     setupEmojiButton, showPage, hideAllModals, showAuthModal, showEditProfileModal,
     showCreatePostModal, showPostActionsModal, showFullscreenChatModal, showPlayerSettingsModal,
-    handleSubNavClick, toggleSubNav, showViewPostModal, showAccessDeniedModal
+    handleSubNavClick, toggleSubNav, showViewPostModal, showAccessDeniedModal, showConfirmationModal
 } from './ui/ui-manager.js';
 import {
     handleLogout, handleLoginSubmit, handleForgotPassword, handleRegistrationNext,
@@ -18,7 +18,8 @@ import { handlePostBack, handleThumbnailSelection, handlePostSubmit, populatePos
 import { applyPlayerFilters } from './ui/players-ui.js';
 import {
     handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend,
-    removeFriend, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend
+    removeFriend, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend,
+    declineFriendRequest, cancelFriendRequest
 } from './firestore.js';
 import {
     showEditAllianceModal, handleAllianceAvatarSelection, handleAllianceEditSubmit,
@@ -333,7 +334,7 @@ export function initializeAllEventListeners() {
     // Player/Alliance filter listeners
     addListener('filter-container', 'click', (e) => {
         if (e.target.classList.contains('filter-btn')) {
-            setState({ activeFilter: e.target.dataset.filter }); // CHANGED HERE
+            setState({ activeFilter: e.target.dataset.filter });
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
         }
@@ -399,7 +400,7 @@ export function initializeAllEventListeners() {
     addListener('collapse-friends-btn', 'click', () => {
         const container = getElement('friends-list-container-social');
         const isCollapsed = container.classList.toggle('collapsed');
-        setState({ isFriendsListCollapsed: isCollapsed }); // CHANGED HERE
+        setState({ isFriendsListCollapsed: isCollapsed });
     });
 
     // Notification dropdown listeners
@@ -453,6 +454,44 @@ export function initializeAllEventListeners() {
             if(targetPlayer) showPlayerSettingsModal(targetPlayer);
         }
     });
+
+    // Delegated listener for the main friends page
+    const friendsPage = getElement('sub-page-social-friends');
+    if (friendsPage) {
+        friendsPage.addEventListener('click', (e) => {
+            const { allPlayers } = getState();
+            
+            const acceptBtn = e.target.closest('.accept-friend-btn');
+            const declineBtn = e.target.closest('.decline-friend-btn');
+            const cancelBtn = e.target.closest('.cancel-request-btn');
+            const removeBtn = e.target.closest('.remove-friend-btn');
+
+            if (acceptBtn) {
+                const senderUid = acceptBtn.dataset.uid;
+                // We find the original notification to pass its ID
+                const { userNotifications } = getState();
+                const notification = userNotifications.find(n => n.senderUid === senderUid && n.type === 'friend_request');
+                if (notification) {
+                    handleNotificationAction(notification.id, 'accept-friend', senderUid);
+                }
+            } else if (declineBtn) {
+                declineFriendRequest(declineBtn.dataset.uid);
+            } else if (cancelBtn) {
+                cancelFriendRequest(cancelBtn.dataset.uid);
+            } else if (removeBtn) {
+                const friendUid = removeBtn.dataset.uid;
+                const friendData = allPlayers.find(p => p.uid === friendUid);
+                if (friendData) {
+                    showConfirmationModal(
+                        'Remove Friend?',
+                        `Are you sure you want to remove ${friendData.username} from your friends list?`,
+                        () => removeFriend(friendUid)
+                    );
+                }
+            }
+        });
+    }
+
 
     // Delegated listener for the friends list on the Social page
     const friendsListSocial = getElement('friends-list-social-page');
