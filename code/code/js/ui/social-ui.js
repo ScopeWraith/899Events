@@ -1,7 +1,7 @@
 // code/js/ui/social-ui.js
 
 import { subscribe, setState, getState } from '../state.js';
-import { isUserLeader, formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarBorderClass, getChatBubbleBorderClass } from '../utils.js';
+import { isUserLeader, formatMessageTimestamp, autoLinkText, formatTimeAgo, getAvatarBorderClass, canDeleteMessage, getChatBubbleBorderClass } from '../utils.js';
 import { setupConversationListListener } from '../firestore.js';
 import { showFullscreenChatModal, showPage } from './ui-manager.js';
 import { CHAT_CHANNELS } from '../constants.js';
