@@ -89,8 +89,7 @@ export function handleSubNavClick(subTargetId) {
     if (targetSubPage) {
         targetSubPage.style.display = 'block';
     }
-
-    // --- FIX: Re-introduce render calls on sub-nav click ---
+    
     switch (subTargetId) {
         case 'news-all':
         case 'news-events':
@@ -105,8 +104,8 @@ export function handleSubNavClick(subTargetId) {
             renderConversations();
             break;
         case 'social-friends':
-            const { userFriends, allPlayers } = getState();
-            renderFriendsPage(userFriends, allPlayers);
+            const { currentUserData, userFriends, allPlayers, userSessions } = getState();
+            renderFriendsPage(currentUserData, userFriends, allPlayers, userSessions);
             break;
         case 'server-players':
             applyPlayerFilters();
