@@ -6,6 +6,11 @@
  * This keeps the main logic files cleaner and more focused.
  */
 
+/**
+ * Formats a JavaScript Date object into a human-readable "time ago" string.
+ * @param {Date} date - The date to format.
+ * @returns {string} The formatted string (e.g., "5m ago", "2d ago").
+ */
 export function formatTimeAgo(date) {
     if (!date) return '';
     const now = new Date();
@@ -24,6 +29,11 @@ export function formatTimeAgo(date) {
     return `${Math.floor(seconds)}s ago`;
 }
 
+/**
+ * Formats a Date object into a string for event display (e.g., "Jul 31 @ 1:30 PM").
+ * @param {Date} date - The date to format.
+ * @returns {string} The formatted date and time string, or 'N/A' if the date is invalid.
+ */
 export function formatEventDateTime(date) {
     if (!date || isNaN(date.getTime())) return 'N/A';
     // Format: Thu, Jul 31 @ 1:30 PM
@@ -31,28 +41,48 @@ export function formatEventDateTime(date) {
            date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
+/**
+ * Converts milliseconds into a compact duration string (e.g., "2d 4h", "15m").
+ * @param {number} ms - The duration in milliseconds.
+ * @returns {string} The formatted duration string. Returns '<1m' for durations less than a minute.
+ */
 export function formatDuration(ms) {
     if (ms < 0) ms = 0;
     const totalSeconds = Math.floor(ms / 1000);
     const days = Math.floor(totalSeconds / 86400);
     const hours = Math.floor((totalSeconds % 86400) / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
-    
+
     let parts = [];
     if (days > 0) parts.push(`${days}d`);
     if (hours > 0) parts.push(`${hours}h`);
     if (minutes > 0) parts.push(`${minutes}m`);
-    
+
     return parts.slice(0, 2).join(' ') || '<1m';
 }
 
+/**
+ * @typedef {Object} EventStatus
+ * @property {'upcoming' | 'live' | 'ended'} status - The current status of the event.
+ * @property {number} [timeDiff] - The time difference in ms to the start/end of the event.
+ * @property {Date | null} startTime - The calculated start time of the event.
+ * @property {Date} [endTime] - The calculated end time (if live).
+ * @property {Date} [endedDate] - The date the event ended (if ended).
+ */
+
+/**
+ * Calculates the current status of an event, accounting for recurring events.
+ * If an event is recurring, its start/end times are projected into the future.
+ * @param {Object} event - The event post object from Firestore. It should have `startTime`, `endTime`, and `isRecurring` properties.
+ * @returns {EventStatus} An object describing the event's current status.
+ */
 export function getEventStatus(event) {
     const now = new Date();
     let startTime = event.startTime?.toDate();
     let endTime = event.endTime?.toDate();
 
     if (!startTime || !endTime) {
-        return { status: 'ended', startTime: null }; 
+        return { status: 'ended', startTime: null };
     }
 
     if (event.isRecurring) {
@@ -73,36 +103,42 @@ export function getEventStatus(event) {
     }
 }
 
+/**
+ * Calculates the next occurrence of a specific day and hour from the current moment.
+ * @param {string} dayOfWeek - The target day of the week (0=Sunday, 6=Saturday).
+ * @param {string} hour - The target hour of the day (0-23).
+ * @returns {Date} The calculated Date object for the next occurrence.
+ */
 export function calculateNextDateTime(dayOfWeek, hour) {
     const targetDay = parseInt(dayOfWeek, 10);
     const targetHour = parseInt(hour, 10);
     const now = new Date();
-    
+
     let resultDate = new Date();
-    
-    // Set the time for the target day
+
     resultDate.setHours(targetHour, 0, 0, 0);
 
-    // --- START: NEW LOGIC ---
     const currentDay = now.getDay();
     let dayDifference = targetDay - currentDay;
 
-    // If the target day is in the past (e.g., today is Thurs[4] and target is Tues[2]),
-    // this will be negative. Add 7 to move to next week.
     if (dayDifference < 0) {
         dayDifference += 7;
-    } 
-    // If it's the same day, but the target hour is in the past, also move to next week.
+    }
     else if (dayDifference === 0 && targetHour < now.getHours()) {
         dayDifference += 7;
     }
-    
+
     resultDate.setDate(now.getDate() + dayDifference);
-    // --- END: NEW LOGIC ---
 
     return resultDate;
 }
 
+/**
+ * Resizes an image file to a maximum width and height while maintaining aspect ratio, returning a Blob.
+ * @param {File} file - The image file to resize.
+ * @param {{maxWidth: number, maxHeight: number}} options - The maximum dimensions for the output image.
+ * @returns {Promise<Blob>} A promise that resolves with the resized image as a Blob.
+ */
 export function resizeImage(file, options) {
     const { maxWidth, maxHeight } = options;
     return new Promise((resolve, reject) => {
@@ -128,7 +164,7 @@ export function resizeImage(file, options) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 canvas.toBlob((blob) => {
-                    if (blob) { resolve(blob); } 
+                    if (blob) { resolve(blob); }
                     else { reject(new Error('Canvas to Blob conversion failed')); }
                 }, 'image/jpeg', 0.9);
             };
@@ -140,24 +176,37 @@ export function resizeImage(file, options) {
     });
 }
 
+/**
+ * Checks if a user has the authority to manage another user based on rank and alliance.
+ * @param {Object} manager - The user object of the person performing the action.
+ * @param {Object} targetUser - The user object of the person being managed.
+ * @returns {boolean} True if the manager can manage the target user.
+ */
 export function canManageUser(manager, targetUser) {
     if (!manager || !targetUser) return false;
-    // Admins can manage any user, regardless of alliance or rank
     if (manager.isAdmin) return true;
-    // User cannot manage themselves
     if (manager.uid === targetUser.uid) return false;
-    // Ranks R5 and R4 can manage lower ranks in their own alliance
     if (manager.alliance !== targetUser.alliance) return false;
     if (manager.allianceRank === 'R5' && ['R4', 'R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
     if (manager.allianceRank === 'R4' && ['R3', 'R2', 'R1'].includes(targetUser.allianceRank)) return true;
     return false;
 }
 
+/**
+ * Checks if a user is considered a 'leader' (Admin, R5, or R4).
+ * @param {Object} user - The user object to check.
+ * @returns {boolean} True if the user is a leader.
+ */
 export function isUserLeader(user) {
     if (!user) return false;
     return user.isAdmin || (user.isVerified && (user.allianceRank === 'R5' || user.allianceRank === 'R4'));
 }
 
+/**
+ * Formats a Date object into a simple time string (e.g., "1:30 PM").
+ * @param {Date} date - The date to format.
+ * @returns {string} The formatted time string.
+ */
 export function formatMessageTimestamp(date) {
     if (!date) return '';
     return date.toLocaleTimeString('en-US', {
@@ -167,6 +216,11 @@ export function formatMessageTimestamp(date) {
     });
 }
 
+/**
+ * Scans a string for URLs and wraps them in HTML anchor tags.
+ * @param {string} text - The input text.
+ * @returns {string} The text with URLs converted to clickable links.
+ */
 export function autoLinkText(text) {
     const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
     return text.replace(urlRegex, function(url) {
@@ -174,6 +228,18 @@ export function autoLinkText(text) {
     });
 }
 
+/**
+ * @typedef {Object} BorderStyle
+ * @property {string} className - The CSS class for the border.
+ * @property {string} style - The inline CSS style string, if any.
+ */
+
+/**
+ * Determines the appropriate CSS class and style for a player's avatar border based on their selected skin and rank.
+ * @param {Object} player - The player data object.
+ * @param {Object | null} allianceData - The data for the player's alliance, if available.
+ * @returns {BorderStyle} An object containing the className and inline style for the border.
+ */
 export function getAvatarBorderClass(player, allianceData) {
     if (!player) {
         return { className: 'rank-border-r1', style: '' };
@@ -181,7 +247,6 @@ export function getAvatarBorderClass(player, allianceData) {
 
     const skinType = player.avatarBorderSkin || 'rank';
 
-    // --- Priority 1: Handle explicit skin selections ---
     if (skinType === 'alliance') {
         if (allianceData?.primaryColor) {
             return {
@@ -195,13 +260,16 @@ export function getAvatarBorderClass(player, allianceData) {
         }
     }
 
-    // --- Priority 2 (Fallback / 'rank' skin): Apply the default rank-based system ---
-    // The incorrect isAdmin check has been removed from here.
-    
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
 }
 
+/**
+ * Determines the appropriate CSS class and style for a player's chat bubble border based on their selected skin and rank.
+ * @param {Object} player - The player data object.
+ * @param {Object | null} allianceData - The data for the player's alliance, if available.
+ * @returns {BorderStyle} An object containing the className and inline style for the border.
+ */
 export function getChatBubbleBorderClass(player, allianceData) {
     if (!player) {
         return { className: 'chat-bubble-border-r1', style: '' };
@@ -209,7 +277,6 @@ export function getChatBubbleBorderClass(player, allianceData) {
 
     const skinType = player.chatBubbleBorderSkin || 'rank';
 
-    // --- Priority 1: Handle explicit skin selections ---
     if (skinType === 'alliance') {
         if (allianceData?.primaryColor) {
             return {
@@ -223,9 +290,25 @@ export function getChatBubbleBorderClass(player, allianceData) {
         }
     }
 
-    // --- Priority 2 (Fallback / 'rank' skin): Apply the default rank-based system ---
-    // The incorrect isAdmin check has been removed from here.
-    
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `chat-bubble-border-${rank}`, style: '' };
+}
+
+/**
+ * Checks if a user is allowed to delete a specific chat message.
+ * @param {Object} currentUser - The user attempting the deletion.
+ * @param {Object} messageAuthor - The author of the message.
+ * @returns {boolean} True if the user can delete the message.
+ */
+export function canDeleteMessage(currentUser, messageAuthor) {
+    if (!currentUser || !messageAuthor) return false;
+    // Admins can delete any message
+    if (currentUser.isAdmin) return true;
+    // Users can delete their own messages
+    if (currentUser.uid === messageAuthor.uid) return true;
+    // Alliance leaders (R5, R4) can delete messages from members of their own alliance
+    if (isUserLeader(currentUser) && currentUser.alliance === messageAuthor.alliance) {
+        return true;
+    }
+    return false;
 }
