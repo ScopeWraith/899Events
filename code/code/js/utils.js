@@ -204,10 +204,8 @@ export function getAvatarBorderClass(player, allianceData) {
         }
     }
 
-    // --- Priority 2 (Fallback): Apply the default rank-based system ---
-    if (player.isAdmin) {
-        return { className: 'rank-border-admin', style: '' };
-    }
+    // --- Priority 2 (Fallback / 'rank' skin): Apply the default rank-based system ---
+    // The incorrect isAdmin check has been removed from here.
     
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
@@ -228,18 +226,14 @@ export function getChatBubbleBorderClass(player, allianceData) {
                 style: `border-color: ${allianceData.primaryColor};`
             };
         }
-        // Fall through to rank default if no color
     } else if (skinType === 'admin') {
         if (player.isAdmin) {
             return { className: 'chat-bubble-border-admin', style: '' };
         }
-        // Fall through to rank default if not admin
     }
 
-    // --- Priority 2 (Fallback): Apply the default rank-based system ---
-    if (player.isAdmin) {
-        return { className: 'chat-bubble-border-admin', style: '' };
-    }
+    // --- Priority 2 (Fallback / 'rank' skin): Apply the default rank-based system ---
+    // The incorrect isAdmin check has been removed from here.
     
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `chat-bubble-border-${rank}`, style: '' };
