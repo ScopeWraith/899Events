@@ -8,6 +8,13 @@ import { CHAT_CHANNELS } from '../constants.js';
 
 // --- STATE & RENDER FUNCTIONS ---
 
+/**
+ * Renders the social UI components whenever relevant state changes occur.
+ * This function is subscribed to the central state and will re-render
+ * social components if user, friend, player, message, or conversation data is updated.
+ * @param {object} newState The new, updated state object.
+ * @param {object} prevState The previous state object.
+ */
 function renderSocialUI(newState, prevState) {
     const { currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed, activeChatMessages, conversations, allAlliances } = newState;
 
@@ -31,6 +38,9 @@ function renderSocialUI(newState, prevState) {
     }
 }
 
+/**
+ * Initializes the social UI module by subscribing its render function to the application state.
+ */
 export function initializeSocialUI() {
     subscribe(renderSocialUI);
 }
@@ -38,6 +48,10 @@ export function initializeSocialUI() {
 
 // --- UI HELPER & RENDERING FUNCTIONS ---
 
+/**
+ * Renders the available chat channel selection cards based on the current user's permissions.
+ * @param {object|null} currentUserData The data for the currently logged-in user.
+ */
 export function renderChatChannels(currentUserData) {
     const container = document.getElementById('chat-selectors');
     if (!container) return;
@@ -67,6 +81,15 @@ export function renderChatChannels(currentUserData) {
     }).join('');
 }
 
+/**
+ * Renders the collapsible friends list on the main social chat page.
+ * @param {object} currentUserData The data for the currently logged-in user.
+ * @param {Array<string>} userFriends An array of friend UIDs.
+ * @param {Array<object>} allPlayers An array of all player data objects.
+ * @param {object} userSessions An object mapping UIDs to session status.
+ * @param {boolean} isFriendsListCollapsed The current collapsed state of the list.
+ * @param {Array<object>} allAlliances An array of all alliance data objects.
+ */
 export function renderFriendsList(currentUserData, userFriends, allPlayers, userSessions, isFriendsListCollapsed, allAlliances) {
     const container = document.getElementById('friends-list-social-page');
     const friendsContainer = document.getElementById('friends-list-container-social');
@@ -92,6 +115,12 @@ export function renderFriendsList(currentUserData, userFriends, allPlayers, user
     });
 }
 
+/**
+ * Renders messages into a specified chat window container.
+ * @param {Array<object>} messages An array of message objects to render.
+ * @param {HTMLElement} container The DOM element to render the messages into.
+ * @param {string} chatType The type of chat the messages belong to.
+ */
 export function renderMessages(messages, container, chatType) {
     const { currentUserData, allPlayers, allAlliances } = getState();
     if (!currentUserData || !container || !allPlayers) return;
@@ -131,10 +160,17 @@ export function renderMessages(messages, container, chatType) {
     container.scrollTop = container.scrollHeight;
 }
 
+/**
+ * Initiates the process of rendering the list of private conversations by setting up the necessary listener.
+ */
 export function renderConversations() {
     setupConversationListListener();
 }
 
+/**
+ * Renders the list of private conversations on the "Private" social tab.
+ * @param {Array<object>} conversations An array of conversation metadata objects.
+ */
 export function renderConversationsList(conversations) {
     const container = document.getElementById('sub-page-social-convo');
     if (!container) return;
@@ -161,6 +197,11 @@ export function renderConversationsList(conversations) {
     }).join('');
 }
 
+/**
+ * Renders the dedicated "Friends" page.
+ * @param {Array<string>} userFriends An array of friend UIDs.
+ * @param {Array<object>} allPlayers An array of all player data objects.
+ */
 export function renderFriendsPage(userFriends, allPlayers) {
     const container = document.getElementById('sub-page-social-friends');
     if (!container) return;

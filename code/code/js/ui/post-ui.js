@@ -9,13 +9,22 @@ import { formatTimeAgo, formatEventDateTime, getEventStatus, formatDuration, cal
 import { hideAllModals, showModal, setCustomSelectValue, createSkeletonCard, showCreatePostModal } from './ui-manager.js';
 
 // --- FIX: Moved module-scoped variables to the top ---
+/** @type {number|null} Interval ID for the countdown timer. */
 let countdownInterval = null;
+/** @type {number} The current step in the post creation modal. */
 let currentPostStep = 1;
+/** @type {object} An object to hold data during the multi-step post creation process. */
 let postCreationData = {};
+/** @type {Blob|null} A Blob containing the resized post thumbnail, ready for upload. */
 let resizedThumbnailBlob = null;
 
 // --- STATE & RENDER FUNCTIONS ---
 
+/**
+ * Renders the posts UI (News and Feed pages) when relevant state changes.
+ * @param {object} newState The new, updated state object.
+ * @param {object} prevState The previous state object.
+ */
 function renderPostsUI(newState, prevState) {
     if (newState.allPosts && (newState.allPosts !== prevState.allPosts || newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData)) {
         const activeSubNav = document.querySelector('#news-submenu .sub-nav-link.active');
@@ -27,12 +36,20 @@ function renderPostsUI(newState, prevState) {
     }
 }
 
+/**
+ * Initializes the post UI module by subscribing its render function to the application state.
+ */
 export function initializePostUI() {
     subscribe(renderPostsUI);
 }
 
 // --- UI HELPER & RENDERING FUNCTIONS ---
 
+/**
+ * Renders the news feed with posts, filtered by category.
+ * @param {('all'|'events'|'announcements')} [filter='all'] The category to filter posts by.
+ * @param {object} state The current application state.
+ */
 export function renderNews(filter = 'all', state) {
     const { allPlayers, allPosts, currentUserData } = state;
     if (!allPosts || !allPlayers) {
@@ -99,6 +116,13 @@ export function renderNews(filter = 'all', state) {
     updateCountdowns();
 }
 
+/**
+ * Creates the HTML string for a single post card (either event or announcement).
+ * @param {object} post The post data object.
+ * @param {Array<object>} allPlayers The array of all player data.
+ * @param {object} currentUserData The data for the currently logged-in user.
+ * @returns {string} The HTML string for the post card.
+ */
 function createCard(post, allPlayers, currentUserData) {
     const style = POST_STYLES[post.subType] || {};
     const isEvent = post.mainType === 'event';
@@ -122,6 +146,9 @@ function createCard(post, allPlayers, currentUserData) {
     }
 }
 
+/**
+ * Updates the countdown timers on all visible event cards.
+ */
 function updateCountdowns() {
     document.querySelectorAll('.event-card').forEach(el => {
         const postId = el.dataset.postId;
@@ -141,6 +168,10 @@ function updateCountdowns() {
     });
 }
 
+/**
+ * Renders the "Recent Activity" feed on the Feed page.
+ * @param {object} state The current application state.
+ */
 export function renderFeedActivity(state) {
     const { allPosts, currentUserData, unverifiedPlayers } = state;
     const container = document.getElementById('feed-activity-container');
@@ -166,6 +197,10 @@ export function renderFeedActivity(state) {
     container.innerHTML = allFeedItems || `<p class="text-center text-gray-400 py-4">No recent activity.</p>`;
 }
 
+/**
+ * Initializes the multi-step post creation form.
+ * @param {('event'|'announcement')} mainType The main type of post to create.
+ */
 export function initializePostStepper(mainType) {
     document.getElementById('create-post-form').reset();
     postCreationData = {};
@@ -177,6 +212,9 @@ export function initializePostStepper(mainType) {
     showPostStep(currentPostStep);
 }
 
+/**
+ * Populates the first step of the post creation form with available post subtypes based on user permissions.
+ */
 function populateSubTypeSelection() {
     const { currentUserData } = getState();
     const container = document.getElementById('post-subtype-selection-container');
@@ -204,6 +242,10 @@ function populateSubTypeSelection() {
     });
 }
 
+/**
+ * Displays the specified step of the post creation form.
+ * @param {number} step The step number to display.
+ */
 function showPostStep(step) {
     document.querySelectorAll('#post-creation-flow .form-slide').forEach(slide => {
         slide.classList.toggle('active', parseInt(slide.dataset.slide) === step);
@@ -211,6 +253,9 @@ function showPostStep(step) {
     document.getElementById('post-submit-btn').classList.toggle('hidden', step !== 2);
 }
 
+/**
+ * Handles the "Back" button click in the post creation modal.
+ */
 export function handlePostBack() {
     if (currentPostStep > 1) {
         currentPostStep--;
@@ -218,6 +263,9 @@ export function handlePostBack() {
     }
 }
 
+/**
+ * Updates the visibility of form fields in the post creation modal based on the selected post subtype.
+ */
 function updatePostFormVisibility() {
     const typeInfo = Object.values(POST_TYPES).find(t => t.subType === postCreationData.subType && t.mainType === postCreationData.mainType);
     if (!typeInfo) return;
@@ -232,6 +280,10 @@ function updatePostFormVisibility() {
     }
 }
 
+/**
+ * Handles the selection of a thumbnail image, resizes it, and updates the preview.
+ * @param {Event} e The change event from the file input.
+ */
 export async function handleThumbnailSelection(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -239,6 +291,10 @@ export async function handleThumbnailSelection(e) {
     document.getElementById('post-thumbnail-preview').src = URL.createObjectURL(resizedThumbnailBlob);
 }
 
+/**
+ * Handles the final submission of the create/edit post form.
+ * @param {Event} e The form submission event.
+ */
 export async function handlePostSubmit(e) {
     e.preventDefault();
     const { currentUserData, editingPostId } = getState();
@@ -299,6 +355,10 @@ export async function handlePostSubmit(e) {
     }
 }
 
+/**
+ * Populates the post creation form with the data of an existing post for editing.
+ * @param {string} postId The ID of the post to edit.
+ */
 export function populatePostFormForEdit(postId) {
     const { allPosts } = getState();
     const post = allPosts.find(p => p.id === postId);
@@ -319,6 +379,11 @@ export function populatePostFormForEdit(postId) {
         setCustomSelectValue(expContainer, expValue, expText);
     }
     if (post.mainType === 'event') {
+        /**
+         * Helper to set a date/time custom select value.
+         * @param {('start'|'end')} type - Whether to set start or end time.
+         * @param {Date} date - The date object to extract values from.
+         */
         const setDateTime = (type, date) => {
             if (!date) return;
             const day = date.getDay().toString();

@@ -13,17 +13,46 @@ import { applyPlayerFilters } from './players-ui.js';
 import { renderAlliances } from './alliances-ui.js';
 import { formatTimeAgo, autoLinkText } from '../utils.js';
 
+/**
+ * A helper function to get a DOM element by its ID.
+ * @param {string} id The ID of the element to retrieve.
+ * @returns {HTMLElement|null} The DOM element or null if not found.
+ */
 const getElement = (id) => document.getElementById(id);
+
+/**
+ * A helper function to query for a single DOM element using a CSS selector.
+ * @param {string} selector The CSS selector.
+ * @returns {HTMLElement|null} The first matching DOM element or null.
+ */
 const querySelector = (selector) => document.querySelector(selector);
+/**
+ * A helper function to query for all DOM elements matching a CSS selector.
+ * @param {string} selector The CSS selector.
+ * @returns {NodeListOf<HTMLElement>} A NodeList of matching elements.
+ */
 const querySelectorAll = (selector) => document.querySelectorAll(selector);
 
+/**
+ * An object to store the counts for social notification badges.
+ * @type {{convoCount: number, friendRequestCount: number}}
+ */
 let socialBadges = { convoCount: 0, friendRequestCount: 0 };
 
+/**
+ * Displays the access denied modal, typically for features requiring login.
+ */
 export function showAccessDeniedModal() {
     hideAllModals();
     showModal(getElement('access-denied-modal-container'));
 }
 
+/**
+ * Updates the notification badges on the social sub-navigation tabs.
+ * @param {object} counts An object containing the counts for different notification types.
+ * @param {number} [counts.convoCount] The number of unread private messages.
+ * @param {number} [counts.friendRequestCount] The number of pending friend requests.
+ */
 export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
     if (convoCount !== undefined) socialBadges.convoCount = convoCount;
     if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;
@@ -40,6 +69,11 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
         friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
     }
 }
+
+/**
+ * Handles clicks on sub-navigation links, showing the correct sub-page and triggering content rendering.
+ * @param {string} subTargetId The `data-sub-target` value of the clicked link.
+ */
 export function handleSubNavClick(subTargetId) {
     localStorage.setItem('lastActiveSubPage', subTargetId);
     querySelectorAll('.sub-nav-link').forEach(link => {
@@ -83,6 +117,10 @@ export function handleSubNavClick(subTargetId) {
     }
 }
 
+/**
+ * Displays the modal for viewing a single post's full details.
+ * @param {object} post The data object for the post to view.
+ */
 export function showViewPostModal(post) {
     if (!post) return;
     const { allPlayers, currentUserData } = getState();
@@ -125,6 +163,10 @@ export function showViewPostModal(post) {
     showModal(getElement('view-post-modal-container'));
 }
 
+/**
+ * Shows or hides the sub-navigation bar based on the active main navigation item.
+ * @param {string|null} activeSubmenuId The ID of the sub-menu to display, or null to hide all.
+ */
 export function toggleSubNav(activeSubmenuId) {
     const subNavContainer = document.getElementById('sub-nav-container');
     if (!subNavContainer) return;
@@ -142,6 +184,10 @@ export function toggleSubNav(activeSubmenuId) {
     }
 }
 
+/**
+ * Displays a specific main content page and hides others.
+ * @param {string} targetId The ID of the page-content element to show.
+ */
 export function showPage(targetId) {
     querySelectorAll('.page-content').forEach(page => {
         page.style.display = page.id === targetId ? 'block' : 'none';
@@ -178,12 +224,19 @@ export function showPage(targetId) {
     }
 }
 
-
+/**
+ * Makes a specific modal container visible.
+ * @param {HTMLElement} modal The modal container element to show.
+ */
 export function showModal(modal) {
     getElement('modal-backdrop').classList.add('visible');
     modal.classList.add('visible');
 }
 
+/**
+ * Hides all modal containers and the backdrop.
+ * Also clears any modal-specific state and listeners.
+ */
 export function hideAllModals() {
     getElement('modal-backdrop').classList.remove('visible');
     querySelectorAll('.modal-container').forEach(modal => modal.classList.remove('visible'));
@@ -197,6 +250,10 @@ export function hideAllModals() {
     if (listeners && listeners.privateChat) listeners.privateChat();
 }
 
+/**
+ * Shows the main authentication modal, with either the login or registration form active.
+ * @param {('login'|'register')} formToShow The form to display initially.
+ */
 export function showAuthModal(formToShow) {
     hideAllModals();
     showModal(getElement('auth-modal-container'));
@@ -213,12 +270,19 @@ export function showAuthModal(formToShow) {
     }
 }
 
+/**
+ * Displays the "Edit Profile" modal and populates it with the current user's data.
+ */
 export function showEditProfileModal() {
     hideAllModals();
     showModal(getElement('edit-profile-modal-container'));
     populateEditForm();
 }
 
+/**
+ * Displays the modal for editing another player's settings (e.g., rank, role).
+ * @param {object} player The data object for the player whose settings are to be edited.
+ */
 export function showPlayerSettingsModal(player) {
     setState({ activePlayerSettingsUID: player.uid });
     hideAllModals();
@@ -226,6 +290,10 @@ export function showPlayerSettingsModal(player) {
     populatePlayerSettingsForm(player);
 }
 
+/**
+ * Displays the modal for creating a new post (event or announcement).
+ * @param {('event'|'announcement')} mainType The main type of post to create.
+ */
 export function showCreatePostModal(mainType) {
     setState({ editingPostId: null });
     getElement('create-post-form').reset();
@@ -237,6 +305,12 @@ export function showCreatePostModal(mainType) {
     getElement('post-submit-btn').innerHTML = '<i class="fas fa-check-circle mr-2"></i>Create Post';
 }
 
+/**
+ * Displays a generic confirmation modal.
+ * @param {string} title The title for the confirmation dialog.
+ * @param {string} message The confirmation message/question.
+ * @param {Function} onConfirm A callback function to execute if the user confirms.
+ */
 export function showConfirmationModal(title, message, onConfirm) {
     const confirmationModal = getElement('confirmation-modal-container');
     if (!confirmationModal) return;
@@ -252,6 +326,10 @@ export function showConfirmationModal(title, message, onConfirm) {
     showModal(confirmationModal);
 }
 
+/**
+ * Displays a modal with actions for a specific post (Edit, Delete).
+ * @param {string} postId The ID of the post to show actions for.
+ */
 export function showPostActionsModal(postId) {
     const editBtn = document.getElementById('modal-edit-post-btn');
     const deleteBtn = document.getElementById('modal-delete-post-btn');
@@ -277,6 +355,12 @@ export function showPostActionsModal(postId) {
     showModal(document.getElementById('post-actions-modal-container'));
 }
 
+/**
+ * Displays the fullscreen chat modal for either a private message or a public channel.
+ * @param {object} options Configuration options for the chat modal.
+ * @param {object|null} [options.targetPlayer=null] The player object for a private chat.
+ * @param {string|null} [options.chatType=null] The ID of the public chat channel.
+ */
 export async function showFullscreenChatModal({ targetPlayer = null, chatType = null }) {
     const { currentUserData, userSessions } = getState();
     if (!currentUserData) return;
@@ -345,11 +429,20 @@ export async function showFullscreenChatModal({ targetPlayer = null, chatType = 
     }
 }
 
+/**
+ * Sets up initial UI elements that are not dependent on dynamic data,
+ * such as custom select dropdowns and the particle background animation.
+ */
 export function setupInitialUI() {
     setupCustomSelects();
     setupParticleCanvas();
 }
 
+/**
+ * Sets up the event listener for an emoji picker button.
+ * @param {string} buttonId The ID of the button that opens the picker.
+ * @param {string} inputId The ID of the input field to which the emoji will be added.
+ */
 export function setupEmojiButton(buttonId, inputId) {
     const button = getElement(buttonId);
     const input = getElement(inputId);
@@ -362,6 +455,9 @@ export function setupEmojiButton(buttonId, inputId) {
     });
 }
 
+/**
+ * Builds the mobile navigation menu based on the main desktop navigation and user permissions.
+ */
 export function buildMobileNav() {
     const { currentUserData } = getState();
     const mobileNavLinksContainer = getElement('mobile-nav-links');
@@ -469,6 +565,9 @@ export function buildMobileNav() {
     }
 }
 
+/**
+ * Initializes all custom select dropdowns on the page by populating their options from constants.
+ */
 function setupCustomSelects() {
     document.querySelectorAll('.custom-select-container').forEach(container => {
         const type = container.dataset.type;
@@ -533,7 +632,12 @@ function setupCustomSelects() {
     });
 }
 
-
+/**
+ * Sets the value and display text of a custom select dropdown.
+ * @param {HTMLElement} container The `.custom-select-container` element.
+ * @param {string} value The value to set on the hidden input.
+ * @param {string} text The text to display on the dropdown button.
+ */
 export function setCustomSelectValue(container, value, text) {
     const hiddenInput = container.querySelector('input[type="hidden"]');
     const valueSpan = container.querySelector('.custom-select-value span');
@@ -543,6 +647,9 @@ export function setCustomSelectValue(container, value, text) {
     }
 }
 
+/**
+ * Sets up and starts the animated particle background canvas.
+ */
 function setupParticleCanvas() {
     const canvas = document.getElementById('particle-canvas');
     if (!canvas) return;
@@ -580,6 +687,10 @@ function setupParticleCanvas() {
     animateParticles();
 }
 
+/**
+ * Creates the HTML string for a skeleton loader card, used while posts are loading.
+ * @returns {string} The HTML for a skeleton post card.
+ */
 export function createSkeletonCard() {
     return `
         <div class="post-card skeleton-card">

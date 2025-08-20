@@ -7,10 +7,21 @@ import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/fireba
 import { showModal, hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { resizeImage, getAvatarBorderClass } from '../utils.js';
 
+/**
+ * A Blob containing the resized alliance avatar, ready for upload.
+ * @type {Blob|null}
+ */
 let resizedAllianceAvatarBlob = null;
 
 // --- STATE & RENDER FUNCTIONS ---
 
+/**
+ * Renders the alliances UI whenever relevant state changes occur.
+ * This function is subscribed to the central state and will re-render
+ * the alliance list if alliance, player, or user data is updated.
+ * @param {object} newState The new, updated state object.
+ * @param {object} prevState The previous state object.
+ */
 function renderAlliancesUI(newState, prevState) {
     // Re-render alliances if any of this data changes
     if (
@@ -24,6 +35,9 @@ function renderAlliancesUI(newState, prevState) {
     }
 }
 
+/**
+ * Initializes the alliances UI by subscribing its render function to the application's state.
+ */
 export function initializeAlliancesUI() {
     subscribe(renderAlliancesUI);
 }
@@ -31,6 +45,11 @@ export function initializeAlliancesUI() {
 
 // --- UI HELPER & RENDERING FUNCTIONS ---
 
+/**
+ * Renders the list of alliance cards on the page.
+ * It also handles showing a "Register Alliance" button for eligible users.
+ * @param {object} state The current application state.
+ */
 export function renderAlliances(state) {
     const { allAlliances, currentUserData } = state;
     const container = document.getElementById('alliances-list-container');
@@ -73,6 +92,12 @@ export function renderAlliances(state) {
     }
 }
 
+/**
+ * Creates the HTML string for a single alliance card.
+ * @param {object} alliance The data object for the alliance.
+ * @param {object} state The current application state.
+ * @returns {string} The generated HTML for the alliance card.
+ */
 function createAllianceCard(alliance, state) {
     const { currentUserData, allPlayers, userFriends } = state;
 
@@ -84,6 +109,11 @@ function createAllianceCard(alliance, state) {
     const canEdit = currentUserData?.isVerified && currentUserData.allianceRank === 'R5' && currentUserData.alliance === alliance.tag;
     const editButtonHTML = canEdit ? `<button class="alliance-card-edit-btn" data-alliance-tag="${alliance.tag}"><i class="fas fa-cog"></i></button>` : '';
 
+    /**
+     * Finds a player's data by their username.
+     * @param {string} username The username to search for.
+     * @returns {object|undefined} The player data object or undefined if not found.
+     */
     const getRoleMember = (username) => allPlayers.find(p => p.username === username);
 
     const r5Data = getRoleMember(alliance.r5Name);
@@ -160,6 +190,10 @@ function createAllianceCard(alliance, state) {
     `;
 }
 
+/**
+ * Populates and displays the "Edit Alliance" modal with the specified alliance's data.
+ * @param {object} alliance The data object for the alliance to be edited.
+ */
 export function showEditAllianceModal(alliance) {
     const { allPlayers, currentUserData } = getState();
     if (!alliance) return;
@@ -181,6 +215,12 @@ export function showEditAllianceModal(alliance) {
     showModal(document.getElementById('edit-alliance-modal-container'));
 }
 
+/**
+ * Helper function to populate a custom select dropdown with alliance members for role assignment.
+ * @param {string} selectId The ID of the hidden input for the custom select.
+ * @param {Array<object>} members An array of member objects ({value: string, text: string}).
+ * @param {string} selectedValue The currently selected member's username.
+ */
 function populateRoleSelect(selectId, members, selectedValue) {
     const container = document.getElementById(selectId).closest('.custom-select-container');
     const optionsList = container.querySelector('.options-list');
@@ -190,6 +230,11 @@ function populateRoleSelect(selectId, members, selectedValue) {
     setCustomSelectValue(container, selectedValue || '', selectedText);
 }
 
+/**
+ * Handles the selection of a new alliance avatar image from the file input.
+ * It resizes the image and updates the preview.
+ * @param {Event} e The change event from the file input.
+ */
 export async function handleAllianceAvatarSelection(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -197,6 +242,9 @@ export async function handleAllianceAvatarSelection(e) {
     document.getElementById('edit-alliance-avatar-preview').src = URL.createObjectURL(resizedAllianceAvatarBlob);
 }
 
+/**
+ * Displays the modal for an R5 leader to register their alliance profile for the first time.
+ */
 export function showRegisterAllianceModal() {
     const { currentUserData } = getState();
     if (!currentUserData) return;
@@ -207,6 +255,11 @@ export function showRegisterAllianceModal() {
     showModal(document.getElementById('register-alliance-modal-container'));
 }
 
+/**
+ * Handles the submission of the new alliance registration form.
+ * Creates a new alliance document in Firestore.
+ * @param {Event} e The form submission event.
+ */
 export async function handleAllianceRegisterSubmit(e) {
     e.preventDefault();
     const { currentUserData } = getState();
@@ -245,6 +298,11 @@ export async function handleAllianceRegisterSubmit(e) {
     }
 }
 
+/**
+ * Handles the submission of the "Edit Alliance" form.
+ * Updates the existing alliance document in Firestore with new data and potentially a new avatar.
+ * @param {Event} e The form submission event.
+ */
 export async function handleAllianceEditSubmit(e) {
     e.preventDefault();
     const errorElement = document.getElementById('edit-alliance-error');

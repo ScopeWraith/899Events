@@ -5,6 +5,13 @@
  * such as date formatting, image resizing, and calculating event statuses.
  * This keeps the main logic files cleaner and more focused.
  */
+
+/**
+ * Determines if the current user has permission to delete a specific message.
+ * @param {object} currentUser The data object for the currently logged-in user.
+ * @param {object} messageAuthor The data object for the author of the message.
+ * @returns {boolean} True if the user can delete the message, otherwise false.
+ */
 export function canDeleteMessage(currentUser, messageAuthor) {
     if (!currentUser || !messageAuthor) return false;
     // An admin can delete any message.
@@ -15,6 +22,12 @@ export function canDeleteMessage(currentUser, messageAuthor) {
     if (isUserLeader(currentUser) && currentUser.alliance === messageAuthor.alliance) return true;
     return false;
 }
+
+/**
+ * Formats a JavaScript Date object into a human-readable "time ago" string (e.g., "5m ago").
+ * @param {Date} date The date to format.
+ * @returns {string} The formatted time ago string.
+ */
 export function formatTimeAgo(date) {
     if (!date) return '';
     const now = new Date();
@@ -33,6 +46,12 @@ export function formatTimeAgo(date) {
     return `${Math.floor(seconds)}s ago`;
 }
 
+/**
+ * Formats a Date object into a more detailed date and time string.
+ * Example format: "Thu, Jul 31 @ 1:30 PM"
+ * @param {Date} date The date to format.
+ * @returns {string} The formatted date-time string.
+ */
 export function formatEventDateTime(date) {
     if (!date || isNaN(date.getTime())) return 'N/A';
     // Format: Thu, Jul 31 @ 1:30 PM
@@ -40,6 +59,11 @@ export function formatEventDateTime(date) {
            date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
+/**
+ * Formats a duration in milliseconds into a compact string (e.g., "2d 4h", "15m").
+ * @param {number} ms The duration in milliseconds.
+ * @returns {string} The formatted duration string.
+ */
 export function formatDuration(ms) {
     if (ms < 0) ms = 0;
     const totalSeconds = Math.floor(ms / 1000);
@@ -55,6 +79,21 @@ export function formatDuration(ms) {
     return parts.slice(0, 2).join(' ') || '<1m';
 }
 
+/**
+ * @typedef {Object} EventStatus
+ * @property {('upcoming'|'live'|'ended')} status - The current status of the event.
+ * @property {number} [timeDiff] - The time difference in ms until the event starts or ends.
+ * @property {Date} startTime - The calculated start time of the event.
+ * @property {Date} [endTime] - The calculated end time of the event (if live).
+ * @property {Date} [endedDate] - The date the event ended (if ended).
+ */
+
+/**
+ * Calculates the current status of an event (upcoming, live, or ended).
+ * Handles recurring events by advancing their dates to the next occurrence if they are in the past.
+ * @param {object} event The event object from Firestore.
+ * @returns {EventStatus} An object describing the event's current status.
+ */
 export function getEventStatus(event) {
     const now = new Date();
     let startTime = event.startTime?.toDate();
@@ -82,6 +121,12 @@ export function getEventStatus(event) {
     }
 }
 
+/**
+ * Calculates the next occurrence of a specific day and hour from the current time.
+ * @param {string} dayOfWeek The target day of the week (0=Sunday, 6=Saturday).
+ * @param {string} hour The target hour of the day (0-23).
+ * @returns {Date} The calculated Date object for the next occurrence.
+ */
 export function calculateNextDateTime(dayOfWeek, hour) {
     const targetDay = parseInt(dayOfWeek, 10);
     const targetHour = parseInt(hour, 10);
@@ -112,6 +157,14 @@ export function calculateNextDateTime(dayOfWeek, hour) {
     return resultDate;
 }
 
+/**
+ * Resizes an image file to fit within specified maximum dimensions while maintaining aspect ratio.
+ * @param {File} file The image file to resize.
+ * @param {object} options An object with resizing options.
+ * @param {number} options.maxWidth The maximum width of the resized image.
+ * @param {number} options.maxHeight The maximum height of the resized image.
+ * @returns {Promise<Blob>} A promise that resolves with the resized image as a Blob.
+ */
 export function resizeImage(file, options) {
     const { maxWidth, maxHeight } = options;
     return new Promise((resolve, reject) => {
@@ -149,6 +202,12 @@ export function resizeImage(file, options) {
     });
 }
 
+/**
+ * Checks if a 'manager' user has permission to manage a 'targetUser'.
+ * @param {object} manager The user data object for the potential manager.
+ * @param {object} targetUser The user data object for the user to be managed.
+ * @returns {boolean} True if the manager has permission, otherwise false.
+ */
 export function canManageUser(manager, targetUser) {
     if (!manager || !targetUser) return false;
     // Admins can manage any user, regardless of alliance or rank
@@ -162,11 +221,21 @@ export function canManageUser(manager, targetUser) {
     return false;
 }
 
+/**
+ * Checks if a user is considered a "leader" (Admin, R5, or R4).
+ * @param {object} user The user data object.
+ * @returns {boolean} True if the user is a leader, otherwise false.
+ */
 export function isUserLeader(user) {
     if (!user) return false;
     return user.isAdmin || (user.isVerified && (user.allianceRank === 'R5' || user.allianceRank === 'R4'));
 }
 
+/**
+ * Formats a Date object into a simple time string (e.g., "1:30 PM").
+ * @param {Date} date The date to format.
+ * @returns {string} The formatted time string.
+ */
 export function formatMessageTimestamp(date) {
     if (!date) return '';
     return date.toLocaleTimeString('en-US', {
@@ -176,6 +245,11 @@ export function formatMessageTimestamp(date) {
     });
 }
 
+/**
+ * Scans a string of text for URLs and wraps them in anchor `<a>` tags.
+ * @param {string} text The text to process.
+ * @returns {string} The text with URLs converted to clickable links.
+ */
 export function autoLinkText(text) {
     const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
     return text.replace(urlRegex, function(url) {
@@ -183,6 +257,19 @@ export function autoLinkText(text) {
     });
 }
 
+/**
+ * @typedef {Object} BorderStyle
+ * @property {string} className - The CSS class(es) to apply for the border.
+ * @property {string} style - The inline CSS style string to apply.
+ */
+
+/**
+ * Determines the appropriate CSS class and inline style for a player's avatar border.
+ * The border style depends on the player's chosen skin, rank, or alliance.
+ * @param {object} player The player's data object.
+ * @param {object} allianceData The data object for the player's alliance.
+ * @returns {BorderStyle} An object containing the className and style for the border.
+ */
 export function getAvatarBorderClass(player, allianceData) {
     if (!player) {
         return { className: 'rank-border-r1', style: '' };
@@ -211,6 +298,13 @@ export function getAvatarBorderClass(player, allianceData) {
     return { className: `rank-border-${rank}`, style: '' };
 }
 
+/**
+ * Determines the appropriate CSS class and inline style for a player's chat bubble border.
+ * The border style depends on the player's chosen skin, rank, or alliance.
+ * @param {object} player The player's data object.
+ * @param {object} allianceData The data object for the player's alliance.
+ * @returns {BorderStyle} An object containing the className and style for the border.
+ */
 export function getChatBubbleBorderClass(player, allianceData) {
     if (!player) {
         return { className: 'chat-bubble-border-r1', style: '' };

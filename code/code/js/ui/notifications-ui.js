@@ -3,6 +3,11 @@
 import { subscribe, getState } from '../state.js';
 import { formatTimeAgo } from '../utils.js';
 
+/**
+ * Renders the notifications UI when the user's notifications or the list of unverified players change.
+ * @param {object} newState The new, updated state object.
+ * @param {object} prevState The previous state object.
+ */
 function renderNotificationsUI(newState, prevState) {
     // Re-render if notifications OR unverified players have changed.
     if (newState.userNotifications === prevState.userNotifications && newState.unverifiedPlayers === prevState.unverifiedPlayers) return;
@@ -10,10 +15,19 @@ function renderNotificationsUI(newState, prevState) {
     renderNotifications(newState.userNotifications || [], newState.unverifiedPlayers || []);
 }
 
+/**
+ * Initializes the notifications UI module by subscribing its render function to the application state.
+ */
 export function initializeNotificationsUI() {
     subscribe(renderNotificationsUI);
 }
 
+/**
+ * Renders the notifications in both the header dropdown and the "Pending Actions" feed.
+ * It combines friend requests and verification requests into a unified list of actionable items.
+ * @param {Array<object>} notifications The user's notification documents from Firestore.
+ * @param {Array<object>} unverifiedPlayers The list of unverified players relevant to the current user.
+ */
 function renderNotifications(notifications, unverifiedPlayers) {
     const feedDropdown = document.getElementById('feed-dropdown');
     const feedActionContainer = document.getElementById('feed-action-container');
@@ -61,6 +75,11 @@ function renderNotifications(notifications, unverifiedPlayers) {
     }
 }
 
+/**
+ * Creates the HTML string for a single notification item.
+ * @param {object} notification The notification object.
+ * @returns {string} The HTML string for the notification item.
+ */
 function createNotificationHTML(notification) {
     const timeAgo = notification.timestamp ? formatTimeAgo(notification.timestamp.toDate ? notification.timestamp.toDate() : notification.timestamp) : '';
     const isReadClass = notification.isRead ? '' : 'is-read';

@@ -5,6 +5,11 @@ import { canManageUser, getAvatarBorderClass} from '../utils.js';
 
 // --- STATE & RENDER FUNCTIONS ---
 
+/**
+ * Renders the players UI when the list of players or the current user's data changes.
+ * @param {object} newState The new, updated state object.
+ * @param {object} prevState The previous state object.
+ */
 function renderPlayersUI(newState, prevState) {
     // Re-render the player list if the list of players or the current user changes.
     if (newState.allPlayers !== prevState.allPlayers || newState.currentUserData !== prevState.currentUserData) {
@@ -12,12 +17,18 @@ function renderPlayersUI(newState, prevState) {
     }
 }
 
+/**
+ * Initializes the players UI module by subscribing its render function to the application state.
+ */
 export function initializePlayersUI() {
     subscribe(renderPlayersUI);
 }
 
 // --- UI HELPER & RENDERING FUNCTIONS ---
 
+/**
+ * Applies the current search and filter criteria to the list of all players and triggers a re-render.
+ */
 export function applyPlayerFilters() {
     const playerListContainer = document.getElementById('player-list-container');
     if (!playerListContainer) {
@@ -47,6 +58,10 @@ export function applyPlayerFilters() {
     renderPlayers(filteredPlayers);
 }
 
+/**
+ * Creates the HTML string for a single player card skeleton loader.
+ * @returns {string} The HTML for a skeleton card.
+ */
 function createPlayerSkeletonCard() {
     return `
         <div class="player-card glass-pane p-4 flex flex-col opacity-50">
@@ -67,6 +82,11 @@ function createPlayerSkeletonCard() {
     `;
 }
 
+/**
+ * Renders a list of player cards into the DOM.
+ * If the `players` argument is null, it renders skeleton loaders instead.
+ * @param {Array<object>|null} players An array of player data objects, or null to show loaders.
+ */
 export function renderPlayers(players) {
     const playerListContainer = document.getElementById('player-list-container');
     if (!playerListContainer) return;

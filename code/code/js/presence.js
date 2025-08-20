@@ -10,6 +10,12 @@ import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs
 import { ref as dbRef, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 import { getState, setState } from './state.js'; // CHANGED: from updateState
 
+/**
+ * Sets up presence management for the currently authenticated user.
+ * It uses Firebase Realtime Database's `onDisconnect` to reliably set the user's status to 'offline'.
+ * It also tracks user activity to set their status to 'away' after a period of inactivity.
+ * @param {import("firebase/auth").User} user The authenticated user object.
+ */
 export function setupPresenceManagement(user) {
     const userStatusDatabaseRef = dbRef(rtdb, '/status/' + user.uid);
     const userStatusFirestoreRef = doc(db, '/sessions/' + user.uid);
@@ -32,6 +38,10 @@ export function setupPresenceManagement(user) {
         });
     });
 
+    /**
+     * Resets the timer that marks a user as 'away'. Any user activity
+     * will call this function to keep their status 'online'.
+     */
     function resetAwayTimer() {
         let { awayTimer, userSessions } = getState();
         if (awayTimer) clearTimeout(awayTimer);
@@ -54,6 +64,11 @@ export function setupPresenceManagement(user) {
     resetAwayTimer();
 }
 
+/**
+ * Updates a user's status in both Firestore and Realtime Database.
+ * @param {string} uid The user's unique ID.
+ * @param {('online'|'offline'|'away')} status The new presence status.
+ */
 function updateUserStatus(uid, status) {
     const userStatusFirestoreRef = doc(db, '/sessions/' + uid);
     const userStatusDatabaseRef = dbRef(rtdb, '/status/' + uid);

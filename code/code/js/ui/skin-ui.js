@@ -3,6 +3,10 @@
 import { getState } from '../state.js';
 import { getAvatarBorderClass, getChatBubbleBorderClass } from '../utils.js';
 
+/**
+ * Initializes the skin selection UI within the "Edit Profile" modal.
+ * It attaches a single event listener to the modal to handle clicks on any skin selection button.
+ */
 export function initializeSkinUI() {
     const editProfileModal = document.getElementById('edit-profile-modal-container');
     if (editProfileModal) {
@@ -25,6 +29,10 @@ export function initializeSkinUI() {
     }
 }
 
+/**
+ * Builds and renders the available avatar border skin options in the "Edit Profile" modal.
+ * The available options are determined by the user's current data (e.g., if they are an admin).
+ */
 export function buildAvatarBorderSkins() {
     const container = document.getElementById('avatar-border-selector');
     if (!container) return;
@@ -63,6 +71,10 @@ export function buildAvatarBorderSkins() {
     }).join('');
 }
 
+/**
+ * Builds and renders the available chat bubble border skin options in the "Edit Profile" modal.
+ * The available options are determined by the user's current data.
+ */
 export function buildChatBubbleBorderSkins() {
     const container = document.getElementById('chat-bubble-border-selector');
     if (!container) return;
@@ -101,7 +113,11 @@ export function buildChatBubbleBorderSkins() {
     }).join('');
 }
 
-
+/**
+ * Updates the visual state of the skin selection buttons to highlight the active skin.
+ * @param {string} containerId The ID of the container holding the skin buttons ('avatar-border-selector' or 'chat-bubble-border-selector').
+ * @param {string} selectedValue The value of the currently selected skin.
+ */
 export function updateSkinSelection(containerId, selectedValue) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -110,6 +126,9 @@ export function updateSkinSelection(containerId, selectedValue) {
     });
 }
 
+/**
+ * Updates the avatar border preview in the "Edit Profile" modal to reflect the currently selected skin.
+ */
 export function updateAvatarBorderPreview() {
     const { currentUserData, allAlliances } = getState();
     const selectedSkin = document.getElementById('avatar-border-skin-input').value;

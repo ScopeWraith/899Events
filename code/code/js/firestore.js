@@ -6,6 +6,13 @@ import { ref, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebas
 import { setState, getState } from './state.js';
 import { isUserLeader } from './utils.js';
 
+/**
+ * Toggles a reaction ('like' or 'heart') on a post for the current user.
+ * Uses a Firestore transaction to ensure atomic updates to the reaction count and the list of users who reacted.
+ * @param {string} postId The ID of the post to react to.
+ * @param {('like'|'heart')} reactionType The type of reaction to toggle.
+ * @returns {Promise<void>} A promise that resolves when the transaction is complete.
+ */
 export async function togglePostReaction(postId, reactionType) {
     const { currentUserData } = getState();
     if (!currentUserData || !postId || !['like', 'heart'].includes(reactionType)) return;
@@ -38,11 +45,21 @@ export async function togglePostReaction(postId, reactionType) {
     }
 }
 
+/**
+ * Sets up all necessary real-time listeners for a logged-in user.
+ * This includes user data, notifications, friends, alliances, players, posts, and sessions.
+ * @param {import("firebase/auth").User} user The authenticated user object from Firebase Auth.
+ * @param {Function} onInitialDataLoaded A callback function to execute once the initial data load is complete.
+ */
 export function setupAllListeners(user, onInitialDataLoaded) {
     const listeners = {};
     const requiredLoads = ['userDoc', 'notifications', 'friends', 'alliances', 'users', 'posts', 'sessions'];
     let loadedCount = 0;
 
+    /**
+     * Checks if all initial data has been loaded and calls the callback if so.
+     * @param {string} source The name of the listener that just completed its initial load.
+     */
     const checkAllLoaded = (source) => {
         if (requiredLoads.includes(source)) {
             const index = requiredLoads.indexOf(source);
@@ -106,12 +123,20 @@ export function setupAllListeners(user, onInitialDataLoaded) {
     setState({ listeners });
 }
 
+/**
+ * Fetches initial public data required for the app to function for non-authenticated users.
+ * @param {Function} onPublicDataLoaded A callback function to execute once public data is loaded.
+ */
 export function fetchInitialData(onPublicDataLoaded) {
     let { listeners } = getState();
     if (!listeners) listeners = {};
     const requiredPublicLoads = ['users', 'posts', 'sessions', 'alliances'];
     let loadedCount = 0;
 
+    /**
+     * Checks if all public data has been loaded and calls the callback.
+     * @param {string} source The name of the listener that just completed its initial load.
+     */
     const checkPublicLoaded = (source) => {
         if (requiredPublicLoads.includes(source)) {
             const index = requiredPublicLoads.indexOf(source);
@@ -159,6 +184,10 @@ export function fetchInitialData(onPublicDataLoaded) {
     setState({ listeners });
 }
 
+/**
+ * Detaches all active Firestore listeners to prevent memory leaks and unnecessary reads,
+ * typically called on user logout.
+ */
 export function detachAllListeners() {
     const { listeners } = getState();
     if (listeners && typeof listeners === 'object') {
@@ -169,6 +198,11 @@ export function detachAllListeners() {
     setState({ listeners: {} });
 }
 
+/**
+ * Sets up listeners for the public chat channels (World, Alliance, Leadership).
+ * Detaches previous listeners to ensure only the active channel is being listened to.
+ * @param {('world_chat'|'alliance_chat'|'leadership_chat')} activeChatId The ID of the chat channel to listen to.
+ */
 export function setupChatListeners(activeChatId) {
     const { currentUserData, listeners } = getState();
     if (!currentUserData) return;
@@ -179,6 +213,11 @@ export function setupChatListeners(activeChatId) {
 
     let chatQuery;
 
+    /**
+     * Creates a snapshot listener for a given Firestore query.
+     * @param {import("firebase/firestore").Query} query The Firestore query to listen to.
+     * @returns {Function} The unsubscribe function for the listener.
+     */
     const createListener = (query) => {
         return onSnapshot(query, (snapshot) => {
             const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -197,6 +236,10 @@ export function setupChatListeners(activeChatId) {
     setState({ listeners });
 }
 
+/**
+ * Sets up a listener for a specific private chat conversation.
+ * @param {string} chatId The ID of the private chat to listen to.
+ */
 export function setupPrivateChatListener(chatId) {
     const { listeners } = getState();
     if (listeners.privateChat) listeners.privateChat();
@@ -215,6 +258,13 @@ export function setupPrivateChatListener(chatId) {
     setState({ listeners });
 }
 
+/**
+ * Sends a message to a public chat channel.
+ * @param {Event} e The event object (can be null).
+ * @param {('world_chat'|'alliance_chat'|'leadership_chat')} chatType The type of chat to send the message to.
+ * @param {string} text The message content.
+ * @returns {Promise<void>} A promise that resolves when the message is sent.
+ */
 export async function handleSendMessage(e, chatType, text) {
     const { currentUserData } = getState();
     if (!currentUserData || !text || text.trim() === '') return;
@@ -230,6 +280,12 @@ export async function handleSendMessage(e, chatType, text) {
     await addDoc(collection(db, collectionPath), { text: text, authorUid: currentUserData.uid, authorUsername: currentUserData.username, timestamp: serverTimestamp(), reactions: {} });
 }
 
+/**
+ * Sends a message from the fullscreen chat modal.
+ * Dispatches to the correct handler based on whether a private or public chat is active.
+ * @param {string} text The message content to send.
+ * @returns {Promise<void>} A promise that resolves when the message is sent.
+ */
 export async function handleFullscreenMessageSend(text) {
     const { currentUserData, activePrivateChatId } = getState();
     if (!currentUserData || text.trim() === '') return;
@@ -244,6 +300,12 @@ export async function handleFullscreenMessageSend(text) {
     }
 }
 
+/**
+ * Deletes a chat message from a specified channel.
+ * @param {string} messageId The ID of the message to delete.
+ * @param {('world_chat'|'alliance_chat'|'leadership_chat'|'private_chat')} chatType The channel the message belongs to.
+ * @returns {Promise<void>} A promise that resolves when the message is deleted.
+ */
 export async function handleDeleteMessage(messageId, chatType) {
     const { currentUserData, activePrivateChatPartner } = getState();
     let docPath;
@@ -261,6 +323,13 @@ export async function handleDeleteMessage(messageId, chatType) {
    await deleteDoc(doc(db, docPath));
 }
 
+/**
+ * Sends verification request notifications to all R4 and R5 leaders of a specified alliance.
+ * @param {string} senderUid The UID of the user requesting verification.
+ * @param {string} senderUsername The username of the user requesting verification.
+ * @param {string} alliance The alliance tag to send requests to.
+ * @returns {Promise<boolean>} A promise that resolves to true upon successful sending.
+ */
 export async function sendVerificationRequest(senderUid, senderUsername, alliance) {
     const leadersQuery = query(collection(db, 'users'), where('alliance', '==', alliance), where('allianceRank', 'in', ['R5', 'R4']));
     const leadersSnapshot = await getDocs(leadersQuery);
@@ -273,6 +342,14 @@ export async function sendVerificationRequest(senderUid, senderUsername, allianc
     return true;
 }
 
+/**
+ * Handles actions performed on a notification, such as accepting/declining friend requests or verifying users.
+ * @param {string} notificationId The ID of the notification document.
+ * @param {('accept-friend'|'decline-friend'|'verify-user'|'read')} action The action to perform.
+ * @param {string} senderUid The UID of the user who sent the notification.
+ * @param {string} [targetUid] The UID of the user to be acted upon (e.g., for verification).
+ * @returns {Promise<void>} A promise that resolves when the action is complete.
+ */
 export async function handleNotificationAction(notificationId, action, senderUid, targetUid) {
     const { currentUserData } = getState();
     if (!currentUserData) return;
@@ -311,7 +388,11 @@ export async function handleNotificationAction(notificationId, action, senderUid
     }
 }
 
-
+/**
+ * Sends a friend request notification to another user.
+ * @param {string} recipientUid The UID of the user to send the request to.
+ * @returns {Promise<boolean>} A promise that resolves to true upon successful sending.
+ */
 export async function addFriend(recipientUid) {
     const { currentUserData } = getState();
     if (!currentUserData) return false;
@@ -319,6 +400,11 @@ export async function addFriend(recipientUid) {
     return true;
 }
 
+/**
+ * Removes a friend from the current user's friend list and vice-versa.
+ * @param {string} friendUid The UID of the friend to remove.
+ * @returns {Promise<void>} A promise that resolves when the friend is removed.
+ */
 export async function removeFriend(friendUid) {
     const { currentUserData } = getState();
     if (!currentUserData) return;
@@ -328,6 +414,11 @@ export async function removeFriend(friendUid) {
     await batch.commit();
 }
 
+/**
+ * Handles uploading an image attachment to a private chat.
+ * @param {File} file The image file to upload.
+ * @returns {Promise<void>} A promise that resolves when the image is uploaded and the message is sent.
+ */
 export async function handleImageAttachment(file) {
     const { currentUserData, activePrivateChatId } = getState();
     if (!currentUserData || !activePrivateChatId) return;
@@ -340,6 +431,13 @@ export async function handleImageAttachment(file) {
     await addDoc(collection(db, `private_chats/${activePrivateChatId}/messages`), { authorUid: currentUserData.uid, authorUsername: currentUserData.username, imageUrl: imageUrl, text: '', timestamp: serverTimestamp(), reactions: {} });
 }
 
+/**
+ * Toggles a reaction emoji on a chat message.
+ * @param {string} chatType The type of chat the message is in.
+ * @param {string} messageId The ID of the message.
+ * @param {string} emoji The emoji to toggle.
+ * @returns {Promise<void>} A promise that resolves when the reaction is updated.
+ */
 export async function toggleReaction(chatType, messageId, emoji) {
     const { currentUserData } = getState();
     if (!currentUserData) return;
@@ -375,6 +473,10 @@ export async function toggleReaction(chatType, messageId, emoji) {
     });
 }
 
+/**
+ * Sets up a listener for the current user's list of private conversations.
+ * Fetches conversation metadata including the last message and unread count.
+ */
 export function setupConversationListListener() {
     const { currentUserData, listeners } = getState();
     if (!currentUserData) return;
@@ -395,6 +497,11 @@ export function setupConversationListListener() {
     setState({ listeners });
 }
 
+/**
+ * Sets up a listener for unverified players.
+ * Admins see all unverified players, while leaders see only those in their own alliance.
+ * @param {object} user The current user's data object.
+ */
 export function setupUnverifiedPlayersListener(user) {
     const { listeners } = getState();
     if (listeners.unverifiedPlayers) listeners.unverifiedPlayers();

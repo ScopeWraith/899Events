@@ -13,6 +13,12 @@ import { buildAvatarBorderSkins, updateSkinSelection, updateAvatarBorderPreview,
 
 // --- STATE & RENDER FUNCTIONS ---
 
+/**
+ * Renders UI components related to authentication and user profile display.
+ * Subscribed to the main state, it updates the UI when user data changes.
+ * @param {object} newState The new, updated state object.
+ * @param {object} prevState The previous state object.
+ */
 function renderAuthUI(newState, prevState) {
     if (newState.currentUserData !== prevState.currentUserData || newState.allAlliances !== prevState.allAlliances) {
         updateAvatarDisplay(newState.currentUserData);
@@ -24,6 +30,10 @@ function renderAuthUI(newState, prevState) {
     }
 }
 
+/**
+ * Initializes the authentication UI components.
+ * Subscribes the render function to state changes and sets up input formatters.
+ */
 export function initializeAuthUI() {
     subscribe(renderAuthUI);
     document.querySelectorAll('.power-input').forEach(input => {
@@ -40,6 +50,11 @@ export function initializeAuthUI() {
 
 // --- UI HELPER FUNCTIONS ---
 
+/**
+ * Updates the user avatar and profile information in the main navigation header.
+ * Toggles visibility of login buttons vs. profile dropdowns based on auth state.
+ * @param {object|null} data The current user's data object, or null if logged out.
+ */
 export function updateAvatarDisplay(data) {
     const { allAlliances } = getState();
     const loginBtn = document.getElementById('login-btn');
@@ -86,7 +101,12 @@ export function updateAvatarDisplay(data) {
     }
 }
 
-
+/**
+ * Updates the content of the player profile dropdown menu.
+ * Shows/hides admin-specific buttons and updates notification badges.
+ * @param {object} currentUserData The current user's data.
+ * @param {Array<object>} userNotifications The user's notifications.
+ */
 export function updatePlayerProfileDropdown(currentUserData, userNotifications) {
     if (!currentUserData) return;
     const dropdownContainer = document.getElementById('player-profile-dropdown');
@@ -128,9 +148,14 @@ export function updatePlayerProfileDropdown(currentUserData, userNotifications) 
     if (messagesBtn) messagesBtn.disabled = true;
 }
 
+/** The current step in the multi-step registration form. @type {number} */
 let currentRegStep = 1;
+/** A Blob containing the resized user avatar from registration, ready for upload. @type {Blob|null} */
 let resizedAvatarBlob = null;
 
+/**
+ * Handles the user logout process by signing out from Firebase and reloading the page.
+ */
 export function handleLogout() {
     signOut(auth).then(() => {
         localStorage.removeItem('lastActivePage');
@@ -141,6 +166,9 @@ export function handleLogout() {
     });
 }
 
+/**
+ * Initializes the registration form to its first step.
+ */
 export function initializeRegistrationStepper() {
     currentRegStep = 1;
     resizedAvatarBlob = null;
@@ -150,6 +178,10 @@ export function initializeRegistrationStepper() {
     document.getElementById('registration-success').style.display = 'none';
 }
 
+/**
+ * Shows a specific step in the registration form UI.
+ * @param {number} stepIndex The index of the step to display.
+ */
 function showRegStep(stepIndex) {
     const registrationFlow = document.getElementById('registration-flow');
     const regFormSlides = registrationFlow.querySelectorAll('.form-slide');
@@ -173,7 +205,11 @@ function showRegStep(stepIndex) {
     regSubmitBtn.classList.toggle('hidden', stepIndex !== regFormSlides.length);
 }
 
-
+/**
+ * Validates the input fields for the current step of the registration form.
+ * @param {number} stepIndex The index of the step to validate.
+ * @returns {boolean} True if the step is valid, otherwise false.
+ */
 function validateRegStep(stepIndex) {
     const registerError = document.getElementById('register-error');
     registerError.textContent = '';
@@ -194,6 +230,9 @@ function validateRegStep(stepIndex) {
     return true;
 }
 
+/**
+ * Handles the "Next" button click in the registration form, validating the current step before proceeding.
+ */
 export function handleRegistrationNext() {
     if (validateRegStep(currentRegStep)) {
         currentRegStep++;
@@ -201,11 +240,18 @@ export function handleRegistrationNext() {
     }
 }
 
+/**
+ * Handles the "Back" button click in the registration form.
+ */
 export function handleRegistrationBack() {
     currentRegStep--;
     showRegStep(currentRegStep);
 }
 
+/**
+ * Handles the selection of a user avatar image, resizes it, and updates the preview.
+ * @param {Event} e The change event from the file input.
+ */
 export async function handleAvatarSelection(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -213,6 +259,12 @@ export async function handleAvatarSelection(e) {
     document.getElementById('register-avatar-preview').src = URL.createObjectURL(resizedAvatarBlob);
 }
 
+/**
+ * Handles the final submission of the registration form.
+ * It creates the user in Firebase Auth, uploads their avatar, creates their user document in Firestore,
+ * and sends a verification request.
+ * @param {Event} e The form submission event.
+ */
 export async function handleRegistrationSubmit(e) {
     e.preventDefault();
     if (!validateRegStep(currentRegStep)) return;
@@ -268,6 +320,10 @@ export async function handleRegistrationSubmit(e) {
     }
 }
 
+/**
+ * Handles the login form submission.
+ * @param {Event} e The form submission event.
+ */
 export function handleLoginSubmit(e) {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
@@ -305,6 +361,11 @@ export function handleLoginSubmit(e) {
         });
 }
 
+/**
+ * Handles the "Forgot Password" link click, prompting the user for their email
+ * and sending a password reset link via Firebase Auth.
+ * @param {Event} e The click event.
+ */
 export function handleForgotPassword(e) {
     e.preventDefault();
     const email = prompt("Please enter your email address to receive a password reset link:");
@@ -315,6 +376,9 @@ export function handleForgotPassword(e) {
         .catch((error) => alert(error.message));
 }
 
+/**
+ * Populates the "Edit Profile" modal with the current user's data.
+ */
 export function populateEditForm() {
     const { currentUserData, allAlliances } = getState();
     if (!currentUserData) return;
@@ -364,6 +428,12 @@ export function populateEditForm() {
     updateSkinSelection('chat-bubble-border-selector', currentChatBubbleSkin);
 }
 
+/**
+ * Handles the submission of the "Edit Profile" form.
+ * Updates the user's document in Firestore. If alliance or rank is changed,
+ * it marks the user as unverified and triggers a new verification request.
+ * @param {Event} e The form submission event.
+ */
 export async function handleEditProfileSubmit(e) {
     e.preventDefault();
     const user = auth.currentUser;
@@ -410,6 +480,10 @@ export async function handleEditProfileSubmit(e) {
     }
 }
 
+/**
+ * Handles the direct upload of a new avatar from the user profile dropdown.
+ * @param {Event} e The change event from the hidden file input.
+ */
 export async function handleAvatarUpload(e) {
     const file = e.target.files[0];
     const user = auth.currentUser;

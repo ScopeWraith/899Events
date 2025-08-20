@@ -6,6 +6,11 @@ import { hideAllModals, setCustomSelectValue } from './ui-manager.js';
 import { ALLIANCE_RANKS, ALLIANCE_ROLES } from '../constants.js';
 import { sendVerificationRequest } from '../firestore.js'; 
 
+/**
+ * Populates the player settings modal with the data of a specific player.
+ * It also determines which fields are editable based on the current user's permissions.
+ * @param {object} player The data object for the player whose settings are being viewed/edited.
+ */
 export function populatePlayerSettingsForm(player) {
     const { currentUserData } = getState();
     document.getElementById('player-settings-username').textContent = player.username;
@@ -23,6 +28,12 @@ export function populatePlayerSettingsForm(player) {
     document.getElementById('setting-alliance-role').closest('.input-group').style.display = canManage ? 'flex' : 'none';
 }
 
+/**
+ * Handles the submission of the player settings form.
+ * It updates the target player's data in Firestore. If the player's rank is changed,
+ * they are marked as unverified and a new verification request is sent.
+ * @param {Event} e The form submission event.
+ */
 export async function handlePlayerSettingsSubmit(e) {
     e.preventDefault();
     const { activePlayerSettingsUID, currentUserData, allPlayers } = getState();
