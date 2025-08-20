@@ -111,7 +111,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .dropdown-link { display: block; padding: 0.6rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; color: #c9d1d9; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
 .dropdown-link:hover { background-color: rgba(0, 191, 255, 0.1); color: #fff; }
 
-/* --- REST OF THE STYLES (Unchanged) --- */
 .auth-button { padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem; color: #c9d1d9; background-color: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
 .auth-button:hover { color: #fff; background-color: rgba(0, 191, 255, 0.1); border-color: var(--color-primary); }
 .section-container { padding: 1.25rem; }
@@ -127,8 +126,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     opacity: 0;
     transition: all 0.3s ease;
     pointer-events: none;
-    max-height: 85vh; /* ADD THIS */
-    display: flex;     /* ADD THIS */
+    max-height: 85vh;
+    display: flex;
 }
 .modal-container .glass-pane {
     display: flex;
@@ -144,8 +143,8 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* ADD THIS */
-    flex-grow: 1;     /* ADD THIS */
+    overflow-y: auto;
+    flex-grow: 1;
 }
 
 /* --- REUSABLE THEMED SCROLLBAR --- */
@@ -224,23 +223,18 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .post-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
 .post-card-body { padding: .5rem 1rem; }
 .post-card.announcement-card .post-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-/* --- NEW & UPDATED POST CARD STYLES --- */
-
 .post-card {
     border-top: 3px solid transparent;
 }
-
 .announcement-card .post-card-title {
     color: var(--glow-color, var(--color-primary));
 }
-
 .post-card.announcement-card {
     background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 70%), rgb(33 40 50 / 65%) 10%, rgb(19 24 32 / 84%) 100%);
 }
 .post-card.event-card {
     background: linear-gradient(180deg, color-mix(in srgb, var(--glow-color), black 65%), rgba(33, 40, 50, 1) 50%, rgba(33, 40, 50, 1) 100%);
 }
-
 .event-card-background {
     position: absolute;
     top: 0;
@@ -255,24 +249,20 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     -webkit-mask-image: linear-gradient(90deg, black 60%, transparent 100%);
     mask-image: linear-gradient(90deg, black 60%, transparent 100%);
 }
-
 .event-card:hover .event-card-background {
     transform: scale(1.03);
     opacity: 0.25;
 }
-
 .event-card .post-card-content,
 .event-card .post-card-status {
     position: relative;
     z-index: 1;
     height: 100%;
 }
-
 .event-card .post-card-content {
     grid-column: 1 / 2;
     padding: 1rem 1.5rem;
 }
-
 .event-card .post-card-status {
     grid-column: 2 / 3;
     padding: 1rem;
@@ -281,12 +271,9 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     min-width: 150px;
     text-align: center;
 }
-
 .event-card .post-card-image-col {
     display: none;
 }
-
-
 @media (max-width: 767px) {
     .event-card .post-card-status {
         grid-column: 1 / -1;
@@ -295,7 +282,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
         min-width:160px;
     }
 }
-
 .event-card .post-card-status {
     grid-column: 3 / 4;
     background-color: rgba(0,0,0,0.2);
@@ -313,7 +299,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     margin-bottom: 0.25rem;
 }
 .announcement-card .post-card-details { font-size: 0.95rem; color: #a0a8b1; line-height: 1.5; }
-/* --- NEW Announcement Thumbnail Styles --- */
 .announcement-card-thumbnail {
     position: absolute;
     top: 1rem;
@@ -330,8 +315,6 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 #view-post-author-section .w-16 {
     border: 3px solid rgba(255,255,255,0.8);
 }
-
-/* Adjust the header to make space for the thumbnail */
 .announcement-card.has-thumbnail .post-card-header {
     padding-right: 160px;
 }
@@ -395,6 +378,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
 .chat-message:hover .delete-message-btn { opacity: 1; }
 .chat-message-bubble { padding: 0.25rem .62rem; border-radius: 10px; background-color: rgba(33, 38, 45, 0.6); border: 2px solid; word-wrap: break-word; position: relative; cursor: pointer; transition: background-color 0.2s ease; }
 .chat-message-bubble:hover { background-color: rgba(48, 54, 61, 0.8); }
+
 /* --- RANK BORDER STYLES (Corrected) --- */
 .rank-border-admin { 
     border: 2px solid var(--rank-admin-color); 
@@ -542,40 +526,31 @@ emoji-picker { width: 100%; height: 100%; }
 }
 .convo-item { transition: all 0.2s ease-in-out; }
 .convo-item:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-/* --- NEW TEXT LOGO STYLES --- */
 #text-logo {
     transition: transform 0.2s ease-in-out;
     text-decoration: none;
 }
-
 #text-logo:hover {
     transform: scale(1.03);
 }
-
-/* Apply the new font and styling to the main logo text */
 #text-logo > div {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
-
 #logo-events {
     color: var(--color-primary);
     font-weight: 100;
     text-shadow: 0 0 10px var(--color-primary-glow);
 }
-
-/* --- MOBILE UX FIXES --- */
 body {
     touch-action: manipulation;
 }
-
 @media (max-width: 767px) {
     .form-input, .form-textarea, .custom-select-value, .custom-select-search {
         font-size: 16px;
     }
 }
-/* --- AVATAR BORDER STYLES --- */
 .avatar-border-common { border: 2px solid #8b949e; }
 .avatar-border-uncommon { border: 3px solid #00bfff; }
 .avatar-border-rare { border: 3px solid #9370db; box-shadow: 0 0 8px #9370db; }
@@ -588,7 +563,6 @@ body {
     border-width: 2px;
     border-style: solid;
 }
-
 .chat-bubble-border-admin {
     border: 2px solid var(--rank-admin-color);
 }
@@ -622,7 +596,6 @@ body {
     display: flex;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .modal-tab-btn {
     flex-grow: 1;
     padding: 0.75rem 0.5rem;
@@ -639,17 +612,14 @@ body {
     align-items: center;
     gap: 0.25rem;
 }
-
 .modal-tab-btn i {
     font-size: 1.25rem;
     margin-bottom: 0.25rem;
 }
-
 .modal-tab-btn:hover {
     color: #fff;
     background-color: rgba(255, 255, 255, 0.05);
 }
-
 .modal-tab-btn.active {
     color: var(--color-primary);
     border-bottom-color: var(--color-primary);
@@ -659,48 +629,64 @@ body {
     display: none;
     animation: fadeIn 0.3s ease-in-out;
 }
-
 .modal-tab-pane.active {
     display: block;
 }
 
-.avatar-border-none, .chat-bubble-border-none { border: 2px solid #30363d; }
-
-.avatar-border-sentinel, .chat-bubble-border-sentinel { border: 2px solid #c9d1d9; }
-.avatar-border-cobalt, .chat-bubble-border-cobalt { border: 3px solid #00bfff; }
-.avatar-border-solar { border: 3px solid #ffd700; box-shadow: 0 0 8px #ffd700; }
-.chat-bubble-border-solar { border: 2px solid #ffd700; box-shadow: 0 0 5px -1px #ffd700; }
-
-.avatar-border-amethyst, .chat-bubble-border-amethyst { border: 3px solid #9370db; }
-.avatar-border-cyber { border: 3px dotted #00f9a5; animation: pulse-cyber 3s infinite linear; }
-.chat-bubble-border-cyber { border: 2px dotted #00f9a5; }
-
-.avatar-border-crimson { border: 3px solid #dc143c; box-shadow: 0 0 10px #dc143c; }
-.chat-bubble-border-crimson { border: 2px solid #dc143c; }
-
-.avatar-border-glacial { border: 3px solid #ffffff; box-shadow: 0 0 12px #00bfff; }
-.chat-bubble-border-glacial { border: 2px solid #ffffff; box-shadow: 0 0 8px -2px #00bfff; }
-
-.avatar-border-venom { border: 3px solid #7cfc00; }
-.chat-bubble-border-venom { border: 2px solid #7cfc00; }
-
-.avatar-border-ares { border: 4px ridge #ff4500; }
-.chat-bubble-border-ares { border: 2px ridge #ff4500; }
-
-.avatar-border-nebula { border: 3px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(to right, #161b22, #161b22), linear-gradient(135deg, #8A2BE2, #4A00E0, #FF00FF); }
-.chat-bubble-border-nebula { border: 2px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(to right, #161b22, #161b22), linear-gradient(135deg, #8A2BE2, #4A00E0, #FF00FF); }
-
-.avatar-border-chroma { border: 4px solid; border-image-slice: 1; border-image-source: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); animation: spin 4s infinite linear; }
-.chat-bubble-border-chroma { border: 2px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(to right, #161b22, #161b22), linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); }
-
-/* Keyframe animations */
-@keyframes pulse-cyber { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
-/* Fix to ensure all previews are round */
+/* --- SKIN SELECTOR STYLES --- */
+.skin-select-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.75rem;
+}
+.skin-select-btn {
+    aspect-ratio: 1 / 1;
+    background-color: rgba(13, 17, 23, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+}
+.skin-select-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-primary);
+}
+.skin-select-btn.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary-glow);
+    background-color: rgba(0, 191, 255, 0.1);
+}
 .skin-select-btn .preview {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.skin-select-btn .preview-border {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    pointer-events: none;
+}
+.skin-select-btn .preview-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
     background-color: #30363d;
 }
-
+.skin-select-btn .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
 #chat-bubble-border-selector .preview-border,
 #chat-bubble-border-selector .preview-icon {
     border-radius: 10px;
@@ -714,153 +700,7 @@ body {
     display: none;
 }
 
-.avatar-skin-admin { background-color: var(--rank-admin-color); }
-.avatar-skin-r5 { background-color: var(--rank-r5-color); }
-.avatar-skin-r4 { background-color: var(--rank-r4-color); }
-.avatar-skin-r3 { background-color: var(--rank-r3-color); }
-.avatar-skin-r2 { background-color: var(--rank-r2-color); }
-.avatar-skin-r1 { background-color: var(--rank-r1-color); }
-
-.coming-soon-overlay {
-    position: relative;
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-.coming-soon-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: #fff;
-    background-color: rgba(0, 0, 0, 0.6);
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    white-space: nowrap;
-}
-
-/* --- REVAMPED CREATE POST MODAL STYLES --- */
-#create-post-modal-container .modal-content-wrapper {
-    padding: 0;
-}
-
-.create-post-header {
-    padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    flex-shrink: 0;
-}
-
-.create-post-content {
-    padding: 1.5rem;
-    overflow-y: auto;
-    flex-grow: 1;
-}
-
-.create-post-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(13, 17, 23, 0.8);
-    flex-shrink: 0;
-}
-
-/* Type Selection Cards */
-.type-selection-card {
-    background-color: rgba(33, 38, 45, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-
-.type-selection-card:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background-color: var(--card-color, var(--color-primary));
-    transition: height 0.3s ease;
-}
-
-.type-selection-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--card-color, var(--color-primary));
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-}
-
-.type-selection-card:hover:before {
-    height: 100%;
-    opacity: 0.1;
-}
-
-.type-selection-card > * {
-    position: relative;
-    z-index: 1;
-}
-
-/* Form slide transitions */
-#post-creation-flow .form-slide {
-    display: none;
-    animation: fadeIn 0.4s ease-in-out;
-}
-
-#post-creation-flow .form-slide.active {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    min-height: 0;
-}
-
-.modal-container.full-screen-modal {
-    max-width: 100% !important;
-    width: 100% !important;
-    height: 100% !important;
-    max-height: 100% !important;
-    top: 0 !important;
-    left: 0 !important;
-    transform: none !important;
-    border-radius: 0 !important;
-    background: var(--color-bg);
-}
-
-/* --- NEW Private Conversation List Styles --- */
-.convo-item.unread-convo {
-    background-color: rgba(0, 191, 255, 0.05);
-    border: 1px solid var(--color-primary);
-    animation: unread-glow 1.5s infinite alternate;
-}
-.convo-item .badge {
-    background-color: var(--color-highlight);
-    color: white;
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-weight: 600;
-}
-@keyframes unread-glow {
-    from { box-shadow: 0 0 5px rgba(0, 191, 255, 0.2); }
-    to { box-shadow: 0 0 15px rgba(0, 191, 255, 0.5); }
-}
-/* --- NEW EMOJI PICKER ANIMATION FOR MODAL --- */
-.emoji-picker-modal-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 350px; /* Adjust height as needed */
-    z-index: 100;
-    transform: translateY(100%);
-    transition: transform 0.3s ease-out;
-}
-
-.emoji-picker-modal-container.visible {
-    transform: translateY(0);
-}
-/* --- HOLO-UI NAP PAGE OVERHAUL --- */
+/* --- FINAL NAP PAGE STYLES --- */
 @keyframes fadeInSlideUp {
     from {
         opacity: 0;
@@ -871,12 +711,10 @@ body {
         transform: translateY(0);
     }
 }
-
 .nap-container {
     max-width: 900px;
     margin: 2rem auto;
 }
-
 .nap-section {
     background: linear-gradient(160deg, rgba(22, 27, 34, 0.5), rgba(13, 17, 23, 0.7));
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -888,13 +726,9 @@ body {
     opacity: 0;
     margin-bottom: 1rem;
 }
-
-/* Staggered animation */
 .nap-section:nth-child(2) { animation-delay: 0.1s; }
 .nap-section:nth-child(3) { animation-delay: 0.2s; }
 .nap-section:nth-child(4) { animation-delay: 0.3s; }
-
-/* Holographic corner effect */
 .nap-section::before {
     content: '';
     position: absolute;
@@ -912,7 +746,6 @@ body {
     transform: scale(1);
     opacity: 0.15;
 }
-
 .nap-section-header {
     display: flex;
     align-items: center;
@@ -922,17 +755,14 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     transition: background-color 0.3s ease;
 }
-
 .nap-section-header:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
-
 .nap-header-main {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
-
 .header-icon {
     font-size: 1.5rem;
     color: var(--glow-color, #8b949e);
@@ -940,7 +770,6 @@ body {
     width: 40px;
     text-align: center;
 }
-
 .header-text h3 {
     font-size: 1.25rem;
     font-weight: 700;
@@ -951,12 +780,9 @@ body {
     color: #8b949e;
     margin-top: 2px;
 }
-
-/* Color theming */
 .nap-section-header.positive { --glow-color: var(--color-primary); }
 .nap-section-header.negative { --glow-color: var(--color-highlight); }
 .nap-section-header.consequences { --glow-color: #ff8c00; }
-
 .collapse-icon {
     font-size: 1.25rem;
     color: #6e7681;
@@ -965,7 +791,6 @@ body {
 .nap-section.open .collapse-icon {
     transform: rotate(180deg);
 }
-
 .nap-section-content {
     max-height: 0;
     overflow: hidden;
@@ -976,24 +801,20 @@ body {
     max-height: 500px; /* Adjust if content is taller */
     padding: 1.5rem;
 }
-
 .nap-intro-text {
     color: #c9d1d9;
     font-size: 1rem;
     line-height: 1.7;
 }
-
 .highlight-text {
     color: var(--color-primary);
     font-weight: 700;
 }
-
 .nap-rule-list {
     list-style-type: none;
     padding-left: 0;
     margin: 0;
 }
-
 .nap-rule-item {
     background-color: rgba(0,0,0,0.25);
     padding: 0.75rem 1.25rem;
