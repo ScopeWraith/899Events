@@ -188,6 +188,14 @@ export function getAvatarBorderClass(player, allianceData) {
         return { className: 'rank-border-r1', style: '' };
     }
 
+    const { userFriends } = getState(); // Get userFriends from state
+
+    // --- NEW: Achievement-based skin ---
+    if (userFriends && userFriends.length >= 10) {
+        // Unlock the Crimson border if the user has 10 or more friends
+        return { className: 'rank-border-crimson', style: '' };
+    }
+
     const skinType = player.avatarBorderSkin || 'rank';
 
     // --- Priority 1: Handle explicit skin selections ---
@@ -205,8 +213,6 @@ export function getAvatarBorderClass(player, allianceData) {
     }
 
     // --- Priority 2 (Fallback / 'rank' skin): Apply the default rank-based system ---
-    // The incorrect isAdmin check has been removed from here.
-    
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
 }
@@ -214,6 +220,14 @@ export function getAvatarBorderClass(player, allianceData) {
 export function getChatBubbleBorderClass(player, allianceData) {
     if (!player) {
         return { className: 'chat-bubble-border-r1', style: '' };
+    }
+
+    const { userFriends } = getState(); // Get userFriends from state
+
+    // --- NEW: Achievement-based skin ---
+    if (userFriends && userFriends.length >= 10) {
+        // Unlock the Crimson border if the user has 10 or more friends
+        return { className: 'chat-bubble-border-crimson', style: '' };
     }
 
     const skinType = player.chatBubbleBorderSkin || 'rank';
@@ -233,8 +247,6 @@ export function getChatBubbleBorderClass(player, allianceData) {
     }
 
     // --- Priority 2 (Fallback / 'rank' skin): Apply the default rank-based system ---
-    // The incorrect isAdmin check has been removed from here.
-    
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `chat-bubble-border-${rank}`, style: '' };
 }

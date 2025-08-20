@@ -420,6 +420,10 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     border: 2px solid var(--rank-r1-color); 
     box-shadow: 0 0 10px -2px var(--rank-r1-color); 
 }
+.rank-border-crimson {
+    border: 2px solid #dc143c;
+    box-shadow: 0 0 10px -2px #dc143c;
+}
 .chat-message-author { font-weight: 700; font-size: 0.9rem; display: block; }
 .rank-border-admin .chat-message-author { color: var(--rank-admin-color); }
 .rank-border-r5 .chat-message-author { color: var(--rank-r5-color); }
@@ -589,7 +593,9 @@ body {
 .chat-bubble-border-rare { border: 2px solid #9370db; box-shadow: 0 0 5px -1px #9370db; }
 .chat-bubble-border-epic { border: 2px solid #ffd700; box-shadow: 0 0 8px -2px #ffd700; }
 .chat-bubble-border-legendary { border: 2px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(to right, #161b22, #161b22), linear-gradient(to right, #f87171, #ffd700); }
-
+.chat-bubble-border-crimson {
+    border: 2px solid #dc143c;
+}
 /* Keyframe animations for pulsing borders */
 @keyframes pulse-gold { 0% { box-shadow: 0 0 12px #ffd700; } 50% { box-shadow: 0 0 20px #ffd700; } 100% { box-shadow: 0 0 12px #ffd700; } }
 @keyframes pulse-legendary { 0% { filter: brightness(1); } 50% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
