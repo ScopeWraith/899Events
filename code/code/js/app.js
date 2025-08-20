@@ -5,14 +5,7 @@ import { auth } from './firebase-config.js';
 import { subscribe, setState, getState } from './state.js';
 import { setupAllListeners, detachAllListeners, fetchInitialData, setupUnverifiedPlayersListener } from './firestore.js';
 import { setupPresenceManagement } from './presence.js';
-import { 
-    setupInitialUI, 
-    buildMobileNav, 
-    updateSocialNavBadges,
-    showPage,
-    toggleSubNav,
-    handleSubNavClick
-} from './ui/ui-manager.js';
+import { setupInitialUI, buildMobileNav, updateSocialNavBadges,showPage,toggleSubNav,handleSubNavClick } from './ui/ui-manager.js';
 import { initializeAllEventListeners } from './event-listeners.js';
 import { initializeAuthUI } from './ui/auth-ui.js';
 import { initializeSocialUI } from './ui/social-ui.js';
@@ -21,6 +14,11 @@ import { initializePlayersUI } from './ui/players-ui.js';
 import { initializeAlliancesUI } from './ui/alliances-ui.js';
 import { initializeNotificationsUI } from './ui/notifications-ui.js'; 
 
+/**
+ * Restores the last viewed page and sub-page from localStorage.
+ * This function ensures that when a user returns to the app, they are
+ * taken back to the same view they were on before leaving.
+ */
 function restoreLastViewedPage() {
     const lastPage = localStorage.getItem('lastActivePage') || 'page-news';
     const lastSubPage = localStorage.getItem('lastActiveSubPage');
@@ -62,7 +60,10 @@ function restoreLastViewedPage() {
     }
 }
 
-
+/**
+ * Hides the preloader and displays the main application content.
+ * This provides a smooth transition from the loading screen to the interactive app.
+ */
 function showAppContent() {
     const appPreloader = document.getElementById('app-preloader');
     const appContainer = document.getElementById('app-container');
@@ -73,6 +74,11 @@ function showAppContent() {
     }, 500);
 }
 
+/**
+ * Initializes the entire application. This function sets up state management,
+ * authentication listeners, UI components, and event listeners. It is the main
+ * entry point for the application's client-side logic.
+ */
 export function initializeApp() {
     subscribe((newState, prevState) => {
         if (newState.currentUserData !== prevState.currentUserData) {

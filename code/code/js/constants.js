@@ -5,6 +5,17 @@
  * such as alliance names, ranks, post types, and styling information.
  * This centralization makes it easy to update these values in one place.
  */
+
+/**
+ * @typedef {Object} RankStyle
+ * @property {string} color - The hexadecimal color code for the rank.
+ * @property {string} shadow - The RGBA shadow color for the rank.
+ */
+
+/**
+ * Defines styling for different player ranks.
+ * @type {Object.<string, RankStyle>}
+ */
 export const RANK_STYLES = {
     ADMIN: { color: '#F87171', shadow: 'rgba(248, 113, 113, 0.5)' },
     R5:    { color: '#FFD700', shadow: 'rgba(255, 215, 0, 0.5)' },
@@ -13,34 +24,79 @@ export const RANK_STYLES = {
     R2:    { color: '#FFFFFF', shadow: 'rgba(255, 255, 255, 0.5)' },
     R1:    { color: '#8b949e', shadow: 'rgba(139, 148, 158, 0.4)' }
 };
+
+/**
+ * An array of known alliance tags in the server.
+ * @type {string[]}
+ */
 export const ALLIANCES = ["THOR", "fAfO", "pHNx", "HeRA", "TroW", "VaLT", "Tone", "COLD", "DoM", "MINI", "MEGA", "Lat1", "WSKT", "ValT", "BRSL"];
 
+/**
+ * @typedef {Object} SelectOption
+ * @property {string} value - The internal value for the option.
+ * @property {string} text - The display text for the option.
+ */
+
+/**
+ * Defines the possible alliance ranks for players.
+ * @type {SelectOption[]}
+ */
 export const ALLIANCE_RANKS = [
     { value: 'R1', text: 'R1'}, { value: 'R2', text: 'R2'}, { value: 'R3', text: 'R3'},
     { value: 'R4', text: 'R4'}, { value: 'R5', text: 'R5'},
 ];
 
+/**
+ * Defines the special roles within an alliance.
+ * @type {SelectOption[]}
+ */
 export const ALLIANCE_ROLES = [
     { value: '', text: 'None'}, { value: 'Warlord', text: 'Warlord'}, { value: 'Recruiter', text: 'Recruiter'},
     { value: 'Muse', text: 'Muse'}, { value: 'Butler', text: 'Butler'},
 ];
 
+/**
+ * Represents the days of the week for scheduling.
+ * @type {SelectOption[]}
+ */
 export const DAYS_OF_WEEK = [
     { value: '0', text: 'Sunday' }, { value: '1', text: 'Monday' }, { value: '2', text: 'Tuesday' },
     { value: '3', text: 'Wednesday' }, { value: '4', text: 'Thursday' }, { value: '5', text: 'Friday' },
     { value: '6', text: 'Saturday' }
 ];
 
+/**
+ * Represents the hours of the day for scheduling, in 24-hour format.
+ * @type {SelectOption[]}
+ */
 export const HOURS_OF_DAY = Array.from({ length: 24 }, (_, i) => ({
     value: i.toString(),
     text: `${i.toString().padStart(2, '0')}:00`
 }));
 
+/**
+ * Defines the recurrence options for events.
+ * @type {SelectOption[]}
+ */
 export const REPEAT_TYPES = [
     { value: 'none', text: 'None' },
     { value: 'weekly', text: 'Weekly' }
 ];
 
+/**
+ * @typedef {Object} PostType
+ * @property {('announcement'|'event')} mainType - The primary category of the post.
+ * @property {string} subType - The specific type of the post.
+ * @property {string} text - The user-friendly name of the post type.
+ * @property {boolean} [isAdminOnly=false] - Whether only admins can create this post type.
+ * @property {string[]} [allowedRanks] - An array of ranks that are allowed to create this post type.
+ * @property {('public'|'alliance')} visibility - Who can see the post.
+ */
+
+/**
+ * Defines the different types of posts that can be created in the system.
+ * @type {Object.<string, PostType>}
+ */
 export const POST_TYPES = {
     // Announcements
     server_announcement: { mainType: 'announcement', subType: 'server', text: 'Server Announcement', isAdminOnly: true, visibility: 'public' },
@@ -56,6 +112,17 @@ export const POST_TYPES = {
     vs: { mainType: 'event', subType: 'vs', text: 'VS Event', isAdminOnly: true, visibility: 'public' },
 };
 
+/**
+ * @typedef {Object} PostStyle
+ * @property {string} color - The theme color for the post type.
+ * @property {string} icon - The Font Awesome icon class for the post type.
+ * @property {string} bgColor - The background color for certain UI elements related to the post type.
+ */
+
+/**
+ * Defines the visual styling associated with each post subtype.
+ * @type {Object.<string, PostStyle>}
+ */
 export const POST_STYLES = {
     server: { color: 'var(--post-color-server)', icon: 'fas fa-server', bgColor: 'rgba(255, 215, 0, 0.1)'},
     seasonal: { color: 'var(--post-color-seasonal)', icon: 'fas fa-snowflake', bgColor: 'rgba(147, 112, 219, 0.1)'},
@@ -67,12 +134,20 @@ export const POST_STYLES = {
     vs: { color: 'var(--post-color-vs)', icon: 'fas fa-fist-raised', bgColor: 'rgba(255, 165, 0, 0.1)'},
 };
 
+/**
+ * Defines the possible expiration durations for announcements.
+ * @type {SelectOption[]}
+ */
 export const ANNOUNCEMENT_EXPIRATION_DAYS = [
     { value: '1', text: '1 Day' },
     { value: '2', text: '2 Days' },
     { value: '3', text: '3 Days' }
 ];
 
+/**
+ * Defines the available cosmetic avatar borders.
+ * @type {SelectOption[]}
+ */
 export const AVATAR_BORDERS = [
     { value: 'avatar-border-none', text: 'None' },
     { value: 'avatar-border-sentinel', text: 'Sentinel' },
@@ -88,6 +163,10 @@ export const AVATAR_BORDERS = [
     { value: 'avatar-border-chroma', text: 'Chroma' },
 ];
 
+/**
+ * Defines the available cosmetic chat bubble borders.
+ * @type {SelectOption[]}
+ */
 export const CHAT_BUBBLE_BORDERS = [
     { value: 'chat-bubble-border-none', text: 'None' },
     { value: 'chat-bubble-border-sentinel', text: 'Sentinel' },
@@ -103,6 +182,22 @@ export const CHAT_BUBBLE_BORDERS = [
     { value: 'chat-bubble-border-chroma', text: 'Chroma' },
 ];
 
+/**
+ * @typedef {Object} ChatChannel
+ * @property {string} id - The unique identifier for the chat channel.
+ * @property {string} name - The display name of the channel.
+ * @property {string} icon - The Font Awesome icon class for the channel.
+ * @property {string} color - The theme color for the channel.
+ * @property {string} description - A short description of the channel's purpose.
+ * @property {boolean} [requiresAuth=false] - Whether a user must be logged in to see the channel.
+ * @property {boolean} [requiresAlliance=false] - Whether a user must be in an alliance to see the channel.
+ * @property {boolean} [requiresLeader=false] - Whether a user must be a leader (R4/R5) to see the channel.
+ */
+
+/**
+ * Defines the available public and private chat channels.
+ * @type {Object.<string, ChatChannel>}
+ */
 export const CHAT_CHANNELS = {
     world_chat: {
         id: 'world_chat',
