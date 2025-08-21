@@ -45,7 +45,6 @@ export async function togglePostReaction(postId, reactionType) {
     }
 }
 
-// --- START: NEW FUNCTION FOR PROFILE LIKES ---
 /**
  * Toggles a 'like' on a user's profile for the current user.
  * Uses a Firestore transaction to ensure atomic updates.
@@ -93,7 +92,6 @@ export async function toggleProfileLike(targetUid) {
         return false;
     }
 }
-// --- END: NEW FUNCTION FOR PROFILE LIKES ---
 
 /**
  * Sets up all necessary real-time listeners for a logged-in user.
@@ -599,15 +597,19 @@ export function setupConversationListListener() {
 
     const q = query(collection(db, 'private_chats'), where('participants', 'array-contains', currentUserData.uid));
     listeners.convoList = onSnapshot(q, async (snapshot) => {
+        let totalUnread = 0; // --- START: MODIFICATION FOR UNREAD COUNT ---
         const conversationPromises = snapshot.docs.map(async (chatDoc) => {
             const chatData = chatDoc.data();
             const partnerId = chatData.participants.find(p => p !== currentUserData.uid);
             const unreadQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), where('isRead', '==', false), where('authorUid', '!=', currentUserData.uid));
             const unreadSnapshot = await getDocs(unreadQuery);
-            return { chatId: chatDoc.id, partnerId: partnerId, lastMessage: chatData.lastMessage || null, unreadCount: unreadSnapshot.docs.length };
+            const unreadCount = unreadSnapshot.docs.length;
+            totalUnread += unreadCount; // Add to total
+            return { chatId: chatDoc.id, partnerId: partnerId, lastMessage: chatData.lastMessage || null, unreadCount: unreadCount };
         });
         const conversations = await Promise.all(conversationPromises);
-        setState({ conversations: conversations.filter(c => c.lastMessage) });
+        setState({ conversations: conversations.filter(c => c.lastMessage), unreadMessagesCount: totalUnread }); // Set total in state
+        // --- END: MODIFICATION FOR UNREAD COUNT ---
     });
     setState({ listeners });
 }

@@ -68,6 +68,16 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
         friendsBadge.textContent = socialBadges.friendRequestCount;
         friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
     }
+    
+    // --- START: NEW LOGIC FOR PROFILE DROPDOWN BADGE ---
+    const messagesBtn = document.getElementById('profile-dropdown-messages');
+    if (messagesBtn) {
+        const messagesBadge = messagesBtn.querySelector('.badge');
+        messagesBadge.textContent = socialBadges.convoCount;
+        messagesBadge.classList.toggle('hidden', socialBadges.convoCount === 0);
+        messagesBtn.disabled = socialBadges.convoCount === 0;
+    }
+    // --- END: NEW LOGIC FOR PROFILE DROPDOWN BADGE ---
 }
 
 /**
@@ -603,7 +613,6 @@ function setupCustomSelects() {
 
         optionsList.innerHTML = optionsData.map(opt => `<div class="custom-select-option" data-value="${opt.value}">${opt.text}</div>`).join('');
         
-        // --- START: NEW SEARCHABLE DROPDOWN LOGIC ---
         const searchInput = container.querySelector('.custom-select-search');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
@@ -615,7 +624,6 @@ function setupCustomSelects() {
                 });
             });
         }
-        // --- END: NEW SEARCHABLE DROPDOWN LOGIC ---
     });
 
     document.body.addEventListener('click', e => {

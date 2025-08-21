@@ -88,6 +88,11 @@ export function initializeApp() {
             const unreadFriendRequests = (newState.userNotifications || []).filter(n => n.type === 'friend_request' && !n.isRead).length;
             updateSocialNavBadges({ friendRequestCount: unreadFriendRequests });
         }
+        // --- START: NEW LISTENER FOR UNREAD MESSAGES ---
+        if (newState.unreadMessagesCount !== prevState.unreadMessagesCount) {
+            updateSocialNavBadges({ convoCount: newState.unreadMessagesCount });
+        }
+        // --- END: NEW LISTENER FOR UNREAD MESSAGES ---
     });
 
     onAuthStateChanged(auth, (user) => {
