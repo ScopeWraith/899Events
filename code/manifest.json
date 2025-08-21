@@ -1,0 +1,17 @@
+{
+  "name": "899 Events Hub",
+  "short_name": "899Events",
+  "start_url": ".",
+  "display": "fullscreen",
+  "background_color": "#0D1117",
+  "theme_color": "#0D1117",
+  "description": "The community platform for Server #899.",
+  "icons": [
+    {
+      "src": "img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
