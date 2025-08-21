@@ -277,7 +277,21 @@ export function getAvatarBorderClass(player, allianceData) {
 
     const skinType = player.avatarBorderSkin || 'rank';
 
-    // --- Priority 1: Handle explicit skin selections ---
+    // --- START: Achievement Skin Mapping ---
+    const achievementSkins = {
+        'friend-1': 'avatar-border-socialite',
+        'friend-2': 'avatar-border-networker',
+        'friend-3': 'avatar-border-superstar',
+        'avatar-1': 'avatar-border-identified',
+        'like-1': 'avatar-border-appreciator',
+        'like-2': 'avatar-border-admirer',
+        'like-3': 'avatar-border-idolizer',
+    };
+    if (achievementSkins[skinType]) {
+        return { className: achievementSkins[skinType], style: '' };
+    }
+    // --- END: Achievement Skin Mapping ---
+
     if (skinType === 'alliance') {
         if (allianceData?.primaryColor) {
             return {
@@ -290,9 +304,6 @@ export function getAvatarBorderClass(player, allianceData) {
             return { className: 'rank-border-admin', style: '' };
         }
     }
-
-    // --- Priority 2 (Fallback / 'rank' skin): Apply the default rank-based system ---
-    // The incorrect isAdmin check has been removed from here.
     
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `rank-border-${rank}`, style: '' };
@@ -312,7 +323,21 @@ export function getChatBubbleBorderClass(player, allianceData) {
 
     const skinType = player.chatBubbleBorderSkin || 'rank';
 
-    // --- Priority 1: Handle explicit skin selections ---
+    // --- START: Achievement Skin Mapping ---
+    const achievementSkins = {
+        'friend-1': 'chat-bubble-border-socialite',
+        'friend-2': 'chat-bubble-border-networker',
+        'friend-3': 'chat-bubble-border-superstar',
+        'avatar-1': 'chat-bubble-border-identified',
+        'like-1': 'chat-bubble-border-appreciator',
+        'like-2': 'chat-bubble-border-admirer',
+        'like-3': 'chat-bubble-border-idolizer',
+    };
+    if (achievementSkins[skinType]) {
+        return { className: achievementSkins[skinType], style: '' };
+    }
+    // --- END: Achievement Skin Mapping ---
+
     if (skinType === 'alliance') {
         if (allianceData?.primaryColor) {
             return {
@@ -325,9 +350,6 @@ export function getChatBubbleBorderClass(player, allianceData) {
             return { className: 'chat-bubble-border-admin', style: '' };
         }
     }
-
-    // --- Priority 2 (Fallback / 'rank' skin): Apply the default rank-based system ---
-    // The incorrect isAdmin check has been removed from here.
     
     const rank = player.allianceRank ? player.allianceRank.toLowerCase() : 'r1';
     return { className: `chat-bubble-border-${rank}`, style: '' };

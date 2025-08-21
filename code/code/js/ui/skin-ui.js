@@ -12,7 +12,7 @@ export function initializeSkinUI() {
     if (editProfileModal) {
         editProfileModal.addEventListener('click', (e) => {
             const skinBtn = e.target.closest('.skin-select-btn');
-            if (skinBtn) {
+            if (skinBtn && !skinBtn.disabled) {
                 const skinId = skinBtn.dataset.value;
                 const containerId = skinBtn.closest('.skin-select-container').id;
 
@@ -37,30 +37,39 @@ export function buildAvatarBorderSkins() {
     const container = document.getElementById('avatar-border-selector');
     if (!container) return;
 
-    const { currentUserData, allAlliances } = getState();
+    const { currentUserData, allAlliances, userFriends, allPlayers } = getState();
     const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
     
-    const skins = [
-        { id: 'rank', label: 'Rank' },
-        { id: 'alliance', label: 'Alliance' }
-    ];
+    // --- START: Achievement Calculation ---
+    const friendCount = userFriends.filter(f => f.status === 'friends').length;
+    const likesGivenCount = allPlayers.filter(p => p.likedBy && p.likedBy.includes(currentUserData.uid)).length;
+    const hasCustomAvatar = currentUserData.avatarUrl && !currentUserData.avatarUrl.includes('placehold.co');
+    // --- END: Achievement Calculation ---
 
-    if (currentUserData.isAdmin) {
-        skins.push({ id: 'admin', label: 'Admin' });
-    }
+    const skins = [
+        // Default Skins
+        { id: 'rank', label: 'Rank', unlocked: true },
+        { id: 'alliance', label: 'Alliance', unlocked: true },
+        { id: 'admin', label: 'Admin', unlocked: currentUserData.isAdmin },
+
+        // Achievement Skins
+        { id: 'friend-1', label: 'Socialite', unlocked: friendCount >= 10, tooltip: 'Add 10 Friends' },
+        { id: 'friend-2', label: 'Networker', unlocked: friendCount >= 50, tooltip: 'Add 50 Friends' },
+        { id: 'friend-3', label: 'Superstar', unlocked: friendCount >= 100, tooltip: 'Add 100 Friends' },
+        { id: 'avatar-1', label: 'Identified', unlocked: hasCustomAvatar, tooltip: 'Upload a custom avatar' },
+        { id: 'like-1', label: 'Appreciator', unlocked: likesGivenCount >= 25, tooltip: 'Like 25 player profiles' },
+        { id: 'like-2', label: 'Admirer', unlocked: likesGivenCount >= 50, tooltip: 'Like 50 player profiles' },
+        { id: 'like-3', label: 'Idolizer', unlocked: likesGivenCount >= 100, tooltip: 'Like 100 player profiles' },
+    ].filter(skin => skin.unlocked || (skin.tooltip && skin.id !== 'admin')); // Filter out admin if not unlocked
 
     container.innerHTML = skins.map(skin => {
-        let previewData;
-        if (skin.id === 'rank') {
-            previewData = { ...currentUserData, avatarBorderSkin: skin.id, isAdmin: false };
-        } else {
-            previewData = { ...currentUserData, avatarBorderSkin: skin.id };
-        }
-        
+        const previewData = { ...currentUserData, avatarBorderSkin: skin.id, isAdmin: skin.id === 'admin' };
         const border = getAvatarBorderClass(previewData, allianceData);
-
+        const disabled = !skin.unlocked ? 'disabled' : '';
+        const tooltip = !skin.unlocked ? `data-tooltip="${skin.tooltip}"` : '';
+        
         return `
-            <button type="button" class="skin-select-btn" data-value="${skin.id}">
+            <button type="button" class="skin-select-btn" data-value="${skin.id}" ${disabled} ${tooltip}>
                 <div class="preview">
                     <div class="preview-icon"></div>
                     <div class="preview-border ${border.className}" style="${border.style}"></div>
@@ -79,30 +88,39 @@ export function buildChatBubbleBorderSkins() {
     const container = document.getElementById('chat-bubble-border-selector');
     if (!container) return;
 
-    const { currentUserData, allAlliances } = getState();
+    const { currentUserData, allAlliances, userFriends, allPlayers } = getState();
     const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
-    
-    const skins = [
-        { id: 'rank', label: 'Rank' },
-        { id: 'alliance', label: 'Alliance' }
-    ];
 
-    if (currentUserData.isAdmin) {
-        skins.push({ id: 'admin', label: 'Admin' });
-    }
+    // --- START: Achievement Calculation ---
+    const friendCount = userFriends.filter(f => f.status === 'friends').length;
+    const likesGivenCount = allPlayers.filter(p => p.likedBy && p.likedBy.includes(currentUserData.uid)).length;
+    const hasCustomAvatar = currentUserData.avatarUrl && !currentUserData.avatarUrl.includes('placehold.co');
+    // --- END: Achievement Calculation ---
+
+    const skins = [
+        // Default Skins
+        { id: 'rank', label: 'Rank', unlocked: true },
+        { id: 'alliance', label: 'Alliance', unlocked: true },
+        { id: 'admin', label: 'Admin', unlocked: currentUserData.isAdmin },
+
+        // Achievement Skins
+        { id: 'friend-1', label: 'Socialite', unlocked: friendCount >= 10, tooltip: 'Add 10 Friends' },
+        { id: 'friend-2', label: 'Networker', unlocked: friendCount >= 50, tooltip: 'Add 50 Friends' },
+        { id: 'friend-3', label: 'Superstar', unlocked: friendCount >= 100, tooltip: 'Add 100 Friends' },
+        { id: 'avatar-1', label: 'Identified', unlocked: hasCustomAvatar, tooltip: 'Upload a custom avatar' },
+        { id: 'like-1', label: 'Appreciator', unlocked: likesGivenCount >= 25, tooltip: 'Like 25 player profiles' },
+        { id: 'like-2', label: 'Admirer', unlocked: likesGivenCount >= 50, tooltip: 'Like 50 player profiles' },
+        { id: 'like-3', label: 'Idolizer', unlocked: likesGivenCount >= 100, tooltip: 'Like 100 player profiles' },
+    ].filter(skin => skin.unlocked || (skin.tooltip && skin.id !== 'admin'));
 
     container.innerHTML = skins.map(skin => {
-        let previewData;
-        if (skin.id === 'rank') {
-            previewData = { ...currentUserData, chatBubbleBorderSkin: skin.id, isAdmin: false };
-        } else {
-            previewData = { ...currentUserData, chatBubbleBorderSkin: skin.id };
-        }
-        
+        const previewData = { ...currentUserData, chatBubbleBorderSkin: skin.id, isAdmin: skin.id === 'admin' };
         const border = getChatBubbleBorderClass(previewData, allianceData);
+        const disabled = !skin.unlocked ? 'disabled' : '';
+        const tooltip = !skin.unlocked ? `data-tooltip="${skin.tooltip}"` : '';
 
         return `
-            <button type="button" class="skin-select-btn" data-value="${skin.id}">
+            <button type="button" class="skin-select-btn" data-value="${skin.id}" ${disabled} ${tooltip}>
                 <div class="preview">
                     <div class="preview-icon"></div>
                     <div class="preview-border ${border.className}" style="${border.style}"></div>
