@@ -10,7 +10,8 @@ import { initializeSkinUI } from './ui/skin-ui.js';
 document.addEventListener('DOMContentLoaded', () => {
     // Register the service worker for PWA functionality
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
+        // Corrected the path to the service worker file
+        navigator.serviceWorker.register('code/sw.js')
             .then((registration) => {
                 console.log('Service Worker registered with scope:', registration.scope);
             })
