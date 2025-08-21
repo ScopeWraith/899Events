@@ -602,6 +602,20 @@ function setupCustomSelects() {
         }
 
         optionsList.innerHTML = optionsData.map(opt => `<div class="custom-select-option" data-value="${opt.value}">${opt.text}</div>`).join('');
+        
+        // --- START: NEW SEARCHABLE DROPDOWN LOGIC ---
+        const searchInput = container.querySelector('.custom-select-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const options = optionsList.querySelectorAll('.custom-select-option');
+                options.forEach(option => {
+                    const optionText = option.textContent.toLowerCase();
+                    option.style.display = optionText.includes(searchTerm) ? 'block' : 'none';
+                });
+            });
+        }
+        // --- END: NEW SEARCHABLE DROPDOWN LOGIC ---
     });
 
     document.body.addEventListener('click', e => {
@@ -613,6 +627,11 @@ function setupCustomSelects() {
         }
 
         if (container) {
+            // Prevent search input click from closing the dropdown
+            if (e.target.matches('.custom-select-search')) {
+                return;
+            }
+
             const valueBtn = container.querySelector('.custom-select-value');
             if (e.target === valueBtn || valueBtn.contains(e.target)) {
                 container.classList.toggle('open');
