@@ -25,9 +25,12 @@ function renderAuthUI(newState, prevState) {
         buildMobileNav(); 
     }
 
-    if (newState.userNotifications !== prevState.userNotifications) {
-        updatePlayerProfileDropdown(newState.currentUserData, newState.userNotifications);
+    // --- START: MODIFICATION FOR UNREAD MESSAGES ---
+    // Update dropdown if notifications OR unread message count changes
+    if (newState.userNotifications !== prevState.userNotifications || newState.unreadMessagesCount !== prevState.unreadMessagesCount) {
+        updatePlayerProfileDropdown(newState.currentUserData, newState.userNotifications, newState.unreadMessagesCount);
     }
+    // --- END: MODIFICATION FOR UNREAD MESSAGES ---
 }
 
 /**
@@ -106,8 +109,9 @@ export function updateAvatarDisplay(data) {
  * Shows/hides admin-specific buttons and updates notification badges.
  * @param {object} currentUserData The current user's data.
  * @param {Array<object>} userNotifications The user's notifications.
+ * @param {number} unreadMessagesCount The count of unread private messages.
  */
-export function updatePlayerProfileDropdown(currentUserData, userNotifications) {
+export function updatePlayerProfileDropdown(currentUserData, userNotifications, unreadMessagesCount) {
     if (!currentUserData) return;
     const dropdownContainer = document.getElementById('player-profile-dropdown');
     if (!dropdownContainer) return;
@@ -144,8 +148,17 @@ export function updatePlayerProfileDropdown(currentUserData, userNotifications) 
             friendReqBtn.disabled = true;
         }
     }
+    
+    // --- START: MODIFICATION FOR UNREAD MESSAGES BADGE ---
     const messagesBtn = document.getElementById('profile-dropdown-messages');
-    if (messagesBtn) messagesBtn.disabled = true;
+    if (messagesBtn) {
+        const messagesBadge = messagesBtn.querySelector('.badge');
+        const count = unreadMessagesCount || 0;
+        messagesBadge.textContent = count;
+        messagesBadge.classList.toggle('hidden', count === 0);
+        messagesBtn.disabled = false; // Always enabled
+    }
+    // --- END: MODIFICATION FOR UNREAD MESSAGES BADGE ---
 }
 
 /** The current step in the multi-step registration form. @type {number} */
