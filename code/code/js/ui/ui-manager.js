@@ -57,27 +57,39 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
     if (convoCount !== undefined) socialBadges.convoCount = convoCount;
     if (friendRequestCount !== undefined) socialBadges.friendRequestCount = friendRequestCount;
 
+    const totalSocialCount = socialBadges.convoCount + socialBadges.friendRequestCount;
+
+    // --- START: MODIFICATION FOR BADGE DISPLAY ---
+    // Main Social Nav Badge
+    const socialNavBadge = document.querySelector('.nav-link[data-main-target="page-social"] .badge');
+    if (socialNavBadge) {
+        socialNavBadge.textContent = totalSocialCount;
+        socialNavBadge.classList.toggle('hidden', totalSocialCount === 0);
+    }
+
+    // "Private" Sub-Nav Badge
     const convoBadge = document.querySelector('.sub-nav-link[data-sub-target="social-convo"] .badge');
     if (convoBadge) {
         convoBadge.textContent = socialBadges.convoCount;
         convoBadge.classList.toggle('hidden', socialBadges.convoCount === 0);
     }
 
+    // "Friends" Sub-Nav Badge
     const friendsBadge = document.querySelector('.sub-nav-link[data-sub-target="social-friends"] .badge');
     if (friendsBadge) {
         friendsBadge.textContent = socialBadges.friendRequestCount;
         friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
     }
     
-    // --- START: NEW LOGIC FOR PROFILE DROPDOWN BADGE ---
+    // Profile Dropdown "Private Messages" Badge
     const messagesBtn = document.getElementById('profile-dropdown-messages');
     if (messagesBtn) {
         const messagesBadge = messagesBtn.querySelector('.badge');
         messagesBadge.textContent = socialBadges.convoCount;
         messagesBadge.classList.toggle('hidden', socialBadges.convoCount === 0);
-        messagesBtn.disabled = socialBadges.convoCount === 0;
+        messagesBtn.disabled = false; // Always keep it enabled to allow navigation
     }
-    // --- END: NEW LOGIC FOR PROFILE DROPDOWN BADGE ---
+    // --- END: MODIFICATION FOR BADGE DISPLAY ---
 }
 
 /**

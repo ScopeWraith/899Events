@@ -53,6 +53,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     color: #8b949e;
     transition: all 0.2s ease;
     border-radius: 4px;
+    position: relative; /* Added for badge positioning */
 }
 .nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.05); }
 .nav-link.active { color: #fff; border-top: 2px solid rgb(0, 170, 255); background: linear-gradient( rgb(0 166 255 / 44%), rgba(17, 21, 27, 0.649));}
@@ -93,6 +94,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     border-bottom: 1px solid rgba(255,255,255,0.1);
     border-right: 1px solid rgba(255,255,255,0.1);
     border-left: 1px solid rgba(255,255,255,0.1);
+    position: relative; /* Added for badge positioning */
 }
 .sub-nav-link i { color: #6e7681; transition: color 0.2s ease; }
 .sub-nav-link:hover { background-color: rgba(48, 54, 61, 0.7); color: #fff; }
@@ -808,14 +810,18 @@ body {
     border: 1px solid var(--color-primary);
     animation: unread-glow 1.5s infinite alternate;
 }
-.convo-item .badge {
-    background-color: var(--color-highlight);
-    color: white;
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-weight: 600;
+/* --- START: UPDATED BADGE STYLES --- */
+.badge {
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 0 8px var(--color-primary-glow);
 }
+/* --- END: UPDATED BADGE STYLES --- */
 @keyframes unread-glow {
     from { box-shadow: 0 0 5px rgba(0, 191, 255, 0.2); }
     to { box-shadow: 0 0 15px rgba(0, 191, 255, 0.5); }
@@ -1362,6 +1368,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     color: #8b949e;
     transition: all 0.2s ease;
     border-radius: 4px;
+    position: relative; /* Added for badge positioning */
 }
 .nav-link:hover { color: #fff; background-color: rgba(255,255,255,0.05); }
 .nav-link.active { color: #fff; border-top: 2px solid rgb(0, 170, 255); background: linear-gradient( rgb(0 166 255 / 44%), rgba(17, 21, 27, 0.649));}
@@ -1402,6 +1409,7 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--color-bg); colo
     border-bottom: 1px solid rgba(255,255,255,0.1);
     border-right: 1px solid rgba(255,255,255,0.1);
     border-left: 1px solid rgba(255,255,255,0.1);
+    position: relative; /* Added for badge positioning */
 }
 .sub-nav-link i { color: #6e7681; transition: color 0.2s ease; }
 .sub-nav-link:hover { background-color: rgba(48, 54, 61, 0.7); color: #fff; }

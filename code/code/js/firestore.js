@@ -222,14 +222,11 @@ export function fetchInitialData(onPublicDataLoaded) {
         }, () => checkPublicLoaded('sessions'));
     }
     if (!listeners.alliances) {
-        // --- START: BUG FIX ---
-        // Changed checkAllLoaded to checkPublicLoaded
         listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
             const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setState({ allAlliances });
             checkPublicLoaded('alliances');
         }, () => checkPublicLoaded('alliances'));
-        // --- END: BUG FIX ---
     }
 
     setState({ listeners });
@@ -600,18 +597,19 @@ export function setupConversationListListener() {
 
     const q = query(collection(db, 'private_chats'), where('participants', 'array-contains', currentUserData.uid));
     listeners.convoList = onSnapshot(q, async (snapshot) => {
-        let totalUnread = 0;
+        let totalUnread = 0; // --- START: MODIFICATION FOR UNREAD COUNT ---
         const conversationPromises = snapshot.docs.map(async (chatDoc) => {
             const chatData = chatDoc.data();
             const partnerId = chatData.participants.find(p => p !== currentUserData.uid);
             const unreadQuery = query(collection(db, `private_chats/${chatDoc.id}/messages`), where('isRead', '==', false), where('authorUid', '!=', currentUserData.uid));
             const unreadSnapshot = await getDocs(unreadQuery);
             const unreadCount = unreadSnapshot.docs.length;
-            totalUnread += unreadCount;
+            totalUnread += unreadCount; // Add to total
             return { chatId: chatDoc.id, partnerId: partnerId, lastMessage: chatData.lastMessage || null, unreadCount: unreadCount };
         });
         const conversations = await Promise.all(conversationPromises);
-        setState({ conversations: conversations.filter(c => c.lastMessage), unreadMessagesCount: totalUnread });
+        setState({ conversations: conversations.filter(c => c.lastMessage), unreadMessagesCount: totalUnread }); // Set total in state
+        // --- END: MODIFICATION FOR UNREAD COUNT ---
     });
     setState({ listeners });
 }
