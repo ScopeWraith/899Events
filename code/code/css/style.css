@@ -1327,14 +1327,11 @@ body {
 }
 
 @keyframes rainbow-glow {
-    0% { border-color: #ef4444; box-shadow: 0 0 15px #ef4444; }
-    14% { border-color: #f97316; box-shadow: 0 0 15px #f97316; }
-    28% { border-color: #eab308; box-shadow: 0 0 15px #eab308; }
-    42% { border-color: #22c55e; box-shadow: 0 0 15px #22c55e; }
-    57% { border-color: #3b82f6; box-shadow: 0 0 15px #3b82f6; }
-    71% { border-color: #8b5cf6; box-shadow: 0 0 15px #8b5cf6; }
-    85% { border-color: #d946ef; box-shadow: 0 0 15px #d946ef; }
-    100% { border-color: #ef4444; box-shadow: 0 0 15px #ef4444; }
+    0% { border-color: #ec4899; box-shadow: 0 0 12px #ec4899; }
+    25% { border-color: #f9a8d4; box-shadow: 0 0 22px #f9a8d4; }
+    50% { border-color: #fff4fa; box-shadow: 0 0 22px #fff4fa; }
+    75% { border-color: #f9a8d4; box-shadow: 0 0 22px #f9a8d4; }
+    100% { border-color: #ec4899; box-shadow: 0 0 12px #ec4899; }
 }
 
 /* --- Friend Achievements --- */
