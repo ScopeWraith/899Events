@@ -127,6 +127,13 @@ export function renderPlayers(players) {
         const border = getAvatarBorderClass(player, allianceData);
         const unverifiedClass = player.isVerified ? '' : 'unverified-player-text';
 
+        // --- START: LOGIC FOR PROFILE LIKES ---
+        const hasLiked = currentUserData && player.likedBy && player.likedBy.includes(currentUserData.uid);
+        const likeBtnDisabled = !currentUserData || currentUserData.uid === player.uid;
+        const likeBtnClass = hasLiked ? 'text-blue-400' : 'text-gray-400';
+        const likeCount = player.likes || 0;
+        // --- END: LOGIC FOR PROFILE LIKES ---
+
         card.innerHTML = `
             ${gearIconHTML}
             <div class="flex items-center pb-3 border-b player-card-header" style="border-color: rgba(255,255,255,0.1);">
@@ -160,8 +167,11 @@ export function renderPlayers(players) {
             <div class="flex justify-around items-center pt-3 border-t border-white/10">
                 <button class="message-player-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Message Player"><i class="fas fa-comment-dots"></i></button>
                 <button class="add-friend-btn text-gray-400 hover:text-white transition-colors !text-lg" title="Add Friend"><i class="fas fa-user-plus"></i></button>
-                <button class="text-gray-400 hover:text-white transition-colors !text-lg" title="Like Profile"><i class="fas fa-thumbs-up"></i></button>
-            </div>
+                <button class="like-profile-btn ${likeBtnClass} hover:text-white transition-colors !text-lg flex items-center gap-2" title="Like Profile" ${likeBtnDisabled ? 'disabled' : ''}>
+                    <i class="fas fa-thumbs-up"></i>
+                    <span class="font-bold text-sm">${likeCount}</span>
+                </button>
+                </div>
         `;
         playerListContainer.appendChild(card);
     });

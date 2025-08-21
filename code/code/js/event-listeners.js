@@ -19,8 +19,10 @@ import { applyPlayerFilters } from './ui/players-ui.js';
 import {
     handleSendMessage, handleDeleteMessage, handleNotificationAction, addFriend,
     removeFriend, toggleReaction, togglePostReaction, handleImageAttachment, handleFullscreenMessageSend,
-    declineFriendRequest, cancelFriendRequest
+    declineFriendRequest, cancelFriendRequest,
+    toggleProfileLike // --- START: IMPORT NEW FUNCTION ---
 } from './firestore.js';
+// --- END: IMPORT NEW FUNCTION ---
 import {
     showEditAllianceModal, handleAllianceAvatarSelection, handleAllianceEditSubmit,
     showRegisterAllianceModal, handleAllianceRegisterSubmit
@@ -436,9 +438,16 @@ export function initializeAllEventListeners() {
         const addFriendBtn = e.target.closest('.add-friend-btn');
         const messageBtn = e.target.closest('.message-player-btn');
         const settingsBtn = e.target.closest('.player-settings-btn');
+        const likeBtn = e.target.closest('.like-profile-btn'); // --- START: GET LIKE BUTTON ---
         const { currentUserData, allPlayers } = getState();
 
-        if (addFriendBtn && currentUserData) {
+        if (likeBtn && currentUserData) { // --- START: HANDLE LIKE BUTTON CLICK ---
+            const playerCard = likeBtn.closest('.player-card');
+            const targetUid = playerCard.dataset.uid;
+            likeBtn.disabled = true;
+            await toggleProfileLike(targetUid);
+            likeBtn.disabled = false;
+        } else if (addFriendBtn && currentUserData) { // --- END: HANDLE LIKE BUTTON CLICK ---
             const playerCard = addFriendBtn.closest('.player-card');
             const recipientUid = playerCard.dataset.uid;
             addFriendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;

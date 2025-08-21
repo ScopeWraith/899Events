@@ -45,6 +45,56 @@ export async function togglePostReaction(postId, reactionType) {
     }
 }
 
+// --- START: NEW FUNCTION FOR PROFILE LIKES ---
+/**
+ * Toggles a 'like' on a user's profile for the current user.
+ * Uses a Firestore transaction to ensure atomic updates.
+ * @param {string} targetUid The UID of the user profile to like.
+ * @returns {Promise<boolean>} A promise that resolves to true if the like was added, false if removed.
+ */
+export async function toggleProfileLike(targetUid) {
+    const { currentUserData } = getState();
+    if (!currentUserData || !targetUid || currentUserData.uid === targetUid) return;
+
+    const profileRef = doc(db, 'users', targetUid);
+    let liked = false;
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const profileDoc = await transaction.get(profileRef);
+            if (!profileDoc.exists()) throw "User profile does not exist!";
+
+            const likedBy = profileDoc.data().likedBy || [];
+            let newLikesCount = profileDoc.data().likes || 0;
+            const userIndex = likedBy.indexOf(currentUserData.uid);
+
+            if (userIndex > -1) {
+                // User has already liked, so unlike
+                likedBy.splice(userIndex, 1);
+                newLikesCount--;
+                liked = false;
+            } else {
+                // User has not liked, so like
+                likedBy.push(currentUserData.uid);
+                newLikesCount++;
+                liked = true;
+            }
+
+            if (newLikesCount < 0) newLikesCount = 0;
+
+            transaction.update(profileRef, {
+                likes: newLikesCount,
+                likedBy: likedBy
+            });
+        });
+        return liked;
+    } catch (e) {
+        console.error("Profile like transaction failed: ", e);
+        return false;
+    }
+}
+// --- END: NEW FUNCTION FOR PROFILE LIKES ---
+
 /**
  * Sets up all necessary real-time listeners for a logged-in user.
  * This includes user data, notifications, friends, alliances, players, posts, and sessions.
@@ -177,7 +227,7 @@ export function fetchInitialData(onPublicDataLoaded) {
         listeners.alliances = onSnapshot(query(collection(db, 'alliances')), (querySnapshot) => {
             const allAlliances = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setState({ allAlliances });
-            checkPublicLoaded('alliances');
+            checkAllLoaded('alliances');
         }, () => checkAllLoaded('alliances'));
     }
 

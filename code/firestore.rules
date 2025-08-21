@@ -40,26 +40,34 @@ let requestKeys = request.resource.data.keys();
       
       return requestKeys.removeAll(resourceKeys).hasOnly(allowedFields);
 }
+
+    // --- START: MODIFICATION FOR PROFILE LIKES ---
+    function isUpdatingProfileLikesOnly() {
+      let allowedFields = ['likes', 'likedBy'];
+      // Ensure that only the allowed fields are being modified.
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields);
+    }
+    // --- END: MODIFICATION FOR PROFILE LIKES ---
     
     // --- USER DATA, FRIENDS & PRESENCE ---
     match /users/{userId} {
       allow read: if true;
 allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || canManageUser(userId) || isAdmin();
+      // Allow updating likes OR if the user is an owner/admin/manager.
+      allow update: if (isSignedIn() && isUpdatingProfileLikesOnly()) || isOwner(userId) || canManageUser(userId) || isAdmin();
       allow delete: if isOwner(userId) || isAdmin();
-
-      // Friend requests, friends list, etc.
+// Friend requests, friends list, etc.
       match /friends/{friendId} {
           allow read: if isOwner(userId);
-          // Allow creating a request, or updating/deleting if you are the sender or receiver.
-          allow write: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
+// Allow creating a request, or updating/deleting if you are the sender or receiver.
+allow write: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
           allow delete: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendId);
-      }
+}
 }
     
     match /sessions/{userId} {
-      allow read: if true; 
-      allow write: if isOwner(userId);
+      allow read: if true;
+allow write: if isOwner(userId);
 }
     
     // --- NOTIFICATIONS ---
@@ -79,14 +87,17 @@ let targetData = getUserData(targetUserId);
                    (
                     
 
+
                     managerData.alliance == targetData.alliance &&
                        (
                            (managerData.allianceRank == 'R5' && 
                        
+
         (targetData.allianceRank == 'R4' || targetData.allianceRank == 'R3' || targetData.allianceRank == 'R2' || targetData.allianceRank == 'R1')) ||
                            (managerData.allianceRank == 'R4' && 
                                (targetData.allianceRank == 'R3' || targetData.allianceRank == 'R2' || targetData.allianceRank == 'R1'))
      
+
                  
                    )
                    )
@@ -113,9 +124,11 @@ let userRank = user.allianceRank;
                    // Verified R5s and R4s can create alliance-specific announcements.
     
 
+
                    (isVerified() && postData.alliance == user.alliance && (userRank == 'R5' || userRank == 'R4') && postData.mainType == 'announcement' && postData.subType == 'alliance') ||
                    // Verified R5s and R4s can create alliance-specific events.
                    (isVerified() && postData.alliance == user.alliance && (userRank == 'R5' || userRank == 'R4') && 
+
 postData.mainType == 'event' && postData.subType == 'alliance') ||
                    // Verified R5s can create leadership announcements.
                    (isVerified() && userRank == 'R5' && postData.mainType == 'announcement' && postData.subType == 'leadership')
