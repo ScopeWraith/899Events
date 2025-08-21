@@ -221,10 +221,13 @@ export function renderFriendsPage(currentUserData, userFriends, allPlayers, user
         return;
     }
     
+    // --- FIX: Ensure userFriends is an array before processing ---
+    const friendsList = Array.isArray(userFriends) ? userFriends : [];
+
     // 1. Filter friends into categories
-    const friends = userFriends.filter(f => f.status === 'friends').map(f => allPlayers.find(p => p.uid === f.id)).filter(Boolean);
-    const pendingReceived = userFriends.filter(f => f.status === 'pending' && f.requester !== currentUserData.uid).map(f => allPlayers.find(p => p.uid === f.id)).filter(Boolean);
-    const pendingSent = userFriends.filter(f => f.status === 'pending' && f.requester === currentUserData.uid).map(f => allPlayers.find(p => p.uid === f.id)).filter(Boolean);
+    const friends = friendsList.filter(f => f.status === 'friends').map(f => allPlayers.find(p => p.uid === f.id)).filter(Boolean);
+    const pendingReceived = friendsList.filter(f => f.status === 'pending' && f.requester !== currentUserData.uid).map(f => allPlayers.find(p => p.uid === f.id)).filter(Boolean);
+    const pendingSent = friendsList.filter(f => f.status === 'pending' && f.requester === currentUserData.uid).map(f => allPlayers.find(p => p.uid === f.id)).filter(Boolean);
     const onlineFriends = friends.filter(friend => userSessions[friend.uid]?.status === 'online');
 
     const pendingCount = pendingReceived.length;
