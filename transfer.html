@@ -5,18 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>899 Transfers - Registration Portal</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts: Orbitron & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- Custom Styles -->
     <style>
         :root {
             --primary-color: #4f46e5; /* Indigo 600 */
@@ -250,14 +246,11 @@
     <div id="app" class="container mx-auto p-4 sm:p-6 max-w-4xl">
         
         <div class="card">
-            <!-- Header and Navigation section inside the card -->
             <div class="p-6 pb-0 mr-3 sm:px-8 sm:pt-8 flex-shrink-0 relative">
-                <!-- Hamburger Menu Button (Mobile) -->
                 <button id="hamburger-btn" class="md:hidden absolute top-6 left-6 text-2xl text-gray-400 hover:text-white z-10">
                     <i class="fas fa-bars"></i>
                 </button>
                 
-                <!-- Info Button -->
                 <button id="info-btn" class="absolute top-6 right-6 p-2 text-gray-400 hover:text-white text-xl z-10">
                     <i class="fas fa-info-circle"></i>
                 </button>
@@ -297,16 +290,12 @@
 
 
             <main id="main-content" class="scrollable-content flex-grow">
-                <!-- Content Area -->
                 <div class="px-6 sm:px-8 pb-6 sm:pb-8 pt-0">
-                    <!-- Registration View -->
                     <div id="view-register">
                         <form id="registrationForm" class="space-y-4">
                             
-                            <!-- Single Column Layout -->
                             <div class="space-y-4">
                                 
-                                <!-- Player Information Section -->
                                 <div>
                                     <h3 class="flex items-center justify-center text-lg font-bold text-gray-300 mt-3 mb-2 tracking-wider"><i class="fa-solid fa-user-astronaut w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPlayerInfo">PLAYER INFORMATION</span></h3>
                                     <div class="space-y-2">
@@ -331,7 +320,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Power Stats Section -->
                                 <div>
                                     <h3 class="flex items-center justify-center text-lg font-bold text-gray-300 mb-2 tracking-wider"><i class="fa-solid fa-bolt-lightning w-6 mr-3 text-indigo-400"></i><span data-i18n="labelPowerStats">POWER PROFILE</span></h3>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
@@ -354,7 +342,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Other Options -->
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between gap-4">
                                         <label class="text-sm font-medium text-gray-400" data-i18n="labelAlliancePref">Alliance Preference?</label>
@@ -374,7 +361,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Additional Players Section -->
                                 <div id="otherPlayersSection" class="hidden">
                                     <h3 class="flex items-center text-lg font-bold text-gray-300 mb-2 tracking-wider"><i class="fa-solid fa-users w-6 mr-3 text-indigo-400"></i><span data-i18n="labelAdditionalPlayers">ADDITIONAL PLAYERS</span></h3>
                                     <div id="otherPlayersContainer" class="space-y-2"></div>
@@ -382,14 +368,12 @@
                                 </div>
                             </div>
 
-                            <!-- Submit Button -->
                             <div class="pt-4 border-t border-zinc-700/50">
                                 <button type="submit" class="w-full p-4 rounded-lg btn-primary text-lg"><i class="fas fa-paper-plane mr-2"></i><span data-i18n="btnSubmit">Submit Registration</span></button>
                             </div>
                         </form>
                     </div>
 
-                    <!-- Players View -->
                     <div id="view-players" class="hidden">
                         <div class="flex justify-between items-center mt-2 mb-2 gap-4">
                             <div class="relative flex-grow">
@@ -398,11 +382,9 @@
                             </div>
                         </div>
                         <div id="player-cards-container" class="player-cards-container flex flex-col gap-3">
-                            <!-- Player cards will be injected here -->
-                        </div>
+                            </div>
                     </div>
                     
-                    <!-- Super Admin Panel -->
                     <div id="superAdminPanel" class="hidden">
                         <h2 class="text-2xl font-bold mb-6 text-indigo-400 tracking-wider"><i class="fas fa-cogs mr-2"></i><span data-i18n="superAdminTitle">SUPER ADMIN</span></h2>
                         <div class="space-y-4 p-6 bg-black/20 rounded-lg">
@@ -418,7 +400,6 @@
         </div>
     </div>
     
-    <!-- Sidebar for Mobile -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 opacity-0 pointer-events-none"></div>
     <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-zinc-900 z-50 p-6 transform -translate-x-full">
         <nav class="flex flex-col gap-4">
@@ -428,7 +409,6 @@
         </nav>
     </div>
 
-    <!-- Modals and Notifications -->
     <div id="notification-container"></div>
 
     <div id="infoModal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
@@ -492,7 +472,6 @@
         </div>
     </div>
 
-    <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -675,7 +654,7 @@
                 labelPlayerInfo: "Información del Jugador", placeholderPlayerName: "Nombre del Jugador", placeholderServer: "Servidor Actual", placeholderAlliance: "Etiqueta de Alianza (ej. ABCD)",
                 labelSeatColor: "Color de Asiento", placeholderSeatColor: "Color de Asiento", optionSelectSeatColor: "Selecciona un Color...", optionWhite: "Blanco", optionBlue: "Azul", optionPurple: "Morado", optionGold: "Dorado",
                 labelPowerStats: "Perfil de Poder", placeholderTotalPower: "Poder Total", placeholderTankPower: "Poder de Tanque", placeholderAirPower: "Poder Aéreo", placeholderMissilePower: "Poder de Misiles",
-                labelTransferDetails: "Detalles de Transferencia", labelAdditionalPlayers: "Jugadores Adicionales",
+                labelTransferDetails: "Detalles de Transferencia", labelAdditionalPlayers: "Jugadores Adicionais",
                 labelAlliancePref: "Preferencia de Alianza", optionNo: "No", optionYes: "Sí", placeholderPrefAlliance: "Etiqueta de Alianza Preferida",
                 labelBringOthers: "¿Traes a otros jugadores?", btnAddPlayer: "Añadir Otro Jugador", btnSubmit: "Enviar Registro",
                 tablePlayerName: "Nombre del Jugador", tableServer: "Servidor", tableAlliance: "Alianza", tableTotalPower: "Poder Total", tableSeat: "Asiento", tableTankPower: "Poder Tanque", tableAirPower: "Poder Aéreo", tableMissilePower: "Poder Misiles", tableActions: "Acciones",
@@ -713,7 +692,7 @@
                 labelAlliancePref: "गठबंधन वरीयता", optionNo: "नहीं", optionYes: "हाँ", placeholderPrefAlliance: "पसंदीदा गठबंधन टैग",
                 labelBringOthers: "अन्य खिलाड़ियों को ला रहे हैं?", btnAddPlayer: "एक और खिलाड़ी जोड़ें", btnSubmit: "पंजीकरण जमा करें",
                 tablePlayerName: "खिलाड़ी का नाम", tableServer: "सर्वर", tableAlliance: "गठबंधन", tableTotalPower: "कुल शक्ति", tableSeat: "सीट", tableTankPower: "टैंक शक्ति", tableAirPower: "वायु शक्ति", tableMissilePower: "मिसाइल शक्ति", tableActions: "कार्रवाइयाँ",
-                superAdminTitle: "सुपर एडमिन", webhooksTitle: "डिस्कॉर्ड वेबहुк", placeholderWebhook: "डिस्कॉर्ड वेबहुक यूआरएल", btnSaveWebhooks: "वेबहुक सहेजें",
+                superAdminTitle: "सुपर एडमिन", webhooksTitle: "डिस्कॉर्ड वेबहुк", placeholderWebhook: "डिस्कॉर्ड वेबहुк यूआरएल", btnSaveWebhooks: "वेबहुक सहेजें",
                 adminLoginTitle: "एडमिन लॉगिन", placeholderPassword: "पासवर्ड डालें", btnCancel: "रद्द करें", btnLogin: "लॉगिन करें",
                 editTitle: "पंजीकरण संपादित करें", btnSaveChanges: "बदलाव सहेजें",
                 confirmTitle: "क्या आप निश्चित हैं?", confirmMessage: "यह कार्रवाई पूर्ववत नहीं की जा सकती।", btnConfirm: "पुष्टि करें",
@@ -1035,7 +1014,6 @@
 
                 card.innerHTML = `
                     <div class="flex flex-col">
-                        <!-- Top Row: Main Info -->
                         <div class="flex items-center justify-between">
                             <h4 class="text-base font-bold truncate" style="font-family: 'Orbitron', sans-serif;">
                                 ${canViewSensitive ? `[${player.currentServer}] (${player.currentAlliance}) - ${player.playerName}` : `[${player.currentServer}]`}
@@ -1051,10 +1029,8 @@
                             </div>
                         </div>
                         
-                        <!-- Bottom Row: Details (Admin only) -->
                         <div class="admin-only ${canViewSensitive ? 'block' : 'hidden'} mt-2 pt-2 border-t border-white/10">
                             <div class="grid grid-cols-3 gap-x-4 gap-y-1 text-xs text-gray-200">
-                                <!-- Power Stats -->
                                 <div class="flex items-center"><i class="fas fa-crosshairs w-4 mr-1.5 opacity-80" title="Total Power"></i> ${formatPower(player.totalPower)}</div>
                                 <div class="flex items-center"><i class="fas fa-jet-fighter w-4 mr-1.5 opacity-80" title="Air Power"></i> ${formatPower(player.airPower)}</div>
                                 <div class="flex items-center"><i class="fas fa-clock w-4 mr-1.5 opacity-80"></i> ${formatTimestamp(player.createdAt)}</div>
@@ -1321,7 +1297,7 @@
 
             const payload = {
                 username: "899 Transfer Bot",
-                avatar_url: "https://i.imgur.com/g6d3v4E.png",
+                avatar_url: "/transfer_bot.jpg",
                 embeds: [embed]
             };
 
@@ -1412,20 +1388,5 @@
 
     </script>
     
-    <!--
-    Firestore Security Rules v2
-    rules_version = '2';
-    service cloud.firestore {
-      match /databases/{database}/documents {
-        match /artifacts/{appId}/public/data/{document=**} {
-          allow read: if true;
-          allow write: if request.auth != null;
-        }
-        match /artifacts/{appId}/users/{userId}/{document=**} {
-          allow read, write: if request.auth != null && request.auth.uid == userId;
-        }
-      }
-    }
-    -->
-</body>
+    </body>
 </html>
