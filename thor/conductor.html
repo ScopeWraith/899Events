@@ -366,7 +366,7 @@
         .podium-spot.second .podium-rank-badge { background: #C0C0C0; }
         .podium-spot.third .podium-rank-badge { background: #CD7F32; }
 
-        /* NEW: Tooltip for Medal Leaders */
+        /* Tooltip for Medal Leaders */
         #medal-history-tooltip {
             position: fixed;
             display: none;
@@ -421,10 +421,6 @@
                         <i class="fa-solid fa-medal w-5 h-5 text-center"></i>
                         <span class="font-semibold">Medals</span>
                     </button>
-                    <button data-tab="creator" class="admin-control desktop-nav-btn w-full flex items-center p-3 rounded-lg space-x-3">
-                        <i class="fa-solid fa-wand-magic-sparkles w-5 h-5 text-center"></i>
-                        <span class="font-semibold">Medal Creator</span>
-                    </button>
                     </nav>
                  <div class="p-4 border-t border-slate-700/50 mt-auto flex flex-col items-center justify-between space-y-2">
                     <div class="flex items-center space-x-2">
@@ -472,7 +468,7 @@
             <div class="card rounded-2xl flex-grow flex flex-col min-h-0">
                 
                 <div id="mobile-nav" class="lg:hidden border-b border-slate-700/50">
-                    <div class="grid grid-cols-5 text-center">
+                    <div class="grid grid-cols-4 text-center">
                         <button data-tab="conductor" class="mobile-nav-btn py-2.5 px-2 flex flex-col items-center justify-center gap-1.5">
                             <div class="toggle-switch-mobile relative">
                                 <div class="toggle-switch-track absolute top-0 left-0 right-0 bottom-0 rounded-full"></div>
@@ -491,10 +487,6 @@
                         <button data-tab="medals" class="mobile-nav-btn py-2.5 px-2 flex flex-col items-center justify-center gap-1.5">
                             <i class="fa-solid fa-medal w-5 h-5 mt-0.5"></i>
                             <span class="text-xs font-semibold">Medals</span>
-                        </button>
-                        <button data-tab="creator" class="admin-control mobile-nav-btn py-2.5 px-2 flex flex-col items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-wand-magic-sparkles w-5 h-5 mt-0.5"></i>
-                            <span class="text-xs font-semibold">Creator</span>
                         </button>
                         </div>
                 </div>
@@ -529,6 +521,10 @@
                                         <i class="fa-solid fa-trophy w-4 h-4"></i>
                                         <span>Leaders</span>
                                      </button>
+                                     <button id="open-create-medal-modal-btn" class="admin-control bg-purple-500 hover:bg-purple-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
+                                        <i class="fa-solid fa-wand-magic-sparkles w-4 h-4"></i>
+                                         <span>Create Medals</span>
+                                     </button>
                                      <button id="open-award-medal-modal-btn" class="admin-control bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-1 px-3 rounded-lg text-xs flex items-center space-x-1">
                                         <i class="fa-solid fa-medal w-4 h-4"></i>
                                          <span>Award Medals</span>
@@ -538,34 +534,6 @@
                             <div id="medals-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
                         </div>
 
-                        <div id="content-creator" class="hidden h-full flex flex-col">
-                            <div class="flex-shrink-0">
-                                <h3 class="text-lg font-bold text-white mb-2">Create a New Medal</h3>
-                                <div class="bg-slate-800/50 p-3 rounded-lg space-y-3">
-                                    <div>
-                                        <label for="create-medal-name" class="block text-sm font-medium text-slate-300 mb-1">Medal Name</label>
-                                        <input type="text" id="create-medal-name" placeholder="e.g., Hero of the Week" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label for="create-medal-luck" class="block text-sm font-medium text-slate-300 mb-1">Luck Bonus (%)</label>
-                                            <input type="number" id="create-medal-luck" value="10" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                        </div>
-                                        <div>
-                                            <label for="create-medal-cd" class="block text-sm font-medium text-slate-300 mb-1">CD Reduction (%)</label>
-                                            <input type="number" id="create-medal-cd" value="5" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                        </div>
-                                    </div>
-                                    <button id="create-medal-btn" class="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Create Medal</button>
-                                </div>
-                            </div>
-
-                            <div class="flex-grow flex flex-col min-h-0 mt-4">
-                                <h3 class="text-lg font-bold text-white mb-2 flex-shrink-0">Manage Custom Medals</h3>
-                                <div id="custom-medals-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow">
-                                    </div>
-                            </div>
-                        </div>
                         </div>
                     <div class="lg:hidden p-4 border-t border-slate-700/50 mt-auto flex items-center justify-between space-x-4">
                         <div class="flex items-center">
@@ -587,6 +555,42 @@
         </main>
     </div>
 
+    <div id="create-medal-modal" class="modal-overlay hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-lg rounded-2xl flex flex-col" style="max-height: 90vh;">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-xl font-bold text-white">Create & Manage Medals</h2>
+                <button id="close-create-medal-btn" class="text-3xl font-light leading-none text-slate-400 hover:text-white transition-colors">&times;</button>
+            </div>
+
+            <div class="flex-shrink-0 bg-slate-800/50 p-3 rounded-lg space-y-3 mb-4">
+                <h3 class="text-base font-bold text-white">Create a New Medal</h3>
+                <div>
+                    <label for="create-medal-name" class="block text-sm font-medium text-slate-300 mb-1">Medal Name</label>
+                    <input type="text" id="create-medal-name" placeholder="e.g., Hero of the Week" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="create-medal-luck" class="block text-sm font-medium text-slate-300 mb-1">Luck Bonus (%)</label>
+                        <input type="number" id="create-medal-luck" value="10" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                    </div>
+                    <div>
+                        <label for="create-medal-cd" class="block text-sm font-medium text-slate-300 mb-1">CD Reduction (%)</label>
+                        <input type="number" id="create-medal-cd" value="5" class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                    </div>
+                </div>
+                <button id="create-medal-btn" class="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Create Medal</button>
+            </div>
+
+            <div class="flex-grow flex flex-col min-h-0">
+                <h3 class="text-base font-bold text-white mb-2 flex-shrink-0">Existing Custom Medals</h3>
+                <div id="custom-medals-list" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow">
+                    </div>
+            </div>
+             <div class="mt-6 flex justify-end flex-shrink-0">
+                <button id="done-create-medal-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg text-sm">Done</button>
+            </div>
+        </div>
+    </div>
     <div id="settings-modal" class="modal-overlay hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-lg rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4 text-center">Settings</h2>
@@ -813,11 +817,10 @@
                 <button id="close-how-it-works-btn" class="text-3xl font-light leading-none text-slate-400 hover:text-white transition-colors">&times;</button>
             </div>
             <div id="how-it-works-tabs-container" class="border-b border-slate-700 mb-4">
-                <nav class="grid grid-cols-5 -mb-px" aria-label="Tabs">
+                <nav class="grid grid-cols-4 -mb-px" aria-label="Tabs">
                     <button data-tab="overview" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg active">Overview</button>
                     <button data-tab="selection" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg">Selection</button>
                     <button data-tab="ranks-medals" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg">Bonuses</button>
-                    <button data-tab="creator" class="admin-control how-it-works-tab py-2 font-medium text-sm rounded-t-lg">Creator</button>
                     <button data-tab="admin" class="how-it-works-tab py-2 font-medium text-sm rounded-t-lg">Admin</button>
                 </nav>
             </div>
@@ -854,7 +857,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             // --- CONFIGURATION ---
-            // MODIFIED: This is now the BASE configuration. It will be merged with custom medals from Firestore.
             const BASE_CONFIG = {
                 RANK_LUCK: { 'R1': 10, 'R2': 25, 'R3': 50, 'R4': 85, 'R5': 130 },
                 MEDAL_LUCK: {
@@ -902,7 +904,6 @@
                 SUB_BOOST_LUCK: 50,
             };
 
-            // NEW: This CONFIG will be dynamically built on data load
             let CONFIG = {};
 
             // --- ELEMENTS ---
@@ -923,7 +924,6 @@
             const contentMembers = document.getElementById('content-members');
             const contentHistory = document.getElementById('content-history');
             const contentMedals = document.getElementById('content-medals');
-            const contentCreator = document.getElementById('content-creator'); // NEW
 
             const memberSearchInput = document.getElementById('member-search-input');
             const historySearchInput = document.getElementById('history-search-input');
@@ -1024,7 +1024,11 @@
             const medalLeadersList = document.getElementById('medal-leaders-list');
             const medalHistoryTooltip = document.getElementById('medal-history-tooltip');
             
-            // NEW: Medal Creator Elements
+            // NEW: Create Medal Modal Elements
+            const createMedalModal = document.getElementById('create-medal-modal');
+            const openCreateMedalModalBtn = document.getElementById('open-create-medal-modal-btn');
+            const closeCreateMedalBtn = document.getElementById('close-create-medal-btn');
+            const doneCreateMedalBtn = document.getElementById('done-create-medal-btn');
             const createMedalNameInput = document.getElementById('create-medal-name');
             const createMedalLuckInput = document.getElementById('create-medal-luck');
             const createMedalCdInput = document.getElementById('create-medal-cd');
@@ -1045,41 +1049,27 @@
             let docRef;
             let confirmCallback = null;
             let isAuthenticated = false;
-            let isAuthReady = false; // Flag to track if initial auth check is done
-            let modalMouseDownTarget = null; // For improved modal closing
+            let isAuthReady = false; 
+            let modalMouseDownTarget = null; 
 
             // --- DATE HELPERS ---
-            /**
-             * Safely parses a date value from various formats into a numeric timestamp.
-             * @param {any} dateValue - The value to parse (number, string, or Firestore Timestamp).
-             * @returns {number|null} A numeric timestamp or null if parsing fails.
-             */
             function getTimestamp(dateValue) {
                 if (!dateValue) return null;
-                // If it's a Firestore Timestamp object, convert it
                 if (typeof dateValue.toDate === 'function') {
                     return dateValue.toDate().getTime();
                 }
-                // If it's already a valid number (timestamp), return it
                 if (typeof dateValue === 'number' && !isNaN(dateValue)) {
                     return dateValue;
                 }
-                // If it's a string, try parsing it
                 if (typeof dateValue === 'string') {
                     const date = new Date(dateValue);
                     if (!isNaN(date.getTime())) {
                         return date.getTime();
                     }
                 }
-                // Return null if parsing fails
                 return null;
             }
 
-            /**
-             * Formats a timestamp into a consistent, readable date string.
-             * @param {number|null} timestamp - The numeric timestamp to format.
-             * @returns {string} A formatted date string (e.g., "07/08/25") or "Invalid Date".
-             */
             function formatDate(timestamp) {
                 if (timestamp === null || isNaN(timestamp)) {
                     return 'Invalid Date';
@@ -1113,16 +1103,13 @@
                     const collectionPath = `conductors`;
                     docRef = doc(db, collectionPath, docId);
 
-                    // Listen for auth state changes
                     onAuthStateChanged(auth, (user) => {
-                        isAuthReady = true; // Mark that the initial auth check is complete
+                        isAuthReady = true; 
                         if (user) {
                              console.log("User is signed in:", user.uid);
-                             // Now that we are authenticated, we can attach the Firestore listener
                              attachFirestoreListener();
                         } else {
                             console.log("User is signed out.");
-                            // Sign in anonymously if no user is found
                             signInAnonymously(auth).catch(error => {
                                 console.error("Anonymous sign-in failed:", error);
                             });
@@ -1162,7 +1149,6 @@
                         appSettings = data.settings || { discordWebhookUrl: '', customMedals: {} };
                         if (!appSettings.customMedals) appSettings.customMedals = {};
                         
-                        // NEW: Build the dynamic CONFIG object
                         buildDynamicConfig();
 
                         currentConductor = data.currentConductor || 'SELECT A CONDUCTOR';
@@ -1170,7 +1156,6 @@
                         console.log("No data found in Firestore. Initializing with default data.");
                         initializeDefaultData();
                     }
-                    // MODIFIED: Refresh dynamic elements after config is built
                     populateHowItWorksContent();
                     populateMedalSelect(awardMedalSelect);
                     populateMedalSelect(awardMedalTypeSelect);
@@ -1182,31 +1167,22 @@
             }
 
             // --- DISCORD INTEGRATION ---
-            /**
-             * Sends a message to the configured Discord webhook.
-             * @param {object} embed - The Discord embed object to send.
-             */
             async function sendToDiscord(embed) {
                 if (!appSettings.discordWebhookUrl) {
                     console.log("Discord webhook URL is not configured. Skipping notification.");
                     return;
                 }
-
                 const payload = {
                     username: "THOR Tracker",
-                    avatar_url: "https://i.imgur.com/gJ3l4p8.png", // A generic bot avatar
+                    avatar_url: "https://i.imgur.com/gJ3l4p8.png",
                     embeds: [embed]
                 };
-
                 try {
                     const response = await fetch(appSettings.discordWebhookUrl, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload),
                     });
-
                     if (!response.ok) {
                         console.error(`Discord webhook failed with status: ${response.status}`);
                     }
@@ -1244,9 +1220,8 @@
                 }
             }
             
-            // NEW: Function to merge base config with custom medals
             function buildDynamicConfig() {
-                CONFIG = JSON.parse(JSON.stringify(BASE_CONFIG)); // Deep copy to avoid mutation
+                CONFIG = JSON.parse(JSON.stringify(BASE_CONFIG)); 
                 if (appSettings.customMedals) {
                     for (const medalName in appSettings.customMedals) {
                         const medalData = appSettings.customMedals[medalName];
@@ -1262,7 +1237,7 @@
                 selectionHistory = [{ player: "Rat", date: Date.now() - 86400000 * 2, id: Date.now()+1 }, { player: "Lecarre", date: Date.now() - 86400000 * 3, id: Date.now()+2 }, { player: "MagicalMike (AllDayDad)", date: Date.now() - 86400000 * 4, id: Date.now()+3 }];
                 currentConductor = 'SELECT A CONDUCTOR';
                 appSettings = { discordWebhookUrl: '', customMedals: {} };
-                buildDynamicConfig(); // Build config on initialization too
+                buildDynamicConfig();
                 if (isAuthenticated) updateFirestore();
             }
 
@@ -1272,25 +1247,21 @@
                     const member = allianceMembers[memberIndex];
                     const now = Date.now();
                     const newMedal = {
-                        id: now + Math.random(), // Add random to avoid ID collision
+                        id: now + Math.random(),
                         name: medalName,
                         awardedDate: now,
                         expires: now + (30 * 24 * 60 * 60 * 1000)
                     };
                     if (!member.medals) member.medals = [];
                     member.medals.push(newMedal);
-
                     updateFirestore();
-
-                    // Send Discord notification
                     const discordEmbed = {
                         title: '🏅 Medal Awarded!',
-                        color: 15844367, // Gold color
+                        color: 15844367,
                         description: `Congratulations to **${member.name}** for receiving the **${medalName}** medal!`,
                         timestamp: new Date().toISOString()
                     };
                     sendToDiscord(discordEmbed);
-
                     return true;
                 }
                 return false;
@@ -1332,24 +1303,13 @@
                         <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-800/50"><th class="p-2 font-semibold text-white">Medal Name</th><th class="p-2 font-semibold text-white">Luck Bonus</th><th class="p-2 font-semibold text-white">CD Reduction</th></tr></thead><tbody id="how-it-works-medal-bonus-table"></tbody></table></div>
                     </div>
                 </div>
-                <div id="tab-content-creator" class="how-it-works-tab-content admin-control">
-                    <h3 class="font-semibold text-purple-400 mb-2 text-lg">Medal Creator</h3>
-                    <p>The Medal Creator tab allows admins to design and implement their own custom medals with unique bonuses.</p>
-                    <ul class="list-disc list-inside space-y-2 mt-2">
-                        <li><strong>Creation:</strong> To create a medal, simply provide a unique name, a luck bonus percentage, and a cooldown reduction percentage in the form.</li>
-                        <li><strong>Uniqueness:</strong> Medal names must be unique. You cannot create a medal that has the same name as a standard or another custom medal.</li>
-                        <li><strong>Application:</strong> Once created, the new medal will immediately appear in all medal award dropdowns and will be available to grant to any member.</li>
-                        <li><strong>Bonuses:</strong> The luck and cooldown reduction values you set will be applied to any member who holds the medal, just like standard medals. The effects will stack with other medals.</li>
-                        <li><strong>Management:</strong> You can view all created custom medals in the "Manage Custom Medals" list. If a medal is no longer needed, you can permanently delete it using the trash icon. Deleting a custom medal will not remove it from the history of players who have already earned it, but it will no longer provide any bonuses.</li>
-                    </ul>
-                </div>
                 <div id="tab-content-admin" class="how-it-works-tab-content">
                     <h3 class="font-semibold text-cyan-400 mb-2 text-lg">Admin Responsibilities</h3>
                     <p>To access administrative controls, you must log in using the provided credentials. Admins are responsible for maintaining the accuracy of the tool.</p>
                     <ul class="list-disc list-inside space-y-2 mt-2">
                         <li><strong>Manage Members:</strong> Add new members, edit their name and rank, or remove them from the alliance list via the "Members" tab.</li>
                         <li><strong>Award Medals:</strong> Award medals to members to grant them temporary bonuses. This can be done from the "Medals" tab or from the member edit screen.</li>
-                        <li><strong>Create Medals:</strong> Use the "Medal Creator" tab to design and add new, custom medals to the system.</li>
+                        <li><strong>Create Medals:</strong> Use the "Create Medals" button on the Medals tab to design and add new, custom medals to the system.</li>
                         <li><strong>Designate Conductor:</strong> Manually set a member as the conductor by clicking their name in the "Members" list to open the Player Information Card and using the "Designate" button.</li>
                         <li><strong>Manage History:</strong> Manually add or delete past conductor records from the "History" tab to correct errors or fill in missing data.</li>
                         <li><strong>Settings:</strong> Configure the Discord webhook URL in the settings menu (cog icon) to enable notifications.</li>
@@ -1373,7 +1333,6 @@
                  if (!medalTableBody) return;
                 medalTableBody.innerHTML = '';
                 
-                // Sort medal names alphabetically for consistent display
                 const sortedMedalNames = Object.keys(CONFIG.MEDAL_LUCK).sort((a, b) => a.localeCompare(b));
 
                 sortedMedalNames.forEach(medal => {
@@ -1389,7 +1348,6 @@
 
             function populateMedalSelect(selectElement) {
                 selectElement.innerHTML = `<option value="">Select a medal...</option>`;
-                // Use the dynamically built CONFIG here
                 Object.keys(CONFIG.MEDAL_LUCK).sort().forEach(medalName => {
                     const option = document.createElement('option');
                     option.value = medalName;
@@ -1602,9 +1560,9 @@
 
                 if (topThree.length > 0) {
                     const podiumData = [
-                        topThree[1], // 2nd place
-                        topThree[0], // 1st place
-                        topThree[2]  // 3rd place
+                        topThree[1], 
+                        topThree[0], 
+                        topThree[2]
                     ];
 
                     podiumOrder.forEach((pos, index) => {
@@ -1656,20 +1614,19 @@
                 container.innerHTML = html;
             };
             
-            // NEW: Render the list of custom medals in the creator tab
-            const renderCreatorTab = () => {
+            const renderCustomMedalsInModal = () => {
                 customMedalsList.innerHTML = '';
                 const customMedalNames = Object.keys(appSettings.customMedals || {}).sort();
 
                 if (customMedalNames.length === 0) {
-                    customMedalsList.innerHTML = `<p class="text-sm text-slate-400 italic text-center">No custom medals created yet.</p>`;
+                    customMedalsList.innerHTML = `<p class="text-sm text-slate-400 italic text-center py-4">No custom medals created yet.</p>`;
                     return;
                 }
 
                 customMedalNames.forEach(name => {
                     const medal = appSettings.customMedals[name];
                     const div = document.createElement('div');
-                    div.className = 'item-enter flex items-center justify-between p-2 rounded-lg bg-slate-800/50 text-sm';
+                    div.className = 'item-enter flex items-center justify-between p-2 rounded-lg bg-slate-900/50 text-sm';
                     div.innerHTML = `
                         <div class="flex-grow">
                             <p class="font-semibold text-purple-300">${name}</p>
@@ -1727,7 +1684,6 @@
                 renderConductor();
                 renderMedalsTab();
                 renderTopMedalHolders();
-                renderCreatorTab(); // NEW
             };
 
             // --- LUCK & COOLDOWN CALCULATION ---
@@ -1739,7 +1695,7 @@
                 if (sortedMemberHistory.length === 0) return { remainingDays: 0, eligibilityDate: new Date() };
 
                 const lastSelection = sortedMemberHistory[0];
-                const lastDate = new Date(lastSelection.date); // This is now safe because dates are sanitized on load
+                const lastDate = new Date(lastSelection.date);
                 const today = new Date();
                 today.setHours(0,0,0,0);
 
@@ -1904,17 +1860,14 @@
             
             // --- TAB SWITCHING LOGIC ---
             function switchMainContentTab(tabName) {
-                // Deactivate all main content tabs
                 document.querySelectorAll('#desktop-nav [data-tab], #mobile-nav [data-tab]').forEach(btn => {
                     if (btn.dataset.tab !== 'conductor') {
                         btn.classList.remove('active');
                     }
                 });
-                // Activate the selected main content tab
                 document.querySelectorAll(`[data-tab="${tabName}"]`).forEach(btn => btn.classList.add('active'));
 
-                // Show the correct content panel
-                [contentMembers, contentHistory, contentMedals, contentCreator].forEach(p => p.classList.add('hidden')); // MODIFIED
+                [contentMembers, contentHistory, contentMedals].forEach(p => p.classList.add('hidden')); // MODIFIED
                 const contentPanel = document.getElementById(`content-${tabName}`);
                 if (contentPanel) {
                     contentPanel.classList.remove('hidden');
@@ -1926,7 +1879,6 @@
                 document.querySelectorAll('[data-tab="conductor"]').forEach(b => b.classList.toggle('active', isVisible));
             }
 
-            // Combined event listener for all navigation
             document.querySelectorAll('#desktop-nav button, #mobile-nav button').forEach(button => {
                 button.addEventListener('click', () => {
                     const tabName = button.dataset.tab;
@@ -1955,7 +1907,6 @@
                     if (member) {
                         editNameInput.value = member.name;
                         editRankSelect.value = member.rank;
-                        // Set avatar preview
                         editAvatarPreview.src = member.avatarUrl || 'https://placehold.co/80x80/1e293b/94a3b8?text=Avatar';
                         avatarUploadStatus.textContent = '';
                         
@@ -2039,16 +1990,13 @@
                     allianceMembers.push({ id: Date.now(), name: newName, rank: newRank, medals: [], subBoost: false, avatarUrl: null });
                     updateFirestore();
                     addModal.classList.add('hidden');
-
-                    // Send Discord notification
                     const discordEmbed = {
                         title: '👋 New Player Added!',
-                        color: 5814783, // A welcoming blue color
+                        color: 5814783,
                         description: `**${newName}** has been added to the tracker with rank **${newRank}**. Welcome!`,
                         timestamp: new Date().toISOString()
                     };
                     sendToDiscord(discordEmbed);
-
                 } else if (newName) {
                     console.log("A member with this name already exists.");
                 }
@@ -2062,23 +2010,18 @@
                     const oldRank = allianceMembers[memberIndex].rank;
                     const newName = editNameInput.value.trim();
                     const newRank = editRankSelect.value;
-
                     allianceMembers[memberIndex].name = newName;
                     allianceMembers[memberIndex].rank = newRank;
-                    
                     updateFirestore();
-
-                    // Check for rank change and send notification
                     if (oldRank !== newRank) {
                         const discordEmbed = {
                             title: '📈 Rank Change!',
-                            color: 16705372, // A purple color
+                            color: 16705372,
                             description: `**${newName}**'s rank has been updated from **${oldRank}** to **${newRank}**.`,
                             timestamp: new Date().toISOString()
                         };
                         sendToDiscord(discordEmbed);
                     }
-
                     editModal.classList.add('hidden');
                     memberToEditId = null;
                 }
@@ -2088,7 +2031,6 @@
                 const medalName = awardMedalSelect.value;
                 if(medalName && awardMedal(memberToEditId, medalName)) {
                     renderActiveMedalsInEditModal();
-                    // Also re-render main list to update stats
                     renderManualPickList();
                 }
             });
@@ -2144,7 +2086,6 @@
             });
             cancelAddHistoryBtn.addEventListener('click', () => addHistoryModal.classList.add('hidden'));
 
-            // Edit History Modal Listeners
             cancelEditHistoryBtn.addEventListener('click', () => {
                 editHistoryModal.classList.add('hidden');
                 historyToEditId = null;
@@ -2186,23 +2127,14 @@
                 });
             });
             
-            /**
-             * [MODIFIED] Validates if a medal can be awarded.
-             * All previous restrictions have been removed to allow stacking.
-             */
             function validateMedalAward() {
                 const memberId = parseFloat(awardMedalMemberSelect.value);
                 const medalName = awardMedalTypeSelect.value;
-                
-                // The only check is to ensure a member and medal are selected.
                 if (!memberId || !medalName) {
                     saveAwardMedalBtn.disabled = true;
                     awardMedalValidationMsg.textContent = '';
                     return;
                 }
-
-                // All previous validation checks have been removed to allow medals to be
-                // awarded to any player at any time, and buffs will stack.
                 awardMedalValidationMsg.textContent = '';
                 saveAwardMedalBtn.disabled = false;
             }
@@ -2247,7 +2179,6 @@
             }
             howItWorksButtons.forEach(btn => btn.addEventListener('click', openHowItWorks));
             
-            // Settings Modal Listeners
             settingsButtons.forEach(btn => btn.addEventListener('click', () => {
                 if (isAuthenticated) {
                     webhookUrlInput.value = appSettings.discordWebhookUrl || '';
@@ -2267,8 +2198,6 @@
                 }, 2000);
             });
 
-
-            // MODIFIED: Close modals only when mousedown and mouseup are on the overlay
             document.querySelectorAll('.modal-overlay').forEach(modal => {
                 modal.addEventListener('mousedown', (e) => {
                     if (e.target === modal) {
@@ -2295,7 +2224,6 @@
                 howItWorksContent.querySelector(`#tab-content-${tabButton.dataset.tab}`).style.display = 'block';
             });
             
-            // Avatar Upload Logic
             selectAvatarBtn.addEventListener('click', () => avatarUploadInput.click());
             avatarUploadInput.addEventListener('change', async (e) => {
                 if (!isAuthenticated || memberToEditId === null || !isAuthReady) {
@@ -2323,7 +2251,7 @@
                     editAvatarPreview.src = downloadURL;
                     avatarUploadStatus.textContent = 'Upload complete!';
                     
-                    renderAll(); // Re-render to podium if needed
+                    renderAll(); 
                 } catch (error) {
                     console.error("Avatar upload error:", error);
                     avatarUploadStatus.textContent = 'Upload failed. See console.';
@@ -2333,7 +2261,6 @@
                 }
             });
             
-            // Podium click listener
             document.getElementById('top-medal-holders-container').addEventListener('click', (e) => {
                 const podiumSpot = e.target.closest('.podium-spot');
                 if (podiumSpot && podiumSpot.dataset.id) {
@@ -2341,7 +2268,6 @@
                 }
             });
 
-            // Medal Leaders Modal & Tooltip Listeners
             medalLeadersButton.addEventListener('click', () => {
                 renderMedalLeaders();
                 medalLeadersModal.classList.remove('hidden');
@@ -2377,73 +2303,64 @@
             });
             
             medalLeadersList.addEventListener('mousemove', (e) => {
-                // Position tooltip slightly offset from cursor
                 const offsetX = 15;
                 const offsetY = 15;
                 let x = e.clientX + offsetX;
                 let y = e.clientY + offsetY;
-
-                // Prevent tooltip from going off-screen
                 if (x + medalHistoryTooltip.offsetWidth > window.innerWidth) {
                     x = e.clientX - medalHistoryTooltip.offsetWidth - offsetX;
                 }
                 if (y + medalHistoryTooltip.offsetHeight > window.innerHeight) {
                     y = e.clientY - medalHistoryTooltip.offsetHeight - offsetY;
                 }
-
                 medalHistoryTooltip.style.left = `${x}px`;
                 medalHistoryTooltip.style.top = `${y}px`;
             });
             
             // ===============================================================
-            // NEW: Medal Creator Logic
+            // NEW: Create Medal Modal Logic
             // ===============================================================
+            openCreateMedalModalBtn.addEventListener('click', () => {
+                if (!isAuthenticated) return;
+                renderCustomMedalsInModal();
+                createMedalModal.classList.remove('hidden');
+            });
+
+            const closeCreateModal = () => createMedalModal.classList.add('hidden');
+            closeCreateMedalBtn.addEventListener('click', closeCreateModal);
+            doneCreateMedalBtn.addEventListener('click', closeCreateModal);
+
             createMedalBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
-                
                 const name = createMedalNameInput.value.trim();
                 const luck = parseInt(createMedalLuckInput.value, 10);
                 const cd = parseInt(createMedalCdInput.value, 10);
 
-                if (!name) {
-                    alert('Please enter a medal name.');
-                    return;
-                }
-                if (isNaN(luck) || isNaN(cd)) {
-                    alert('Please enter valid numbers for luck and cooldown reduction.');
-                    return;
+                if (!name || isNaN(luck) || isNaN(cd)) {
+                    alert('Please ensure all fields have valid values.'); return;
                 }
                 if (CONFIG.MEDAL_LUCK[name] !== undefined) {
-                    alert('A medal with this name already exists.');
-                    return;
+                    alert('A medal with this name already exists.'); return;
                 }
 
-                // Add to local state
                 if (!appSettings.customMedals) appSettings.customMedals = {};
-                appSettings.customMedals[name] = {
-                    luck: luck,
-                    cdReduction: cd / 100 // Store as a decimal
-                };
+                appSettings.customMedals[name] = { luck, cdReduction: cd / 100 };
                 
-                // Rebuild dynamic config and update UI
                 buildDynamicConfig();
                 populateMedalSelect(awardMedalSelect);
                 populateMedalSelect(awardMedalTypeSelect);
                 populateHowItWorksContent();
                 
-                // Clear inputs
                 createMedalNameInput.value = '';
                 createMedalLuckInput.value = '10';
                 createMedalCdInput.value = '5';
                 
-                // Save to Firestore and re-render the creator list
                 updateFirestore();
-                renderCreatorTab();
+                renderCustomMedalsInModal(); 
 
-                // Send Discord notification
                 const discordEmbed = {
                     title: '✨ New Custom Medal Created!',
-                    color: 10181046, // A purple color
+                    color: 10181046,
                     description: `The **${name}** medal is now available!`,
                     fields: [
                         { name: 'Luck Bonus', value: `+${luck}%`, inline: true },
@@ -2467,7 +2384,7 @@
                         populateHowItWorksContent();
 
                         updateFirestore();
-                        renderCreatorTab();
+                        renderCustomMedalsInModal();
                     });
                 }
             });
@@ -2475,27 +2392,17 @@
 
             // --- INITIALIZATION ---
             setAuthState(false);
-            // Set the initial active tab to History
             switchMainContentTab('history');
-            // Make conductor panel visible by default
             toggleConductorPanel();
             initializeFirebase();
 
-            // ===============================================================
-            // NEW: PWA Service Worker Registration
-            // ===============================================================
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('/service-worker.js')
-                        .then(registration => {
-                            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                        })
-                        .catch(err => {
-                            console.log('ServiceWorker registration failed: ', err);
-                        });
+                        .then(reg => console.log('ServiceWorker registration successful:', reg.scope))
+                        .catch(err => console.log('ServiceWorker registration failed:', err));
                 });
             }
-            // ===============================================================
         });
     </script>
 
