@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="THOR Tracker">
     <meta name="theme-color" content="#020617">
-    <link rel="apple-touch-icon" href="images/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="thor_tracker.jpeg">
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -421,7 +421,7 @@
                         <i class="fa-solid fa-medal w-5 h-5 text-center"></i>
                         <span class="font-semibold">Medals</span>
                     </button>
-                    </nav>
+                </nav>
                  <div class="p-4 border-t border-slate-700/50 mt-auto flex flex-col items-center justify-between space-y-2">
                     <div class="flex items-center space-x-2">
                         <button id="how-it-works-button" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center space-x-2">
@@ -488,7 +488,7 @@
                             <i class="fa-solid fa-medal w-5 h-5 mt-0.5"></i>
                             <span class="text-xs font-semibold">Medals</span>
                         </button>
-                        </div>
+                    </div>
                 </div>
 
                 <div class="flex-grow flex flex-col min-h-0">
@@ -533,8 +533,7 @@
                             </div>
                             <div id="medals-list-container" class="space-y-2 custom-scrollbar pr-2 overflow-y-auto flex-grow"></div>
                         </div>
-
-                        </div>
+                    </div>
                     <div class="lg:hidden p-4 border-t border-slate-700/50 mt-auto flex items-center justify-between space-x-4">
                         <div class="flex items-center">
                             <button id="how-it-works-button-mobile" class="text-slate-400 hover:text-cyan-400 font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center space-x-2">
@@ -591,6 +590,7 @@
             </div>
         </div>
     </div>
+
     <div id="settings-modal" class="modal-overlay hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-lg rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4 text-center">Settings</h2>
@@ -919,7 +919,6 @@
             const addMemberButton = document.getElementById('add-member-button');
             const manualPickListContainer = document.getElementById('manual-pick-list-container');
             
-            // Main views and panels
             const conductorPanelWrapper = document.getElementById('conductor-panel-wrapper');
             const contentMembers = document.getElementById('content-members');
             const contentHistory = document.getElementById('content-history');
@@ -934,7 +933,6 @@
             const saveAddHistoryBtn = document.getElementById('save-add-history-btn');
             const cancelAddHistoryBtn = document.getElementById('cancel-add-history-btn');
             
-            // Edit History Modal Elements
             const editHistoryModal = document.getElementById('edit-history-modal');
             const editHistoryPlayerName = document.getElementById('edit-history-player-name');
             const editHistoryDateInput = document.getElementById('edit-history-date-input');
@@ -964,14 +962,11 @@
             const subBoostDescription = document.getElementById('sub-boost-description');
             const removeSubBoostBtn = document.getElementById('remove-sub-boost-btn');
             
-            // Avatar Elements
             const editAvatarPreview = document.getElementById('edit-avatar-preview');
             const avatarUploadInput = document.getElementById('avatar-upload-input');
             const selectAvatarBtn = document.getElementById('select-avatar-btn');
             const avatarUploadStatus = document.getElementById('avatar-upload-status');
 
-
-            // Player Info Modal Elements
             const playerInfoModal = document.getElementById('player-info-modal');
             const playerInfoName = document.getElementById('player-info-name');
             const closePlayerInfoBtn = document.getElementById('close-player-info-btn');
@@ -983,7 +978,6 @@
             const playerInfoMedalsList = document.getElementById('player-info-medals-list');
             const playerInfoConductorHistoryList = document.getElementById('player-info-conductor-history-list');
 
-            // Award Medal Modal Elements
             const openAwardMedalModalBtn = document.getElementById('open-award-medal-modal-btn');
             const awardMedalModal = document.getElementById('award-medal-modal');
             const awardMedalMemberSelect = document.getElementById('award-medal-member-select');
@@ -992,7 +986,6 @@
             const saveAwardMedalBtn = document.getElementById('save-award-medal-btn');
             const cancelAwardMedalBtn = document.getElementById('cancel-award-medal-btn');
 
-            // Auth Elements
             const loginModal = document.getElementById('login-modal');
             const loginButton = document.getElementById('login-button');
             const cancelLoginBtn = document.getElementById('cancel-login-btn');
@@ -1001,7 +994,6 @@
             const loginButtons = [document.getElementById('open-login-modal-btn'), document.getElementById('open-login-modal-btn-mobile')];
             const logoutButtons = [document.getElementById('logout-button'), document.getElementById('logout-button-mobile')];
 
-            // How It Works Modal Elements
             const howItWorksModal = document.getElementById('how-it-works-modal');
             const closeHowItWorksBtn = document.getElementById('close-how-it-works-btn');
             const closeHowItWorksBtn2 = document.getElementById('close-how-it-works-btn-2');
@@ -1009,7 +1001,6 @@
             const howItWorksContent = document.getElementById('how-it-works-content');
             const howItWorksButtons = [document.getElementById('how-it-works-button'), document.getElementById('how-it-works-button-mobile')];
 
-            // Settings Modal Elements
             const settingsModal = document.getElementById('settings-modal');
             const settingsButtons = [document.getElementById('settings-button'), document.getElementById('settings-button-mobile')];
             const webhookUrlInput = document.getElementById('webhook-url-input');
@@ -1017,14 +1008,12 @@
             const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
             const webhookSaveStatus = document.getElementById('webhook-save-status');
 
-            // Medal Leaders Modal Elements
             const medalLeadersModal = document.getElementById('medal-leaders-modal');
             const medalLeadersButton = document.getElementById('medal-leaders-button');
             const closeMedalLeadersBtn = document.getElementById('close-medal-leaders-btn');
             const medalLeadersList = document.getElementById('medal-leaders-list');
             const medalHistoryTooltip = document.getElementById('medal-history-tooltip');
             
-            // NEW: Create Medal Modal Elements
             const createMedalModal = document.getElementById('create-medal-modal');
             const openCreateMedalModalBtn = document.getElementById('open-create-medal-modal-btn');
             const closeCreateMedalBtn = document.getElementById('close-create-medal-btn');
@@ -1867,7 +1856,7 @@
                 });
                 document.querySelectorAll(`[data-tab="${tabName}"]`).forEach(btn => btn.classList.add('active'));
 
-                [contentMembers, contentHistory, contentMedals].forEach(p => p.classList.add('hidden')); // MODIFIED
+                [contentMembers, contentHistory, contentMedals].forEach(p => p.classList.add('hidden'));
                 const contentPanel = document.getElementById(`content-${tabName}`);
                 if (contentPanel) {
                     contentPanel.classList.remove('hidden');
@@ -2317,9 +2306,6 @@
                 medalHistoryTooltip.style.top = `${y}px`;
             });
             
-            // ===============================================================
-            // NEW: Create Medal Modal Logic
-            // ===============================================================
             openCreateMedalModalBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 renderCustomMedalsInModal();
@@ -2388,7 +2374,6 @@
                     });
                 }
             });
-            // ===============================================================
 
             // --- INITIALIZATION ---
             setAuthState(false);
