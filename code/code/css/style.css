@@ -651,40 +651,37 @@ body {
 
 .avatar-border-none, .chat-bubble-border-none { border: 2px solid #30363d; }
 
-.avatar-border-sentinel, .chat-bubble-border-sentinel { border: 2px solid #c9d1d9; }
-.avatar-border-cobalt, .chat-bubble-border-cobalt { border: 3px solid #00bfff; }
+/* --- POLISHED & OVERHAULED BORDERS --- */
+.avatar-border-sentinel, .chat-bubble-border-sentinel { border: 2px solid #c9d1d9; box-shadow: 0 0 8px -1px #c9d1d9; }
+.avatar-border-cobalt, .chat-bubble-border-cobalt { border: 3px solid #00bfff; box-shadow: 0 0 8px -1px #00bfff; }
 .avatar-border-solar { border: 3px solid #ffd700; box-shadow: 0 0 8px #ffd700; }
 .chat-bubble-border-solar { border: 2px solid #ffd700; box-shadow: 0 0 5px -1px #ffd700; }
-
-.avatar-border-amethyst, .chat-bubble-border-amethyst { border: 3px solid #9370db; }
+.avatar-border-amethyst, .chat-bubble-border-amethyst { border: 3px solid #9370db; box-shadow: 0 0 10px -1px #9370db; }
 .avatar-border-cyber { border: 3px dotted #00f9a5; animation: pulse-cyber 3s infinite linear; }
 .chat-bubble-border-cyber { border: 2px dotted #00f9a5; }
-
 .avatar-border-crimson { border: 3px solid #dc143c; box-shadow: 0 0 10px #dc143c; }
 .chat-bubble-border-crimson { border: 2px solid #dc143c; }
-
 .avatar-border-glacial { border: 3px solid #ffffff; box-shadow: 0 0 12px #00bfff; }
 .chat-bubble-border-glacial { border: 2px solid #ffffff; box-shadow: 0 0 8px -2px #00bfff; }
-
-.avatar-border-venom { border: 3px solid #7cfc00; }
-.chat-bubble-border-venom { border: 2px solid #7cfc00; }
-
-.avatar-border-ares { border: 4px ridge #ff4500; }
+.avatar-border-venom { border: 3px solid #7cfc00; box-shadow: 0 0 12px -1px #7cfc00; }
+.chat-bubble-border-venom { border: 2px solid #7cfc00; box-shadow: 0 0 8px -2px #7cfc00; }
+.avatar-border-ares { border: 4px ridge #ff4500; box-shadow: 0 0 12px -1px #ff4500; }
 .chat-bubble-border-ares { border: 2px ridge #ff4500; }
 
+@keyframes pulse-nebula { 0% { filter: brightness(1); } 50% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
 .avatar-border-nebula, .chat-bubble-border-nebula { 
     border: 3px solid transparent; 
     background-clip: padding-box, border-box; 
     background-origin: padding-box, border-box; 
     background-image: linear-gradient(to right, #161b22, #161b22), linear-gradient(135deg, #8A2BE2, #4A00E0, #FF00FF); 
+    animation: pulse-nebula 2s infinite;
 }
 .chat-bubble-border-nebula { border-width: 2px; }
 
-/* --- POLISHED: Chroma Border Fix --- */
 .avatar-border-chroma, .chat-bubble-border-chroma {
     position: relative;
     border: 4px solid transparent;
-    background: #0D1117; /* Match app background */
+    background: #0D1117;
     background-clip: padding-box;
 }
 .avatar-border-chroma::before, .chat-bubble-border-chroma::before {
@@ -693,13 +690,12 @@ body {
     top: -4px; left: -4px; right: -4px; bottom: -4px;
     background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
     z-index: -1;
-    animation: spin 4s infinite linear;
 }
-.avatar-border-chroma::before { border-radius: 50%; }
+.avatar-border-chroma::before { border-radius: 50%; animation: spin 4s infinite linear; }
 .chat-bubble-border-chroma { border-width: 2px; }
 .chat-bubble-border-chroma::before {
     top: -2px; left: -2px; right: -2px; bottom: -2px;
-    border-radius: 12px; /* Match chat bubble */
+    border-radius: 12px;
 }
 
 /* Keyframe animations */
@@ -1404,14 +1400,13 @@ body {
     border-radius: 12px;
     background: linear-gradient(90deg, #fe6ceb, #39bcfe);
     z-index: -1;
-    animation: celestial-spin-anim 9s linear infinite normal;
+    /* Animation removed for chat bubble for stability */
 }
 /* --- END: NEW CELESTIAL BORDER --- */
 
 
-/* --- START: TOOLTIP FOR DISABLED SKINS --- */
+/* --- START: TOOLTIP & LOCK FOR DISABLED SKINS --- */
 .skin-select-btn[disabled] {
-    opacity: 0.5;
     cursor: not-allowed;
     position: relative;
 }
@@ -1431,4 +1426,19 @@ body {
     z-index: 10;
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
-/* --- END: TOOLTIP FOR DISABLED SKINS --- */
+.lock-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(13, 17, 23, 0.7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c9d1d9;
+    font-size: 1.25rem;
+    z-index: 5;
+}
+#chat-bubble-border-selector .lock-overlay {
+    border-radius: 10px;
+}
+/* --- END: TOOLTIP & LOCK FOR DISABLED SKINS --- */

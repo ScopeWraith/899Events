@@ -77,12 +77,15 @@ export function buildAvatarBorderSkins() {
     container.innerHTML = skins.map(skin => {
         const previewData = { ...currentUserData, avatarBorderSkin: skin.id, isAdmin: skin.id === 'admin' };
         const border = getAvatarBorderClass(previewData, allianceData);
-        const disabled = !skin.unlocked ? 'disabled' : '';
-        const tooltip = !skin.unlocked ? `data-tooltip="${skin.tooltip}"` : '';
-        
+        const isDisabled = !skin.unlocked;
+        const disabledAttr = isDisabled ? 'disabled' : '';
+        const tooltipAttr = isDisabled ? `data-tooltip="${skin.tooltip}"` : '';
+        const lockIcon = isDisabled ? `<div class="lock-overlay"><i class="fas fa-lock"></i></div>` : '';
+
         return `
-            <button type="button" class="skin-select-btn" data-value="${skin.id}" ${disabled} ${tooltip}>
+            <button type="button" class="skin-select-btn" data-value="${skin.id}" ${disabledAttr} ${tooltipAttr}>
                 <div class="preview">
+                    ${lockIcon}
                     <div class="preview-icon"></div>
                     <div class="preview-border ${border.className}" style="${border.style}"></div>
                 </div>
@@ -140,12 +143,15 @@ export function buildChatBubbleBorderSkins() {
     container.innerHTML = skins.map(skin => {
         const previewData = { ...currentUserData, chatBubbleBorderSkin: skin.id, isAdmin: skin.id === 'admin' };
         const border = getChatBubbleBorderClass(previewData, allianceData);
-        const disabled = !skin.unlocked ? 'disabled' : '';
-        const tooltip = !skin.unlocked ? `data-tooltip="${skin.tooltip}"` : '';
+        const isDisabled = !skin.unlocked;
+        const disabledAttr = isDisabled ? 'disabled' : '';
+        const tooltipAttr = isDisabled ? `data-tooltip="${skin.tooltip}"` : '';
+        const lockIcon = isDisabled ? `<div class="lock-overlay"><i class="fas fa-lock"></i></div>` : '';
 
         return `
-            <button type="button" class="skin-select-btn" data-value="${skin.id}" ${disabled} ${tooltip}>
+            <button type="button" class="skin-select-btn" data-value="${skin.id}" ${disabledAttr} ${tooltipAttr}>
                 <div class="preview">
+                    ${lockIcon}
                     <div class="preview-icon"></div>
                     <div class="preview-border ${border.className}" style="${border.style}"></div>
                 </div>
