@@ -670,7 +670,7 @@ body {
 
 @keyframes pulse-nebula { 0% { filter: brightness(1); } 50% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
 .avatar-border-nebula, .chat-bubble-border-nebula { 
-    border: 3px solid transparent; 
+    border: 2px solid transparent; 
     background-clip: padding-box, border-box; 
     background-origin: padding-box, border-box; 
     background-image: linear-gradient(to right, #161b22, #161b22), linear-gradient(135deg, #8A2BE2, #4A00E0, #FF00FF); 
