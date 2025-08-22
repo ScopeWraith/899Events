@@ -1,5 +1,5 @@
 {
-  "name": "899 Events Hub",
+  "name": "899Events",
   "short_name": "899Events",
   "start_url": ".",
   "display": "fullscreen",
@@ -8,9 +8,9 @@
   "description": "The community platform for Server #899.",
   "icons": [
     {
-      "src": "img/logo.png",
+      "src": "img/app_icon.jpeg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     }
   ]
