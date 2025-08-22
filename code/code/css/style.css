@@ -653,19 +653,19 @@ body {
 
 /* --- POLISHED & OVERHAULED BORDERS --- */
 .avatar-border-sentinel, .chat-bubble-border-sentinel { border: 2px solid #c9d1d9; box-shadow: 0 0 8px -1px #c9d1d9; }
-.avatar-border-cobalt, .chat-bubble-border-cobalt { border: 3px solid #00bfff; box-shadow: 0 0 8px -1px #00bfff; }
-.avatar-border-solar { border: 3px solid #ffd700; box-shadow: 0 0 8px #ffd700; }
+.avatar-border-cobalt, .chat-bubble-border-cobalt { border: 2px solid #00bfff; box-shadow: 0 0 8px -1px #00bfff; }
+.avatar-border-solar { border: 2px solid #ffd700; box-shadow: 0 0 8px #ffd700; }
 .chat-bubble-border-solar { border: 2px solid #ffd700; box-shadow: 0 0 5px -1px #ffd700; }
-.avatar-border-amethyst, .chat-bubble-border-amethyst { border: 3px solid #9370db; box-shadow: 0 0 10px -1px #9370db; }
-.avatar-border-cyber { border: 3px dotted #00f9a5; animation: pulse-cyber 3s infinite linear; }
+.avatar-border-amethyst, .chat-bubble-border-amethyst { border: 2px solid #9370db; box-shadow: 0 0 10px -1px #9370db; }
+.avatar-border-cyber { border: 2px dotted #00f9a5; animation: pulse-cyber 3s infinite linear; }
 .chat-bubble-border-cyber { border: 2px dotted #00f9a5; }
-.avatar-border-crimson { border: 3px solid #dc143c; box-shadow: 0 0 10px #dc143c; }
+.avatar-border-crimson { border: 2px solid #dc143c; box-shadow: 0 0 10px #dc143c; }
 .chat-bubble-border-crimson { border: 2px solid #dc143c; }
-.avatar-border-glacial { border: 3px solid #ffffff; box-shadow: 0 0 12px #00bfff; }
+.avatar-border-glacial { border: 2px solid #ffffff; box-shadow: 0 0 12px #00bfff; }
 .chat-bubble-border-glacial { border: 2px solid #ffffff; box-shadow: 0 0 8px -2px #00bfff; }
-.avatar-border-venom { border: 3px solid #7cfc00; box-shadow: 0 0 12px -1px #7cfc00; }
+.avatar-border-venom { border: 2px solid #7cfc00; box-shadow: 0 0 12px -1px #7cfc00; }
 .chat-bubble-border-venom { border: 2px solid #7cfc00; box-shadow: 0 0 8px -2px #7cfc00; }
-.avatar-border-ares { border: 4px ridge #ff4500; box-shadow: 0 0 12px -1px #ff4500; }
+.avatar-border-ares { border: 2px ridge #ff4500; box-shadow: 0 0 12px -1px #ff4500; }
 .chat-bubble-border-ares { border: 2px ridge #ff4500; }
 
 @keyframes pulse-nebula { 0% { filter: brightness(1); } 50% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
