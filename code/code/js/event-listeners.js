@@ -200,20 +200,6 @@ export function initializeAllEventListeners() {
                     pane.classList.toggle('active', pane.id === `edit-profile-tab-${tabName}`);
                 });
             }
-
-            const skinBtn = e.target.closest('.skin-select-btn');
-            if (skinBtn) {
-                e.preventDefault();
-                const parentContainer = skinBtn.parentElement;
-                const targetInputId = parentContainer.id.replace('-selector', '');
-                const targetInput = getElement(`edit-${targetInputId}`);
-
-                if (targetInput) {
-                    targetInput.value = skinBtn.dataset.value;
-                    parentContainer.querySelectorAll('.skin-select-btn').forEach(btn => btn.classList.remove('active'));
-                    skinBtn.classList.add('active');
-                }
-            }
         });
     }
 
