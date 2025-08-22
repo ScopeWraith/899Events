@@ -212,20 +212,26 @@ export function showPage(targetId) {
         page.style.display = page.id === targetId ? 'block' : 'none';
     });
 
-    // Don't set localStorage if we are just restoring the view
     const isRestoring = (new Error()).stack.includes('restoreLastViewedPage');
     if (!isRestoring) {
         localStorage.setItem('lastActivePage', targetId);
-        // When a user clicks a main nav link, we should clear the last sub-page
-        // to ensure the correct default is selected.
         localStorage.removeItem('lastActiveSubPage');
     }
 
     const mobileTitleEl = getElement('mobile-page-title');
     const activeNavLink = querySelector(`#main-nav .nav-link[data-main-target="${targetId}"]`);
     if (mobileTitleEl && activeNavLink) {
-        const titleText = activeNavLink.querySelector('span').textContent;
-        mobileTitleEl.textContent = titleText;
+        // --- START: MODIFICATION TO FIX TEXT CONTENT ---
+        const textSpan = activeNavLink.querySelector('span');
+        if (textSpan) {
+            const tempSpan = textSpan.cloneNode(true);
+            const badge = tempSpan.querySelector('.badge');
+            if (badge) {
+                badge.remove();
+            }
+            mobileTitleEl.textContent = tempSpan.textContent.trim();
+        }
+        // --- END: MODIFICATION TO FIX TEXT CONTENT ---
     }
     
     if (!isRestoring) {
@@ -488,10 +494,26 @@ export function buildMobileNav() {
     desktopNav.querySelectorAll('.nav-item').forEach(item => {
         const link = item.querySelector('.nav-link');
         if (!link) return;
+
+        // --- START: MODIFICATION TO FIX TEXT CONTENT ---
+        const iconClass = link.querySelector('i').className;
+        const textSpan = link.querySelector('span');
+        let linkText = '';
+
+        if (textSpan) {
+            const tempSpan = textSpan.cloneNode(true); // Clone to avoid changing the desktop view
+            const badge = tempSpan.querySelector('.badge');
+            if (badge) {
+                badge.remove(); // Remove the badge from our clone
+            }
+            linkText = tempSpan.textContent.trim(); // Get the clean text
+        }
+        // --- END: MODIFICATION TO FIX TEXT CONTENT ---
+
         const newLink = document.createElement('a');
         newLink.href = '#';
         newLink.className = 'mobile-nav-link';
-        newLink.innerHTML = `<i class="${link.querySelector('i').className} w-6 text-center mr-3"></i>${link.querySelector('span').textContent}`;
+        newLink.innerHTML = `<i class="${iconClass} w-6 text-center mr-3"></i>${linkText}`;
         
         newLink.addEventListener('click', (e) => {
             e.preventDefault();
@@ -523,7 +545,6 @@ export function buildMobileNav() {
     divider.className = 'border-t border-white/10 my-2';
     mobileNavLinksContainer.appendChild(divider);
 
-    // --- FIX: Add check for user permissions before creating mobile admin links ---
     const canCreatePost = currentUserData && (currentUserData.isAdmin || (currentUserData.isVerified && (currentUserData.allianceRank === 'R5' || currentUserData.allianceRank === 'R4')));
     if (canCreatePost) {
         const createEventLink = document.createElement('a');
