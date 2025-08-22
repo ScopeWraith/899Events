@@ -81,14 +81,6 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
         friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
     }
     
-    // Profile Dropdown "Private Messages" Badge
-    const messagesBtn = document.getElementById('profile-dropdown-messages');
-    if (messagesBtn) {
-        const messagesBadge = messagesBtn.querySelector('.badge');
-        messagesBadge.textContent = socialBadges.convoCount;
-        messagesBadge.classList.toggle('hidden', socialBadges.convoCount === 0);
-        messagesBtn.disabled = false; // Always keep it enabled to allow navigation
-    }
     // --- END: MODIFICATION FOR BADGE DISPLAY ---
 }
 
