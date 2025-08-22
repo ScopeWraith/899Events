@@ -1,22 +1,23 @@
-const CACHE_NAME = 'thor-tracker-cache-v2'; // Incremented version to force update
+const CACHE_NAME = 'thor-tracker-cache-v3'; // Incremented version to force update
 const urlsToCache = [
   './',
-  './conductor.html',
-  './manifest.json',
-  './thor_tracker.jpeg'
+  './conductor.html'
+  // The manifest and icon are typically handled by the browser's install process,
+  // but caching the main files is most important.
 ];
 
 self.addEventListener('install', event => {
+  // Perform install steps
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
+      .then(function(cache) {
+        console.log('Opened cache and caching files.');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Clean up old caches
+// Clean up old caches when a new service worker is activated
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -32,12 +33,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
+      .then(function(response) {
+        // If the request is in the cache, return it
         if (response) {
           return response;
         }
-        // Not in cache - fetch from network
+        // Otherwise, fetch it from the network
         return fetch(event.request);
       }
     )
