@@ -1,0 +1,21 @@
+{
+  "name": "THOR Tracker",
+  "short_name": "THOR Tracker",
+  "start_url": "/conductor.html",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "description": "A tool for tracking and selecting the train conductor.",
+  "icons": [
+    {
+      "src": "thor_tracker.jpeg",
+      "type": "image/jpeg",
+      "sizes": "192x192"
+    },
+    {
+      "src": "thor_tracker.jpeg",
+      "type": "image/jpeg",
+      "sizes": "512x512"
+    }
+  ]
+}
