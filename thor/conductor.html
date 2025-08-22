@@ -595,6 +595,17 @@
         <div class="card p-6 w-full max-w-lg rounded-2xl">
             <h2 class="text-xl font-bold text-white mb-4 text-center">Settings</h2>
             <div class="space-y-4">
+                <div class="border-b border-slate-700 pb-4">
+                    <h3 class="text-sm font-medium text-slate-300">Webhook Avatar</h3>
+                    <div class="mt-2 flex items-center gap-4">
+                        <img id="webhook-avatar-preview" src="https://i.imgur.com/gJ3l4p8.png" class="w-20 h-20 rounded-full object-cover bg-slate-800 border-2 border-slate-600">
+                        <div class="flex-grow">
+                            <input type="file" id="webhook-avatar-upload-input" class="hidden" accept="image/*">
+                            <button id="select-webhook-avatar-btn" class="w-full bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg text-sm">Select Image</button>
+                            <p id="webhook-avatar-upload-status" class="text-xs text-slate-400 mt-2 h-4"></p>
+                        </div>
+                    </div>
+                </div>
                 <div>
                     <label for="webhook-url-input" class="block text-sm font-medium text-slate-300">Discord Webhook URL</label>
                     <input type="text" id="webhook-url-input" placeholder="Enter your Discord webhook URL" class="mt-1 w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
@@ -1007,6 +1018,10 @@
             const saveSettingsBtn = document.getElementById('save-settings-btn');
             const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
             const webhookSaveStatus = document.getElementById('webhook-save-status');
+            const webhookAvatarPreview = document.getElementById('webhook-avatar-preview');
+            const webhookAvatarUploadInput = document.getElementById('webhook-avatar-upload-input');
+            const selectWebhookAvatarBtn = document.getElementById('select-webhook-avatar-btn');
+            const webhookAvatarUploadStatus = document.getElementById('webhook-avatar-upload-status');
 
             const medalLeadersModal = document.getElementById('medal-leaders-modal');
             const medalLeadersButton = document.getElementById('medal-leaders-button');
@@ -1028,7 +1043,7 @@
             // --- LOCAL STATE ---
             let allianceMembers = [];
             let selectionHistory = [];
-            let appSettings = { discordWebhookUrl: '', customMedals: {} };
+            let appSettings = { discordWebhookUrl: '', discordWebhookAvatarUrl: '', customMedals: {} };
             let currentConductor = 'SELECT A CONDUCTOR';
             let pendingConductor = null;
             let memberToEditId = null;
@@ -1135,7 +1150,7 @@
                             id: item.id || Date.now() + index
                         }));
                         
-                        appSettings = data.settings || { discordWebhookUrl: '', customMedals: {} };
+                        appSettings = data.settings || { discordWebhookUrl: '', discordWebhookAvatarUrl: '', customMedals: {} };
                         if (!appSettings.customMedals) appSettings.customMedals = {};
                         
                         buildDynamicConfig();
@@ -1163,7 +1178,7 @@
                 }
                 const payload = {
                     username: "THOR Tracker",
-                    avatar_url: "https://i.imgur.com/gJ3l4p8.png",
+                    avatar_url: appSettings.discordWebhookAvatarUrl || "https://i.imgur.com/gJ3l4p8.png",
                     embeds: [embed]
                 };
                 try {
@@ -1225,7 +1240,7 @@
                 .map((name, index) => ({ id: Date.now() + index, name: name, rank: 'R1', medals: [], subBoost: false, avatarUrl: null }));
                 selectionHistory = [{ player: "Rat", date: Date.now() - 86400000 * 2, id: Date.now()+1 }, { player: "Lecarre", date: Date.now() - 86400000 * 3, id: Date.now()+2 }, { player: "MagicalMike (AllDayDad)", date: Date.now() - 86400000 * 4, id: Date.now()+3 }];
                 currentConductor = 'SELECT A CONDUCTOR';
-                appSettings = { discordWebhookUrl: '', customMedals: {} };
+                appSettings = { discordWebhookUrl: '', discordWebhookAvatarUrl: '', customMedals: {} };
                 buildDynamicConfig();
                 if (isAuthenticated) updateFirestore();
             }
@@ -2171,7 +2186,9 @@
             settingsButtons.forEach(btn => btn.addEventListener('click', () => {
                 if (isAuthenticated) {
                     webhookUrlInput.value = appSettings.discordWebhookUrl || '';
+                    webhookAvatarPreview.src = appSettings.discordWebhookAvatarUrl || 'https://i.imgur.com/gJ3l4p8.png';
                     webhookSaveStatus.textContent = '';
+                    webhookAvatarUploadStatus.textContent = '';
                     settingsModal.classList.remove('hidden');
                 }
             }));
@@ -2179,12 +2196,45 @@
             saveSettingsBtn.addEventListener('click', () => {
                 if (!isAuthenticated) return;
                 appSettings.discordWebhookUrl = webhookUrlInput.value.trim();
+                // Avatar URL is saved on upload, so we just need to save the webhook URL here.
                 updateFirestore();
                 webhookSaveStatus.textContent = 'Settings saved!';
                 setTimeout(() => {
                     webhookSaveStatus.textContent = '';
                     settingsModal.classList.add('hidden');
                 }, 2000);
+            });
+            
+            selectWebhookAvatarBtn.addEventListener('click', () => webhookAvatarUploadInput.click());
+            webhookAvatarUploadInput.addEventListener('change', async (e) => {
+                if (!isAuthenticated || !isAuthReady) {
+                    webhookAvatarUploadStatus.textContent = 'Auth not ready.';
+                    return;
+                }
+                const file = e.target.files[0];
+                if (!file) return;
+
+                webhookAvatarUploadStatus.textContent = 'Uploading...';
+                selectWebhookAvatarBtn.disabled = true;
+
+                const storageRef = ref(storage, `webhooks/avatar/${Date.now()}-${file.name}`);
+
+                try {
+                    const snapshot = await uploadBytes(storageRef, file);
+                    const downloadURL = await getDownloadURL(snapshot.ref);
+                    
+                    appSettings.discordWebhookAvatarUrl = downloadURL;
+                    await updateFirestore();
+                    
+                    webhookAvatarPreview.src = downloadURL;
+                    webhookAvatarUploadStatus.textContent = 'Upload complete! Save settings.';
+                } catch (error) {
+                    console.error("Webhook avatar upload error:", error);
+                    webhookAvatarUploadStatus.textContent = 'Upload failed. See console.';
+                } finally {
+                     selectWebhookAvatarBtn.disabled = false;
+                     setTimeout(() => webhookAvatarUploadStatus.textContent = '', 4000);
+                }
             });
 
             document.querySelectorAll('.modal-overlay').forEach(modal => {
