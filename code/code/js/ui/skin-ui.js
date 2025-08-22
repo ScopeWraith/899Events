@@ -40,17 +40,28 @@ export function buildAvatarBorderSkins() {
     const { currentUserData, allAlliances, userFriends, allPlayers } = getState();
     const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
     
-    // --- START: Achievement Calculation ---
     const friendCount = userFriends.filter(f => f.status === 'friends').length;
     const likesGivenCount = allPlayers.filter(p => p.likedBy && p.likedBy.includes(currentUserData.uid)).length;
     const hasCustomAvatar = currentUserData.avatarUrl && !currentUserData.avatarUrl.includes('placehold.co');
-    // --- END: Achievement Calculation ---
 
     const skins = [
         // Default Skins
         { id: 'rank', label: 'Rank', unlocked: true },
         { id: 'alliance', label: 'Alliance', unlocked: true },
         { id: 'admin', label: 'Admin', unlocked: currentUserData.isAdmin },
+        
+        // General Skins (Unlocked by default)
+        { id: 'sentinel', label: 'Sentinel', unlocked: true },
+        { id: 'cobalt', label: 'Cobalt', unlocked: true },
+        { id: 'solar', label: 'Solar', unlocked: true },
+        { id: 'amethyst', label: 'Amethyst', unlocked: true },
+        { id: 'cyber', label: 'Cyber', unlocked: true },
+        { id: 'crimson', label: 'Crimson', unlocked: true },
+        { id: 'glacial', label: 'Glacial', unlocked: true },
+        { id: 'venom', label: 'Venom', unlocked: true },
+        { id: 'ares', label: 'Ares', unlocked: true },
+        { id: 'nebula', label: 'Nebula', unlocked: true },
+        { id: 'chroma', label: 'Chroma', unlocked: true },
 
         // Achievement Skins
         { id: 'friend-1', label: 'Socialite', unlocked: friendCount >= 10, tooltip: 'Add 10 Friends' },
@@ -60,7 +71,8 @@ export function buildAvatarBorderSkins() {
         { id: 'like-1', label: 'Appreciator', unlocked: likesGivenCount >= 25, tooltip: 'Like 25 player profiles' },
         { id: 'like-2', label: 'Admirer', unlocked: likesGivenCount >= 50, tooltip: 'Like 50 player profiles' },
         { id: 'like-3', label: 'Idolizer', unlocked: likesGivenCount >= 100, tooltip: 'Like 100 player profiles' },
-    ].filter(skin => skin.unlocked || (skin.tooltip && skin.id !== 'admin')); // Filter out admin if not unlocked
+        { id: 'celestial', label: 'Celestial', unlocked: likesGivenCount >= 250, tooltip: 'Like 250 player profiles' },
+    ].filter(skin => skin.unlocked || (skin.tooltip && skin.id !== 'admin'));
 
     container.innerHTML = skins.map(skin => {
         const previewData = { ...currentUserData, avatarBorderSkin: skin.id, isAdmin: skin.id === 'admin' };
@@ -91,17 +103,28 @@ export function buildChatBubbleBorderSkins() {
     const { currentUserData, allAlliances, userFriends, allPlayers } = getState();
     const allianceData = allAlliances.find(a => a.tag === currentUserData.alliance);
 
-    // --- START: Achievement Calculation ---
     const friendCount = userFriends.filter(f => f.status === 'friends').length;
     const likesGivenCount = allPlayers.filter(p => p.likedBy && p.likedBy.includes(currentUserData.uid)).length;
     const hasCustomAvatar = currentUserData.avatarUrl && !currentUserData.avatarUrl.includes('placehold.co');
-    // --- END: Achievement Calculation ---
 
     const skins = [
         // Default Skins
         { id: 'rank', label: 'Rank', unlocked: true },
         { id: 'alliance', label: 'Alliance', unlocked: true },
         { id: 'admin', label: 'Admin', unlocked: currentUserData.isAdmin },
+
+        // General Skins (Unlocked by default)
+        { id: 'sentinel', label: 'Sentinel', unlocked: true },
+        { id: 'cobalt', label: 'Cobalt', unlocked: true },
+        { id: 'solar', label: 'Solar', unlocked: true },
+        { id: 'amethyst', label: 'Amethyst', unlocked: true },
+        { id: 'cyber', label: 'Cyber', unlocked: true },
+        { id: 'crimson', label: 'Crimson', unlocked: true },
+        { id: 'glacial', label: 'Glacial', unlocked: true },
+        { id: 'venom', label: 'Venom', unlocked: true },
+        { id: 'ares', label: 'Ares', unlocked: true },
+        { id: 'nebula', label: 'Nebula', unlocked: true },
+        { id: 'chroma', label: 'Chroma', unlocked: true },
 
         // Achievement Skins
         { id: 'friend-1', label: 'Socialite', unlocked: friendCount >= 10, tooltip: 'Add 10 Friends' },
@@ -111,6 +134,7 @@ export function buildChatBubbleBorderSkins() {
         { id: 'like-1', label: 'Appreciator', unlocked: likesGivenCount >= 25, tooltip: 'Like 25 player profiles' },
         { id: 'like-2', label: 'Admirer', unlocked: likesGivenCount >= 50, tooltip: 'Like 50 player profiles' },
         { id: 'like-3', label: 'Idolizer', unlocked: likesGivenCount >= 100, tooltip: 'Like 100 player profiles' },
+        { id: 'celestial', label: 'Celestial', unlocked: likesGivenCount >= 250, tooltip: 'Like 250 player profiles' },
     ].filter(skin => skin.unlocked || (skin.tooltip && skin.id !== 'admin'));
 
     container.innerHTML = skins.map(skin => {

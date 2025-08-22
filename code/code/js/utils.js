@@ -277,20 +277,18 @@ export function getAvatarBorderClass(player, allianceData) {
 
     const skinType = player.avatarBorderSkin || 'rank';
 
-    // --- START: Achievement Skin Mapping ---
-    const achievementSkins = {
-        'friend-1': 'avatar-border-socialite',
-        'friend-2': 'avatar-border-networker',
-        'friend-3': 'avatar-border-superstar',
+    const skinMap = {
+        'friend-1': 'avatar-border-socialite', 'friend-2': 'avatar-border-networker', 'friend-3': 'avatar-border-superstar',
         'avatar-1': 'avatar-border-identified',
-        'like-1': 'avatar-border-appreciator',
-        'like-2': 'avatar-border-admirer',
-        'like-3': 'avatar-border-idolizer',
+        'like-1': 'avatar-border-appreciator', 'like-2': 'avatar-border-admirer', 'like-3': 'avatar-border-idolizer', 'celestial': 'avatar-border-celestial',
+        'sentinel': 'avatar-border-sentinel', 'cobalt': 'avatar-border-cobalt', 'solar': 'avatar-border-solar',
+        'amethyst': 'avatar-border-amethyst', 'cyber': 'avatar-border-cyber', 'crimson': 'avatar-border-crimson',
+        'glacial': 'avatar-border-glacial', 'venom': 'avatar-border-venom', 'ares': 'avatar-border-ares',
+        'nebula': 'avatar-border-nebula', 'chroma': 'avatar-border-chroma'
     };
-    if (achievementSkins[skinType]) {
-        return { className: achievementSkins[skinType], style: '' };
+    if (skinMap[skinType]) {
+        return { className: skinMap[skinType], style: '' };
     }
-    // --- END: Achievement Skin Mapping ---
 
     if (skinType === 'alliance') {
         if (allianceData?.primaryColor) {
@@ -323,25 +321,23 @@ export function getChatBubbleBorderClass(player, allianceData) {
 
     const skinType = player.chatBubbleBorderSkin || 'rank';
 
-    // --- START: Achievement Skin Mapping ---
-    const achievementSkins = {
-        'friend-1': 'chat-bubble-border-socialite',
-        'friend-2': 'chat-bubble-border-networker',
-        'friend-3': 'chat-bubble-border-superstar',
+    const skinMap = {
+        'friend-1': 'chat-bubble-border-socialite', 'friend-2': 'chat-bubble-border-networker', 'friend-3': 'chat-bubble-border-superstar',
         'avatar-1': 'chat-bubble-border-identified',
-        'like-1': 'chat-bubble-border-appreciator',
-        'like-2': 'chat-bubble-border-admirer',
-        'like-3': 'chat-bubble-border-idolizer',
+        'like-1': 'chat-bubble-border-appreciator', 'like-2': 'chat-bubble-border-admirer', 'like-3': 'chat-bubble-border-idolizer', 'celestial': 'chat-bubble-border-celestial',
+        'sentinel': 'chat-bubble-border-sentinel', 'cobalt': 'chat-bubble-border-cobalt', 'solar': 'chat-bubble-border-solar',
+        'amethyst': 'chat-bubble-border-amethyst', 'cyber': 'chat-bubble-border-cyber', 'crimson': 'chat-bubble-border-crimson',
+        'glacial': 'chat-bubble-border-glacial', 'venom': 'chat-bubble-border-venom', 'ares': 'chat-bubble-border-ares',
+        'nebula': 'chat-bubble-border-nebula', 'chroma': 'chat-bubble-border-chroma'
     };
-    if (achievementSkins[skinType]) {
-        return { className: achievementSkins[skinType], style: '' };
+    if (skinMap[skinType]) {
+        return { className: skinMap[skinType], style: '' };
     }
-    // --- END: Achievement Skin Mapping ---
 
     if (skinType === 'alliance') {
         if (allianceData?.primaryColor) {
             return {
-                className: 'chat-bubble-border-alliance',
+                className: 'alliance-border', // Use the same class as avatar for consistency
                 style: `border-color: ${allianceData.primaryColor};`
             };
         }
