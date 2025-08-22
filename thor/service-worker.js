@@ -1,46 +1,53 @@
-const CACHE_NAME = 'thor-tracker-cache-v3'; // Incremented version to force update
-const urlsToCache = [
+const CACHE_NAME = 'thor-tracker-cache-v4'; // Incremented version to force update
+const STATIC_ASSETS = [
   './',
-  './conductor.html'
-  // The manifest and icon are typically handled by the browser's install process,
-  // but caching the main files is most important.
+  './conductor.html',
+  './thor_tracker.jpeg',
+  './manifest.json'
 ];
 
+// 1. Install the service worker and cache the static assets
 self.addEventListener('install', event => {
-  // Perform install steps
+  console.log('[Service Worker] Install');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(function(cache) {
-        console.log('Opened cache and caching files.');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('[Service Worker] Pre-caching offline page');
+      return cache.addAll(STATIC_ASSETS);
+    })
   );
+  self.skipWaiting();
 });
 
-// Clean up old caches when a new service worker is activated
+// 2. Activate the service worker and clean up old caches
 self.addEventListener('activate', event => {
+  console.log('[Service Worker] Activate');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.filter(cache => cache !== CACHE_NAME)
-                  .map(cache => caches.delete(cache))
+                  .map(cache => {
+                    console.log('[Service Worker] Clearing old cache:', cache);
+                    return caches.delete(cache);
+                  })
       );
     })
   );
+  self.clients.claim();
 });
 
-
+// 3. Intercept fetch requests
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(function(response) {
-        // If the request is in the cache, return it
-        if (response) {
-          return response;
-        }
-        // Otherwise, fetch it from the network
-        return fetch(event.request);
-      }
-    )
-  );
+  // We only want to handle navigation requests (i.e., opening the app)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // If the network request fails (e.g., offline),
+        // serve the main conductor.html page from the cache.
+        console.log('[Service Worker] Fetch failed; returning offline page.');
+        return caches.match('./conductor.html');
+      })
+    );
+  }
+  // For other requests (images, etc.), you can add other strategies,
+  // but for now, we'll let them pass through to the network.
 });
