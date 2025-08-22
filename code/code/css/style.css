@@ -1083,8 +1083,8 @@ body {
 
 .chat-channel-icon {
     flex-shrink: 0;
-    width: 64px;
-    height: 64px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1103,14 +1103,14 @@ body {
 }
 
 .chat-channel-name {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #fff;
     line-height: 1.2;
 }
 
 .chat-channel-desc {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #a0a8b1;
 }
 
