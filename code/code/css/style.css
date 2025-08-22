@@ -1363,7 +1363,7 @@ body {
 .chat-bubble-border-superstar { border-width: 2px; }
 
 /* --- Avatar Upload --- */
-.avatar-border-identified, .chat-bubble-border-identified { border: 3px dashed #3b82f6; }
+.avatar-border-identified, .chat-bubble-border-identified { border: 2px dashed #3b82f6; }
 
 /* --- Like Achievements --- */
 .avatar-border-appreciator, .chat-bubble-border-appreciator { border: 3px solid #ec4899; box-shadow: 0 0 8px -1px #ec4899; }
