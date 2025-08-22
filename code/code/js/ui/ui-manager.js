@@ -59,29 +59,35 @@ export function updateSocialNavBadges({ convoCount, friendRequestCount }) {
 
     const totalSocialCount = socialBadges.convoCount + socialBadges.friendRequestCount;
 
-    // --- START: MODIFICATION FOR BADGE DISPLAY ---
     // Main Social Nav Badge
     const socialNavBadge = document.querySelector('.nav-link[data-main-target="page-social"] .badge');
     if (socialNavBadge) {
-        socialNavBadge.textContent = totalSocialCount;
-        socialNavBadge.classList.toggle('hidden', totalSocialCount === 0);
+        const shouldBeHidden = totalSocialCount === 0;
+        socialNavBadge.classList.toggle('hidden', shouldBeHidden);
+        if (!shouldBeHidden) {
+            socialNavBadge.textContent = totalSocialCount;
+        }
     }
 
     // "Private" Sub-Nav Badge
     const convoBadge = document.querySelector('.sub-nav-link[data-sub-target="social-convo"] .badge');
     if (convoBadge) {
-        convoBadge.textContent = socialBadges.convoCount;
-        convoBadge.classList.toggle('hidden', socialBadges.convoCount === 0);
+        const shouldBeHidden = socialBadges.convoCount === 0;
+        convoBadge.classList.toggle('hidden', shouldBeHidden);
+        if (!shouldBeHidden) {
+            convoBadge.textContent = socialBadges.convoCount;
+        }
     }
 
     // "Friends" Sub-Nav Badge
     const friendsBadge = document.querySelector('.sub-nav-link[data-sub-target="social-friends"] .badge');
     if (friendsBadge) {
-        friendsBadge.textContent = socialBadges.friendRequestCount;
-        friendsBadge.classList.toggle('hidden', socialBadges.friendRequestCount === 0);
+        const shouldBeHidden = socialBadges.friendRequestCount === 0;
+        friendsBadge.classList.toggle('hidden', shouldBeHidden);
+        if (!shouldBeHidden) {
+            friendsBadge.textContent = socialBadges.friendRequestCount;
+        }
     }
-    
-    // --- END: MODIFICATION FOR BADGE DISPLAY ---
 }
 
 /**
